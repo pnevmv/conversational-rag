@@ -164,6 +164,5 @@ llm_rag/
 ├── .env.example                  # Template for environment variables
 ├── .gitignore                    # Git ignore rules
 ├── requirements.txt              # Project dependencies
-├── SETUP.MD                      # Setup protocol & guidelines
 └── README.md                     # Project documentation
 ```
