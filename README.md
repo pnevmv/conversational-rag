@@ -45,13 +45,14 @@ The project develops and compares six progressive architectures:
 
 ## 4. Current Status
 
-The project is currently at **Step 3 (LLM Baseline)**:
+The project has completed **Step 3 (LLM Baseline)**:
 - [x] Azure OpenAI API integration verified (`gpt-5.4-nano-smirnov` via `LLMClient`).
 - [x] Secure environment configuration (`.env` template and `.gitignore`).
 - [x] Modular project architecture (`src/`, `experiments/`, `tests/`, `data/`).
 - [x] MultiDoc2Dial dataset integrated with a dedicated data loader (`src.data.loader`).
 - [x] Structured JSONL experiment logging established (`src.evaluation.logger`).
-- [ ] Evaluation procedure over a subset of MultiDoc2Dial (in progress).
+- [x] Deterministic 50-example validation benchmark executed on MultiDoc2Dial ([experiments/results/llm_baseline.jsonl](file:///Users/nothingtodo/VSCodeProjects/llm_rag/experiments/results/llm_baseline.jsonl)).
+- [ ] **Next Stage:** Step 4 — Conventional retrieval pipeline and RAG baseline.
 
 ---
 
@@ -59,18 +60,18 @@ The project is currently at **Step 3 (LLM Baseline)**:
 
 The planned progression follows the 10-step course of action outlined in the research plan:
 
-| Period | Step | Focus / Milestone |
-| :--- | :--- | :--- |
-| **Weeks 1–2** | **Step 1: Background Study** | Review *Knowledge Graphs and LLMs in Action* (Parts 1, 3, 5, 6). |
-| **Weeks 2–3** | **Step 2: Dataset Analysis** | Dataset analysis and preparation of MultiDoc2Dial (and EnronQA). |
-| **Weeks 3–4** | **Step 3: LLM Baseline** | LLM-only conversational baseline & evaluation pipeline on MultiDoc2Dial subset. |
-| **Weeks 4–6** | **Step 4: Retrieval and RAG** | Conventional retrieval baseline (chunking, embeddings, prompt augmentation). |
-| **Weeks 6–9** | **Step 5: KG Construction** | Unstructured document & email transformation into structured Knowledge Graphs. |
-| **Weeks 9–11** | **Step 6: KG-based Retrieval** | Natural language querying of Knowledge Graphs for conversational QA. |
-| **Weeks 11–14** | **Step 7: Graph RAG** | Hybrid architectures combining structured graph data and textual context. |
-| **Weeks 14–17** | **Step 8: Agent-based Approaches**| Autonomous agents for reasoning, query construction, and source selection. |
-| **Weeks 17–19** | **Step 9: Evaluation & Comparison** | Benchmarking across answer quality, retrieval recall, and grounding. |
-| **Weeks 19–22** | **Step 10: Error Analysis** | Hallucination analysis, failure modes on unanswerable questions, and research write-up. |
+| Period | Step | Focus / Milestone | Status |
+| :--- | :--- | :--- | :--- |
+| **Weeks 1–2** | **Step 1: Background Study** | Review *Knowledge Graphs and LLMs in Action* (Parts 1, 3, 5, 6). | Completed |
+| **Weeks 2–3** | **Step 2: Dataset Analysis** | Dataset analysis and preparation of MultiDoc2Dial (and EnronQA). | Completed |
+| **Weeks 3–4** | **Step 3: LLM Baseline** | LLM-only conversational baseline & evaluation pipeline on MultiDoc2Dial subset. | Completed |
+| **Weeks 4–6** | **Step 4: Retrieval and RAG** | Conventional retrieval baseline (chunking, embeddings, prompt augmentation). | Up Next |
+| **Weeks 6–9** | **Step 5: KG Construction** | Unstructured document & email transformation into structured Knowledge Graphs. | Planned |
+| **Weeks 9–11** | **Step 6: KG-based Retrieval** | Natural language querying of Knowledge Graphs for conversational QA. | Planned |
+| **Weeks 11–14** | **Step 7: Graph RAG** | Hybrid architectures combining structured graph data and textual context. | Planned |
+| **Weeks 14–17** | **Step 8: Agent-based Approaches**| Autonomous agents for reasoning, query construction, and source selection. | Planned |
+| **Weeks 17–19** | **Step 9: Evaluation & Comparison** | Benchmarking across answer quality, retrieval recall, and grounding. | Planned |
+| **Weeks 19–22** | **Step 10: Error Analysis** | Hallucination analysis, failure modes on unanswerable questions, and research write-up. | Planned |
 
 ---
 
@@ -104,24 +105,25 @@ AZURE_OPENAI_BASE_URL=https://2026-foundry.services.ai.azure.com/openai/v1
 LLM_MODEL=gpt-5.4-nano-smirnov
 ```
 
-### 4. Run Verification Scripts
+### 4. Run Scripts & Experiments
 
-- **Basic API Connectivity Test:**
+- **Basic API Connectivity Smoke Test:**
   ```bash
   python experiments/test_llm_basic.py
   ```
 
-- **Conversational Query Test:**
+- **Single Query Conversational Test:**
   ```bash
   python experiments/test_llm_conversation.py
   ```
 
-- **Baseline Run with JSONL Logging:**
+- **Run MultiDoc2Dial LLM-Only Baseline Benchmark (50 examples):**
   ```bash
-  python experiments/run_baseline.py
+  python experiments/llm_baseline.py
   ```
+  Results are deterministically saved to `experiments/results/llm_baseline.jsonl`.
 
-- **Run Unit Tests:**
+- **Run Automated Unit Tests:**
   ```bash
   python -m unittest discover tests
   ```
@@ -149,18 +151,22 @@ llm_rag/
 ├── experiments/                  # Experiment runners and benchmarks
 │   ├── test_llm_basic.py         # Smoke test for API connectivity
 │   ├── test_llm_conversation.py  # Single-query conversational test
-│   ├── run_baseline.py           # Baseline runner with JSONL logging
+│   ├── run_baseline.py           # Sample single-query runner with logging
+│   ├── llm_baseline.py           # MultiDoc2Dial 50-example baseline runner
+│   ├── results/                  # Benchmark evaluation outputs
+│   │   └── llm_baseline.jsonl    # 50 evaluated validation examples
 │   └── logs/                     # Experiment output logs (git-ignored)
 │
 ├── tests/                        # Automated unit tests
-│   └── test_client.py
+│   ├── test_client.py            # Client configuration tests
+│   └── test_data_loader.py       # MultiDoc2Dial loader & extraction tests
 │
 ├── data/                         # Datasets directory (git-ignored)
 │   └── multidoc2dial/
 │
 ├── notebooks/                    # Research & exploratory notebooks
 ├── scripts/                      # Utility and preprocessing scripts
-├── Initial_Research_Plan_Smirnov.pdf # Master's Thesis research plan
+├── Initial_Research_Plan_Smirnov.pdf # Research plan
 ├── .env.example                  # Template for environment variables
 ├── .gitignore                    # Git ignore rules
 ├── requirements.txt              # Project dependencies
