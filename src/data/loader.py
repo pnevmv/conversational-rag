@@ -69,10 +69,96 @@ def load_dialogues(
 
     dial_data = data.get("dial_data", {})
     if domain:
-        return dial_data.get(domain, [])
+        dialogues = dial_data.get(domain, [])
+        for dial in dialogues:
+            dial["domain"] = domain
+        return dialogues
 
-    # Concatenate across all domains
+    # Concatenate across all domains deterministically
     all_dialogues = []
-    for dom, dialogues in dial_data.items():
-        all_dialogues.extend(dialogues)
+    for dom in sorted(dial_data.keys()):
+        for dial in dial_data[dom]:
+            dial_copy = dict(dial)
+            dial_copy["domain"] = dom
+            all_dialogues.append(dial_copy)
     return all_dialogues
+
+
+def load_qa_pairs(
+    split: str = "validation",
+    domain: Optional[str] = None,
+    max_examples: Optional[int] = None,
+    data_dir: Optional[Path] = None,
+) -> List[Dict[str, Any]]:
+    """
+    Extract deterministic QA pairs from MultiDoc2Dial dialogues.
+
+    Each pair represents a user question followed by the ground-truth agent response.
+
+    Args:
+        split: 'train' or 'validation'.
+        domain: Optional domain filter ('dmv', 'ssa', 'va', 'studentaid').
+        max_examples: Maximum number of QA pairs to return.
+        data_dir: Path to directory containing dialogue files.
+
+    Returns:
+        List of dictionaries with keys:
+            - example_id (str)
+            - domain (str)
+            - dialogue_id (str)
+            - turn_id (int)
+            - question (str)
+            - reference_answer (str)
+            - document_id (Optional[str])
+            - grounding (List[Dict])
+    """
+    base_dir = data_dir or get_data_dir()
+    dial_file = base_dir / f"multidoc2dial_dial_{split}.json"
+
+    if not dial_file.exists():
+        raise FileNotFoundError(f"Dialogue file not found at: {dial_file}")
+
+    with open(dial_file, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    dial_data = data.get("dial_data", {})
+    domains_to_process = [domain] if domain else sorted(dial_data.keys())
+
+    qa_pairs: List[Dict[str, Any]] = []
+
+    for dom in domains_to_process:
+        dialogues = dial_data.get(dom, [])
+        for dial in dialogues:
+            dial_id = dial["dial_id"]
+            turns = dial.get("turns", [])
+            for i in range(len(turns) - 1):
+                u_turn = turns[i]
+                a_turn = turns[i + 1]
+
+                if u_turn.get("role") == "user" and a_turn.get("role") == "agent":
+                    q_text = u_turn.get("utterance", "").strip()
+                    ref_text = a_turn.get("utterance", "").strip()
+
+                    if q_text and ref_text:
+                        references = a_turn.get("references", [])
+                        ref_docs = [
+                            r["doc_id"] for r in references if "doc_id" in r
+                        ]
+
+                        qa_pairs.append(
+                            {
+                                "example_id": f"{dial_id}_{u_turn['turn_id']}",
+                                "domain": dom,
+                                "dialogue_id": dial_id,
+                                "turn_id": u_turn["turn_id"],
+                                "question": q_text,
+                                "reference_answer": ref_text,
+                                "document_id": ref_docs[0] if ref_docs else None,
+                                "grounding": references,
+                            }
+                        )
+
+                        if max_examples and len(qa_pairs) >= max_examples:
+                            return qa_pairs
+
+    return qa_pairs
