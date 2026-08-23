@@ -1,0 +1,454 @@
+{
+  "experiment": "llm_baseline",
+  "input_file": "experiments/results/rag_baseline.jsonl",
+  "total_examples": 50,
+  "evaluated": 49,
+  "skipped": 1,
+  "aggregate": {
+    "exact_match": 0.0,
+    "f1": 0.12108029112582272
+  },
+  "per_example": [
+    {
+      "example_id": "1409501a35697e0ce68561e29577b90a_1",
+      "domain": "dmv",
+      "question": "My insurance ended so what should i do",
+      "reference_answer": "You will need to get insurance or we will suspend your registration and license",
+      "model_answer": "The context you provided doesn’t mention insurance ending or what to do when insurance lapses. It only includes topics like replacing an escort driver certificate, replacing/lost/stolen VHIC cards, and mortgage help.\n\nIf you tell me which type of “insurance” you mean (e.g., escort driver certification, VHIC-related coverage, mortgage), I can answer using the provided context.",
+      "exact_match": 0.0,
+      "f1": 0.15151515151515152
+    },
+    {
+      "example_id": "1409501a35697e0ce68561e29577b90a_3",
+      "domain": "dmv",
+      "question": "Don't do that I'll get insurance",
+      "reference_answer": "Okay, have you received a letter from the DMV letting you know how to clear things up?",
+      "model_answer": "If you’re saying “I don’t have insurance—don’t do that, I’ll get insurance,” the context doesn’t explain what you should do next. It only includes a general prompt about what to do if you don’t have liability insurance, but not the steps or instructions.\n\n**Briefly: the context is not enough to answer what you must do if your insurance lapsed and you plan to get insurance.**",
+      "exact_match": 0.0,
+      "f1": 0.10526315789473684
+    },
+    {
+      "example_id": "1409501a35697e0ce68561e29577b90a_5",
+      "domain": "dmv",
+      "question": "I have, that is why I am here to clear that up and change the address on my license and registration",
+      "reference_answer": "Okay, we can take care of that",
+      "model_answer": "The context provided doesn’t say how to clear that up or specifically change the address on a driver’s license.\n\nIt *does* include a general reference about changing an address for SSA retirement benefits (item 3), and it mentions vehicle registration address questions in general (item 1) plus moving to New York and registering (item 5). But there’s no direct, step-by-step instruction for changing the address on your **license** and **vehicle registration**.\n\nIf you want, tell me which state/country your license is from and what address change you need (mailing address vs physical address), and I can try to match it to the relevant items in the context.",
+      "exact_match": 0.0,
+      "f1": 0.03773584905660377
+    },
+    {
+      "example_id": "1409501a35697e0ce68561e29577b90a_7",
+      "domain": "dmv",
+      "question": "Thank you so much. After looking through these requirements that I need to bring to DMV, can you tell me whether a GED certificate will be a valid proof of identification?",
+      "reference_answer": "Sure, it is. You can contact your college and get a certified copy.",
+      "model_answer": "The provided context doesn’t say whether a GED certificate is considered valid proof of identification for the DMV. It only references general DMV-related help (finding enough proof for ID#3) and Social Security document requirements, not DMV acceptance criteria.  \n\nSo I can’t determine from this context whether a GED certificate will be valid proof of identification for the DMV.",
+      "exact_match": 0.0,
+      "f1": 0.09230769230769231
+    },
+    {
+      "example_id": "1409501a35697e0ce68561e29577b90a_9",
+      "domain": "dmv",
+      "question": "Great. I think that I can found some bills, of some services, would that help too?",
+      "reference_answer": "Yes, as long as they be a phone, electricity, gas, water or cable bill.",
+      "model_answer": "The context doesn’t say anything about “bills” or which specific services can be covered in your situation. It only includes general topics like the Yellow Ribbon Program (funding amount), dental care eligibility (“Can I get VA dental care benefits for some or all of my dental care?”), and student loan relief options.\n\nSo I can’t determine from the provided context whether finding certain bills for services would help. If you tell me which program/service you mean (e.g., VA dental care, Yellow Ribbon, or student loan deferment/forbearance), I can try to align it with the relevant context.",
+      "exact_match": 0.0,
+      "f1": 0.0380952380952381
+    },
+    {
+      "example_id": "1409501a35697e0ce68561e29577b90a_11",
+      "domain": "dmv",
+      "question": "Can I use my union card?",
+      "reference_answer": "Yes, it's also a valid document, no matter if you have no longer that union job.",
+      "model_answer": "Yes—according to the context, “Union card” is listed as a way to provide enough proof of ID for name identification to bring to the DMV.",
+      "exact_match": 0.0,
+      "f1": 0.0
+    },
+    {
+      "example_id": "98c58a56af5e55754eeb7d427928ff66_1",
+      "domain": "dmv",
+      "question": "I need to change my address.",
+      "reference_answer": "You need to report it to the DMV.",
+      "model_answer": "The context only provides general guidance that there are processes to **change your address**, but it doesn’t give the specific steps for your situation. If you tell me which program you mean (e.g., **Escort driver certification**, **SSA retirement benefits**, **VA payments**, **VA medical records**, or **escrow accounts**), I can point to the relevant item.",
+      "exact_match": 0.0,
+      "f1": 0.13793103448275862
+    },
+    {
+      "example_id": "98c58a56af5e55754eeb7d427928ff66_4",
+      "domain": "dmv",
+      "question": "Yes, I just have to change the address.",
+      "reference_answer": "Unfortunately, no relevant information is found.",
+      "model_answer": "Yes—if you only need to change your address, you can follow the “change your address” process for the relevant agency:\n\n- **Social Security Administration (SSA):** “How to change your address?”  \n- **DMV documents:** “Change address”  \n- **Veterans Affairs:** “To change your address,”  \n- **Escort driver certification:** “What should I do if I need to change my address or name?”\n\nThe context doesn’t specify which agency you mean, so I can’t tell you the exact steps beyond pointing to these “change address” instructions.",
+      "exact_match": 0.0,
+      "f1": 0.025
+    },
+    {
+      "example_id": "98c58a56af5e55754eeb7d427928ff66_6",
+      "domain": "dmv",
+      "question": "What if my insurance had lapsed?",
+      "reference_answer": "Your license and registration could be suspended.",
+      "model_answer": "The provided context doesn’t give enough details about *what happens* if your insurance had lapsed. It only references that question (“Insurance lapses#3 — What will happen if I drive without insurance (with lapsed insurance)?”), but the actual answer isn’t included.\n\nIf you share the specific state/agency or any text from the referenced page, I can answer more precisely.",
+      "exact_match": 0.0,
+      "f1": 0.03278688524590164
+    },
+    {
+      "example_id": "98c58a56af5e55754eeb7d427928ff66_8",
+      "domain": "dmv",
+      "question": "Ok, yes, they are good alternatives. I know you ask a lot for birth certificates, but what if you don't have one handy?",
+      "reference_answer": "You can go and use the NYS Department of Health Vital Records to lend you a hand on that. You can even order those through an independent partner.",
+      "model_answer": "The context you provided doesn’t say what to do if you don’t have a birth certificate handy. It only mentions how to check the status of Social Security appeals and what to do about PTSD treatment if you don’t have VA health benefits.\n\nSo I can’t answer this question using the provided context.",
+      "exact_match": 0.0,
+      "f1": 0.18918918918918917
+    },
+    {
+      "example_id": "98c58a56af5e55754eeb7d427928ff66_10",
+      "domain": "dmv",
+      "question": "Going back to those alternate documents, can i use General Educational Development certificate as well?",
+      "reference_answer": "Sure. You can contact your college to ask them for a certified copy.",
+      "model_answer": "Yes. The context indicates that a **General Educational Development (GED) certificate** is considered a **recognized equivalent** to a high school diploma (e.g., for Federal Student Aid eligibility).",
+      "exact_match": 0.0,
+      "f1": 0.11428571428571427
+    },
+    {
+      "example_id": "98c58a56af5e55754eeb7d427928ff66_12",
+      "domain": "dmv",
+      "question": "Are you sure? I don't want to waste my time there.",
+      "reference_answer": "Absolutely, that document is totally valid for this procedure.",
+      "model_answer": "The context doesn’t say what “I” am confirming or provide any guidance for deciding whether to go anywhere—so there isn’t enough information to answer.",
+      "exact_match": 0.0,
+      "f1": 0.0625
+    },
+    {
+      "example_id": "56f37985586c76d125118233adb410fa_1",
+      "domain": "dmv",
+      "question": "how do i pay dial in search account fees?",
+      "reference_answer": "paying customers must include a deposit with the application. your first deposit must be enough to pay for two months of searches.",
+      "model_answer": "The provided context only shows the question “How do I pay DIAL-IN Search Account fees?” but it does not include the actual instructions for paying the fees. So I can’t answer how to pay based on this context alone.",
+      "exact_match": 0.0,
+      "f1": 0.18181818181818182
+    },
+    {
+      "example_id": "56f37985586c76d125118233adb410fa_4",
+      "domain": "dmv",
+      "question": "yes",
+      "reference_answer": "your deposit is added to your new account balance",
+      "model_answer": "The provided context only says **“Yes”** in general for two questions:\n\n- **SSI application denied:** You **can file an appeal** if your SSI application was denied.  \n- **VA disability ratings:** There **may be other factors** besides your disability rating that affect your compensation.\n\nHowever, the question you asked is just **“yes”** and doesn’t specify which of these you mean. The context isn’t enough to determine the exact intent—please clarify the full question.",
+      "exact_match": 0.0,
+      "f1": 0.1095890410958904
+    },
+    {
+      "example_id": "56f37985586c76d125118233adb410fa_6",
+      "domain": "dmv",
+      "question": "what about my browser?",
+      "reference_answer": "please update it to the newest version",
+      "model_answer": "The context only includes a generic “Note on browser compatibility” for a “DIAL-IN search accounts” page, but it doesn’t specify which browsers are supported or any details. So there isn’t enough information to answer what browsers will work.",
+      "exact_match": 0.0,
+      "f1": 0.09756097560975609
+    },
+    {
+      "example_id": "56f37985586c76d125118233adb410fa_8",
+      "domain": "dmv",
+      "question": "how do i contact the dmv about my dial in search account?",
+      "reference_answer": "you can contact us at : NYSDMV DIAL - IN AccountsRoom 2316 Empire State PlazaAlbany, NY 12228",
+      "model_answer": "The provided context only includes the question “How do I contact DMV about my Dial-in Search Account?” but it does **not** provide any details on *how* to contact DMV. Briefly, I don’t have enough information in the context to answer.",
+      "exact_match": 0.0,
+      "f1": 0.07692307692307693
+    },
+    {
+      "example_id": "56f37985586c76d125118233adb410fa_10",
+      "domain": "dmv",
+      "question": "what if i have to pay a fee?",
+      "reference_answer": "your account records will reflect youe debits and your credits and show your account balance. please visit our escrow accounts page.",
+      "model_answer": "The context includes multiple pages with questions like “What happens if I don’t pay?” and “What if I fail the course? Can I receive a course fee refund?”, but it doesn’t specify what *fee* you mean.\n\nWhich fee are you asking about (e.g., a toll fee, a course fee, a driver responsibility assessment, or an ACA health insurance penalty)?",
+      "exact_match": 0.0,
+      "f1": 0.027397260273972605
+    },
+    {
+      "example_id": "56f37985586c76d125118233adb410fa_12",
+      "domain": "dmv",
+      "question": "how will i know my application has been accepted?",
+      "reference_answer": "we will cerate an account for you, we will send yo your account number and password, your seven digit account number will never change.",
+      "model_answer": "The context only contains a similar question (“How will I know my application has been accepted?”) but it does not provide the actual answer. So there isn’t enough information here to say how you’ll know your application has been accepted.",
+      "exact_match": 0.0,
+      "f1": 0.06666666666666667
+    },
+    {
+      "example_id": "82ba8181a008d2f3f0d004846ff458c6_1",
+      "domain": "dmv",
+      "question": "I need to know how to pay the dial-in search account fees.",
+      "reference_answer": "The custoers must pay a deposit with the application, and it should be enough to pay for two months of searches.",
+      "model_answer": "The provided context mentions **“How do I pay DIAL-IN Search Account fees?”** but it does not include the actual payment instructions. So, the context isn’t enough to tell you how to pay the fees.",
+      "exact_match": 0.0,
+      "f1": 0.20833333333333334
+    },
+    {
+      "example_id": "82ba8181a008d2f3f0d004846ff458c6_4",
+      "domain": "dmv",
+      "question": "Yes, it was.",
+      "reference_answer": "then, your deposit will be added to your new account balance.",
+      "model_answer": "The context doesn’t provide enough information to determine what “Yes, it was” is referring to or answer the question. Please share the full question or more context.",
+      "exact_match": 0.0,
+      "f1": 0.05714285714285715
+    },
+    {
+      "example_id": "82ba8181a008d2f3f0d004846ff458c6_6",
+      "domain": "dmv",
+      "question": "Can you tell me some of the organizations that are exempt from the search fees?",
+      "reference_answer": "Some of the exempted organizations are any public organization, its officers, a volunteer fire company, volunteer ambulance service, etc. These organizations are exempt from the search fee.",
+      "model_answer": "The context only states that **“some organizations are exempt from search fees”** but does not specify which organizations. So, I can’t list them based on the provided information.",
+      "exact_match": 0.0,
+      "f1": 0.24000000000000002
+    },
+    {
+      "example_id": "82ba8181a008d2f3f0d004846ff458c6_8",
+      "domain": "dmv",
+      "question": "What to do in case none of the users performed a search that the DMV contacted me for?",
+      "reference_answer": "You should contact the DMV immediately.",
+      "model_answer": "If none of the known users performed the search, you should **check with the other users of your DIAL-IN account to see if one of them performed the search**.",
+      "exact_match": 0.0,
+      "f1": 0.13333333333333333
+    },
+    {
+      "example_id": "82ba8181a008d2f3f0d004846ff458c6_10",
+      "domain": "dmv",
+      "question": "Why would the DMV contact me about a search?",
+      "reference_answer": "The DMV may contact you to ask you about a search to make sure you comply with the Dial-In Terms of Service.",
+      "model_answer": "DMV may contact you about a **DIAL-IN search you performed**.",
+      "exact_match": 0.0,
+      "f1": 0.5714285714285714
+    },
+    {
+      "example_id": "82ba8181a008d2f3f0d004846ff458c6_12",
+      "domain": "dmv",
+      "question": "What if the search is done on behalf of a client?",
+      "reference_answer": "In that case, you'll have to give the permissible use of your client and a proof of your client-agent relationship.",
+      "model_answer": "If the search is done on behalf of a client, the context only indicates: **“If you performed the search on behalf of a client …”** but it does not provide the rest of the answer or details about what will happen (e.g., whether the DMV will contact you or the client).",
+      "exact_match": 0.0,
+      "f1": 0.1
+    },
+    {
+      "example_id": "d157d69d6ee78cabbc77dd57c4d41862_1",
+      "domain": "dmv",
+      "question": "I'm enquiring about out of state insurance docs",
+      "reference_answer": "We will never accept out - of - state vehicle insurance coverage of any type",
+      "model_answer": "The provided context only contains a heading about **“New York State Insurance Requirements — Out-of-state insurance documents”**, but it does not include the actual requirements or details.\n\nSo, **there isn’t enough information in the context to tell you what out-of-state insurance documents are required**. If you share the missing text (or ask a more specific question), I can help using that content.",
+      "exact_match": 0.0,
+      "f1": 0.05797101449275363
+    },
+    {
+      "example_id": "d157d69d6ee78cabbc77dd57c4d41862_4",
+      "domain": "dmv",
+      "question": "Yes",
+      "reference_answer": "it must have New York State auto liability insurance coverage.\nYour motorcycle must have insurance coverage any time it is operated on a public road or highway. Unlike most other motor vehicles , motorcycles are registered for one year rather than two",
+      "model_answer": "The provided context only shows “Yes” to multiple unrelated questions, but it does not include the specific question you’re referring to. I can’t determine the correct answer from the context alone.\n\nPlease paste the full question (or more context), and I’ll answer using only what’s given.",
+      "exact_match": 0.0,
+      "f1": 0.04938271604938272
+    },
+    {
+      "example_id": "d157d69d6ee78cabbc77dd57c4d41862_6",
+      "domain": "dmv",
+      "question": "Do I need insurance to register my vehicle?",
+      "reference_answer": "Yes the DMV requires auto liability insurance to register a vehicle in New York",
+      "model_answer": "The context indicates that New York State has a requirement about whether you need insurance to register your vehicle, but it does not provide the actual answer details. **So the context doesn’t contain enough information to say whether you need insurance to register your vehicle.**",
+      "exact_match": 0.0,
+      "f1": 0.22641509433962262
+    },
+    {
+      "example_id": "d157d69d6ee78cabbc77dd57c4d41862_8",
+      "domain": "dmv",
+      "question": "How long do I have to register?",
+      "reference_answer": "You must register your vehicle at the DMV within 180 days of the effective date on your insurance ID card",
+      "model_answer": "The provided context doesn’t include information about **how long you have to register**. It only mentions **how** to register a snowmobile at a DMV office, without any time limit.\n\nIf you tell me what you’re registering (e.g., snowmobile, car, driver documents, etc.), I can try again using the correct context.",
+      "exact_match": 0.0,
+      "f1": 0.125
+    },
+    {
+      "example_id": "d157d69d6ee78cabbc77dd57c4d41862_10",
+      "domain": "dmv",
+      "question": "Where can I find more information?",
+      "reference_answer": "The New York State Department of Financial Services website has more information about liability insurance and insurance companies licensed in New York : http://www.dfs.ny.gov",
+      "model_answer": "The context doesn’t specify which topic you mean. It only shows several “Where can I find more information?” items for different subjects (e.g., California emissions standards, and several Veterans Affairs resources like MST, substance use treatment, PTSD treatment, and women’s health).  \n\nWhich one are you asking about? If you tell me the topic, I can answer using the provided context.",
+      "exact_match": 0.0,
+      "f1": 0.0759493670886076
+    },
+    {
+      "example_id": "d157d69d6ee78cabbc77dd57c4d41862_12",
+      "domain": "dmv",
+      "question": "What kind of proof of insurance do I need?",
+      "reference_answer": "Your insurance company will issue proof of insurance in two ways: It will give you two original NY State Insurance ID Cards or provide you with access to your digital electronic NY State Insurance ID Card",
+      "model_answer": "The provided context does not say what kind of proof of insurance you need. It only includes general topics (e.g., types of insurance and Veterans benefits) and does not address proof requirements.",
+      "exact_match": 0.0,
+      "f1": 0.1791044776119403
+    },
+    {
+      "example_id": "389cc90cb2e3c1ef291ea78b73ece9d4_1",
+      "domain": "dmv",
+      "question": "Do I need insurance to register my vehicle?",
+      "reference_answer": "Yes. The DMV requires auto liability insurance to register a vehicle in New York",
+      "model_answer": "The provided context does not include the actual answer. It only shows the heading **“New York State Insurance Requirements#3 — Do I need insurance to register my vehicle?”** but no details. Please provide the missing text or another source excerpt.",
+      "exact_match": 0.0,
+      "f1": 0.16666666666666666
+    },
+    {
+      "example_id": "389cc90cb2e3c1ef291ea78b73ece9d4_4",
+      "domain": "dmv",
+      "question": "No",
+      "reference_answer": "Unfortunately, no relevant information is found.",
+      "model_answer": "The context provided doesn’t include enough information to determine what “No” is answering, because it isn’t connected to a specific question.",
+      "exact_match": 0.0,
+      "f1": 0.16
+    },
+    {
+      "example_id": "389cc90cb2e3c1ef291ea78b73ece9d4_6",
+      "domain": "dmv",
+      "question": "Where can I find more info?",
+      "reference_answer": "The New York State Department of Financial Services website has more information about liability insurance and insurance companies licensed in New York : http://www.dfs.ny.gov",
+      "model_answer": "The context only shows generic “Where can I find more information?” pages for several topics, but doesn’t specify the destinations beyond those titles. Here are the places mentioned in the context:\n\n- **California emissions standards#3 — Where can I find more information?**  \n- **Military Sexual Trauma (MST) | Veterans Affairs#1 — Where can I find more information and support?**  \n- **Substance Use Treatment For Veterans | Veterans Affairs#1 — Where can I find more information and support?**  \n- **PTSD Treatment | Veterans Affairs#1 — Where can I find more information and support?**  \n- **Women's Health Care Needs | Veterans Affairs#1 — Where can I find more information and support?**\n\nIf you tell me which topic you mean, I can help narrow it down.",
+      "exact_match": 0.0,
+      "f1": 0.0606060606060606
+    },
+    {
+      "example_id": "389cc90cb2e3c1ef291ea78b73ece9d4_8",
+      "domain": "dmv",
+      "question": "I'm glad to know, another question related to the letter that my car insurance issues, what if in the end I can't get insurance?",
+      "reference_answer": "In that case you need to surrender your vehicle registration and plates to the DMV immediately.",
+      "model_answer": "The context provided doesn’t say what happens if you *can’t* get insurance. It only mentions that (a) DMV letters may say your insurance lapsed, and (b) insurance can be cancelled or reinstated or you can get new insurance.  \n\nIf you want an answer based on this context, you’d need to specify what the DMV letter/order says (and what state/agency it’s from), because the details about failing to obtain insurance aren’t included here.",
+      "exact_match": 0.0,
+      "f1": 0.19512195121951217
+    },
+    {
+      "example_id": "389cc90cb2e3c1ef291ea78b73ece9d4_10",
+      "domain": "dmv",
+      "question": "Hold on. My wife just showed me another letter, in it they write that my license is suspended. What should I do now?",
+      "reference_answer": "The letter means your insurance company notified the DMV that your insurance coverage ended, and that no other company notified the DMV about new coverage.",
+      "model_answer": "If you received a letter saying your license is suspended, the context doesn’t provide the specific steps to take.\n\nIt only shows that there is a related question: “I received a Letter that states my license is suspended. What can I do?” but the actual instructions/details are not included.\n\nSo I can’t tell you what to do next based on the provided context alone.",
+      "exact_match": 0.0,
+      "f1": 0.10126582278481013
+    },
+    {
+      "example_id": "389cc90cb2e3c1ef291ea78b73ece9d4_12",
+      "domain": "dmv",
+      "question": "But what if I do have insurance?",
+      "reference_answer": "Then you should follow the instructions in the letter and contact your company or agent about the problem. Ask your company to file a notice of coverage with the DMV electronically.",
+      "model_answer": "The provided context doesn’t say what to do if you *do* have insurance. It only includes questions about what to do if you don’t have liability insurance and general insurance requirements, but nothing about handling DMV insurance letters when you already have coverage.\n\nIf you share the specific situation (e.g., DMV letter, what state, and what the letter/order asks for), I can answer based on the relevant context.",
+      "exact_match": 0.0,
+      "f1": 0.15555555555555556
+    },
+    {
+      "example_id": "04479f1bf3da15cdbb958078cb204a26_1",
+      "domain": "dmv",
+      "question": "Can you please tell me about the county use taxes and the supplemental fees?",
+      "reference_answer": "these are taxes that all residents of the New York City and several counties in New York have to pay when they register or renew a commercial vehicle.",
+      "model_answer": "Yes. The context indicates there are **“County use taxes and supplemental fees”** associated with **vehicle registration**. It also references that you can find information about these through:\n\n- **“County use taxes and supplemental fees”** (for both commercial and passenger vehicles).  \n- An **online estimation/chart** source: **“Estimate registration fees and taxes”**, which says you can use charts to estimate **registration fees, use taxes, and supplemental fees**, and specifically notes: **“See estimate registration fees and taxes [1] for information about county use taxes.”**  \n- A specific chart: **“County use tax chart for counties outside of New York City,”** which states the chart shows **use taxes and supplemental fees for all original registrations and renewals**.\n\nHowever, the provided context does **not** include the actual tax/fee amounts or detailed rules—only that such taxes/fees exist and where charts/estimates can be found.",
+      "exact_match": 0.0,
+      "f1": 0.1830065359477124
+    },
+    {
+      "example_id": "04479f1bf3da15cdbb958078cb204a26_4",
+      "domain": "dmv",
+      "question": "No, that's enough.",
+      "reference_answer": "Unfortunately, no relevant information is found.",
+      "model_answer": "The provided context doesn’t include the answer to that “No, that's enough” statement or any question to respond to. Please share the full question you want answered.",
+      "exact_match": 0.0,
+      "f1": 0.0
+    },
+    {
+      "example_id": "04479f1bf3da15cdbb958078cb204a26_6",
+      "domain": "dmv",
+      "question": "aactually, who's in charge of collecting the taxes?",
+      "reference_answer": "That would be the DMV who collects the taxes for the city and counties.",
+      "model_answer": "The provided context doesn’t say who is in charge of collecting taxes. It only mentions general topics like reporting parent information on a FAFSA and documents needed for a Social Security card, but not tax collection responsibilities.",
+      "exact_match": 0.0,
+      "f1": 0.17777777777777776
+    },
+    {
+      "example_id": "04479f1bf3da15cdbb958078cb204a26_9",
+      "domain": "dmv",
+      "question": "Yes, that's correct.",
+      "reference_answer": "You should complete form UT-11C.",
+      "model_answer": "I can’t tell what you’re trying to confirm or answer, because the context doesn’t include that specific statement or any details about your question.",
+      "exact_match": 0.0,
+      "f1": 0.0
+    },
+    {
+      "example_id": "04479f1bf3da15cdbb958078cb204a26_11",
+      "domain": "dmv",
+      "question": "What about the county use tax chart for counties outside of New York City?",
+      "reference_answer": "That chart shows the use taxes and supplemental fees for original registrations and renewals. Thes sales tax depends on the purchase proce of the vehicle and where you are located.",
+      "model_answer": "The provided context only indicates that there is a **“County use tax chart for counties outside of New York City”** for both **commercial** and **passenger** vehicles, but it does **not include the actual chart details**. So the question can’t be answered beyond noting that such a chart exists.",
+      "exact_match": 0.0,
+      "f1": 0.2
+    },
+    {
+      "example_id": "04479f1bf3da15cdbb958078cb204a26_13",
+      "domain": "dmv",
+      "question": "Now, what if I reside in New York City and am exempt from the NYC vehicle use tax?",
+      "reference_answer": "In that case, you should go to a local DMV and get form UT-11, You can also get it from a DMC call center.",
+      "model_answer": "The context says that **if you reside in New York City and you are exempt from the NYC vehicle use tax**, there are specific **county use tax and supplemental fee** details to follow, but it **doesn’t include those details** in the excerpt provided. So I can’t state what the fees/taxes are from this information alone.",
+      "exact_match": 0.0,
+      "f1": 0.21917808219178084
+    },
+    {
+      "example_id": "b1636bf0a27cb22b424bd5c572646dfa_1",
+      "domain": "dmv",
+      "question": "How do the county taxes work? how are they used?",
+      "reference_answer": "Residents of New York City and several counties in New York must pay a vehicle use tax when they register a commercial vehicle or renew a commercial vehicle registration .",
+      "model_answer": "The provided context only mentions **“County use taxes and supplemental fees”** for vehicle registration and does not explain **how the county taxes work** or **how the money is used**.  \n\nSo, there isn’t enough information in the context to answer your question.",
+      "exact_match": 0.0,
+      "f1": 0.19047619047619047
+    },
+    {
+      "example_id": "b1636bf0a27cb22b424bd5c572646dfa_4",
+      "domain": "dmv",
+      "question": "yes",
+      "reference_answer": "Ok great! Thank you for your response. You can ask the city or county you are in about that",
+      "model_answer": "The provided context doesn’t include a specific question—only “yes” and a few unrelated SSI/VA FAQ snippets. So there isn’t enough information to answer what “yes” refers to.\n\nIf you share the exact question you want answered, I can respond using only the context given.",
+      "exact_match": 0.0,
+      "f1": 0.10526315789473684
+    },
+    {
+      "example_id": "b1636bf0a27cb22b424bd5c572646dfa_6",
+      "domain": "dmv",
+      "question": "Is there anyway to become exempt from them?",
+      "reference_answer": "You can contact the DMV Call Center",
+      "model_answer": "The context doesn’t specify what “them” refers to, so I can’t answer directly.\n\nFrom the provided information, **exemptions exist** in some cases:\n- **DIAL-IN search accounts:** “Some organizations are exempt from search fees.”\n- **Sales tax:** “your vehicle registration is exempt from sales tax.”\n- **Federal Student Aid:** you “are exempt from registering” for Selective Service.\n- **California emissions standards:** some vehicles are “exempt.”\n\nIf you tell me what “them” means in your question (fees? sales tax? emissions? Selective Service?), I can point to the relevant exemption info from the context.",
+      "exact_match": 0.0,
+      "f1": 0.0449438202247191
+    },
+    {
+      "example_id": "b1636bf0a27cb22b424bd5c572646dfa_8",
+      "domain": "dmv",
+      "question": "Do you know where the centers are located?",
+      "reference_answer": "yes I do. New York City Bronx, Kings (Brooklyn), New York (Manhattan), Queens, Richmond (Staten Island)",
+      "model_answer": "The context doesn’t specify which “centers” you mean or provide any locations for them. If you share which centers (or a link/name for them), I can check the context again.",
+      "exact_match": 0.0,
+      "f1": 0.046511627906976744
+    },
+    {
+      "example_id": "b1636bf0a27cb22b424bd5c572646dfa_10",
+      "domain": "dmv",
+      "question": "What are the fees for that?",
+      "reference_answer": "The fees listed in the chart are for commercial vehicles that weigh less than 18,000 lbs",
+      "model_answer": "The context doesn’t provide enough details to identify which “fees for that” you mean, because it only mentions that **there are fees** for things like “duplicate IRP registration items,” but it doesn’t list the actual fee amounts.\n\nPlease tell me which item you’re referring to (e.g., **duplicate IRP registration items**, **escort driver certification**, etc.).",
+      "exact_match": 0.0,
+      "f1": 0.12121212121212123
+    },
+    {
+      "example_id": "b1636bf0a27cb22b424bd5c572646dfa_12",
+      "domain": "dmv",
+      "question": "how do I know if I have to pay or not?",
+      "reference_answer": "you can view and download the form here  complete form UT-11C",
+      "model_answer": "The context doesn’t provide enough information to determine **how to know whether you have to pay or not**.\n\nIt only includes a general question about the **driver responsibility assessment** (“How much do I have to pay?” / “What happens if I do not pay?”) and a separate **pay suspension termination fee** question (“How do I know if my license was mailed?”), but it doesn’t explain what conditions decide whether you must pay.\n\nIf you tell me which one applies to your situation (driver responsibility assessment vs. pay suspension termination fee), I can answer more directly from the available context.",
+      "exact_match": 0.0,
+      "f1": 0.05825242718446601
+    },
+    {
+      "example_id": "b1636bf0a27cb22b424bd5c572646dfa_14",
+      "domain": "dmv",
+      "question": "What about the taxes for outside counties of new york?",
+      "reference_answer": "The chart show the use taxes and supplemental fees for all original registrations and renewals",
+      "model_answer": "The context indicates that for **counties outside of New York City**, there are **county use tax charts** for both **commercial** and **passenger** vehicles (“County use tax chart for counties outside of New York City”). It also states that the **DMV collects the taxes for the city and the counties**.\n\nHowever, the context does **not** provide the actual tax rates/amounts from those charts.",
+      "exact_match": 0.0,
+      "f1": 0.1764705882352941
+    }
+  ]
+}

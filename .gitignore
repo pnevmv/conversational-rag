@@ -29,6 +29,9 @@ logs/
 *.zip
 *.tar.gz
 
+# Reference books (large binaries, copyrighted)
+*.pdf
+
 # OS specific files
 .DS_Store
 Thumbs.db

@@ -1,0 +1,200 @@
+Experiments Description
+Conversational System for RAG — MultiDoc2Dial Evaluation
+Danil Smirnov, M.Sc. Computer Engineering, University of Padua
+Supervisor: Prof. Gianmaria Silvello
+
+========================================================================
+EVALUATION SET
+========================================================================
+
+All experiments use the same deterministic subset of 50 examples drawn
+from the MultiDoc2Dial validation split. Examples are consecutive
+user→agent turn pairs extracted across all four domains (DMV, SSA, VA,
+StudentAid) in sorted domain order, capped at 50.
+
+Using the same evaluation set across all experiments is intentional: it
+allows the effect of each retrieval/knowledge mechanism to be studied
+independently of any variation in test data.
+
+Evaluation metrics:
+  - Exact Match (EM): 1 if normalised prediction equals normalised
+    reference, else 0. Normalisation: lowercase, remove punctuation,
+    remove articles (a/an/the), collapse whitespace.
+  - Token-level F1: harmonic mean of precision and recall computed over
+    bag-of-words token overlap between normalised prediction and
+    normalised reference answer.
+
+========================================================================
+EXPERIMENT 1 — LLM-ONLY BASELINE
+========================================================================
+
+Setup
+-----
+The model receives only the user question with no external context,
+no retrieved passages, and no document information.
+
+Prompt template:
+  "Answer the following question as accurately as possible.
+
+   Question:
+   {question}"
+
+Model: gpt-5.4-nano-smirnov (Azure OpenAI)
+Examples evaluated: 50 / 50
+Failures: 0
+
+Results
+-------
+  Exact Match : 0.00%
+  Token F1    : 7.53%
+
+Interpretation
+--------------
+Zero exact matches are expected: the reference answers are short,
+precise agent utterances ("You will need to get insurance or we will
+suspend your registration and license"), while the model generates
+multi-paragraph explanations. The token-level F1 of 7.53% captures
+incidental lexical overlap only.
+
+The key qualitative finding motivating retrieval: the model misinterprets
+ambiguous, domain-specific questions. For example, given:
+
+  Question:  "My insurance ended so what should i do"
+  Reference: "You will need to get insurance or we will suspend your
+              registration and license"
+
+The LLM-only model responded with general health insurance advice
+(Healthcare.gov, COBRA, Medicaid), having no way to know the question
+concerns DMV vehicle registration. Without access to the source
+documents, the model defaults to its parametric knowledge, which may
+match a different, more common interpretation of the question.
+
+This result establishes the control condition. Any improvement in
+subsequent experiments is attributable to the retrieval or knowledge
+mechanism added.
+
+========================================================================
+EXPERIMENT 2 — RAG BASELINE (BM25)
+========================================================================
+
+Setup
+-----
+A BM25 retriever (BM25Okapi, rank-bm25 library) is built over all
+35,659 spans extracted from 488 MultiDoc2Dial documents across all
+four domains. Each span is treated as an independent retrieval unit,
+matching the granularity of the dataset's gold grounding annotations,
+which point to specific span IDs rather than full documents.
+
+For each question, the top-5 spans are retrieved and formatted as a
+context block, which is prepended to the prompt:
+
+  "You are a helpful assistant. Answer the question using only the
+   context provided below. If the context does not contain enough
+   information, say so briefly.
+
+   Context:
+   [1] <document title>
+   <span text>
+   ...
+
+   Question:
+   {question}"
+
+Retrieval method : BM25Okapi (lexical, no embeddings)
+Corpus size      : 35,659 spans from 488 documents
+top_k            : 5
+Model            : gpt-5.4-nano-smirnov (Azure OpenAI)
+Examples evaluated: 49 / 50
+Failures          : 1 (Azure content filter false positive on example
+                    389cc90cb2e3c1ef291ea78b73ece9d4_14 — retrieved
+                    spans about licence suspension triggered a
+                    self-harm classifier at medium severity)
+
+Results
+-------
+  Exact Match  : 0.00%
+  Token F1     : 12.11%  (evaluated on 49 examples)
+
+  Retrieval quality (averaged over all 50 examples):
+    Recall@1   : 1.67%
+    Recall@5   : 2.33%
+
+Comparison to LLM-only baseline
+---------------------------------
+  Token F1 delta : +4.58 percentage points  (+60.8% relative)
+
+Best single-example improvement observed:
+
+  Question:   "Why would the DMV contact me about a search?"
+  Reference:  "The DMV may contact you to ask you about a search to
+               make sure you comply with the Dial-In Terms of Service."
+  LLM-only:   "The DMV typically wouldn't contact you about a search
+               unless your situation is connected to an investigation
+               involving motor-vehicle records..."  (F1: 0.087)
+  RAG answer: "DMV may contact you about a DIAL-IN search you
+               performed."  (F1: 0.571)
+
+  Retrieved span [1] (score 21.0):
+    "Will DMV contact me about the searches I perform using my
+     DIAL-IN Search Account?"
+    — DIAL-IN search accounts#3
+
+Interpretation
+--------------
+RAG with BM25 improves token F1 by a relative 60% over the LLM-only
+baseline, confirming that even modest lexical retrieval adds value over
+purely parametric knowledge. When BM25 retrieves the correct document
+family, the LLM produces a substantially more grounded answer.
+
+However, retrieval quality is the primary bottleneck. Recall@5 of 2.33%
+means BM25 almost never finds the correct span. There are two systematic
+causes:
+
+1. Vocabulary mismatch. BM25 is purely lexical. Many questions are
+   short conversational fragments ("Yes", "No", "I need to change my
+   address", "What if my insurance had lapsed?") with almost no keyword
+   overlap with the relevant document span. Without semantic
+   understanding or query expansion, BM25 cannot bridge this gap.
+
+2. Missing conversation history. Each question is processed in
+   isolation, without the preceding dialogue turns. Follow-up questions
+   that are intelligible only in context ("Do you know where the centers
+   are located?", "What are the fees for that?") cannot be resolved by
+   single-turn BM25 retrieval.
+
+Despite poor retrieval, F1 still improves because even off-target spans
+from the correct broad domain help orient the LLM and suppress
+out-of-domain hallucination.
+
+Exact Match remains 0% for the same reason as the LLM-only baseline:
+the model generates explanatory prose rather than reproducing the
+verbatim short reference answers.
+
+========================================================================
+EXPECTED PROGRESSION
+========================================================================
+
+These two results establish the lower bound of the comparison. Future
+experiments are expected to improve along two axes:
+
+Answer quality (EM / Token F1):
+  Dense retrieval (embeddings) would fix the vocabulary mismatch
+  problem identified above, providing much higher Recall@K and
+  therefore better-grounded LLM answers.
+
+  Knowledge Graph retrieval would provide structured, relational facts
+  that support precise, entity-grounded answers — particularly for
+  multi-hop questions spanning multiple documents.
+
+  Graph RAG would combine both structured and unstructured evidence.
+
+  Agentic approaches would additionally handle conversation history,
+  enabling resolution of follow-up questions that are currently
+  unanswerable by single-turn retrieval.
+
+Retrieval quality (Recall@K):
+  BM25 Recall@5 = 2.33% is a very low ceiling. Dense retrieval,
+  KG-based retrieval, and hybrid methods are each expected to raise
+  this substantially. Recall@K will be tracked alongside EM/F1 across
+  all future experiments to separate retrieval quality effects from
+  answer generation quality effects.
