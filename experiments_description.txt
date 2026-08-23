@@ -171,30 +171,120 @@ the model generates explanatory prose rather than reproducing the
 verbatim short reference answers.
 
 ========================================================================
+EXPERIMENT 3 — RAG DENSE BASELINE (BGE-SMALL)
+========================================================================
+
+Setup
+-----
+A dense retriever is built using the BAAI/bge-small-en-v1.5 embedding
+model (sentence-transformers, 384-dimensional embeddings). The same
+35,659 spans from 488 documents are indexed. Each span is embedded
+once and the index is cached to disk (data/cache/) for subsequent runs.
+
+Retrieval is exact cosine similarity via a matrix-vector dot product
+over L2-normalised embeddings. The BGE asymmetric retrieval convention
+is applied: queries are prepended with the instruction prefix
+"Represent this sentence for searching relevant passages: " while
+passage embeddings are built without any prefix.
+
+The prompt template and top_k=5 are identical to Experiment 2,
+ensuring a fair comparison of the retrieval method only.
+
+Retrieval method : Dense cosine similarity (bge-small-en-v1.5)
+Embedding dim    : 384
+Corpus size      : 35,659 spans from 488 documents
+Index build time : ~27 seconds on Apple MPS (cached thereafter)
+top_k            : 5
+Model            : gpt-5.4-nano-smirnov (Azure OpenAI)
+Examples evaluated: 50 / 50
+Failures          : 0
+
+Results
+-------
+  Exact Match  : 0.00%
+  Token F1     : 15.91%
+
+  Retrieval quality (averaged over all 50 examples):
+    Recall@1   : 3.67%
+    Recall@5   : 6.00%
+
+Comparison to previous experiments
+------------------------------------
+  Experiment          EM      Token F1   Recall@1   Recall@5   n
+  LLM-only          0.00%     7.53%        —          —        50
+  RAG BM25          0.00%    12.11%       1.67%      2.33%     49
+  RAG Dense (bge)   0.00%    15.91%       3.67%      6.00%     50
+
+  Token F1 vs LLM-only  : +8.38 pp  (+111% relative)
+  Token F1 vs RAG BM25  : +3.80 pp  (+31% relative)
+  Recall@5 vs RAG BM25  : +3.67 pp  (nearly tripled)
+
+Interpretation
+--------------
+Dense retrieval consistently outperforms BM25 on all metrics. The
+improvement in Recall@5 (2.33% → 6.00%) confirms the expected benefit
+of semantic matching over lexical matching: the model can bridge
+vocabulary gaps between conversational questions and document spans
+that share meaning but not exact terms.
+
+The absence of Azure content-filter failures (0 vs 1 for BM25) is
+likely incidental — a slightly different set of top-5 spans was
+retrieved for the problematic example, avoiding the trigger.
+
+Despite the improvement, Recall@5 of 6.00% remains low. The ceiling
+is imposed by the same structural problem as BM25: questions are
+processed in isolation without dialogue history. Single-turn dense
+retrieval cannot resolve follow-up turns such as "Yes", "No",
+"Where can I find more info?", or "What are the fees for that?" — these
+have no retrievable signal independent of the prior conversation.
+
+The F1 progression (7.53 → 12.11 → 15.91%) is monotonically
+increasing and each step is meaningful, establishing that retrieval
+quality and answer quality are correlated. The gap between 15.91% and
+a system with perfect retrieval (Recall@5 = 100%) represents the
+remaining opportunity for improvement via hybrid search, multi-turn
+query rewriting, and Knowledge Graph-based retrieval.
+
+========================================================================
+CUMULATIVE RESULTS SUMMARY
+========================================================================
+
+  Experiment          EM      Token F1   Recall@1   Recall@5
+  ---------------------------------------------------------------
+  LLM-only          0.00%     7.53%        —          —
+  RAG BM25          0.00%    12.11%       1.67%      2.33%
+  RAG Dense (bge)   0.00%    15.91%       3.67%      6.00%
+
+========================================================================
 EXPECTED PROGRESSION
 ========================================================================
 
-These two results establish the lower bound of the comparison. Future
-experiments are expected to improve along two axes:
+The three completed experiments establish a clear baseline ladder.
+Future experiments are expected to improve along two axes:
 
 Answer quality (EM / Token F1):
-  Dense retrieval (embeddings) would fix the vocabulary mismatch
-  problem identified above, providing much higher Recall@K and
-  therefore better-grounded LLM answers.
+  Hybrid retrieval (BM25 + dense, merged via reciprocal rank fusion)
+  is the next immediate step. It should raise both Recall@K and F1
+  by combining the complementary strengths of lexical and semantic
+  matching.
+
+  Multi-turn query rewriting (LLM rewrites the current turn into a
+  self-contained query using dialogue history) directly addresses the
+  dominant failure mode — decontextualised follow-up questions — and
+  is expected to produce the largest single improvement in Recall@K.
 
   Knowledge Graph retrieval would provide structured, relational facts
-  that support precise, entity-grounded answers — particularly for
+  supporting precise, entity-grounded answers — particularly for
   multi-hop questions spanning multiple documents.
 
-  Graph RAG would combine both structured and unstructured evidence.
+  Graph RAG would combine structured graph evidence with unstructured
+  passage context.
 
-  Agentic approaches would additionally handle conversation history,
-  enabling resolution of follow-up questions that are currently
-  unanswerable by single-turn retrieval.
+  Agentic approaches would dynamically route between retrieval tools
+  and manage conversation state.
 
 Retrieval quality (Recall@K):
-  BM25 Recall@5 = 2.33% is a very low ceiling. Dense retrieval,
-  KG-based retrieval, and hybrid methods are each expected to raise
-  this substantially. Recall@K will be tracked alongside EM/F1 across
-  all future experiments to separate retrieval quality effects from
-  answer generation quality effects.
+  Recall@K will be tracked alongside EM/F1 in all future experiments
+  to separate retrieval quality effects from answer generation quality
+  effects. The current ceiling (Recall@5 = 6.00%) is primarily a
+  single-turn retrieval limit, not a model limit.
