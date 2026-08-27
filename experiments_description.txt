@@ -246,45 +246,118 @@ remaining opportunity for improvement via hybrid search, multi-turn
 query rewriting, and Knowledge Graph-based retrieval.
 
 ========================================================================
+EXPERIMENT 4 — RAG HYBRID BASELINE (BM25 + BGE-SMALL, RRF)
+========================================================================
+
+Setup
+-----
+A hybrid retriever combines the BM25 retriever (Experiment 2) and the
+dense retriever (Experiment 3) via Reciprocal Rank Fusion (RRF).
+
+RRF merges ranked lists without requiring score normalisation. Each
+span's RRF score is the sum of 1 / (k + rank_i) across all rankers
+that retrieved it, where k=60 is the standard constant from Cormack
+et al. (2009). Spans that appear highly in both lists are boosted;
+spans from a single list are scored by how highly that list placed them.
+
+To give fusion a meaningful pool to work with, each ranker retrieves
+pool_factor × top_k candidates (pool_factor=3, so 15 per ranker).
+The merged list is then truncated to top_k=5.
+
+Retrieval method : RRF over BM25 + bge-small-en-v1.5
+pool_factor      : 3  (each ranker retrieves 15 candidates)
+RRF k constant   : 60
+top_k            : 5
+Model            : gpt-5.4-nano-smirnov (Azure OpenAI)
+Examples evaluated: 50 / 50
+Failures          : 0
+
+Results
+-------
+  Exact Match  : 0.00%
+  Token F1     : 14.32%
+
+  Retrieval quality (averaged over all 50 examples):
+    Recall@1   : 1.67%
+    Recall@5   : 5.00%
+
+========================================================================
 CUMULATIVE RESULTS SUMMARY
 ========================================================================
 
-  Experiment          EM      Token F1   Recall@1   Recall@5
-  ---------------------------------------------------------------
-  LLM-only          0.00%     7.53%        —          —
-  RAG BM25          0.00%    12.11%       1.67%      2.33%
-  RAG Dense (bge)   0.00%    15.91%       3.67%      6.00%
+  Experiment                    EM    Token F1  Recall@1  Recall@5   n
+  ----------------------------------------------------------------------
+  LLM-only                    0.00%    7.53%      —         —        50
+  RAG BM25                    0.00%   12.11%     1.67%     2.33%     49
+  RAG Dense (bge-small)       0.00%   15.91%     3.67%     6.00%     50
+  RAG Hybrid (BM25+dense,RRF) 0.00%   14.32%     1.67%     5.00%     50
+
+========================================================================
+ANALYSIS — HYBRID vs DENSE
+========================================================================
+
+The hybrid retriever does not outperform dense retrieval alone on this
+dataset. Token F1 is 14.32% vs 15.91% for dense, and Recall@1 drops
+from 3.67% to 1.67%.
+
+This is a known failure mode of naive score fusion: when one ranker is
+substantially weaker than the other, its rankings introduce noise that
+the fusion cannot filter. In this case, BM25 (Recall@5 = 2.33%)
+corrupts the dense ranker's top results (Recall@5 = 6.00%) by
+displacing high-quality dense hits with lexically matched but
+semantically irrelevant spans.
+
+The effect is most visible at Recall@1: the dense retriever puts the
+correct span at rank 1 in 3.67% of cases, but RRF demotes some of
+those to ranks 2–5 because BM25 placed an unrelated lexical match at
+rank 1 and the RRF score for that span exceeded the dense span's score.
+
+This finding is meaningful for the research comparison:
+
+1. On MultiDoc2Dial's short conversational queries, dense retrieval
+   alone is the better single-method baseline over BM25 or their
+   naive fusion.
+
+2. Hybrid retrieval can be expected to help once both component
+   rankers are strong. With multi-turn query rewriting, BM25 would
+   receive a richer, more keyword-rich query and its recall would
+   likely approach that of dense retrieval, making fusion beneficial.
+
+3. The result illustrates a general principle discussed in the
+   retrieval literature: hybrid methods are most effective when the
+   component rankers are complementary (high recall overlap but
+   different rank orderings) rather than when one dominates the other.
 
 ========================================================================
 EXPECTED PROGRESSION
 ========================================================================
 
-The three completed experiments establish a clear baseline ladder.
-Future experiments are expected to improve along two axes:
+The four completed experiments establish the retrieval baseline ladder.
+The dominant failure mode across all experiments remains the same:
+single-turn retrieval on decontextualised conversational questions.
+"Yes", "No", "Where can I find more info?", "What are the fees for
+that?" carry no standalone retrieval signal regardless of retrieval
+method. Recall@5 = 6.00% is a single-turn ceiling, not a model limit.
 
-Answer quality (EM / Token F1):
-  Hybrid retrieval (BM25 + dense, merged via reciprocal rank fusion)
-  is the next immediate step. It should raise both Recall@K and F1
-  by combining the complementary strengths of lexical and semantic
-  matching.
+Next steps in order of expected impact:
 
-  Multi-turn query rewriting (LLM rewrites the current turn into a
-  self-contained query using dialogue history) directly addresses the
-  dominant failure mode — decontextualised follow-up questions — and
-  is expected to produce the largest single improvement in Recall@K.
+1. Multi-turn query rewriting. The LLM rewrites the current user turn
+   into a self-contained query using the preceding dialogue history.
+   This directly addresses the dominant failure mode and is expected
+   to produce the largest single improvement in Recall@K. With richer
+   queries, BM25 would also become more competitive, making hybrid
+   fusion beneficial.
 
-  Knowledge Graph retrieval would provide structured, relational facts
-  supporting precise, entity-grounded answers — particularly for
-  multi-hop questions spanning multiple documents.
+2. Knowledge Graph retrieval. Structured entity and relation retrieval
+   supports precise, grounded answers for multi-hop questions spanning
+   multiple documents — a qualitatively different information source
+   from passage retrieval.
 
-  Graph RAG would combine structured graph evidence with unstructured
-  passage context.
+3. Graph RAG. Combines structured KG evidence with unstructured
+   passage context.
 
-  Agentic approaches would dynamically route between retrieval tools
-  and manage conversation state.
+4. Agentic approaches. Dynamic routing between retrieval tools with
+   explicit conversation state management.
 
-Retrieval quality (Recall@K):
-  Recall@K will be tracked alongside EM/F1 in all future experiments
-  to separate retrieval quality effects from answer generation quality
-  effects. The current ceiling (Recall@5 = 6.00%) is primarily a
-  single-turn retrieval limit, not a model limit.
+Recall@K will be tracked alongside EM/F1 in all future experiments
+to separate retrieval quality from answer generation quality.

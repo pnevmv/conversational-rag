@@ -61,7 +61,10 @@ Six progressive architectures are developed and compared:
   - Result: Token F1 **12.11%**, Recall@5 2.33%.
 - [x] Dense retriever using `BAAI/bge-small-en-v1.5` embeddings, cosine similarity, disk-cached index (`src/rag/dense_retriever.py`).
   - Result: Token F1 **15.91%**, Recall@5 6.00%.
-- [x] 10 unit tests for BM25 retriever, 10 for dense retriever.
+- [x] Hybrid retriever combining BM25 + dense via Reciprocal Rank Fusion (`src/rag/hybrid_retriever.py`).
+  - Result: Token F1 **14.32%**, Recall@5 5.00%.
+  - Dense alone outperforms hybrid — BM25 adds noise on short conversational queries.
+- [x] 10 unit tests for BM25, 10 for dense, 9 for hybrid/RRF.
 
 ### Experiment Results (MultiDoc2Dial validation, 50 examples)
 
@@ -69,13 +72,14 @@ Six progressive architectures are developed and compared:
 | :--- | :---: | :---: | :---: |
 | LLM-only baseline | 7.53% | — | — |
 | RAG — BM25 | 12.11% | 1.67% | 2.33% |
+| RAG — Hybrid (BM25 + dense, RRF) | 14.32% | 1.67% | 5.00% |
 | RAG — Dense (bge-small) | **15.91%** | **3.67%** | **6.00%** |
 
 See [`experiments_description.txt`](experiments_description.txt) for full analysis.
 
 ### Next Stage
 
-**Step 4 (continued):** Hybrid retrieval (BM25 + dense, reciprocal rank fusion) and multi-turn query rewriting.
+**Step 4 (continued):** Multi-turn query rewriting — rewrite each user turn into a standalone query using dialogue history, addressing the dominant retrieval failure mode.
 
 ---
 
@@ -131,8 +135,9 @@ LLM_MODEL=gpt-5.4-nano-smirnov
 | `python experiments/llm_baseline.py` | LLM-only baseline (50 examples) |
 | `python experiments/rag_baseline.py` | BM25 RAG baseline |
 | `python experiments/rag_dense_baseline.py` | Dense RAG baseline (bge-small; builds index on first run) |
+| `python experiments/rag_hybrid_baseline.py` | Hybrid RAG baseline (BM25 + dense, RRF) |
 | `python experiments/evaluate_baseline.py --input experiments/results/<file>.jsonl` | Evaluate any result file |
-| `python -m unittest discover tests` | Run all unit tests (33 tests) |
+| `python -m unittest discover tests` | Run all unit tests (52 tests) |
 
 ### 5. Note on Dense Index
 
@@ -154,7 +159,8 @@ llm_rag/
 │   │   └── logger.py
 │   ├── rag/                      # Retrieval components
 │   │   ├── retriever.py          # BM25 retriever
-│   │   └── dense_retriever.py    # Dense retriever (bge-small)
+│   │   ├── dense_retriever.py    # Dense retriever (bge-small)
+│   │   └── hybrid_retriever.py   # Hybrid retriever (BM25 + dense, RRF)
 │   ├── kg/                       # Knowledge Graph (Stage 5–6, planned)
 │   └── agents/                   # Agentic orchestration (Stage 8, planned)
 │
@@ -162,6 +168,7 @@ llm_rag/
 │   ├── llm_baseline.py           # LLM-only baseline runner
 │   ├── rag_baseline.py           # BM25 RAG baseline runner
 │   ├── rag_dense_baseline.py     # Dense RAG baseline runner
+│   ├── rag_hybrid_baseline.py    # Hybrid RAG baseline runner (BM25 + dense, RRF)
 │   ├── evaluate_baseline.py      # Evaluation script (EM + token F1)
 │   ├── test_llm_basic.py         # API connectivity smoke test
 │   ├── test_llm_conversation.py  # Single-query conversational test
@@ -171,14 +178,17 @@ llm_rag/
 │       ├── rag_baseline.jsonl
 │       ├── rag_baseline_evaluation.json
 │       ├── rag_dense_baseline.jsonl
-│       └── rag_dense_baseline_evaluation.json
+│       ├── rag_dense_baseline_evaluation.json
+│       ├── rag_hybrid_baseline.jsonl
+│       └── rag_hybrid_baseline_evaluation.json
 │
 ├── tests/
 │   ├── test_client.py
 │   ├── test_data_loader.py
 │   ├── test_evaluation_metrics.py
 │   ├── test_retriever.py
-│   └── test_dense_retriever.py
+│   ├── test_dense_retriever.py
+│   └── test_hybrid_retriever.py
 │
 ├── data/
 │   ├── multidoc2dial/            # Dataset files (git-ignored)
