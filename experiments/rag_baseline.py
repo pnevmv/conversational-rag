@@ -51,9 +51,10 @@ def recall_at_k(
     if not gold_pairs:
         return 0.0
 
-    retrieved_pairs = {
-        (r["doc_id"], str(r["id_sp"])) for r in retrieved[:k]
-    }
+    retrieved_pairs: set = set()
+    for r in retrieved[:k]:
+        for sp_id in r.get("span_ids", [str(r["id_sp"])]):
+            retrieved_pairs.add((r["doc_id"], str(sp_id)))
     matched = gold_pairs & retrieved_pairs
     return len(matched) / len(gold_pairs)
 

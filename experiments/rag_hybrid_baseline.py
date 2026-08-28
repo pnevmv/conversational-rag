@@ -38,7 +38,10 @@ def recall_at_k(retrieved: List[Dict], grounding: List[Dict], k: int) -> float:
     gold = {(g["doc_id"], str(g["id_sp"])) for g in grounding if "doc_id" in g and "id_sp" in g}
     if not gold:
         return 0.0
-    retrieved_set = {(r["doc_id"], str(r["id_sp"])) for r in retrieved[:k]}
+    retrieved_set: set = set()
+    for r in retrieved[:k]:
+        for sp_id in r.get("span_ids", [str(r["id_sp"])]):
+            retrieved_set.add((r["doc_id"], str(sp_id)))
     return len(gold & retrieved_set) / len(gold)
 
 

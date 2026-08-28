@@ -84,6 +84,77 @@ def load_dialogues(
     return all_dialogues
 
 
+def _doc_to_sections(doc_id: str, doc: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """
+    Split a document into sections, each composed of a heading span and all
+    following content spans until the next heading.
+
+    The joined section text is what gets indexed for retrieval. span_ids records
+    every individual span ID within the section so Recall@K can still be checked
+    against the dataset's per-span grounding annotations.
+    """
+    title = doc.get("title", doc_id)
+    raw_spans = doc.get("spans", {})
+    sorted_spans = sorted(raw_spans.items(), key=lambda x: int(x[0]))
+
+    heading_tags = {"h1", "h2", "h3", "h4", "h5", "h6"}
+    sections: List[Dict[str, Any]] = []
+
+    cur_heading = ""
+    cur_heading_id: Optional[str] = None
+    cur_texts: List[str] = []
+    cur_ids: List[str] = []
+
+    def _flush() -> None:
+        if not cur_ids:
+            return
+        sections.append({
+            "doc_id": doc_id,
+            "id_sp": cur_heading_id or cur_ids[0],
+            "span_ids": list(cur_ids),
+            "title": title,
+            "section_title": cur_heading,
+            "text": " ".join(cur_texts),
+        })
+
+    for span_id, span in sorted_spans:
+        tag = span.get("tag", "u")
+        text = span.get("text_sp", "").strip()
+        id_sp = str(span.get("id_sp", span_id))
+
+        if tag in heading_tags:
+            _flush()
+            cur_heading = text
+            cur_heading_id = id_sp
+            cur_texts = [text] if text else []
+            cur_ids = [id_sp]
+        else:
+            if text:
+                cur_texts.append(text)
+                cur_ids.append(id_sp)
+
+    _flush()
+    return sections
+
+
+def load_sections(
+    domain: Optional[str] = None, data_dir: Optional[Path] = None
+) -> List[Dict[str, Any]]:
+    """
+    Load all MultiDoc2Dial documents as a flat list of sections.
+
+    Each section dict contains:
+        doc_id, id_sp (heading span id or first content span id),
+        span_ids (all individual span IDs in the section),
+        title (document title), section_title (heading text), text (joined text).
+    """
+    docs = load_documents(domain=domain, data_dir=data_dir)
+    sections: List[Dict[str, Any]] = []
+    for doc_id, doc in docs.items():
+        sections.extend(_doc_to_sections(doc_id, doc))
+    return sections
+
+
 def load_qa_pairs(
     split: str = "validation",
     domain: Optional[str] = None,

@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Optional
 
 from rank_bm25 import BM25Okapi
 
-from src.data.loader import load_documents
+from src.data.loader import load_sections
 
 
 def _tokenize(text: str) -> List[str]:
@@ -14,11 +14,13 @@ def _tokenize(text: str) -> List[str]:
 
 class BM25Retriever:
     """
-    BM25-based retriever over MultiDoc2Dial document spans.
+    BM25-based retriever over MultiDoc2Dial document sections.
 
-    Each span (a pre-defined text segment within a document) is treated as
-    an independent retrieval unit. This mirrors the dataset's grounding
-    annotations, which point to specific span IDs rather than full documents.
+    Each section (heading + all following content spans until the next heading)
+    is the retrieval unit. This avoids indexing bare heading spans that carry
+    no answer text. span_ids on each result lists all individual span IDs in
+    the section, so Recall@K can be checked against the dataset's per-span
+    grounding annotations.
 
     The index is built lazily on the first call to retrieve().
     """
@@ -30,24 +32,8 @@ class BM25Retriever:
         self._bm25: Optional[BM25Okapi] = None
 
     def _build_index(self) -> None:
-        """Load all document spans and build the BM25 index."""
-        docs = load_documents(domain=self._domain, data_dir=self._data_dir)
-
-        for doc_id, doc in docs.items():
-            title = doc.get("title", doc_id)
-            spans = doc.get("spans", {})
-            for span_id, span in spans.items():
-                text = span.get("text_sp", "").strip()
-                if not text:
-                    continue
-                self._spans.append({
-                    "doc_id": doc_id,
-                    "id_sp": span.get("id_sp", span_id),
-                    "title": title,
-                    "text": text,
-                    "section_title": span.get("title", ""),
-                })
-
+        """Load all document sections and build the BM25 index."""
+        self._spans = load_sections(domain=self._domain, data_dir=self._data_dir)
         tokenized_corpus = [_tokenize(s["text"]) for s in self._spans]
         self._bm25 = BM25Okapi(tokenized_corpus)
 
@@ -80,6 +66,7 @@ class BM25Retriever:
                 "rank": rank,
                 "doc_id": span["doc_id"],
                 "id_sp": span["id_sp"],
+                "span_ids": span.get("span_ids", [str(span["id_sp"])]),
                 "title": span["title"],
                 "section_title": span["section_title"],
                 "text": span["text"],

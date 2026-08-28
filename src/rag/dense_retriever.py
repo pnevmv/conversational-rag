@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Optional
 
 from sentence_transformers import SentenceTransformer
 
-from src.data.loader import load_documents
+from src.data.loader import load_sections
 
 MODEL_NAME = "BAAI/bge-small-en-v1.5"
 
@@ -18,8 +18,8 @@ def _cache_paths(model_name: str, domain: Optional[str], cache_dir: Path):
     safe = model_name.replace("/", "_")
     suffix = f"_{domain}" if domain else ""
     return (
-        cache_dir / f"dense_spans{suffix}.json",
-        cache_dir / f"dense_embeddings_{safe}{suffix}.npy",
+        cache_dir / f"dense_sections{suffix}.json",
+        cache_dir / f"dense_embeddings_{safe}_sections{suffix}.npy",
     )
 
 
@@ -68,26 +68,9 @@ class DenseRetriever:
             print(f"Loaded {len(self._spans):,} spans.")
             return
 
-        print("Loading documents...")
-        docs = load_documents(domain=self._domain, data_dir=self._data_dir)
-
-        spans = []
-        for doc_id, doc in docs.items():
-            title = doc.get("title", doc_id)
-            for span_id, span in doc.get("spans", {}).items():
-                text = span.get("text_sp", "").strip()
-                if not text:
-                    continue
-                spans.append({
-                    "doc_id": doc_id,
-                    "id_sp": span.get("id_sp", span_id),
-                    "title": title,
-                    "section_title": span.get("title", ""),
-                    "text": text,
-                })
-
-        self._spans = spans
-        texts = [s["text"] for s in spans]
+        print("Loading document sections...")
+        self._spans = load_sections(domain=self._domain, data_dir=self._data_dir)
+        texts = [s["text"] for s in self._spans]
 
         print(f"Loading model: {self._model_name}")
         model = self._get_model()
@@ -103,9 +86,9 @@ class DenseRetriever:
 
         print("Saving index to cache...")
         with open(spans_path, "w", encoding="utf-8") as f:
-            json.dump(spans, f, ensure_ascii=False)
+            json.dump(self._spans, f, ensure_ascii=False)
         np.save(str(emb_path), self._embeddings)
-        print(f"Index saved: {len(spans):,} spans, shape {self._embeddings.shape}.")
+        print(f"Index saved: {len(self._spans):,} sections, shape {self._embeddings.shape}.")
 
     def retrieve(self, query: str, top_k: int = 5) -> List[Dict[str, Any]]:
         """
@@ -133,6 +116,7 @@ class DenseRetriever:
                 "rank": rank,
                 "doc_id": self._spans[idx]["doc_id"],
                 "id_sp": self._spans[idx]["id_sp"],
+                "span_ids": self._spans[idx].get("span_ids", [str(self._spans[idx]["id_sp"])]),
                 "title": self._spans[idx]["title"],
                 "section_title": self._spans[idx]["section_title"],
                 "text": self._spans[idx]["text"],
