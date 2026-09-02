@@ -530,3 +530,77 @@ Key findings
    F1 (21.77%) and 33% abstain rate.
 3. Query rewriting gives highest answerable F1 (21.70%) and domain recall
    (87.2%), at the cost of one extra LLM call per turn and 0% abstain.
+
+========================================================================
+PIPELINE ADDITIONS — SCORE THRESHOLD ABSTAIN & DOC-SWITCH METRIC (v4)
+========================================================================
+
+Two additions motivated by analysis of v3 failure modes.
+
+Addition 1 — Score-threshold abstain
+--------------------------------------
+All 4 RAG experiment scripts now accept --score-threshold <float>.
+If the top-1 retrieved section's score is below the threshold, the
+system returns the abstention phrase directly without calling the LLM.
+The top retrieval score is also logged in every output record as
+top_retrieval_score, enabling post-hoc threshold analysis.
+
+Score field used per retriever:
+  BM25    → score  (raw BM25 value, range ~0–30 on this corpus)
+  Dense   → score  (cosine similarity, range ~0.5–0.9)
+  Hybrid  → rrf_score  (RRF fusion score, range ~0.016–0.034)
+  Rewrite → rrf_score  (same, after rewriting the query)
+
+Finding: the threshold approach does not work for the hybrid/rewrite
+pipeline. Unanswerable examples get RRF scores of 0.0323–0.0328,
+which is at or above the answerable median (0.0320). Setting any
+threshold that catches all 3 unanswerable examples would also trigger
+abstention on the majority of answerable ones. The threshold is more
+viable for BM25 where unanswerable questions sometimes produce zero
+keyword matches.
+
+Addition 2 — Document-switch metric
+-------------------------------------
+loader.py now tags each QA pair with is_doc_switch=True when the gold
+document_id differs from the previous agent turn's document_id within
+the same dialogue. This identifies turns where the dialogue shifts to
+a new source document.
+
+evaluate_baseline.py now reports a doc-switch / same-doc breakdown
+alongside the answerable/unanswerable split, including F1 and Recall@5
+for each subset.
+
+V4 RESULTS (re-run with new fields, same 50-example set)
+---------------------------------------------------------
+  Experiment              EM     F1    F1(ans) F1(un) Abst  R@1   R@5  DomR
+  -----------------------------------------------------------------------
+  LLM-only              0.00% 14.20% 15.04%  1.06%    0%    —     —     —
+  RAG BM25              4.00% 19.89% 16.90% 66.67%   67%  12%   22%   58%
+  RAG Dense (bge)       2.00% 19.19% 18.21% 34.55%   33%  20%   38%   67%
+  RAG Hybrid (RRF)      2.00% 20.98% 20.14% 34.23%   33%  12%   36%   64%
+  RAG Hybrid + Rewrite  0.00% 20.41% 21.64%  1.11%    0%  28%   44%   87%
+
+Doc-switch breakdown (9 of 50 examples switch document mid-dialogue):
+  Experiment        Doc-switch R@5   Same-doc R@5
+  LLM-only                  —               —
+  RAG BM25               44.4%           17.1%
+  RAG Dense              22.2%           41.5%
+  RAG Hybrid             55.6%           31.7%
+  RAG Hybrid + Rewrite   22.2%           56.1%
+
+Key findings
+-------------
+1. Score threshold is not a reliable abstain signal for hybrid/dense
+   retrievers. Unanswerable examples score as highly as answerable ones
+   because query rewriting makes the query specific enough to always
+   find plausible-looking context. Abstain requires a generation-side
+   fix (e.g. LLM sufficiency check), not just a retrieval score gate.
+
+2. Doc-switch turns are handled best by hybrid RRF (55.6% R@5). Query
+   rewriting hurts on doc-switch (22.2%) because it encodes the
+   previous document's context so strongly that it pulls retrieval
+   toward the old document rather than the new one.
+
+3. Same-doc turns are handled best by rewrite (56.1% R@5), confirming
+   that rewriting helps when the dialogue stays in one document but
+   uses decontextualised follow-up language.
