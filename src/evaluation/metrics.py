@@ -44,3 +44,15 @@ def compute_metrics(prediction: str, reference: str) -> Dict[str, float]:
         "exact_match": float(exact_match(prediction, reference)),
         "f1": token_f1(prediction, reference),
     }
+
+
+def is_abstention(answer: str) -> bool:
+    """Return True if the answer is an abstention (model found no relevant context).
+
+    Matches the exact phrase and common minor variations by checking for the
+    canonical substring. All experiment scripts should call this function rather
+    than doing their own string comparison.
+    """
+    if not answer:
+        return False
+    return "no relevant information" in answer.lower()
