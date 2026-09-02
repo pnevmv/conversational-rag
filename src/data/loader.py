@@ -155,6 +155,48 @@ def load_sections(
     return sections
 
 
+UNANSWERABLE_PHRASE = "Unfortunately, no relevant information is found."
+
+
+def _extract_domain_pairs(dial_data: Dict, domain: str, limit: int) -> List[Dict[str, Any]]:
+    """Extract up to `limit` QA pairs from a single domain."""
+    pairs: List[Dict[str, Any]] = []
+    for dial in dial_data.get(domain, []):
+        dial_id = dial["dial_id"]
+        turns = dial.get("turns", [])
+        for i in range(len(turns) - 1):
+            u_turn = turns[i]
+            a_turn = turns[i + 1]
+            if u_turn.get("role") != "user" or a_turn.get("role") != "agent":
+                continue
+            q_text = u_turn.get("utterance", "").strip()
+            ref_text = a_turn.get("utterance", "").strip()
+            if not q_text or not ref_text:
+                continue
+            references = a_turn.get("references", [])
+            ref_docs = [r["doc_id"] for r in references if "doc_id" in r]
+            history = [
+                {"role": t["role"], "utterance": t["utterance"]}
+                for t in turns[:i]
+                if t.get("utterance", "").strip()
+            ]
+            pairs.append({
+                "example_id": f"{dial_id}_{u_turn['turn_id']}",
+                "domain": domain,
+                "dialogue_id": dial_id,
+                "turn_id": u_turn["turn_id"],
+                "question": q_text,
+                "reference_answer": ref_text,
+                "is_unanswerable": ref_text == UNANSWERABLE_PHRASE,
+                "document_id": ref_docs[0] if ref_docs else None,
+                "grounding": references,
+                "dialogue_history": history,
+            })
+            if len(pairs) >= limit:
+                return pairs
+    return pairs
+
+
 def load_qa_pairs(
     split: str = "validation",
     domain: Optional[str] = None,
@@ -164,24 +206,14 @@ def load_qa_pairs(
     """
     Extract deterministic QA pairs from MultiDoc2Dial dialogues.
 
-    Each pair represents a user question followed by the ground-truth agent response.
+    When max_examples is set and no domain filter is given, examples are
+    sampled round-robin across all four domains so the evaluation set is
+    balanced. With a domain filter, the first max_examples pairs from that
+    domain are returned.
 
-    Args:
-        split: 'train' or 'validation'.
-        domain: Optional domain filter ('dmv', 'ssa', 'va', 'studentaid').
-        max_examples: Maximum number of QA pairs to return.
-        data_dir: Path to directory containing dialogue files.
-
-    Returns:
-        List of dictionaries with keys:
-            - example_id (str)
-            - domain (str)
-            - dialogue_id (str)
-            - turn_id (int)
-            - question (str)
-            - reference_answer (str)
-            - document_id (Optional[str])
-            - grounding (List[Dict])
+    Each pair contains:
+        example_id, domain, dialogue_id, turn_id, question, reference_answer,
+        is_unanswerable, document_id, grounding, dialogue_history.
     """
     base_dir = data_dir or get_data_dir()
     dial_file = base_dir / f"multidoc2dial_dial_{split}.json"
@@ -193,50 +225,40 @@ def load_qa_pairs(
         data = json.load(f)
 
     dial_data = data.get("dial_data", {})
-    domains_to_process = [domain] if domain else sorted(dial_data.keys())
+    domains = [domain] if domain else sorted(dial_data.keys())
+
+    # Single domain or no limit: flat extraction
+    if len(domains) == 1 or not max_examples:
+        pairs: List[Dict[str, Any]] = []
+        for dom in domains:
+            pairs.extend(_extract_domain_pairs(dial_data, dom, max_examples or 10_000))
+        return pairs[:max_examples] if max_examples else pairs
+
+    # Multi-domain: collect per-domain pools then round-robin interleave
+    per_domain = (max_examples + len(domains) - 1) // len(domains)
+    pools = {dom: _extract_domain_pairs(dial_data, dom, per_domain) for dom in domains}
 
     qa_pairs: List[Dict[str, Any]] = []
-
-    for dom in domains_to_process:
-        dialogues = dial_data.get(dom, [])
-        for dial in dialogues:
-            dial_id = dial["dial_id"]
-            turns = dial.get("turns", [])
-            for i in range(len(turns) - 1):
-                u_turn = turns[i]
-                a_turn = turns[i + 1]
-
-                if u_turn.get("role") == "user" and a_turn.get("role") == "agent":
-                    q_text = u_turn.get("utterance", "").strip()
-                    ref_text = a_turn.get("utterance", "").strip()
-
-                    if q_text and ref_text:
-                        references = a_turn.get("references", [])
-                        ref_docs = [
-                            r["doc_id"] for r in references if "doc_id" in r
-                        ]
-
-                        history = [
-                            {"role": t["role"], "utterance": t["utterance"]}
-                            for t in turns[:i]
-                            if t.get("utterance", "").strip()
-                        ]
-
-                        qa_pairs.append(
-                            {
-                                "example_id": f"{dial_id}_{u_turn['turn_id']}",
-                                "domain": dom,
-                                "dialogue_id": dial_id,
-                                "turn_id": u_turn["turn_id"],
-                                "question": q_text,
-                                "reference_answer": ref_text,
-                                "document_id": ref_docs[0] if ref_docs else None,
-                                "grounding": references,
-                                "dialogue_history": history,
-                            }
-                        )
-
-                        if max_examples and len(qa_pairs) >= max_examples:
-                            return qa_pairs
-
+    i = 0
+    while len(qa_pairs) < max_examples:
+        added = False
+        for dom in domains:
+            if i < len(pools[dom]) and len(qa_pairs) < max_examples:
+                qa_pairs.append(pools[dom][i])
+                added = True
+        if not added:
+            break
+        i += 1
     return qa_pairs
+
+
+def load_doc_domain_map(data_dir: Optional[Path] = None) -> Dict[str, str]:
+    """Return a mapping of {doc_id: domain} for all MultiDoc2Dial documents."""
+    base_dir = data_dir or get_data_dir()
+    with open(base_dir / "multidoc2dial_doc.json", encoding="utf-8") as f:
+        data = json.load(f)
+    return {
+        doc_id: domain
+        for domain, docs in data.get("doc_data", {}).items()
+        for doc_id in docs
+    }

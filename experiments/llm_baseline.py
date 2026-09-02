@@ -13,8 +13,11 @@ from src.data import load_qa_pairs
 from src.llm import LLMClient
 
 DEFAULT_PROMPT_TEMPLATE = (
-    "Answer the following question as accurately as possible.\n\n"
-    "Question:\n{question}"
+    "You are a government services agent. Answer the customer's question in 1-2 plain sentences. "
+    "No bullet points, no bold text, no preamble. "
+    "If you don't know, reply exactly: \"Unfortunately, no relevant information is found.\"\n\n"
+    "Customer: {question}\n"
+    "Agent:"
 )
 
 
@@ -109,6 +112,7 @@ def run_llm_baseline(
                 "turn_id": ex["turn_id"],
                 "question": question,
                 "reference_answer": ex["reference_answer"],
+                "is_unanswerable": ex.get("is_unanswerable", False),
                 "document_id": ex["document_id"],
                 "grounding": ex["grounding"],
                 "prompt": prompt,

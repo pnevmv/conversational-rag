@@ -1,12 +1,24 @@
 {
-  "experiment": "llm_baseline",
+  "experiment": "rag_baseline",
   "input_file": "experiments/results/rag_baseline.jsonl",
   "total_examples": 50,
   "evaluated": 50,
   "skipped": 0,
   "aggregate": {
+    "exact_match": 0.04,
+    "f1": 0.20688123288800764,
+    "n": 50
+  },
+  "answerable": {
     "exact_match": 0.0,
-    "f1": 0.20678391834611853
+    "f1": 0.17753322647660388,
+    "n": 47
+  },
+  "unanswerable": {
+    "exact_match": 0.6666666666666666,
+    "f1": 0.6666666666666666,
+    "n": 3,
+    "abstain_rate": 0.6666666666666666
   },
   "per_example": [
     {
@@ -14,450 +26,550 @@
       "domain": "dmv",
       "question": "My insurance ended so what should i do",
       "reference_answer": "You will need to get insurance or we will suspend your registration and license",
-      "model_answer": "If your insurance ended and you received a DMV letter saying your insurance lapsed, do the following:\n\n- **If you currently have insurance:** follow the instructions in the letter and **contact your insurance company or agent**. Ask them to **file a notice of coverage with the DMV electronically**.  \n- **If you do not have insurance:** you must **surrender your vehicle registration and plates to the DMV immediately**.",
+      "model_answer": "If you received a letter saying your insurance lapsed, it means your insurance company notified the DMV that your coverage ended and no new coverage was reported. If you have insurance, follow the instructions in the letter and contact your company or agent to file a notice of coverage with the DMV electronically; if you don’t have insurance, surrender your vehicle registration and plates to the DMV immediately.",
+      "is_unanswerable": false,
+      "abstained": false,
       "exact_match": 0.0,
-      "f1": 0.19444444444444445
+      "f1": 0.18666666666666668
+    },
+    {
+      "example_id": "08a4c73e6eece0ee2b3a64a3949ee0ff_1",
+      "domain": "ssa",
+      "question": "I need help with planning my Social Security survivor benefits.",
+      "reference_answer": "Do you need information about planning for your future Social Security survivor benefits?",
+      "model_answer": "Review the Social Security Survivors benefits page to see how survivor benefits relate to your situation, and consider Social Security benefits that may be available to you as a spouse, child, or parent of a worker who dies, as long as that worker worked long enough under Social Security to qualify.",
+      "is_unanswerable": false,
+      "abstained": false,
+      "exact_match": 0.0,
+      "f1": 0.19672131147540983
+    },
+    {
+      "example_id": "40dffec1f37241d6ba631901f00aedd7_1",
+      "domain": "studentaid",
+      "question": "Hello, I need some help with my application for student aid, please.",
+      "reference_answer": "a",
+      "model_answer": "After you submit your FAFSA, you’ll receive a Student Aid Report (SAR) that summarizes the information you provided and includes basic information about your eligibility for federal student aid, so you can review it for accuracy and completeness. If you want an estimate before applying, you can use FAFSA4caster, but you must complete the FAFSA form to apply for aid once you’re ready.",
+      "is_unanswerable": false,
+      "abstained": false,
+      "exact_match": 0.0,
+      "f1": 0.0
+    },
+    {
+      "example_id": "80eba80595a3509dc4dc3e26babf83b3_1",
+      "domain": "va",
+      "question": "how do you Check your VA claim or appeal status",
+      "reference_answer": "Find out how to check the status of a VA claim or appeal online",
+      "model_answer": "You can check your VA claim or appeal status online. Use the VA claim and appeal status page on VA.gov to see the status of your disability claim or appeal.",
+      "is_unanswerable": false,
+      "abstained": false,
+      "exact_match": 0.0,
+      "f1": 0.45000000000000007
     },
     {
       "example_id": "1409501a35697e0ce68561e29577b90a_3",
       "domain": "dmv",
       "question": "Don't do that I'll get insurance",
       "reference_answer": "Okay, have you received a letter from the DMV letting you know how to clear things up?",
-      "model_answer": "If you don’t have liability insurance (or it has lapsed and you’re not replacing it), you need to **surrender your vehicle plates to the DMV immediately**. If you **do** have insurance, contact your insurance company/agent and ask them to **file a notice of coverage with the DMV electronically**.",
+      "model_answer": "If you don’t have liability insurance, or it is about to expire and you don’t plan to replace it, you need to surrender your vehicle plates to the DMV immediately. If you received a letter that your insurance lapsed, follow the letter’s instructions and contact your insurance company or agent to have them file a notice of coverage with the DMV electronically.",
+      "is_unanswerable": false,
+      "abstained": false,
       "exact_match": 0.0,
-      "f1": 0.16666666666666666
+      "f1": 0.19444444444444442
+    },
+    {
+      "example_id": "08a4c73e6eece0ee2b3a64a3949ee0ff_3",
+      "domain": "ssa",
+      "question": "Yes.",
+      "reference_answer": "Unfortunately, no relevant information is found.",
+      "model_answer": "Unfortunately, no relevant information is found.",
+      "is_unanswerable": true,
+      "abstained": true,
+      "exact_match": 1.0,
+      "f1": 1.0
+    },
+    {
+      "example_id": "40dffec1f37241d6ba631901f00aedd7_4",
+      "domain": "studentaid",
+      "question": "a",
+      "reference_answer": "a",
+      "model_answer": "The title certificate proves ownership of a vehicle, while the registration allows you to operate the vehicle on public roads. For manufactured homes, there is no registration.",
+      "is_unanswerable": false,
+      "abstained": false,
+      "exact_match": 0.0,
+      "f1": 0.0
+    },
+    {
+      "example_id": "80eba80595a3509dc4dc3e26babf83b3_3",
+      "domain": "va",
+      "question": "Can I use the tool?",
+      "reference_answer": "Do you have one of the following accounts? A Premium My HealtheVet account , or\n    A Premium DS Logon account used for eBenefits and milConnect ,  or\n     that you can create here on VA.gov  A verified ID.me account",
+      "model_answer": "Yes, you can upload evidence online to support your disability claim through the claim tracking tool, which also lets you check your claim status, after signing in to use it.",
+      "is_unanswerable": false,
+      "abstained": false,
+      "exact_match": 0.0,
+      "f1": 0.09836065573770493
     },
     {
       "example_id": "1409501a35697e0ce68561e29577b90a_5",
       "domain": "dmv",
       "question": "I have, that is why I am here to clear that up and change the address on my license and registration",
       "reference_answer": "Okay, we can take care of that",
-      "model_answer": "Based on the information provided, yes—you can change your address, but you need to do it carefully because **address updates apply only to the records you select**.\n\n- **If you use the DMV online address change:** you can choose which records to update (your **driver license / DMV photo ID** and/or **vehicle registration**).  \n- **If you select “No Change” for a record:** the new address you enter **won’t** apply to that record.\n- **Your license/registration address change does not affect the other record types automatically** (for example, traffic ticket records are handled separately).\n\nAlso:\n- **Your residence address can’t be a post office box.**\n- **USPS address changes don’t update DMV records**, so you must report the address change to **both** the DMV and the **US Postal Service (USPS)**.\n\nIf you tell me which address you need to change (license, registration, or both) and whether you’re doing it online, I can help you confirm what to select based on the DMV instructions.",
+      "model_answer": "You must report your change of residence to the DMV within 10 days, and if you submit a mailing address change online without a residence address on file, you must enter a residence address that cannot be a post office box. Your address change applies only to the DMV records you select, so you can choose to keep or change your driver license/DMV photo document and registration addresses separately.",
+      "is_unanswerable": false,
+      "abstained": false,
       "exact_match": 0.0,
-      "f1": 0.02631578947368421
+      "f1": 0.08571428571428572
+    },
+    {
+      "example_id": "08a4c73e6eece0ee2b3a64a3949ee0ff_5",
+      "domain": "ssa",
+      "question": "What would my widower receive in benefits?",
+      "reference_answer": "In the event of your passing, your widower would start receiving reduced benefits at age 60 or full benefits if they are at retirement age or older.",
+      "model_answer": "A widower’s benefits are a percentage of the deceased worker’s basic Social Security benefit, based on your age and eligibility—for example, 100 percent if you are at full retirement age or older, 71 to 99 percent if you are age 60 to full retirement age, or 75 percent if you are any age caring for a child under age 16. The amount can also be affected if the worker was already receiving reduced benefits.",
+      "is_unanswerable": false,
+      "abstained": false,
+      "exact_match": 0.0,
+      "f1": 0.3617021276595745
+    },
+    {
+      "example_id": "40dffec1f37241d6ba631901f00aedd7_7",
+      "domain": "studentaid",
+      "question": "a",
+      "reference_answer": "a",
+      "model_answer": "Unfortunately, no relevant information is found.",
+      "is_unanswerable": false,
+      "abstained": true,
+      "exact_match": 0.0,
+      "f1": 0.0
+    },
+    {
+      "example_id": "80eba80595a3509dc4dc3e26babf83b3_5",
+      "domain": "va",
+      "question": "yes",
+      "reference_answer": "ok you just log into one of those",
+      "model_answer": "Unfortunately, no relevant information is found.",
+      "is_unanswerable": false,
+      "abstained": true,
+      "exact_match": 0.0,
+      "f1": 0.0
     },
     {
       "example_id": "1409501a35697e0ce68561e29577b90a_7",
       "domain": "dmv",
       "question": "Thank you so much. After looking through these requirements that I need to bring to DMV, can you tell me whether a GED certificate will be a valid proof of identification?",
       "reference_answer": "Sure, it is. You can contact your college and get a certified copy.",
-      "model_answer": "Yes. The context says that a **GED certificate** is valid proof of identification: *“High school diploma or GED… You can contact the education department in the state where you graduated for a certified copy.”*",
+      "model_answer": "Yes. A high school diploma or GED can be used as proof of identification, and you can contact the education department in the state where you graduated (or the community college/college) to get a certified copy.",
+      "is_unanswerable": false,
+      "abstained": false,
       "exact_match": 0.0,
-      "f1": 0.2439024390243903
+      "f1": 0.3255813953488372
+    },
+    {
+      "example_id": "08a4c73e6eece0ee2b3a64a3949ee0ff_7",
+      "domain": "ssa",
+      "question": "Of course, and regarding doing other types of work, to obtain the status of disabled I should not be able to do any type of work?",
+      "reference_answer": "Yes, if you are unable to do any other type of work then you will be able to get disability.",
+      "model_answer": "If you can’t do the work you did in the past, Social Security will look to see whether there is other work you could do despite your impairment. If you can’t do other work, your claim will be decided as disabled; if you can do other work, your claim will be denied.",
+      "is_unanswerable": false,
+      "abstained": false,
+      "exact_match": 0.0,
+      "f1": 0.2571428571428572
+    },
+    {
+      "example_id": "40dffec1f37241d6ba631901f00aedd7_9",
+      "domain": "studentaid",
+      "question": "What if my parents are unwilling to provide their information on my FAFSA form?",
+      "reference_answer": "You would have to choose the one that says I am unable to provide info about my parent.",
+      "model_answer": "You can’t be considered independent just because your parents refuse to help with the FAFSA, but if they still won’t provide information you can select the option that you’re unable to provide parent information and request consideration for an unsubsidized loan. Your FAFSA can be submitted without their information, but you won’t receive federal student aid other than possibly an unsubsidized loan, and the financial aid office must review your situation, including any written statement from your parents.",
+      "is_unanswerable": false,
+      "abstained": false,
+      "exact_match": 0.0,
+      "f1": 0.15555555555555553
+    },
+    {
+      "example_id": "80eba80595a3509dc4dc3e26babf83b3_7",
+      "domain": "va",
+      "question": "I see. Another question about your VA benefits and care. What are the requirements for the pension?",
+      "reference_answer": "Apply for monthly payments for wartime Veterans and survivors with limited or no income who meet certain age and disability requirements",
+      "model_answer": "Unfortunately, no relevant information is found.",
+      "is_unanswerable": false,
+      "abstained": true,
+      "exact_match": 0.0,
+      "f1": 0.07407407407407407
     },
     {
       "example_id": "1409501a35697e0ce68561e29577b90a_9",
       "domain": "dmv",
       "question": "Great. I think that I can found some bills, of some services, would that help too?",
       "reference_answer": "Yes, as long as they be a phone, electricity, gas, water or cable bill.",
-      "model_answer": "The context doesn’t explain what you mean by “found some bills” or whether sharing billing info/services would help in your situation.\n\nIf you’re asking about paying for college, the context only advises that you can use **free information** to find ways to pay for college, and to be careful of scams—especially if someone pressures you to give your credit card/bank account number.\n\nIf you tell me what you’re trying to pay for (college vs. medical/disability benefits) and what “bills” you’re referring to, I can answer more directly based on the provided material.",
+      "model_answer": "You can use free information about ways to pay for college or career school, and be careful of companies that charge for financial aid help without delivering what they promise. Don’t give out your credit card or bank account number unless you know the organization is legitimate.",
+      "is_unanswerable": false,
+      "abstained": false,
       "exact_match": 0.0,
-      "f1": 0.0392156862745098
+      "f1": 0.10169491525423728
+    },
+    {
+      "example_id": "08a4c73e6eece0ee2b3a64a3949ee0ff_9",
+      "domain": "ssa",
+      "question": "I want to make sure that my family is taken care of financially after I pass away. What is the procedure for receiving Social Security survivor benefits?",
+      "reference_answer": "Your Social Security can help ensure that your family is taken care of if you have earned enough credits through working.",
+      "model_answer": "Social Security survivor benefits may be available to the spouse, child, or parent of a worker who dies, as long as that person worked long enough under Social Security to qualify for benefits. If your circumstances change, you may also be eligible for increased benefits based on another person’s work, and you can use Social Security’s Benefit Eligibility Screening Tool (BEST) to see what you might qualify for.",
+      "is_unanswerable": false,
+      "abstained": false,
+      "exact_match": 0.0,
+      "f1": 0.20689655172413793
+    },
+    {
+      "example_id": "40dffec1f37241d6ba631901f00aedd7_11",
+      "domain": "studentaid",
+      "question": "Why would I use my stepparents info?",
+      "reference_answer": "Using your stepparents info on the FAFSA form gives an accurate picture of your family's financial ability.",
+      "model_answer": "You still must report information about your parent or parents even if you live with someone else. Grandparents, foster parents, legal guardians, older brothers or sisters, uncles or aunts, and widowed stepparents are not your parents unless they have legally adopted you.",
+      "is_unanswerable": false,
+      "abstained": false,
+      "exact_match": 0.0,
+      "f1": 0.10526315789473682
+    },
+    {
+      "example_id": "80eba80595a3509dc4dc3e26babf83b3_9",
+      "domain": "va",
+      "question": "What burial help is available?",
+      "reference_answer": "Get help planning a burial in a VA national cemetery , order a headstone or other memorial item to honor a Veteran 's service , and apply for survivor and dependent benefits .",
+      "model_answer": "If you’re the spouse of record, the legally recognized spouse, or a designated legally chosen family member of a Veteran, you may be able to get financial help for burial and funeral costs.",
+      "is_unanswerable": false,
+      "abstained": false,
+      "exact_match": 0.0,
+      "f1": 0.29090909090909095
     },
     {
       "example_id": "1409501a35697e0ce68561e29577b90a_11",
       "domain": "dmv",
       "question": "Can I use my union card?",
       "reference_answer": "Yes, it's also a valid document, no matter if you have no longer that union job.",
-      "model_answer": "Yes. The context says you can use a **union card** as proof of name identification. If you lost the card, you can ask the union for help getting a duplicate, and it can be from another state.",
+      "model_answer": "Yes, you can use a union card as proof of name identification, and it can be from another state; if you lost the card, ask the union for help getting a duplicate. You must bring the original documents or a certified copy to the DMV.",
+      "is_unanswerable": false,
+      "abstained": false,
       "exact_match": 0.0,
-      "f1": 0.1702127659574468
+      "f1": 0.1509433962264151
+    },
+    {
+      "example_id": "08a4c73e6eece0ee2b3a64a3949ee0ff_11",
+      "domain": "ssa",
+      "question": "Thank you. I'd also like to know if the increase retroactive to January of the year you received money. What method is used to measure it?",
+      "reference_answer": "we will recalculate your benefit amount",
+      "model_answer": "The context only says that the increase is paid retroactive to January of the year after you earned the money, but it does not explain what method is used to measure the increase.",
+      "is_unanswerable": false,
+      "abstained": false,
+      "exact_match": 0.0,
+      "f1": 0.0
+    },
+    {
+      "example_id": "95a7c95147ebb2148200478a459319b8_1",
+      "domain": "studentaid",
+      "question": "I wanted to know about career options",
+      "reference_answer": "we can give you a link so you can look at more information",
+      "model_answer": "A college or career school education can help you build skills for a career you’re interested in, such as working with animals or computers. Take time to explore and research career options that match your interests.",
+      "is_unanswerable": false,
+      "abstained": false,
+      "exact_match": 0.0,
+      "f1": 0.08695652173913045
+    },
+    {
+      "example_id": "80eba80595a3509dc4dc3e26babf83b3_11",
+      "domain": "va",
+      "question": "What health care information do you have?",
+      "reference_answer": "You can Apply for VA health care , find out how to access services , and manage your health and benefits online .",
+      "model_answer": "The Veterans Health Information Exchange (VHIE) can share your health information with participating community care providers and the Department of Defense, so your record can electronically follow you when you get care at VA or a VA-approved community care provider. This helps providers coordinate your care and ensures they have up-to-date information such as your current medications and allergies.",
+      "is_unanswerable": false,
+      "abstained": false,
+      "exact_match": 0.0,
+      "f1": 0.2368421052631579
     },
     {
       "example_id": "98c58a56af5e55754eeb7d427928ff66_1",
       "domain": "dmv",
       "question": "I need to change my address.",
       "reference_answer": "You need to report it to the DMV.",
-      "model_answer": "You can change your address online by updating your Social Security information if you’re using Social Security benefits/Medicare: log in or create a free **my Social Security account**.\n\nIf you’re changing a **DMV mailing address**, you must make sure your address on DMV files is current: **change your address online first, then renew**. You **cannot change it during the DMV transaction**. Also, if you use USPS mail forwarding, it’s **not guaranteed** that all DMV documents will be forwarded to your new address.\n\nIf you tell me whether you mean **Social Security** or **DMV (and which type of license/registration)**, I can point you to the right option from the context.",
+      "model_answer": "If you have a my Social Security account, you can change your address online anytime by logging in or creating a free account. For DMV mailing address changes, your address must be current, and you must first change it online before renewing.",
+      "is_unanswerable": false,
+      "abstained": false,
       "exact_match": 0.0,
-      "f1": 0.09009009009009009
+      "f1": 0.1276595744680851
+    },
+    {
+      "example_id": "08a4c73e6eece0ee2b3a64a3949ee0ff_13",
+      "domain": "ssa",
+      "question": "I'd like to learn more about Benefits Planner as well. What kind of care will my children get?",
+      "reference_answer": "Your children who are under 18 or age 19 if still attending school full time can receive Social Security benefits if they are unmarried.",
+      "model_answer": "Unfortunately, no relevant information is found.",
+      "is_unanswerable": false,
+      "abstained": true,
+      "exact_match": 0.0,
+      "f1": 0.0
+    },
+    {
+      "example_id": "95a7c95147ebb2148200478a459319b8_4",
+      "domain": "studentaid",
+      "question": "no, what else you got?",
+      "reference_answer": "Do you like working with computers?",
+      "model_answer": "If you’re asking what else affects your retirement benefits, it depends on factors like whether you continue to work, the type of job you had, and whether you have a pension from certain jobs.",
+      "is_unanswerable": false,
+      "abstained": false,
+      "exact_match": 0.0,
+      "f1": 0.10526315789473684
+    },
+    {
+      "example_id": "0f7382d1abc14110f335fa03220cc033_1",
+      "domain": "va",
+      "question": "What can I do if I don't agree with a board decision?",
+      "reference_answer": "Do you have new and relevant evidence to support your case?",
+      "model_answer": "If you don’t agree with a Board decision, you can request a different review option by submitting a new decision review request form within 1 year from the date on your VA decision, with a letter withdrawing your existing review and switching to the new option. You can’t select a different appeal option if you’ve already submitted evidence or had a hearing.",
+      "is_unanswerable": false,
+      "abstained": false,
+      "exact_match": 0.0,
+      "f1": 0.1846153846153846
     },
     {
       "example_id": "98c58a56af5e55754eeb7d427928ff66_4",
       "domain": "dmv",
       "question": "Yes, I just have to change the address.",
       "reference_answer": "Unfortunately, no relevant information is found.",
-      "model_answer": "Based on the context, **yes—you can change your address**, and the change will apply **only to the DMV records you select** in the online address change transaction.\n\nKey points from the provided information:\n- You must report a change of residence within **10 days**.\n- Your **residence address cannot be a post office box**.\n- If you already have a residence address on file, you may not need to change it when changing your mailing address (but you can).\n- If you select **“No Change”** for a specific driver license/photo document or registration, the new address **won’t** apply to that record.\n- Your new address change **doesn’t** automatically update other records (like traffic tickets or USPS address) outside the DMV records you select.\n- After processing, you can order **replacement documents** showing your new address for a fee.",
+      "model_answer": "Yes. New York State law requires you to report a change of residence to the DMV within 10 days, and when you submit a mailing address change online you may need to enter a residence address (which cannot be a post office box).",
+      "is_unanswerable": true,
+      "abstained": false,
       "exact_match": 0.0,
-      "f1": 0.015873015873015872
+      "f1": 0.0
+    },
+    {
+      "example_id": "32e3c1e1d6824a9bf68c88cde9b9b91a_1",
+      "domain": "ssa",
+      "question": "How do I apply for disability benefits?",
+      "reference_answer": "I can help you with that. First off, you should apply for benefits as soon as you become disabled.",
+      "model_answer": "To apply for disability benefits online, print and review the Adult Disability Checklist to gather the information you need, then complete the Disability Benefit Application.",
+      "is_unanswerable": false,
+      "abstained": false,
+      "exact_match": 0.0,
+      "f1": 0.1951219512195122
+    },
+    {
+      "example_id": "95a7c95147ebb2148200478a459319b8_6",
+      "domain": "studentaid",
+      "question": "I use them but wouldn't care to work on computer related things, anything else?",
+      "reference_answer": "Unfortunately, no relevant information is found.",
+      "model_answer": "Unfortunately, no relevant information is found.",
+      "is_unanswerable": true,
+      "abstained": true,
+      "exact_match": 1.0,
+      "f1": 1.0
+    },
+    {
+      "example_id": "0f7382d1abc14110f335fa03220cc033_3",
+      "domain": "va",
+      "question": "Yes, I have new and relevant information that will support my case.",
+      "reference_answer": "Then you may file a Supplemental Claim or appeal to the U.S. Court of Appeals for Veterans Claims.",
+      "model_answer": "To file a Supplemental Claim, you must add evidence that is both new and relevant to your case—meaning VA didn’t have it before the last decision and it could prove or disprove something about your claim. You can submit the evidence yourself or identify evidence (such as medical records) for VA to get for you.",
+      "is_unanswerable": false,
+      "abstained": false,
+      "exact_match": 0.0,
+      "f1": 0.2058823529411765
     },
     {
       "example_id": "98c58a56af5e55754eeb7d427928ff66_6",
       "domain": "dmv",
       "question": "What if my insurance had lapsed?",
       "reference_answer": "Your license and registration could be suspended.",
-      "model_answer": "If your insurance had lapsed, it means your insurance company notified the DMV that your coverage ended and no new coverage was reported.\n\n- **If you have insurance:** follow the instructions in the DMV letter and contact your insurance company/agent. Ask them to **file a notice of coverage with the DMV electronically**.  \n- **If you don’t have insurance:** you need to **surrender your vehicle registration and plates to the DMV immediately**.\n\nAlso, **do not drive** while your insurance is lapsed, because you could be **arrested or ticketed**, your **vehicle can be impounded**, and the **DMV may revoke your registration and driver license**.",
+      "model_answer": "If your insurance had lapsed and the DMV has been notified, contact your insurance company or agent and ask them to file a notice of coverage with the DMV electronically. If you don’t have insurance, you must surrender your vehicle registration and plates to the DMV immediately, and you should not drive any vehicle that is not insured.",
+      "is_unanswerable": false,
+      "abstained": false,
       "exact_match": 0.0,
-      "f1": 0.12
+      "f1": 0.09836065573770493
+    },
+    {
+      "example_id": "32e3c1e1d6824a9bf68c88cde9b9b91a_4",
+      "domain": "ssa",
+      "question": "No, I don't think I am ready.",
+      "reference_answer": "Ok, no problem. Are you deaf or hard of hearing?",
+      "model_answer": "Unfortunately, no relevant information is found.",
+      "is_unanswerable": false,
+      "abstained": true,
+      "exact_match": 0.0,
+      "f1": 0.125
+    },
+    {
+      "example_id": "95a7c95147ebb2148200478a459319b8_8",
+      "domain": "studentaid",
+      "question": "Do you have any info for the parents to look at?",
+      "reference_answer": "Is this information for a parent that is planning ahead for a child's higher education?",
+      "model_answer": "If you’re a dependent student, your FAFSA will require parent information to be assessed along with yours, but if your parents won’t provide it you should select the option “I am unable to provide information about my parent” and follow the special-circumstance steps. In that case, you may be able to submit your FAFSA without parent information, but you won’t get an EFC and you may only be eligible for an unsubsidized loan, depending on your school’s financial aid office.",
+      "is_unanswerable": false,
+      "abstained": false,
+      "exact_match": 0.0,
+      "f1": 0.09090909090909093
+    },
+    {
+      "example_id": "0f7382d1abc14110f335fa03220cc033_5",
+      "domain": "va",
+      "question": "Could you help me how to file a supplementary claim? What can you do for careers and employment?",
+      "reference_answer": "You can apply for vocational rehabilitation services, get support for your Veteran-owned small business, and access other career resources.",
+      "model_answer": "You can file a VA disability compensation claim online, by phone, or by mail, and the site explains what happens after you file and how to disagree with a decision. For careers and employment, VA offers help to build your career and find opportunities that are right for you.",
+      "is_unanswerable": false,
+      "abstained": false,
+      "exact_match": 0.0,
+      "f1": 0.21538461538461537
     },
     {
       "example_id": "98c58a56af5e55754eeb7d427928ff66_8",
       "domain": "dmv",
       "question": "Ok, yes, they are good alternatives. I know you ask a lot for birth certificates, but what if you don't have one handy?",
       "reference_answer": "You can go and use the NYS Department of Health Vital Records to lend you a hand on that. You can even order those through an independent partner.",
-      "model_answer": "The context says that if your qualified family members apply for Social Security benefits with you, Social Security will ask you for their **Social Security numbers and their birth certificates**.  \n\nIt does **not** say what to do if you **don’t have a birth certificate handy**, so there isn’t enough information here to answer that part.",
+      "model_answer": "If any qualified family members apply for benefits with you, we will ask you for their Social Security numbers and their birth certificates. Unfortunately, no relevant information is found about what to do if you don’t have a birth certificate handy.",
+      "is_unanswerable": false,
+      "abstained": false,
       "exact_match": 0.0,
       "f1": 0.15384615384615385
+    },
+    {
+      "example_id": "32e3c1e1d6824a9bf68c88cde9b9b91a_6",
+      "domain": "ssa",
+      "question": "Oh, no. I am not.",
+      "reference_answer": "Do you have access to a telephone?",
+      "model_answer": "If you are an authorized TNC driver, you may not pick up passengers in New York City unless you are separately authorized by the New York City Taxi & Limousine Commission at www.nyc.gov/taxi.",
+      "is_unanswerable": false,
+      "abstained": false,
+      "exact_match": 0.0,
+      "f1": 0.05555555555555555
+    },
+    {
+      "example_id": "95a7c95147ebb2148200478a459319b8_10",
+      "domain": "studentaid",
+      "question": "yes it is",
+      "reference_answer": "We have resources for parents to learn more about saving early, finding tax breaks, and understanding parent loans to help support their child's college journey.",
+      "model_answer": "Yes, Aidan is secure and private—Federal Student Aid handles and stores the data from your interactions securely and will never share it with third parties.",
+      "is_unanswerable": false,
+      "abstained": false,
+      "exact_match": 0.0,
+      "f1": 0.04081632653061224
+    },
+    {
+      "example_id": "0f7382d1abc14110f335fa03220cc033_7",
+      "domain": "va",
+      "question": "Seems awfully useful, ok. What about family member benefits?",
+      "reference_answer": "On our page you can learn about the benefits you may qualify for as a spouse, dependent, or survivor. You can also find out what you're eligible for as a family member caring for a Veteran with disabilities.",
+      "model_answer": "Family member benefits are the benefits you may qualify for as a spouse, dependent, or survivor, including benefits for family members caring for a Veteran with disabilities. You can learn what you’re eligible for under the Family member benefits information on VA.gov.",
+      "is_unanswerable": false,
+      "abstained": false,
+      "exact_match": 0.0,
+      "f1": 0.6666666666666667
     },
     {
       "example_id": "98c58a56af5e55754eeb7d427928ff66_10",
       "domain": "dmv",
       "question": "Going back to those alternate documents, can i use General Educational Development certificate as well?",
       "reference_answer": "Sure. You can contact your college to ask them for a certified copy.",
-      "model_answer": "Yes. The context says a **recognized equivalent** to a high school diploma includes a **General Educational Development (GED) certificate**. It also mentions you can provide a **GED certificate** as part of the required documentation (for example, when showing you’re qualified to obtain an education).",
+      "model_answer": "Yes. A General Educational Development (GED) certificate is recognized as a qualified equivalent if you don’t have a high school diploma.",
+      "is_unanswerable": false,
+      "abstained": false,
       "exact_match": 0.0,
-      "f1": 0.163265306122449
+      "f1": 0.06666666666666667
+    },
+    {
+      "example_id": "32e3c1e1d6824a9bf68c88cde9b9b91a_9",
+      "domain": "ssa",
+      "question": "Do you have any documents or publications that I can read?",
+      "reference_answer": "We do, what are you interested in? Applying online for disability benefits? We also have documents on disability benefits and a starter kit.",
+      "model_answer": "Yes. The Social Security Administration offers disability benefits publications such as Disability Starter Kits, including a kit for children under age 18, and information for those who are blind or have low vision. You can also find the SSI child disability starter kit and related disability publications.",
+      "is_unanswerable": false,
+      "abstained": false,
+      "exact_match": 0.0,
+      "f1": 0.3333333333333333
+    },
+    {
+      "example_id": "95a7c95147ebb2148200478a459319b8_12",
+      "domain": "studentaid",
+      "question": "do you have any info on how college can help me?",
+      "reference_answer": "Yes, you can look at our Reasons to Attend a College or Career School section",
+      "model_answer": "The context doesn’t include information about how college can help you, but it does note that there are many things to consider when getting ready for college or career school, including where to go, what to study, and how to pay for it all.",
+      "is_unanswerable": false,
+      "abstained": false,
+      "exact_match": 0.0,
+      "f1": 0.24561403508771928
+    },
+    {
+      "example_id": "0f7382d1abc14110f335fa03220cc033_9",
+      "domain": "va",
+      "question": "Alright. Which brings me to service member benefits. What benefits can a service member expect?",
+      "reference_answer": "On our page you can find out what benefits you may be eligible for during service and which time-sensitive benefits to consider when separating or retiring.",
+      "model_answer": "Service member benefits are available to help you understand what benefits you may be eligible for during service and which time-sensitive benefits to consider when separating or retiring.",
+      "is_unanswerable": false,
+      "abstained": false,
+      "exact_match": 0.0,
+      "f1": 0.7407407407407408
     },
     {
       "example_id": "98c58a56af5e55754eeb7d427928ff66_12",
       "domain": "dmv",
       "question": "Are you sure? I don't want to waste my time there.",
       "reference_answer": "Absolutely, that document is totally valid for this procedure.",
-      "model_answer": "The context doesn’t say what “there” refers to, so I can’t confirm whether you should go.\n\nIf you mean the DMV office: **Unless you need to change your name or get a new photo, there’s no need to come to a DMV office**. If you still want to go, bring a completed **Address Change (MV-232)** form.",
+      "model_answer": "Unfortunately, no relevant information is found.",
+      "is_unanswerable": false,
+      "abstained": true,
+      "exact_match": 0.0,
+      "f1": 0.13333333333333333
+    },
+    {
+      "example_id": "32e3c1e1d6824a9bf68c88cde9b9b91a_11",
+      "domain": "ssa",
+      "question": "I am wondering about if I don't have enough work credits to be eligible for disability. What should I do?",
+      "reference_answer": "We do have some information called \"Your income and resources\" that you can access on page 5 of our Supplemental Security Income SSI booklet.",
+      "model_answer": "You must earn at least 40 Social Security credits to qualify for Social Security benefits, since benefits can’t be paid if you don’t have enough credits. If you’re short on credits and want to understand options, you should review your eligibility based on the credits you’ve earned through working and paying Social Security taxes.",
+      "is_unanswerable": false,
+      "abstained": false,
+      "exact_match": 0.0,
+      "f1": 0.15584415584415587
+    },
+    {
+      "example_id": "5c1c3c6a47d0193987bc89846589348b_1",
+      "domain": "studentaid",
+      "question": "hello i would like to get information about new applicants",
+      "reference_answer": "You are not currently on an income-based plan and want to apply?",
+      "model_answer": "Unfortunately, no relevant information is found.",
+      "is_unanswerable": false,
+      "abstained": true,
       "exact_match": 0.0,
       "f1": 0.0
+    },
+    {
+      "example_id": "0f7382d1abc14110f335fa03220cc033_11",
+      "domain": "va",
+      "question": "Ok, and since I'm not the youngest anymore, can you tell me something about burials for Veterans?",
+      "reference_answer": "Of course. You can get help planning a burial in a VA national cemetery, order a headstone or other memorial item to honor a Veteran's service, and apply for survivor and dependent benefits.",
+      "model_answer": "For burial in a national cemetery, the funeral director you’ve chosen can fax your discharge papers to the National Cemetery Scheduling Office at 866-900-6417 or scan and email them to NCA.Scheduling@va.gov, then call 800-535-1117 to confirm the burial application. The office is open every day from 8:00 a.m. to 7:30 p.m. ET, and burials take place Monday through Friday.",
+      "is_unanswerable": false,
+      "abstained": false,
+      "exact_match": 0.0,
+      "f1": 0.24096385542168677
     },
     {
       "example_id": "56f37985586c76d125118233adb410fa_1",
       "domain": "dmv",
       "question": "how do i pay dial in search account fees?",
       "reference_answer": "paying customers must include a deposit with the application. your first deposit must be enough to pay for two months of searches.",
-      "model_answer": "To pay DIAL-IN Search Account fees, you must include a deposit with your application. Your **first deposit must be enough to pay for two months** of searches. After your application is accepted, that deposit is added to your **new account balance**. Each time you perform a search, the **search fee is subtracted** from your balance.  \n\n**Credit card payment is not available at this time.** Your account balance will show debits and credits related to any fees.",
+      "model_answer": "Paying customers must include a deposit with the application, and the first deposit must be enough to pay for two months of searches. Credit card payment is not available; when you make a search, the search fee is subtracted from your account balance, which can be used for mail-order and online searches.",
+      "is_unanswerable": false,
+      "abstained": false,
       "exact_match": 0.0,
-      "f1": 0.3870967741935484
+      "f1": 0.5970149253731344
     },
     {
-      "example_id": "56f37985586c76d125118233adb410fa_4",
-      "domain": "dmv",
-      "question": "yes",
-      "reference_answer": "your deposit is added to your new account balance",
-      "model_answer": "I can’t determine what “yes” is referring to from the provided context. The context only shows items labeled “yes or no survey” (for #2–#4), but it doesn’t specify which option or question you mean.\n\nPlease clarify what you want to answer “yes” to (e.g., #2, #3, or #4).",
-      "exact_match": 0.0,
-      "f1": 0.07272727272727274
-    },
-    {
-      "example_id": "56f37985586c76d125118233adb410fa_6",
-      "domain": "dmv",
-      "question": "what about my browser?",
-      "reference_answer": "please update it to the newest version",
-      "model_answer": "The context says you may need to verify your browser is compatible for security upgrades on state government websites. It recommends visiting **https://encryption.ny.gov/** to check compatibility, and if it’s not compatible, **update your browser to the newest version**.",
-      "exact_match": 0.0,
-      "f1": 0.2380952380952381
-    },
-    {
-      "example_id": "56f37985586c76d125118233adb410fa_8",
-      "domain": "dmv",
-      "question": "how do i contact the dmv about my dial in search account?",
-      "reference_answer": "you can contact us at : NYSDMV DIAL - IN AccountsRoom 2316 Empire State PlazaAlbany, NY 12228",
-      "model_answer": "You can contact DMV about your DIAL-IN Search Account at:\n\n**NYSDMV DIAL-IN Accounts**  \nRoom 2316, Empire State Plaza  \nAlbany, NY 12228  \n**Phone:** 473-2137  \n**Email:** [email protected]",
-      "exact_match": 0.0,
-      "f1": 0.4878048780487804
-    },
-    {
-      "example_id": "56f37985586c76d125118233adb410fa_10",
-      "domain": "dmv",
-      "question": "what if i have to pay a fee?",
-      "reference_answer": "your account records will reflect youe debits and your credits and show your account balance. please visit our escrow accounts page.",
-      "model_answer": "The context doesn’t say what “a fee” refers to. It only mentions specific fee situations:\n\n- **ACA health insurance:** You **don’t** have to pay a penalty/individual shared responsibility fee for not having health insurance starting in **2019 or later**. (But you **may** have to pay a fee for **2018** taxes if you didn’t have coverage or an exemption.)\n- **Tolls:** If you **don’t pay a required toll/fee**, your **registration may be suspended**.\n- **Empire Gold plates:** You may need to pay a **renewal fee** and a **new plate fee** ($25 for two plates, or $12.50 for single plates), but you won’t be charged extra just to keep your personalized number.\n\nIf you tell me which situation you mean (health insurance, tolls, or vehicle plates), I can answer more directly.",
-      "exact_match": 0.0,
-      "f1": 0.04285714285714286
-    },
-    {
-      "example_id": "56f37985586c76d125118233adb410fa_12",
-      "domain": "dmv",
-      "question": "how will i know my application has been accepted?",
-      "reference_answer": "we will cerate an account for you, we will send yo your account number and password, your seven digit account number will never change.",
-      "model_answer": "We will review your application. If your application is not complete, we will return it with an explanation and more instructions. If your application is complete, we will create an account for you and send you your account number and password.",
-      "exact_match": 0.0,
-      "f1": 0.4838709677419355
-    },
-    {
-      "example_id": "82ba8181a008d2f3f0d004846ff458c6_1",
-      "domain": "dmv",
-      "question": "I need to know how to pay the dial-in search account fees.",
-      "reference_answer": "The custoers must pay a deposit with the application, and it should be enough to pay for two months of searches.",
-      "model_answer": "To pay DIAL-IN Search Account fees:\n\n- You must include a **deposit with your application**.\n- Your **first deposit must be enough to pay for two months of searches**.\n- After the application is accepted, the **deposit is added to your new account balance**.\n- Each time you make a search, the **search fee is subtracted** from your account balance.\n- **Payment by credit card is NOT available at this time**.\n- You can use your account to pay for **mail-order searches** and **online searches**.\n- Your **account records** will show the **debits/credits** and your **current balance**.",
-      "exact_match": 0.0,
-      "f1": 0.29411764705882354
-    },
-    {
-      "example_id": "82ba8181a008d2f3f0d004846ff458c6_4",
-      "domain": "dmv",
-      "question": "Yes, it was.",
-      "reference_answer": "then, your deposit will be added to your new account balance.",
-      "model_answer": "The context doesn’t provide enough information to answer what “Yes, it was.” refers to. It includes separate facts about SSI appeals, CDL “Excepted Intrastate” eligibility, ordering DMV items, and Federal Student Aid privacy, but no statement or question that matches “Yes, it was.”",
-      "exact_match": 0.0,
-      "f1": 0.03773584905660377
-    },
-    {
-      "example_id": "82ba8181a008d2f3f0d004846ff458c6_6",
-      "domain": "dmv",
-      "question": "Can you tell me some of the organizations that are exempt from the search fees?",
-      "reference_answer": "Some of the exempted organizations are any public organization, its officers, a volunteer fire company, volunteer ambulance service, etc. These organizations are exempt from the search fee.",
-      "model_answer": "Yes. The context says some organizations are exempt from DIAL-IN search fees and lists examples, including:\n\n- Any public organization (for a public purpose)\n- Volunteer fire companies\n- Volunteer ambulance services\n- Legal aid bureaus or societies\n- Other private entities acting pursuant to Section 722 of the New York State County Law\n- (Also noted under FOIL) government agencies, volunteer fire companies, volunteer ambulance services, public officers, boards/bodies, legal aid bureaus or societies, and certain private entities when acting under Section 722 of the New York State County Law",
-      "exact_match": 0.0,
-      "f1": 0.2857142857142857
-    },
-    {
-      "example_id": "82ba8181a008d2f3f0d004846ff458c6_8",
-      "domain": "dmv",
-      "question": "What to do in case none of the users performed a search that the DMV contacted me for?",
-      "reference_answer": "You should contact the DMV immediately.",
-      "model_answer": "If none of the known users of your DIAL-IN account performed the search that DMV contacted you about, **contact DMV immediately**.",
-      "exact_match": 0.0,
-      "f1": 0.3333333333333333
-    },
-    {
-      "example_id": "82ba8181a008d2f3f0d004846ff458c6_10",
-      "domain": "dmv",
-      "question": "Why would the DMV contact me about a search?",
-      "reference_answer": "The DMV may contact you to ask you about a search to make sure you comply with the Dial-In Terms of Service.",
-      "model_answer": "DMV may contact you about a DIAL-IN search to **monitor compliance with the DIAL-IN Terms of Service**. You must respond to the inquiry and provide the **business records that support your search** (otherwise your reply may be considered incomplete).",
-      "exact_match": 0.0,
-      "f1": 0.5185185185185185
-    },
-    {
-      "example_id": "82ba8181a008d2f3f0d004846ff458c6_12",
-      "domain": "dmv",
-      "question": "What if the search is done on behalf of a client?",
-      "reference_answer": "In that case, you'll have to give the permissible use of your client and a proof of your client-agent relationship.",
-      "model_answer": "If the search is done on behalf of a client, you must show **permissible use of your client** and your **client agent relationship** (if DMV asks about the DIAL-IN search).",
-      "exact_match": 0.0,
-      "f1": 0.4
-    },
-    {
-      "example_id": "d157d69d6ee78cabbc77dd57c4d41862_1",
-      "domain": "dmv",
-      "question": "I'm enquiring about out of state insurance docs",
-      "reference_answer": "We will never accept out - of - state vehicle insurance coverage of any type",
-      "model_answer": "Based on the context, **out-of-state insurance documents aren’t acceptable for a vehicle registered in New York**—you must have **New York State insurance coverage**.\n\nSpecifically:\n- If your vehicle is registered in **New York**, **the DMV will never accept out-of-state insurance coverage** for it.  \n- **Out-of-state insurance can cause your NY registration and possibly your driver license to be suspended**, even if you move out of New York.\n- If you **register the vehicle in another state**, you must **surrender your NY vehicle registration and plates to the DMV before NY liability insurance is cancelled**.\n\nIf you’re asking about what documents to send to the DMV after changing registrations (for a **lapse**), the context says you should send:\n- a copy of your **out-of-state registration** in your name, and\n- a copy of your **out-of-state insurance** (if available),\nto: **NYS Department of Motor Vehicles, Financial Security Bureau, PO BOX 2725, Albany NY 12220-0725**, including the registrant’s name/address and the vehicle’s **year/make/VIN**.\n\nIf you tell me whether your vehicle is **currently registered in NY** or has been **re-registered in another state**, I can point you to the exact relevant instruction.",
-      "exact_match": 0.0,
-      "f1": 0.1092896174863388
-    },
-    {
-      "example_id": "d157d69d6ee78cabbc77dd57c4d41862_4",
-      "domain": "dmv",
-      "question": "Yes",
-      "reference_answer": "it must have New York State auto liability insurance coverage.\nYour motorcycle must have insurance coverage any time it is operated on a public road or highway. Unlike most other motor vehicles , motorcycles are registered for one year rather than two",
-      "model_answer": "The context provided does not contain enough information to determine what “Yes” refers to.",
+      "example_id": "8e0770d85d9e7f13ee04580aa88fcca3_1",
+      "domain": "ssa",
+      "question": "What documents do I need to get a corrected Social Security Card?",
+      "reference_answer": "Citizenship is one option.",
+      "model_answer": "If you need a corrected Social Security card, you must show proof of your identity and, if applicable, your immigration status and work authorization, or documents showing the change you need to correct. You must present original documents or certified copies (we can’t accept photocopies, notarized copies, or receipts showing you applied).",
+      "is_unanswerable": false,
+      "abstained": false,
       "exact_match": 0.0,
       "f1": 0.0
-    },
-    {
-      "example_id": "d157d69d6ee78cabbc77dd57c4d41862_6",
-      "domain": "dmv",
-      "question": "Do I need insurance to register my vehicle?",
-      "reference_answer": "Yes the DMV requires auto liability insurance to register a vehicle in New York",
-      "model_answer": "Yes. To register a vehicle in New York, you must have auto liability insurance. The DMV requires New York State issued automobile liability insurance coverage.",
-      "exact_match": 0.0,
-      "f1": 0.6857142857142856
-    },
-    {
-      "example_id": "d157d69d6ee78cabbc77dd57c4d41862_8",
-      "domain": "dmv",
-      "question": "How long do I have to register?",
-      "reference_answer": "You must register your vehicle at the DMV within 180 days of the effective date on your insurance ID card",
-      "model_answer": "The provided context does not say how long you have to register a vehicle. It only explains that you must register at a DMV office (not by phone, online, or by mail) and includes unrelated information about an I‑PIRP course.",
-      "exact_match": 0.0,
-      "f1": 0.2222222222222222
-    },
-    {
-      "example_id": "d157d69d6ee78cabbc77dd57c4d41862_10",
-      "domain": "dmv",
-      "question": "Where can I find more information?",
-      "reference_answer": "The New York State Department of Financial Services website has more information about liability insurance and insurance companies licensed in New York : http://www.dfs.ny.gov",
-      "model_answer": "The context doesn’t specify which topic you mean. If you tell me the subject (e.g., TPD discharge, sales tax, emissions standards, VA nursing homes, or student loans), I can point you to the correct “more information” source from the provided context.",
-      "exact_match": 0.0,
-      "f1": 0.0
-    },
-    {
-      "example_id": "d157d69d6ee78cabbc77dd57c4d41862_12",
-      "domain": "dmv",
-      "question": "What kind of proof of insurance do I need?",
-      "reference_answer": "Your insurance company will issue proof of insurance in two ways: It will give you two original NY State Insurance ID Cards or provide you with access to your digital electronic NY State Insurance ID Card",
-      "model_answer": "The context doesn’t specify what exact **type of proof of insurance document** you need.  \n\nIt only says that you must be able to show your **proof of insurance** to a **judge, a police officer, or anyone who makes a claim of injury or property damage** (for an ATV). It also says that when responding to a DMV lapse notice, you must send proof that includes the **name and address of the registrant** and the **year, make, and VIN** of the vehicle.",
-      "exact_match": 0.0,
-      "f1": 0.18691588785046728
-    },
-    {
-      "example_id": "389cc90cb2e3c1ef291ea78b73ece9d4_1",
-      "domain": "dmv",
-      "question": "Do I need insurance to register my vehicle?",
-      "reference_answer": "Yes. The DMV requires auto liability insurance to register a vehicle in New York",
-      "model_answer": "Yes. The DMV requires auto liability insurance to register a vehicle in New York. You must have New York State issued automobile liability insurance coverage, and when you get insurance you’ll receive proof of insurance (paper ID cards or a digital ID card plus an electronic notice) that must be provided/used with your registration.",
-      "exact_match": 0.0,
-      "f1": 0.3870967741935484
-    },
-    {
-      "example_id": "389cc90cb2e3c1ef291ea78b73ece9d4_4",
-      "domain": "dmv",
-      "question": "No",
-      "reference_answer": "Unfortunately, no relevant information is found.",
-      "model_answer": "The context doesn’t provide enough information to answer “No” to the question as written.  \nIt only contains separate snippets (e.g., “yes or no survey” items), but not the specific question content you want answered.",
-      "exact_match": 0.0,
-      "f1": 0.1081081081081081
-    },
-    {
-      "example_id": "389cc90cb2e3c1ef291ea78b73ece9d4_6",
-      "domain": "dmv",
-      "question": "Where can I find more info?",
-      "reference_answer": "The New York State Department of Financial Services website has more information about liability insurance and insurance companies licensed in New York : http://www.dfs.ny.gov",
-      "model_answer": "The context doesn’t specify which “more info” you mean. It only shows that different topics have a “More Info” section, but it doesn’t provide the actual links or details.\n\nIf you tell me the topic (e.g., **TPD discharge** or something else), I can use the relevant context. For example, for **TPD discharge**, you can visit **disabilitydischarge.com**.",
-      "exact_match": 0.0,
-      "f1": 0.0
-    },
-    {
-      "example_id": "389cc90cb2e3c1ef291ea78b73ece9d4_8",
-      "domain": "dmv",
-      "question": "I'm glad to know, another question related to the letter that my car insurance issues, what if in the end I can't get insurance?",
-      "reference_answer": "In that case you need to surrender your vehicle registration and plates to the DMV immediately.",
-      "model_answer": "If you can’t get insurance, the DMV requires you to **surrender your vehicle registration and plates to the DMV immediately**.",
-      "exact_match": 0.0,
-      "f1": 0.6666666666666666
-    },
-    {
-      "example_id": "389cc90cb2e3c1ef291ea78b73ece9d4_10",
-      "domain": "dmv",
-      "question": "Hold on. My wife just showed me another letter, in it they write that my license is suspended. What should I do now?",
-      "reference_answer": "The letter means your insurance company notified the DMV that your insurance coverage ended, and that no other company notified the DMV about new coverage.",
-      "model_answer": "The context you provided doesn’t mention what to do if your driver’s license is suspended, so I can’t give accurate next steps based on it.\n\nIf the situation is related to a **CDL medical certification** issue, the context says CDL drivers must certify to the type of driving they operate/expect to operate, and that a **Medical Examiner’s Certificate is required for non-excepted driving types (NA/NI)**, while it **is not required for excepted types (EA/EI)**—and that your certification can be changed at a DMV office via a license amendment transaction.\n\nBut since your question is specifically about a **suspension letter**, the context is insufficient.",
-      "exact_match": 0.0,
-      "f1": 0.13913043478260867
-    },
-    {
-      "example_id": "389cc90cb2e3c1ef291ea78b73ece9d4_12",
-      "domain": "dmv",
-      "question": "But what if I do have insurance?",
-      "reference_answer": "Then you should follow the instructions in the letter and contact your company or agent about the problem. Ask your company to file a notice of coverage with the DMV electronically.",
-      "model_answer": "If you **do have insurance**, you should **follow the instructions in the DMV letter** and **contact your insurance company (or agent)** immediately to resolve the problem. In your response to the DMV, you must **prove that you have insurance coverage**.\n\nAlso, you should **ask your insurance company to file a notice of insurance coverage with the DMV electronically** (and not ask your agent/broker to do the filing).",
-      "exact_match": 0.0,
-      "f1": 0.5581395348837209
-    },
-    {
-      "example_id": "389cc90cb2e3c1ef291ea78b73ece9d4_14",
-      "domain": "dmv",
-      "question": "All that trouble, even though I am insured. But no can do. Any pointers on what I shouldn't do in my situation?",
-      "reference_answer": "Do not use your vehicle if your insurance coverage is cancelled, even if you think it is a mistake and keep the plates while you resolve a problem with your insurance company.",
-      "model_answer": "The context only mentions one “insured”/related issue—**trailer plates**—and it says:\n\n- **You must surrender trailer plates if the trailer does not have valid registration**, even if some trailers aren’t required to have liability insurance.\n\nIt also mentions FAFSA tax info from the **IRS DRT** can’t be changed, and that if your situation changed or you filed an **amended tax return (1040X)** you should contact your school’s financial aid office.\n\nHowever, your question doesn’t specify whether you’re dealing with **DMV/trailer plate** issues or **FAFSA/financial aid** issues. With only this context, I can’t give more specific “don’ts” for your situation.\n\nIf you tell me which situation you mean (DMV/trailer plates vs. FAFSA), I can answer more precisely.",
-      "exact_match": 0.0,
-      "f1": 0.2014388489208633
-    },
-    {
-      "example_id": "04479f1bf3da15cdbb958078cb204a26_1",
-      "domain": "dmv",
-      "question": "Can you please tell me about the county use taxes and the supplemental fees?",
-      "reference_answer": "these are taxes that all residents of the New York City and several counties in New York have to pay when they register or renew a commercial vehicle.",
-      "model_answer": "Yes. Based on the provided context:\n\n- **County use taxes (New York State):** Residents of **New York City and several counties** in New York must pay a **vehicle use tax** when they **register** a **commercial** (for commercial vehicles) or **passenger** (for passenger vehicles) vehicle, or when they **renew** the registration. The **DMV collects** these taxes for the city and the counties.  \n- **How to know if you must pay:** The DMV directs you to **use the chart/table** to determine whether you owe a vehicle use tax.\n- **If you’re exempt:**  \n  - If you **live outside New York City** and are **exempt** from the vehicle use tax in your county, you must **complete form UT-11C**.  \n  - If you **live in New York City** and are **exempt** from the NYC vehicle use tax, you must **get form UT-11** from a **local DMV office** or **DMV Call Center**.\n- **Supplemental fees (for certain counties):** The context notes that for residents of the **12 counties in the Metropolitan Commuter Transportation District (MCTD)**, they **also pay a supplemental fee for each year** the registration is in effect.\n- **Important chart instruction (MCTD):** The context says **not to add $32.50** to the fee shown in the chart (or to the estimate output) when determining what to pay.\n\nIf you tell me whether you mean **commercial or passenger vehicles**, I can narrow down which set of instructions from the context applies.",
-      "exact_match": 0.0,
-      "f1": 0.20869565217391303
-    },
-    {
-      "example_id": "04479f1bf3da15cdbb958078cb204a26_4",
-      "domain": "dmv",
-      "question": "No, that's enough.",
-      "reference_answer": "Unfortunately, no relevant information is found.",
-      "model_answer": "I don’t have enough information to answer. The only related context here is about when a VA claim exam is needed, but your message (“No, that's enough.”) doesn’t specify what question you want answered.",
-      "exact_match": 0.0,
-      "f1": 0.10526315789473684
-    },
-    {
-      "example_id": "04479f1bf3da15cdbb958078cb204a26_6",
-      "domain": "dmv",
-      "question": "aactually, who's in charge of collecting the taxes?",
-      "reference_answer": "That would be the DMV who collects the taxes for the city and counties.",
-      "model_answer": "The context says that when you work, you pay taxes into Social Security, and those tax money payments are used to pay benefits to people who are retired, disabled, survivors, and dependents. However, it does **not** say *who is in charge of collecting the taxes* (e.g., which agency/department actually collects them).",
-      "exact_match": 0.0,
-      "f1": 0.16666666666666669
-    },
-    {
-      "example_id": "04479f1bf3da15cdbb958078cb204a26_9",
-      "domain": "dmv",
-      "question": "Yes, that's correct.",
-      "reference_answer": "You should complete form UT-11C.",
-      "model_answer": "I can’t tell what you’re confirming with “Yes, that’s correct,” because the context provided doesn’t include the question or statement you’re referring to. If you share the full question or prior message, I can answer using only the given context.",
-      "exact_match": 0.0,
-      "f1": 0.048780487804878044
-    },
-    {
-      "example_id": "04479f1bf3da15cdbb958078cb204a26_11",
-      "domain": "dmv",
-      "question": "What about the county use tax chart for counties outside of New York City?",
-      "reference_answer": "That chart shows the use taxes and supplemental fees for original registrations and renewals. Thes sales tax depends on the purchase proce of the vehicle and where you are located.",
-      "model_answer": "The county use tax chart for counties outside of New York City shows the **use taxes for all original registrations and renewals**, calculated **by the weight of the vehicle**. It also notes that residents in the **12 counties in the Metropolitan Commuter Transportation District (MCTD)** pay an **additional supplemental fee for each year** the registration is in effect.\n\nThe context also says **not to add $32.50** to the chart’s fee (or to the amount produced by the DMV estimate), and that **the DMV collects the taxes** for the city and counties.",
-      "exact_match": 0.0,
-      "f1": 0.3106796116504854
-    },
-    {
-      "example_id": "04479f1bf3da15cdbb958078cb204a26_13",
-      "domain": "dmv",
-      "question": "Now, what if I reside in New York City and am exempt from the NYC vehicle use tax?",
-      "reference_answer": "In that case, you should go to a local DMV and get form UT-11, You can also get it from a DMC call center.",
-      "model_answer": "If you reside in New York City and you’re exempt from the NYC vehicle use tax, you must get **form UT-11** from a **local DMV office** or from a **DMV Call Center**.",
-      "exact_match": 0.0,
-      "f1": 0.47058823529411764
-    },
-    {
-      "example_id": "b1636bf0a27cb22b424bd5c572646dfa_1",
-      "domain": "dmv",
-      "question": "How do the county taxes work? how are they used?",
-      "reference_answer": "Residents of New York City and several counties in New York must pay a vehicle use tax when they register a commercial vehicle or renew a commercial vehicle registration .",
-      "model_answer": "From the provided context, **New York City and certain New York counties charge “vehicle use tax” and possible “supplemental fees” when you register or renew a vehicle**. The DMV collects these taxes for the city and the counties.\n\n- **Who pays / when:** Residents in **NYC and several counties** must pay a **vehicle use tax** when they **register** a commercial vehicle (and also for **passenger vehicles**), or when they **renew** the registration.\n- **How you figure out if you must pay:** You use the **DMV county use tax tables/charts** (based on the vehicle type and, for counties outside NYC, the vehicle’s **weight**).  \n- **If you’re exempt:** If you’re exempt from the county/NYC vehicle use tax, you complete the appropriate DMV form:\n  - Outside NYC: complete **UT-11C**\n  - Inside NYC: get **UT-11** from a local DMV office or DMV Call Center\n- **Supplemental fees:** Residents in the **12 counties in the MCTD** also pay a **supplemental fee** for each year the registration is in effect.\n\n**How they’re used:** The context **does not explain how the county taxes are used** (what programs or services they fund). It only states that the **DMV collects the taxes for the city and the counties**.",
-      "exact_match": 0.0,
-      "f1": 0.24742268041237114
-    },
-    {
-      "example_id": "b1636bf0a27cb22b424bd5c572646dfa_4",
-      "domain": "dmv",
-      "question": "yes",
-      "reference_answer": "Ok great! Thank you for your response. You can ask the city or county you are in about that",
-      "model_answer": "The provided context includes several “yes or no survey” prompts, but it does not specify what the question is asking “yes” to.\n\nIf you meant one of these prompts, the context does show “yes or no survey:” for items like renewing a non-driver ID card, replacing a title certificate, registering a moped, etc. However, there isn’t enough information to determine which specific item the “yes” refers to.\n\nPlease tell me which prompt (e.g., Renew non-driver ID card / Replace a title certificate / Register a moped / Appeal a TVB ticket conviction) you mean.",
-      "exact_match": 0.0,
-      "f1": 0.0808080808080808
-    },
-    {
-      "example_id": "b1636bf0a27cb22b424bd5c572646dfa_6",
-      "domain": "dmv",
-      "question": "Is there anyway to become exempt from them?",
-      "reference_answer": "You can contact the DMV Call Center",
-      "model_answer": "Yes. For **DIAL-IN search accounts**, some organizations are **exempt from the search fee**. The context says the following are exempt if they make a search **for a public purpose**:\n\n- Any **public organization**  \n- Its **officers**  \n- A **volunteer fire company**  \n- A **volunteer ambulance service**  \n- A **legal aid bureau or society**  \n- Other **private entity acting pursuant to section 722 of the New York State County Law**  \n\nIf you tell me which “them” you mean (the DIAL-IN search fee vs. something else), I can confirm based on the provided context.",
-      "exact_match": 0.0,
-      "f1": 0.04938271604938272
-    },
-    {
-      "example_id": "b1636bf0a27cb22b424bd5c572646dfa_8",
-      "domain": "dmv",
-      "question": "Do you know where the centers are located?",
-      "reference_answer": "yes I do. New York City Bronx, Kings (Brooklyn), New York (Manhattan), Queens, Richmond (Staten Island)",
-      "model_answer": "The context doesn’t say where the centers (e.g., VA medical centers/CBOCs/Vet Centers, or Identogo locations) are located.  \n\nIf you meant **Identogo** for HazMat fingerprinting, the context only says there are Identogo ID centers “located throughout New York State,” and you must choose a location via https://uenroll.identogo.com or by calling **1-877-472-6915**.",
-      "exact_match": 0.0,
-      "f1": 0.06451612903225806
-    },
-    {
-      "example_id": "b1636bf0a27cb22b424bd5c572646dfa_10",
-      "domain": "dmv",
-      "question": "What are the fees for that?",
-      "reference_answer": "The fees listed in the chart are for commercial vehicles that weigh less than 18,000 lbs",
-      "model_answer": "The context doesn’t say what “that” refers to, so it’s not enough information to determine the correct fees.\n\nIf you mean one of the listed items, the fees given are:\n- **Duplicate IRP registration items:** replacement apportioned vehicle plates with cab card **$27.50**, plus replacement cab card and sticker **$2.50**.\n- **Escort driver certification (vehicle escort test):** **$40.00** each time.\n- **Driver license:** fees vary by what you’re applying for, your age, and where you live (use the fee chart).",
-      "exact_match": 0.0,
-      "f1": 0.11627906976744186
-    },
-    {
-      "example_id": "b1636bf0a27cb22b424bd5c572646dfa_12",
-      "domain": "dmv",
-      "question": "how do I know if I have to pay or not?",
-      "reference_answer": "you can view and download the form here  complete form UT-11C",
-      "model_answer": "The provided context doesn’t say how to know whether you have to pay or not. It only mentions a $10.00 search fee for ordering a vehicle registration abstract (and that reminders depend on eligibility), but it doesn’t explain a general “do I have to pay?” rule.\n\nIf you tell me what specific service or situation you mean (e.g., DMV records, escrow closure, reminders, or something else), I can check the context again.",
-      "exact_match": 0.0,
-      "f1": 0.0779220779220779
-    },
-    {
-      "example_id": "b1636bf0a27cb22b424bd5c572646dfa_14",
-      "domain": "dmv",
-      "question": "What about the taxes for outside counties of new york?",
-      "reference_answer": "The chart show the use taxes and supplemental fees for all original registrations and renewals",
-      "model_answer": "For **counties outside New York City**, you must follow the **county use tax chart for counties outside of New York City**. The chart lists the **vehicle use taxes and supplemental fees** for **original registrations and renewals**, based on the vehicle’s **weight** (for passenger vehicles) or the applicable chart amounts (for commercial vehicles).\n\nFor the **correct fee for commercial vehicles**:  \n- **Add 3.25%** to the amount listed in the chart,  \n- then **round to the nearest $0.25**.  \n\nSome registration classes are exempt from the additional fee (listed as: **Agricultural, Ambulance, Farm, Historical, House Trailer, Semi Trailer, Special Purpose Commercial, Trailer**).  \n\nIf you’re **exempt** from the county vehicle use tax where you reside or have a business (outside NYC), you must complete **form UT-11C**.\n\nThe context doesn’t include the exact specific tax amounts for each outside county—only how the chart is applied.",
-      "exact_match": 0.0,
-      "f1": 0.16176470588235295
     }
   ]
 }

@@ -30,6 +30,8 @@ def evaluate(
             if line:
                 records.append(json.loads(line))
 
+    UNANSWERABLE = "Unfortunately, no relevant information is found."
+
     results: List[Dict[str, Any]] = []
     skipped = 0
 
@@ -42,6 +44,8 @@ def evaluate(
             prediction=rec["model_answer"],
             reference=rec["reference_answer"],
         )
+        is_unans = rec.get("is_unanswerable", rec["reference_answer"] == UNANSWERABLE)
+        abstained = rec["model_answer"].strip() == UNANSWERABLE
 
         results.append({
             "example_id": rec["example_id"],
@@ -49,26 +53,36 @@ def evaluate(
             "question": rec["question"],
             "reference_answer": rec["reference_answer"],
             "model_answer": rec["model_answer"],
+            "is_unanswerable": is_unans,
+            "abstained": abstained,
             "exact_match": scores["exact_match"],
             "f1": scores["f1"],
         })
 
     n = len(results)
-    if n == 0:
-        aggregate = {"exact_match": 0.0, "f1": 0.0}
-    else:
-        aggregate = {
-            "exact_match": sum(r["exact_match"] for r in results) / n,
-            "f1": sum(r["f1"] for r in results) / n,
+    answerable = [r for r in results if not r["is_unanswerable"]]
+    unanswerable = [r for r in results if r["is_unanswerable"]]
+
+    def _agg(subset):
+        if not subset:
+            return {"exact_match": 0.0, "f1": 0.0, "n": 0}
+        return {
+            "exact_match": sum(r["exact_match"] for r in subset) / len(subset),
+            "f1": sum(r["f1"] for r in subset) / len(subset),
+            "n": len(subset),
         }
 
+    abstain_rate = sum(r["abstained"] for r in unanswerable) / len(unanswerable) if unanswerable else 0.0
+
     report = {
-        "experiment": "llm_baseline",
+        "experiment": input_path.stem.replace("_evaluation", ""),
         "input_file": str(input_path),
         "total_examples": len(records),
         "evaluated": n,
         "skipped": skipped,
-        "aggregate": aggregate,
+        "aggregate": _agg(results),
+        "answerable": _agg(answerable),
+        "unanswerable": {**_agg(unanswerable), "abstain_rate": abstain_rate},
         "per_example": results,
     }
 
@@ -94,11 +108,17 @@ def main():
     report = evaluate(input_path=input_path, output_path=output_path)
 
     agg = report["aggregate"]
+    ans = report["answerable"]
+    unans = report["unanswerable"]
     print("----------------------------------------")
     print(f"Evaluated : {report['evaluated']} / {report['total_examples']}")
     print(f"Skipped   : {report['skipped']}")
     print(f"Exact Match: {agg['exact_match']:.4f}  ({agg['exact_match']*100:.2f}%)")
     print(f"Token F1   : {agg['f1']:.4f}  ({agg['f1']*100:.2f}%)")
+    if ans["n"]:
+        print(f"  Answerable   (n={ans['n']:2d}): F1 {ans['f1']*100:.2f}%")
+    if unans["n"]:
+        print(f"  Unanswerable (n={unans['n']:2d}): F1 {unans['f1']*100:.2f}%  abstain_rate {unans['abstain_rate']*100:.0f}%")
     print("----------------------------------------")
     print(f"Full report saved to:\n  {output_path}")
 

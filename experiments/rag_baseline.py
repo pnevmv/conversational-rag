@@ -8,17 +8,26 @@ from typing import Any, Dict, List, Optional
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from src.data import load_qa_pairs
+from src.data import load_qa_pairs, load_doc_domain_map
 from src.llm import LLMClient
 from src.rag import BM25Retriever
 
 TOP_K = 5
 
 PROMPT_TEMPLATE = (
-    "You are a helpful assistant. Answer the question using only the context provided below.\n"
-    "If the context does not contain enough information, say so briefly.\n\n"
+    "You are a government services agent. Answer the customer's question in 1-2 plain sentences "
+    "using only the context below. No bullet points, no bold text, no preamble.\n"
+    "If the context does not contain relevant information, reply exactly: "
+    "\"Unfortunately, no relevant information is found.\"\n\n"
+    "Examples:\n"
+    "Customer: Do I need insurance to register my vehicle?\n"
+    "Agent: Yes, you must have liability insurance to register a vehicle in New York.\n\n"
+    "Customer: How do I pay DIAL-IN search account fees?\n"
+    "Agent: Paying customers must include a deposit with the application; "
+    "your first deposit must cover two months of searches.\n\n"
     "Context:\n{context}\n\n"
-    "Question:\n{question}"
+    "Customer: {question}\n"
+    "Agent:"
 )
 
 
@@ -59,6 +68,20 @@ def recall_at_k(
     return len(matched) / len(gold_pairs)
 
 
+def domain_recall_at_k(
+    retrieved: List[Dict[str, Any]],
+    gold_domain: str,
+    k: int,
+    doc_domain_map: Dict[str, str],
+) -> float:
+    """Fraction of top-k retrieved sections that come from the correct domain."""
+    top = retrieved[:k]
+    if not top:
+        return 0.0
+    hits = sum(1 for r in top if doc_domain_map.get(r["doc_id"]) == gold_domain)
+    return hits / len(top)
+
+
 def run_rag_baseline(
     split: str = "validation",
     domain: Optional[str] = None,
@@ -82,16 +105,16 @@ def run_rag_baseline(
 
     print("Loading MultiDoc2Dial...")
     examples: List[Dict[str, Any]] = load_qa_pairs(
-        split=split,
-        domain=domain,
-        max_examples=max_examples,
+        split=split, domain=domain, max_examples=max_examples,
     )
     total = len(examples)
     print(f"Selected {total} examples\n")
 
-    print("Building BM25 index over document spans...")
+    print("Building BM25 index over document sections...")
     retriever = BM25Retriever()
-    print(f"Index built: {retriever.corpus_size:,} spans\n")
+    print(f"Index built: {retriever.corpus_size:,} sections\n")
+
+    doc_domain_map = load_doc_domain_map()
 
     print("Initializing LLM client...")
     client = LLMClient()
@@ -103,6 +126,7 @@ def run_rag_baseline(
     failed = 0
     recall_1_sum = 0.0
     recall_5_sum = 0.0
+    domain_recall_sum = 0.0
 
     with open(output_file, "w", encoding="utf-8") as f:
         for idx, ex in enumerate(examples, start=1):
@@ -110,18 +134,18 @@ def run_rag_baseline(
             question = ex["question"]
             grounding = ex.get("grounding", [])
 
-            print(f"[{idx}/{total}] (ID: {ex_id})")
+            print(f"[{idx}/{total}] [{ex['domain']}] (ID: {ex_id})")
             print(f"  Q: {question[:80]}{'...' if len(question) > 80 else ''}")
 
-            # --- Retrieval ---
             retrieved = retriever.retrieve(question, top_k=top_k)
             r1 = recall_at_k(retrieved, grounding, k=1)
             r5 = recall_at_k(retrieved, grounding, k=5)
+            dr = domain_recall_at_k(retrieved, ex["domain"], top_k, doc_domain_map)
             recall_1_sum += r1
             recall_5_sum += r5
-            print(f"  Retrieved {len(retrieved)} spans  |  Recall@1={r1:.2f}  Recall@5={r5:.2f}")
+            domain_recall_sum += dr
+            print(f"  Recall@1={r1:.2f}  Recall@5={r5:.2f}  DomainRecall={dr:.2f}")
 
-            # --- LLM generation ---
             context = format_context(retrieved)
             prompt = PROMPT_TEMPLATE.format(context=context, question=question)
 
@@ -146,6 +170,7 @@ def run_rag_baseline(
                 "turn_id": ex["turn_id"],
                 "question": question,
                 "reference_answer": ex["reference_answer"],
+                "is_unanswerable": ex.get("is_unanswerable", False),
                 "document_id": ex["document_id"],
                 "grounding": grounding,
                 "retrieved_spans": retrieved,
@@ -154,6 +179,7 @@ def run_rag_baseline(
                 "model_answer": model_answer,
                 "recall_at_1": r1,
                 "recall_at_5": r5,
+                "domain_recall": dr,
                 "status": status,
                 "error": error_msg,
             }
@@ -162,16 +188,18 @@ def run_rag_baseline(
             f.flush()
 
     n_eval = successful + failed
-    avg_r1 = recall_1_sum / n_eval if n_eval > 0 else 0.0
-    avg_r5 = recall_5_sum / n_eval if n_eval > 0 else 0.0
+    avg_r1 = recall_1_sum / n_eval if n_eval else 0.0
+    avg_r5 = recall_5_sum / n_eval if n_eval else 0.0
+    avg_dr = domain_recall_sum / n_eval if n_eval else 0.0
 
     print("\n----------------------------------------")
     print(f"Completed : {total}")
     print(f"Successful: {successful}")
     print(f"Failed    : {failed}")
     print(f"\nRetrieval (avg over all examples):")
-    print(f"  Recall@1: {avg_r1:.4f}  ({avg_r1*100:.2f}%)")
-    print(f"  Recall@5: {avg_r5:.4f}  ({avg_r5*100:.2f}%)")
+    print(f"  Recall@1:      {avg_r1:.4f}  ({avg_r1*100:.2f}%)")
+    print(f"  Recall@5:      {avg_r5:.4f}  ({avg_r5*100:.2f}%)")
+    print(f"  Domain Recall: {avg_dr:.4f}  ({avg_dr*100:.2f}%)")
     print(f"\nResults saved to:\n  {output_file}")
     print("----------------------------------------\n")
 

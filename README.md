@@ -46,37 +46,44 @@ Six progressive architectures are developed and compared:
 
 **Step 3 — LLM Baseline**
 - [x] Azure OpenAI API integration (`gpt-5.4-nano-smirnov` via `LLMClient`).
-- [x] MultiDoc2Dial dataset loader (`src/data/loader.py`).
+- [x] MultiDoc2Dial dataset loader with round-robin multi-domain sampling (`src/data/loader.py`).
 - [x] JSONL experiment logger (`src/evaluation/logger.py`).
-- [x] Deterministic 50-example benchmark on MultiDoc2Dial validation split.
-- [x] Result: Token F1 **7.53%**, Exact Match 0.00%.
+- [x] Deterministic 50-example benchmark on MultiDoc2Dial validation split (balanced 4-domain).
+- [x] Result: Token F1 **14.09%**, Exact Match 0.00%, Abstain 0%.
 
 **Step 3.5 — Evaluation Layer**
 - [x] Reusable Exact Match and token-level F1 metrics (`src/evaluation/metrics.py`).
-- [x] Evaluation script for any experiment JSONL (`experiments/evaluate_baseline.py`).
+- [x] Evaluation script with answerable/unanswerable split and abstain rate (`experiments/evaluate_baseline.py`).
 - [x] 19 unit tests for evaluation metrics.
 
 **Step 4 — Retrieval and RAG**
 - [x] Section-level indexing: heading + all following content spans joined as one retrieval unit (`src/data/loader.py`: `load_sections()`).
 - [x] BM25 retriever over 4,114 sections (`src/rag/retriever.py`).
-  - Result: Token F1 **20.68%**, Recall@5 40.00%.
+  - Result: Token F1 **20.69%**, Recall@5 22.00%, Domain Recall 58.00%, Abstain 67%.
 - [x] Dense retriever using `BAAI/bge-small-en-v1.5` embeddings, cosine similarity, disk-cached index (`src/rag/dense_retriever.py`).
-  - Result: Token F1 **19.44%**, Recall@5 42.00%.
+  - Result: Token F1 **19.24%**, Recall@5 38.00%, Domain Recall 66.80%, Abstain 33%.
 - [x] Hybrid retriever combining BM25 + dense via Reciprocal Rank Fusion (`src/rag/hybrid_retriever.py`).
-  - Result: Token F1 **19.79%**, Recall@5 46.00%.
+  - Result: Token F1 **21.77%** (best), Recall@5 36.00%, Domain Recall 63.60%, Abstain 33%.
 - [x] Multi-turn query rewriting: LLM rewrites each user turn into a standalone query using dialogue history (`src/rag/query_rewriter.py`).
-  - Result: Token F1 **23.59%**, Recall@5 **68.00%** (+22 pp over hybrid alone).
+  - Result: Token F1 **20.40%**, Recall@5 44.00%, Domain Recall **87.20%** (best), Answerable F1 **21.70%** (best).
+- [x] Domain Recall@K metric: fraction of top-K retrieved sections from the gold document's domain.
+- [x] Unanswerable tagging (`is_unanswerable`) and abstain rate metric.
+- [x] Agent-voice few-shot prompt across all RAG experiments.
 - [x] 10 unit tests for BM25, 10 for dense, 9 for hybrid/RRF, 12 for query rewriter (64 total).
 
-### Experiment Results (MultiDoc2Dial validation, 50 examples)
+### Experiment Results (MultiDoc2Dial validation, 50 examples, balanced 4-domain)
 
-| Experiment | Token F1 | Recall@1 | Recall@5 |
-| :--- | :---: | :---: | :---: |
-| LLM-only baseline | 7.53% | — | — |
-| RAG — BM25 | 20.68% | 30.00% | 40.00% |
-| RAG — Dense (bge-small) | 19.44% | 24.00% | 42.00% |
-| RAG — Hybrid (BM25 + dense, RRF) | 19.79% | 32.00% | 46.00% |
-| RAG — Hybrid + Query Rewriting | **23.59%** | **40.00%** | **68.00%** |
+50 examples sampled round-robin across DMV/SSA/VA/StudentAid (13/13/12/12). 3 unanswerable examples. Agent-voice prompt with few-shot examples; exact abstention phrase.
+
+| Experiment | Token F1 | F1 (answ.) | Abstain | Recall@1 | Recall@5 | Domain Recall |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| LLM-only baseline | 14.09% | 14.85% | 0% | — | — | — |
+| RAG — BM25 | 20.69% | 17.75% | 67% | 12.00% | 22.00% | 58.00% |
+| RAG — Dense (bge-small) | 19.24% | 18.34% | 33% | 20.00% | 38.00% | 66.80% |
+| RAG — Hybrid (BM25 + dense, RRF) | **21.77%** | 20.97% | 33% | 12.00% | 36.00% | 63.60% |
+| RAG — Hybrid + Query Rewriting | 20.40% | **21.70%** | 0% | **28.00%** | **44.00%** | **87.20%** |
+
+Abstain = fraction of unanswerable examples where model replied exactly with the abstention phrase. Domain Recall = fraction of top-5 retrieved sections from the gold document's domain.
 
 See [`experiments_description.txt`](experiments_description.txt) for full analysis.
 
