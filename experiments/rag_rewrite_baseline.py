@@ -228,7 +228,8 @@ def main():
     )
     parser.add_argument("--split", default="validation", choices=["validation", "train"])
     parser.add_argument("--domain", default=None)
-    parser.add_argument("--max-examples", type=int, default=50)
+    parser.add_argument("--max-examples", type=int, default=50,
+                        help="0 = full split")
     parser.add_argument("--top-k", type=int, default=TOP_K)
     parser.add_argument("--score-threshold", type=float, default=None,
                         help="Abstain if top-1 retrieval score < threshold")
@@ -238,7 +239,7 @@ def main():
     run_rag_rewrite_baseline(
         split=args.split,
         domain=args.domain,
-        max_examples=args.max_examples,
+        max_examples=args.max_examples if args.max_examples > 0 else None,
         top_k=args.top_k,
         score_threshold=args.score_threshold,
         output_path=Path(args.output) if args.output else None,

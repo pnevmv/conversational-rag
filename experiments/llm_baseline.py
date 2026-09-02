@@ -161,7 +161,7 @@ def main():
         "--max-examples",
         type=int,
         default=50,
-        help="Number of deterministic examples to run (default: 50)",
+        help="Number of examples to run (default: 50; 0 = full split)",
     )
     parser.add_argument(
         "--output",
@@ -177,7 +177,7 @@ def main():
     run_llm_baseline(
         split=args.split,
         domain=args.domain,
-        max_examples=args.max_examples,
+        max_examples=args.max_examples if args.max_examples > 0 else None,
         output_path=custom_output,
     )
 
