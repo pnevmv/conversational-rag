@@ -1,0 +1,463 @@
+{
+  "experiment": "llm_baseline",
+  "input_file": "experiments/results/rag_rewrite_baseline.jsonl",
+  "total_examples": 50,
+  "evaluated": 50,
+  "skipped": 0,
+  "aggregate": {
+    "exact_match": 0.0,
+    "f1": 0.23587562533554668
+  },
+  "per_example": [
+    {
+      "example_id": "1409501a35697e0ce68561e29577b90a_1",
+      "domain": "dmv",
+      "question": "My insurance ended so what should i do",
+      "reference_answer": "You will need to get insurance or we will suspend your registration and license",
+      "model_answer": "If your insurance ended, the DMV received notice that your coverage ended and (if applicable) no new coverage was reported.\n\n- **If you have insurance now:** follow the instructions in the DMV letter, contact your insurance company/agent about the issue, and **ask your company to file a notice of coverage with the DMV electronically**.\n- **If you don’t have insurance:** **surrender your vehicle registration and plates to the DMV immediately**.\n- **Also:** in your response to the DMV letter, you must **prove you have insurance**, or **prove you sold the vehicle**, or **prove insurance coverage was not required**.\n\nIf you want, tell me what your situation is now (do you currently have insurance?), and I can help you pick the correct option from the above.",
+      "exact_match": 0.0,
+      "f1": 0.11199999999999999
+    },
+    {
+      "example_id": "1409501a35697e0ce68561e29577b90a_3",
+      "domain": "dmv",
+      "question": "Don't do that I'll get insurance",
+      "reference_answer": "Okay, have you received a letter from the DMV letting you know how to clear things up?",
+      "model_answer": "The context says that **if you have insurance**, you should **follow the instructions in the letter** and **contact your insurance company/agent** so they can fix the problem by **filing a notice of coverage with the DMV electronically**.  \n\nHowever, it also says that **paper proof or email messages are NOT acceptable**, and that **if you don’t have insurance, you must surrender your vehicle registration and plates immediately**.  \n\nSo, **if you truly will get insurance and your company files proof electronically with the DMV**, you should **not** surrender your plates—but if you **don’t** have insurance (or the DMV won’t get the reinstated proof electronically), then **you must surrender**.",
+      "exact_match": 0.0,
+      "f1": 0.08928571428571429
+    },
+    {
+      "example_id": "1409501a35697e0ce68561e29577b90a_5",
+      "domain": "dmv",
+      "question": "I have, that is why I am here to clear that up and change the address on my license and registration",
+      "reference_answer": "Okay, we can take care of that",
+      "model_answer": "To change the address on your **license and registration**, you must report your change to the **DMV within 10 days** of moving. The DMV also notes that:\n\n- **USPS address changes don’t update DMV records** for licenses/permits/IDs or vehicle records.\n- When you update your address **for a license/permit/ID or vehicle registration**, it **won’t automatically update your TVB traffic ticket address**, and vice versa.\n\nWhen updating:\n- You **can write your new address** on the **back** of your driver license / non-driver ID / learner permit and **carefully draw lines through the old address**.\n- **Do not write the new address on a title certificate.**\n- The DMV recommends using the **same address** across your documents and transactions.",
+      "exact_match": 0.0,
+      "f1": 0.05555555555555556
+    },
+    {
+      "example_id": "1409501a35697e0ce68561e29577b90a_7",
+      "domain": "dmv",
+      "question": "Thank you so much. After looking through these requirements that I need to bring to DMV, can you tell me whether a GED certificate will be a valid proof of identification?",
+      "reference_answer": "Sure, it is. You can contact your college and get a certified copy.",
+      "model_answer": "The context provided doesn’t say whether a GED certificate is valid proof of identification for DMV purposes. It only notes that you must bring proof of the change and, in one place, that a current/expired Driver License/Learner Permit/Non-Driver ID can be used as proof of identity and age, or that other kinds of proof may be accepted—but the specific list of acceptable documents (including whether a GED certificate counts) is not included here.\n\nSo, based only on the provided context, I can’t confirm whether a GED certificate will be accepted as proof of identification.",
+      "exact_match": 0.0,
+      "f1": 0.10204081632653061
+    },
+    {
+      "example_id": "1409501a35697e0ce68561e29577b90a_9",
+      "domain": "dmv",
+      "question": "Great. I think that I can found some bills, of some services, would that help too?",
+      "reference_answer": "Yes, as long as they be a phone, electricity, gas, water or cable bill.",
+      "model_answer": "The context here doesn’t say anything about bills or costs for “services” beyond DMV address-change replacement documents. It only explains that:\n\n- You must report a move to the DMV within 10 days.\n- USPS address changes do **not** update DMV records.\n- An online DMV address change applies only to the specific DMV records you select.\n- Replacement duplicate documents that show your new address may be available, and **there are fees** to order them.\n\nSo, using only this context, I can’t confirm whether “finding bills for some services” would help. If you tell me what bills/services you mean, I can check whether the context supports it.",
+      "exact_match": 0.0,
+      "f1": 0.036036036036036036
+    },
+    {
+      "example_id": "1409501a35697e0ce68561e29577b90a_11",
+      "domain": "dmv",
+      "question": "Can I use my union card?",
+      "reference_answer": "Yes, it's also a valid document, no matter if you have no longer that union job.",
+      "model_answer": "Yes. The context says you can use a **union card** as proof of name identification (even if it’s from another state). If you lost the card, you can ask the union for a duplicate.",
+      "exact_match": 0.0,
+      "f1": 0.18181818181818182
+    },
+    {
+      "example_id": "98c58a56af5e55754eeb7d427928ff66_1",
+      "domain": "dmv",
+      "question": "I need to change my address.",
+      "reference_answer": "You need to report it to the DMV.",
+      "model_answer": "Based on the context provided, you can change your address online through the **Social Security Administration (SSA)** by using or creating a free **my Social Security** account.  \n\nThe context also includes **New York DMV** instructions: you must report a change of residence to the DMV within **10 days**. An online address change applies only to the **DMV records you select**; it does not automatically update other records (like traffic ticket records).\n\nIf you tell me whether you mean **SSA** or **DMV (NY)**, I can point you to the correct steps from the provided info.",
+      "exact_match": 0.0,
+      "f1": 0.13186813186813187
+    },
+    {
+      "example_id": "98c58a56af5e55754eeb7d427928ff66_4",
+      "domain": "dmv",
+      "question": "Yes, I just have to change the address.",
+      "reference_answer": "Unfortunately, no relevant information is found.",
+      "model_answer": "Based on the context, you **must report a change of residence address to the DMV within 10 days** of moving.\n\nAlso:\n- **You can’t change your address during a renewal/other transaction**—you should **change your address online first**, then renew.\n- **Changing your address with USPS does not update your DMV records**.\n- When you submit the online DMV address change, the change applies **only to the DMV records you select** (driver license/ID and specific registrations/photo documents).\n\nIf you tell me what you’re changing (license only, registrations only, or both), I can help confirm exactly which records you should select.",
+      "exact_match": 0.0,
+      "f1": 0.0
+    },
+    {
+      "example_id": "98c58a56af5e55754eeb7d427928ff66_6",
+      "domain": "dmv",
+      "question": "What if my insurance had lapsed?",
+      "reference_answer": "Your license and registration could be suspended.",
+      "model_answer": "If your insurance had lapsed, it means your insurance company notified the DMV that your coverage ended and no new coverage was reported to the DMV.  \n\n- **If you have insurance now:** follow the instructions in the DMV letter and contact your insurance company/agent so they **file a notice of coverage with the DMV electronically**.  \n- **If you don’t have insurance:** you must **surrender your vehicle registration and plates to the DMV immediately**.",
+      "exact_match": 0.0,
+      "f1": 0.08450704225352113
+    },
+    {
+      "example_id": "98c58a56af5e55754eeb7d427928ff66_8",
+      "domain": "dmv",
+      "question": "Ok, yes, they are good alternatives. I know you ask a lot for birth certificates, but what if you don't have one handy?",
+      "reference_answer": "You can go and use the NYS Department of Health Vital Records to lend you a hand on that. You can even order those through an independent partner.",
+      "model_answer": "If you don’t have a birth certificate handy, the SSA says you must present your birth certificate **if one exists**—but **if a birth certificate does not exist**, they may accept other documents, such as:\n\n- **Religious record made before age 5** showing your date of birth  \n- **U.S. hospital record of your birth**  \n- **U.S. passport**\n\n(If you’re **age 12 or older**, you also must **appear in person for an interview**.)",
+      "exact_match": 0.0,
+      "f1": 0.0898876404494382
+    },
+    {
+      "example_id": "98c58a56af5e55754eeb7d427928ff66_10",
+      "domain": "dmv",
+      "question": "Going back to those alternate documents, can i use General Educational Development certificate as well?",
+      "reference_answer": "Sure. You can contact your college to ask them for a certified copy.",
+      "model_answer": "The context doesn’t mention a **General Educational Development (GED)** certificate as an acceptable “alternate document” for identity or age when applying for a Social Security card.  \n\nBased on the lists provided, acceptable alternate documents include items such as a **school identification card**, **school/daycare record**, **doctor/clinic/hospital record**, **religious record**, **adoption decree**, or a **state-issued non-driver identification card**, but **GED isn’t listed**.",
+      "exact_match": 0.0,
+      "f1": 0.03076923076923077
+    },
+    {
+      "example_id": "98c58a56af5e55754eeb7d427928ff66_12",
+      "domain": "dmv",
+      "question": "Are you sure? I don't want to waste my time there.",
+      "reference_answer": "Absolutely, that document is totally valid for this procedure.",
+      "model_answer": "The context doesn’t provide enough information to confirm your specific situation (“Are you sure?” / “I don’t want to waste my time there”)—it only includes general guidance about getting vital records (NY state), Social Security card document requirements, and NYS DMV lien handling.\n\nIf you tell me what “there” refers to (e.g., SSA office, NYS DMV, Vital Records) and what you’re trying to do, I can answer using the provided context.",
+      "exact_match": 0.0,
+      "f1": 0.025974025974025972
+    },
+    {
+      "example_id": "56f37985586c76d125118233adb410fa_1",
+      "domain": "dmv",
+      "question": "how do i pay dial in search account fees?",
+      "reference_answer": "paying customers must include a deposit with the application. your first deposit must be enough to pay for two months of searches.",
+      "model_answer": "To pay DIAL-IN Search Account fees, you must include a **deposit with your application**. Your **first deposit must be enough to pay for two months of searches**. After your application is accepted, the deposit is added to your **new account balance**, and each time you make a search, the **search fee is subtracted** from that balance. **Credit card payment is not available at this time.**",
+      "exact_match": 0.0,
+      "f1": 0.4444444444444445
+    },
+    {
+      "example_id": "56f37985586c76d125118233adb410fa_4",
+      "domain": "dmv",
+      "question": "yes",
+      "reference_answer": "your deposit is added to your new account balance",
+      "model_answer": "The context provided is not enough to determine what the question is asking—there’s only a set of unrelated FAQs and the word “yes.”\n\nIf you paste the actual question you want answered, I can answer it using only the provided context.",
+      "exact_match": 0.0,
+      "f1": 0.0909090909090909
+    },
+    {
+      "example_id": "56f37985586c76d125118233adb410fa_6",
+      "domain": "dmv",
+      "question": "what about my browser?",
+      "reference_answer": "please update it to the newest version",
+      "model_answer": "The provided context doesn’t mention anything about browser requirements or compatibility. Please share more details about what system/page you’re trying to use (or any error message), and I can’t answer based on the current context.",
+      "exact_match": 0.0,
+      "f1": 0.10256410256410256
+    },
+    {
+      "example_id": "56f37985586c76d125118233adb410fa_8",
+      "domain": "dmv",
+      "question": "how do i contact the dmv about my dial in search account?",
+      "reference_answer": "you can contact us at : NYSDMV DIAL - IN AccountsRoom 2316 Empire State PlazaAlbany, NY 12228",
+      "model_answer": "You can contact DMV about your DIAL-IN Search Account at:\n\n- **NYSDMV DIAL-IN Accounts**  \n  **Room 2316 Empire State Plaza**  \n  **Albany, NY 12228**  \n- **Phone:** 473-2137  \n- **Email:** [email protected]",
+      "exact_match": 0.0,
+      "f1": 0.4878048780487804
+    },
+    {
+      "example_id": "56f37985586c76d125118233adb410fa_10",
+      "domain": "dmv",
+      "question": "what if i have to pay a fee?",
+      "reference_answer": "your account records will reflect youe debits and your credits and show your account balance. please visit our escrow accounts page.",
+      "model_answer": "If you have to pay a fee for a DIAL-IN search account, the context says there is a **$7.00 fee for each search** you make. It also notes that some organizations are **exempt from search fees** (e.g., certain public organizations acting for a public purpose, volunteer fire/ambulance organizations, and legal aid entities acting under NY County Law §722).",
+      "exact_match": 0.0,
+      "f1": 0.05405405405405406
+    },
+    {
+      "example_id": "56f37985586c76d125118233adb410fa_12",
+      "domain": "dmv",
+      "question": "how will i know my application has been accepted?",
+      "reference_answer": "we will cerate an account for you, we will send yo your account number and password, your seven digit account number will never change.",
+      "model_answer": "You’ll know your application has been accepted when DMV reviews it:\n\n- **If your application is not complete**, DMV will **return it with an explanation** and instructions.\n- **If your application is complete**, DMV will **create your account** and **send you your account number and password**. Your **seven-digit account number never changes**, and you’ll use it when you log in.",
+      "exact_match": 0.0,
+      "f1": 0.35
+    },
+    {
+      "example_id": "82ba8181a008d2f3f0d004846ff458c6_1",
+      "domain": "dmv",
+      "question": "I need to know how to pay the dial-in search account fees.",
+      "reference_answer": "The custoers must pay a deposit with the application, and it should be enough to pay for two months of searches.",
+      "model_answer": "To pay DIAL-IN search account fees, paying customers must include a deposit with the application. Your first deposit must be enough to pay for two months of searches. After your application is accepted, that deposit is added to your new account balance. Each time you make a search, the search fee is subtracted from your account balance.  \n\nPayment by credit card is **not** available at this time. Your account can be used to pay for mail-order searches and online searches. If you must pay a fee, your account records will show the debits and credits and your remaining balance.",
+      "exact_match": 0.0,
+      "f1": 0.27027027027027023
+    },
+    {
+      "example_id": "82ba8181a008d2f3f0d004846ff458c6_4",
+      "domain": "dmv",
+      "question": "Yes, it was.",
+      "reference_answer": "then, your deposit will be added to your new account balance.",
+      "model_answer": "Based on the context, there isn’t enough information to determine what your “Yes, it was” is referring to.\n\nIf you meant the question “Will DMV contact me about the searches I perform using my DIAL-IN Search Account?” then **yes**—DMV may ask you about a DIAL-IN search to monitor compliance, and you must respond with the required business records.",
+      "exact_match": 0.0,
+      "f1": 0.09375
+    },
+    {
+      "example_id": "82ba8181a008d2f3f0d004846ff458c6_6",
+      "domain": "dmv",
+      "question": "Can you tell me some of the organizations that are exempt from the search fees?",
+      "reference_answer": "Some of the exempted organizations are any public organization, its officers, a volunteer fire company, volunteer ambulance service, etc. These organizations are exempt from the search fee.",
+      "model_answer": "Yes. The context says some organizations are exempt from DIAL-IN search fees, including:\n\n- Any public organization (and its officers)  \n- Volunteer fire companies  \n- Volunteer ambulance services  \n- Legal aid bureaus or societies  \n- Other private entities acting pursuant to **Section 722 of the New York State County Law** (when the search is for a public purpose)",
+      "exact_match": 0.0,
+      "f1": 0.43835616438356156
+    },
+    {
+      "example_id": "82ba8181a008d2f3f0d004846ff458c6_8",
+      "domain": "dmv",
+      "question": "What to do in case none of the users performed a search that the DMV contacted me for?",
+      "reference_answer": "You should contact the DMV immediately.",
+      "model_answer": "If none of the known users of your DIAL-IN account performed the search that DMV contacted you about, **contact DMV immediately**.",
+      "exact_match": 0.0,
+      "f1": 0.3333333333333333
+    },
+    {
+      "example_id": "82ba8181a008d2f3f0d004846ff458c6_10",
+      "domain": "dmv",
+      "question": "Why would the DMV contact me about a search?",
+      "reference_answer": "The DMV may contact you to ask you about a search to make sure you comply with the Dial-In Terms of Service.",
+      "model_answer": "DMV would contact you about a DIAL-IN search to **monitor compliance** with the **DIAL-IN Terms of Service**. You must respond to the inquiry and provide the **business records that support your search**.",
+      "exact_match": 0.0,
+      "f1": 0.5531914893617021
+    },
+    {
+      "example_id": "82ba8181a008d2f3f0d004846ff458c6_12",
+      "domain": "dmv",
+      "question": "What if the search is done on behalf of a client?",
+      "reference_answer": "In that case, you'll have to give the permissible use of your client and a proof of your client-agent relationship.",
+      "model_answer": "If the search is done on behalf of a client, you need to **show permissible use of your client** and **your client agent relationship**. Also, if you personally didn’t perform the searched-for record, you should check with other users on your DIAL-IN account to see if one of them performed it.",
+      "exact_match": 0.0,
+      "f1": 0.30303030303030304
+    },
+    {
+      "example_id": "d157d69d6ee78cabbc77dd57c4d41862_1",
+      "domain": "dmv",
+      "question": "I'm enquiring about out of state insurance docs",
+      "reference_answer": "We will never accept out - of - state vehicle insurance coverage of any type",
+      "model_answer": "Based on the provided context, **out-of-state insurance documents are not acceptable if your vehicle is registered in New York**:\n\n- If your vehicle is registered in New York State, **you must have New York insurance coverage** and the DMV **will never accept out-of-state insurance of any type** for a New York-registered vehicle.  \n- If you replace your New York insurance with out-of-state insurance, your **New York insurance coverage will lapse**, and the DMV can **suspend your registration** (and may suspend your driver license).  \n- If you **register your vehicle in another state**, you must **immediately surrender your New York registration and plates** to the DMV **before** your New York liability insurance is cancelled, and then you can get insurance in the other state.\n\nIf you tell me whether your vehicle is currently **registered in New York** or you’ve **already registered it in another state**, I can point you to the relevant next step from the context.",
+      "exact_match": 0.0,
+      "f1": 0.12658227848101267
+    },
+    {
+      "example_id": "d157d69d6ee78cabbc77dd57c4d41862_4",
+      "domain": "dmv",
+      "question": "Yes",
+      "reference_answer": "it must have New York State auto liability insurance coverage.\nYour motorcycle must have insurance coverage any time it is operated on a public road or highway. Unlike most other motor vehicles , motorcycles are registered for one year rather than two",
+      "model_answer": "Based on the context, the answer is **No**.\n\nIf a vehicle is **registered in New York State**, DMV will **never accept out-of-state insurance**—you must have **New York State auto liability insurance coverage**.",
+      "exact_match": 0.0,
+      "f1": 0.34782608695652173
+    },
+    {
+      "example_id": "d157d69d6ee78cabbc77dd57c4d41862_6",
+      "domain": "dmv",
+      "question": "Do I need insurance to register my vehicle?",
+      "reference_answer": "Yes the DMV requires auto liability insurance to register a vehicle in New York",
+      "model_answer": "Yes. To register a vehicle in New York State, you must have New York State issued automobile liability insurance coverage. If you do not maintain the coverage, the DMV can suspend your vehicle registration and your driver license.",
+      "exact_match": 0.0,
+      "f1": 0.42553191489361697
+    },
+    {
+      "example_id": "d157d69d6ee78cabbc77dd57c4d41862_8",
+      "domain": "dmv",
+      "question": "How long do I have to register?",
+      "reference_answer": "You must register your vehicle at the DMV within 180 days of the effective date on your insurance ID card",
+      "model_answer": "If you become a resident of New York after moving from another state, you must register your vehicle **within 30 days** of becoming a resident. If you receive a vehicle from another state and will drive it on New York roads, you also must register it **within 30 days**.",
+      "exact_match": 0.0,
+      "f1": 0.28125
+    },
+    {
+      "example_id": "d157d69d6ee78cabbc77dd57c4d41862_10",
+      "domain": "dmv",
+      "question": "Where can I find more information?",
+      "reference_answer": "The New York State Department of Financial Services website has more information about liability insurance and insurance companies licensed in New York : http://www.dfs.ny.gov",
+      "model_answer": "You can find more information on the NYS Department of Financial Services website: **http://www.dfs.ny.gov**.",
+      "exact_match": 0.0,
+      "f1": 0.4571428571428572
+    },
+    {
+      "example_id": "d157d69d6ee78cabbc77dd57c4d41862_12",
+      "domain": "dmv",
+      "question": "What kind of proof of insurance do I need?",
+      "reference_answer": "Your insurance company will issue proof of insurance in two ways: It will give you two original NY State Insurance ID Cards or provide you with access to your digital electronic NY State Insurance ID Card",
+      "model_answer": "You need your **NY State Insurance Identification Cards** (or access to the **digital electronic NY State Insurance ID Card**) **plus** the insurance company’s **electronic notice of insurance coverage sent to the DMV**—**both together** verify your coverage.\n\nWhen registering, you should **bring one copy or form of your Insurance Identification Cards** to the DMV (the office keeps the paper card) and **keep the other** as proof of insurance.",
+      "exact_match": 0.0,
+      "f1": 0.45833333333333326
+    },
+    {
+      "example_id": "389cc90cb2e3c1ef291ea78b73ece9d4_1",
+      "domain": "dmv",
+      "question": "Do I need insurance to register my vehicle?",
+      "reference_answer": "Yes. The DMV requires auto liability insurance to register a vehicle in New York",
+      "model_answer": "Yes. To register a vehicle in New York, the DMV requires New York State auto liability insurance.",
+      "exact_match": 0.0,
+      "f1": 0.888888888888889
+    },
+    {
+      "example_id": "389cc90cb2e3c1ef291ea78b73ece9d4_4",
+      "domain": "dmv",
+      "question": "No",
+      "reference_answer": "Unfortunately, no relevant information is found.",
+      "model_answer": "I can’t answer the question because it’s not provided—your message only says “No,” and the context doesn’t include what specific question you want answered.\n\nPlease paste the full question you want me to answer.",
+      "exact_match": 0.0,
+      "f1": 0.0
+    },
+    {
+      "example_id": "389cc90cb2e3c1ef291ea78b73ece9d4_6",
+      "domain": "dmv",
+      "question": "Where can I find more info?",
+      "reference_answer": "The New York State Department of Financial Services website has more information about liability insurance and insurance companies licensed in New York : http://www.dfs.ny.gov",
+      "model_answer": "You can find more information on New York State liability insurance and licensed insurance companies on the New York State Department of Financial Services (DFS) website: **http://www.dfs.ny.gov**.",
+      "exact_match": 0.0,
+      "f1": 0.7916666666666666
+    },
+    {
+      "example_id": "389cc90cb2e3c1ef291ea78b73ece9d4_8",
+      "domain": "dmv",
+      "question": "I'm glad to know, another question related to the letter that my car insurance issues, what if in the end I can't get insurance?",
+      "reference_answer": "In that case you need to surrender your vehicle registration and plates to the DMV immediately.",
+      "model_answer": "If, in the end, you can’t get insurance, the context says you must **surrender your vehicle registration and license plates to the DMV immediately**.\n\nIt also notes that if you don’t resolve the insurance problem after receiving a DMV insurance letter/order, the **DMV can suspend your vehicle registration and driver license**.",
+      "exact_match": 0.0,
+      "f1": 0.4
+    },
+    {
+      "example_id": "389cc90cb2e3c1ef291ea78b73ece9d4_10",
+      "domain": "dmv",
+      "question": "Hold on. My wife just showed me another letter, in it they write that my license is suspended. What should I do now?",
+      "reference_answer": "The letter means your insurance company notified the DMV that your insurance coverage ended, and that no other company notified the DMV about new coverage.",
+      "model_answer": "The letter means your insurance company notified the DMV that your insurance coverage ended, and no new coverage notice was sent to the DMV.\n\n**What to do now:**\n1. **Read the letter carefully and respond quickly.**  \n2. **Contact your insurance company/agent immediately** and ask them to **file a notice of coverage with the DMV electronically**.\n3. **If you do NOT have insurance:** you must **surrender your vehicle registration and plates to the DMV immediately.**\n4. **If your registration is still valid but the vehicle is not insured:** you must **surrender your registration and plates to DMV**.\n5. **Follow the instructions in the letter**—if you don’t resolve it, DMV can suspend your **vehicle registration** and **driver license**.\n6. **Paper proof or email messages won’t be accepted**; only your insurance company can file proof electronically.\n\nAlso, a driver license suspension for an insurance lapse typically happens when the lapse is **91 days or more** (or the lapse time period isn’t yet determined), and it **won’t end** until you **pay the suspension termination fee** and **serve the suspension**.",
+      "exact_match": 0.0,
+      "f1": 0.19889502762430938
+    },
+    {
+      "example_id": "389cc90cb2e3c1ef291ea78b73ece9d4_12",
+      "domain": "dmv",
+      "question": "But what if I do have insurance?",
+      "reference_answer": "Then you should follow the instructions in the letter and contact your company or agent about the problem. Ask your company to file a notice of coverage with the DMV electronically.",
+      "model_answer": "If you **do have insurance**, then the DMV letter/order means your insurance company previously notified the DMV that your coverage ended and no new coverage was confirmed.\n\n**What you should do:**\n- **Follow the instructions in the letter** and **contact your insurance company immediately**.\n- **Ask your insurance company to file a notice of coverage with the DMV electronically.** (Your agent/broker generally can’t file this electronically.)\n- In your response, you must **prove you have insurance coverage** (paper proof/email messages are **not** acceptable—only what the DMV accepts, and the electronic notice from your insurer is what matters).",
+      "exact_match": 0.0,
+      "f1": 0.3928571428571428
+    },
+    {
+      "example_id": "389cc90cb2e3c1ef291ea78b73ece9d4_14",
+      "domain": "dmv",
+      "question": "All that trouble, even though I am insured. But no can do. Any pointers on what I shouldn't do in my situation?",
+      "reference_answer": "Do not use your vehicle if your insurance coverage is cancelled, even if you think it is a mistake and keep the plates while you resolve a problem with your insurance company.",
+      "model_answer": "From the context, it sounds like the DMV is getting notice that your insurance ended (or wasn’t on file), even though you’re insured. Here are the key “don’ts” and what you should do instead:\n\n- **Do not ask your agent or broker to file electronic proof with the DMV.** Only **your insurance company** can file proof electronically. (Context [1], [2], [3])\n- **Do not ignore the DMV letter/order.** **Read it carefully, respond quickly, and contact your insurance company immediately.** (Context [5])\n- **Do not send “paper proof” or email messages** as acceptable proof to the DMV. The context says **paper proof or e-mail messages are NOT acceptable.** (Context [2])\n- **Do not wait to act if you don’t immediately replace coverage.** If you’re not going to immediately have coverage on file, you must **surrender your plates to the DMV immediately.** (Context [1], [2], [4])\n\nWhat to do instead (based on the letter situation):\n- **Follow the instructions in the DMV letter**, and **have your insurance company file the notice of coverage electronically** (ask them to fix the problem). (Context [2], [5])\n- In your response to the DMV letter, you must **prove that you have insurance coverage** (or that you sold the vehicle / that insurance wasn’t required). (Context [1])\n\nIf you tell me what the DMV letter says (the exact wording or category), I can help map it to the right steps from the context.",
+      "exact_match": 0.0,
+      "f1": 0.17573221757322177
+    },
+    {
+      "example_id": "04479f1bf3da15cdbb958078cb204a26_1",
+      "domain": "dmv",
+      "question": "Can you please tell me about the county use taxes and the supplemental fees?",
+      "reference_answer": "these are taxes that all residents of the New York City and several counties in New York have to pay when they register or renew a commercial vehicle.",
+      "model_answer": "County use taxes and supplemental fees in New York are required when you register or renew certain vehicles, and the DMV collects the taxes for the city and counties.\n\n### County use taxes (commercial and passenger vehicles)\n- **Who pays:** Residents of **New York City and several counties in New York** must pay a **vehicle use tax** when registering or renewing a **commercial vehicle** or a **passenger vehicle**.  \n- **How to find out if you must pay:** Use the applicable **county use tax chart** to determine whether the tax applies based on your **county** and (for the chart) the **vehicle weight** (for counties outside NYC).\n- **Exemptions:**  \n  - If you **reside outside NYC** and are **exempt** in your county, you must **complete form UT-11C**.  \n  - If you **reside in NYC** and are **exempt** from the NYC vehicle use tax, you must **get form UT-11** from a **local DMV office** or the **DMV Call Center**.\n\n### Supplemental fees (Metropolitan Commuter Transportation District)\n- **Who pays supplemental fees:** The residents of the **12 counties in the MCTD (Metropolitan Commuter Transportation District)** pay a **supplemental fee** for **each year** the registration is in effect.\n- **Important note about chart calculations:** For counties outside NYC, the instructions say **not to add $32.50** to the fee shown on the chart (or to what the online estimate calculates).\n\n### If you have questions\nIf you’re unsure whether you owe a county use tax or supplemental fee, the guidance provided is to **ask the city or county where you reside or have a business**.\n\n*(The context references charts for the exact amounts, but does not include the chart values themselves.)*",
+      "exact_match": 0.0,
+      "f1": 0.16923076923076924
+    },
+    {
+      "example_id": "04479f1bf3da15cdbb958078cb204a26_4",
+      "domain": "dmv",
+      "question": "No, that's enough.",
+      "reference_answer": "Unfortunately, no relevant information is found.",
+      "model_answer": "I can’t answer the question from the provided context because no actual question was included—only the statement “No, that's enough.”",
+      "exact_match": 0.0,
+      "f1": 0.08695652173913045
+    },
+    {
+      "example_id": "04479f1bf3da15cdbb958078cb204a26_6",
+      "domain": "dmv",
+      "question": "aactually, who's in charge of collecting the taxes?",
+      "reference_answer": "That would be the DMV who collects the taxes for the city and counties.",
+      "model_answer": "According to the context, the **DMV collects the vehicle use taxes for the city and the counties** in New York State.",
+      "exact_match": 0.0,
+      "f1": 0.5185185185185185
+    },
+    {
+      "example_id": "04479f1bf3da15cdbb958078cb204a26_9",
+      "domain": "dmv",
+      "question": "Yes, that's correct.",
+      "reference_answer": "You should complete form UT-11C.",
+      "model_answer": "The context you provided doesn’t include a question or enough information to confirm whether “Yes, that's correct” is actually the correct answer to anything.\n\nPlease paste the full question you’re referring to (or more surrounding context), and I can answer based only on that.",
+      "exact_match": 0.0,
+      "f1": 0.04444444444444445
+    },
+    {
+      "example_id": "04479f1bf3da15cdbb958078cb204a26_11",
+      "domain": "dmv",
+      "question": "What about the county use tax chart for counties outside of New York City?",
+      "reference_answer": "That chart shows the use taxes and supplemental fees for original registrations and renewals. Thes sales tax depends on the purchase proce of the vehicle and where you are located.",
+      "model_answer": "The context explains that the **county use tax chart for counties outside of New York City** is used to determine **vehicle use taxes for passenger vehicle original registrations and renewals by the weight of the vehicle** (for the 12 counties in the Metropolitan Commuter Transportation District, there is also a **supplemental fee for each year** the registration is in effect).\n\nIt also notes:\n- **Do not add $32.50** to the fee shown in the chart (or to the amount from the DMV Estimate registration fees service).\n- The **DMV collects the taxes for the city and the counties**.\n- If you’re **exempt** from the vehicle use tax in your county, you must **complete form UT-11C** (if you reside outside NYC).",
+      "exact_match": 0.0,
+      "f1": 0.25196850393700787
+    },
+    {
+      "example_id": "04479f1bf3da15cdbb958078cb204a26_13",
+      "domain": "dmv",
+      "question": "Now, what if I reside in New York City and am exempt from the NYC vehicle use tax?",
+      "reference_answer": "In that case, you should go to a local DMV and get form UT-11, You can also get it from a DMC call center.",
+      "model_answer": "If you reside in New York City and you are exempt from the NYC vehicle use tax, you must get **form UT-11** from a **local DMV office** or from a **DMV Call Center**.",
+      "exact_match": 0.0,
+      "f1": 0.4615384615384615
+    },
+    {
+      "example_id": "b1636bf0a27cb22b424bd5c572646dfa_1",
+      "domain": "dmv",
+      "question": "How do the county taxes work? how are they used?",
+      "reference_answer": "Residents of New York City and several counties in New York must pay a vehicle use tax when they register a commercial vehicle or renew a commercial vehicle registration .",
+      "model_answer": "The context explains that **residents in New York City and several New York counties must pay a “vehicle use tax” when registering or renewing a vehicle**. The **DMV collects the county (and NYC) vehicle use taxes for the city and the counties**.\n\nHowever, the context does **not** explain **how the county taxes are used** (for example, what they fund). It only says you pay them as part of registration/renewal, and that the DMV collects them for the relevant locality.",
+      "exact_match": 0.0,
+      "f1": 0.4042553191489362
+    },
+    {
+      "example_id": "b1636bf0a27cb22b424bd5c572646dfa_4",
+      "domain": "dmv",
+      "question": "yes",
+      "reference_answer": "Ok great! Thank you for your response. You can ask the city or county you are in about that",
+      "model_answer": "The provided context does not include enough information to determine what “yes” is referring to or to answer the question.",
+      "exact_match": 0.0,
+      "f1": 0.05555555555555555
+    },
+    {
+      "example_id": "b1636bf0a27cb22b424bd5c572646dfa_6",
+      "domain": "dmv",
+      "question": "Is there anyway to become exempt from them?",
+      "reference_answer": "You can contact the DMV Call Center",
+      "model_answer": "The context says you may be exempt from **vehicle use tax** in your county (or from **NYC vehicle use tax** if you reside in New York City), and that if you’re exempt you must complete the appropriate DMV form:\n\n- **Outside NYC:** If you’re exempt from the vehicle use tax in your county, complete **form UT-11C**.  \n- **Inside NYC:** If you’re exempt from the NYC vehicle use tax, get **form UT-11** from a local DMV office or a DMV Call Center.\n\nHowever, the context does **not** explain what specific situations qualify you for the exemption (“them” isn’t defined beyond vehicle use taxes). So I can’t tell you *how* to become exempt—only that exemptions are handled via UT-11C/UT-11.",
+      "exact_match": 0.0,
+      "f1": 0.07079646017699114
+    },
+    {
+      "example_id": "b1636bf0a27cb22b424bd5c572646dfa_8",
+      "domain": "dmv",
+      "question": "Do you know where the centers are located?",
+      "reference_answer": "yes I do. New York City Bronx, Kings (Brooklyn), New York (Manhattan), Queens, Richmond (Staten Island)",
+      "model_answer": "The context doesn’t say where any “centers” are located. It only mentions that you can get forms from local DMV offices or a DMV Call Center, but it doesn’t provide locations.",
+      "exact_match": 0.0,
+      "f1": 0.0
+    },
+    {
+      "example_id": "b1636bf0a27cb22b424bd5c572646dfa_10",
+      "domain": "dmv",
+      "question": "What are the fees for that?",
+      "reference_answer": "The fees listed in the chart are for commercial vehicles that weigh less than 18,000 lbs",
+      "model_answer": "From the context provided, the fee for using a **DIAL-IN search account** is **$7.00 for each search** you make.\n\n(There are some organizations that are exempt from search fees, but the standard fee is $7.00 per search.)",
+      "exact_match": 0.0,
+      "f1": 0.1702127659574468
+    },
+    {
+      "example_id": "b1636bf0a27cb22b424bd5c572646dfa_12",
+      "domain": "dmv",
+      "question": "how do I know if I have to pay or not?",
+      "reference_answer": "you can view and download the form here  complete form UT-11C",
+      "model_answer": "The context says you must pay certain fees, but it doesn’t provide enough information to tell you whether **you** have to pay in your specific situation.\n\nFrom the context we *can* confirm:\n- **Commercial vehicle registration fees:** If it is the **original registration** of your vehicle, you must pay the fees for your vehicle plates, plus **$25.00 title certificate fee of $50.00** and **sales tax** (and use the registration fee chart and county use tax chart to determine amounts).  \n- **Diesel commercial vehicles:** Diesel-powered commercial vehicles weighing **8,501 lbs or more** require an **additional fee**.\n- **Transfer of plates:** If you **transfer vehicle plates from one vehicle to another**, you **cannot** use the listed chart to calculate your fee.\n- **Accident reports:** Search fees are required by law under **Vehicle and Traffic Law Section 202**.\n\nIf you tell me whether you’re doing **original registration** or a **plate transfer**, and what kind of vehicle (commercial/passenger, weight, diesel or not), I can help narrow down whether payment is required based on the provided info.",
+      "exact_match": 0.0,
+      "f1": 0.03550295857988166
+    },
+    {
+      "example_id": "b1636bf0a27cb22b424bd5c572646dfa_14",
+      "domain": "dmv",
+      "question": "What about the taxes for outside counties of new york?",
+      "reference_answer": "The chart show the use taxes and supplemental fees for all original registrations and renewals",
+      "model_answer": "For counties **outside New York City**, residents may have to pay a **county vehicle use tax** when they **register or renew** a passenger or commercial vehicle. The amounts depend on the **county** and the **weight of the vehicle** (the DMV provides a county use tax chart for these counties).\n\nAlso, residents of the **12 counties in the Metropolitan Commuter Transportation District (MCTD)** pay a **supplemental fee for each year** the registration is in effect. The 12 MCTD counties listed are: **Bronx, Kings (Brooklyn), New York (Manhattan), Queens, Richmond (Staten Island), Dutchess, Nassau, Orange, Putnam, Rockland, Suffolk, and Westchester**.\n\nThe DMV collects these taxes for the city and counties, and if you’re exempt, you complete **form UT-11C** (for counties outside NYC).",
+      "exact_match": 0.0,
+      "f1": 0.11864406779661017
+    }
+  ]
+}

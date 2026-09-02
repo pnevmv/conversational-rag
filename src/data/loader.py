@@ -216,6 +216,12 @@ def load_qa_pairs(
                             r["doc_id"] for r in references if "doc_id" in r
                         ]
 
+                        history = [
+                            {"role": t["role"], "utterance": t["utterance"]}
+                            for t in turns[:i]
+                            if t.get("utterance", "").strip()
+                        ]
+
                         qa_pairs.append(
                             {
                                 "example_id": f"{dial_id}_{u_turn['turn_id']}",
@@ -226,6 +232,7 @@ def load_qa_pairs(
                                 "reference_answer": ref_text,
                                 "document_id": ref_docs[0] if ref_docs else None,
                                 "grounding": references,
+                                "dialogue_history": history,
                             }
                         )
 

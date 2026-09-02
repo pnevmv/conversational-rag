@@ -270,15 +270,66 @@ Results
     Recall@5   : 46.00%
 
 ========================================================================
+EXPERIMENT 5 — RAG HYBRID + MULTI-TURN QUERY REWRITING
+========================================================================
+
+Setup
+-----
+Before retrieval, a query rewriter (LLM call) receives the full
+preceding dialogue history and rewrites the current user turn into a
+self-contained search query. The rewritten query is then passed to the
+hybrid retriever (Experiment 4). The LLM answer generation step is
+identical to all previous RAG experiments — the original user question
+is sent to the LLM, not the rewritten query.
+
+Rewriter prompt (abbreviated):
+  "Given a conversation history and the current user message, rewrite
+   the current message as a short, self-contained search query. Output
+   ONLY the rewritten query. Resolve all pronouns and references using
+   the conversation history. If the message is already self-contained,
+   return it unchanged."
+
+History window : last 6 turns (3 exchanges)
+Retrieval      : Hybrid (BM25 + bge-small, RRF, pool_factor=3, k=60)
+top_k          : 5
+Model          : gpt-5.4-nano-smirnov (Azure OpenAI, both rewriter and generator)
+Examples evaluated: 50 / 50
+Rewrites performed: 42 / 50 (first turn of each dialogue has no history)
+Failures          : 0
+
+Example rewrites:
+  "yes"                        → "Does the requirement to include a
+                                  deposit with the application for
+                                  paying Dial-in search account fees
+                                  apply?"
+  "What are the fees for that?" → "What are the fees for DMV call
+                                  center exemptions in New York City?"
+  "Where can I find more info?" → "Where can I find more information
+                                  about New York DMV vehicle
+                                  registration insurance requirements?"
+  "Can I use my union card?"   → "Can I use my union card as proof of
+                                  identification for DMV requirements?"
+
+Results
+-------
+  Exact Match  : 0.00%
+  Token F1     : 23.59%
+
+  Retrieval quality (averaged over all 50 examples):
+    Recall@1   : 40.00%
+    Recall@5   : 68.00%
+
+========================================================================
 CUMULATIVE RESULTS SUMMARY
 ========================================================================
 
-  Experiment                    EM    Token F1  Recall@1  Recall@5   n
-  ----------------------------------------------------------------------
-  LLM-only                    0.00%    7.53%      —         —        50
-  RAG BM25                    0.00%   20.68%     30.00%    40.00%    50
-  RAG Dense (bge-small)       0.00%   19.44%     24.00%    42.00%    50
-  RAG Hybrid (BM25+dense,RRF) 0.00%   19.79%     32.00%    46.00%    50
+  Experiment                      EM   Token F1  Recall@1  Recall@5   n
+  -----------------------------------------------------------------------
+  LLM-only                      0.00%    7.53%      —         —        50
+  RAG BM25                      0.00%   20.68%     30.00%    40.00%    50
+  RAG Dense (bge-small)         0.00%   19.44%     24.00%    42.00%    50
+  RAG Hybrid (BM25+dense,RRF)   0.00%   19.79%     32.00%    46.00%    50
+  RAG Hybrid + Query Rewriting  0.00%   23.59%     40.00%    68.00%    50
 
 ========================================================================
 ANALYSIS — HYBRID vs COMPONENTS
@@ -315,36 +366,58 @@ In v1, hybrid underperformed dense because BM25's rankings were noise
 competitive and hybrid fusion is genuinely beneficial.
 
 ========================================================================
+ANALYSIS — QUERY REWRITING IMPACT
+========================================================================
+
+Query rewriting is the single largest improvement in the project so far:
+
+  Recall@5:  68.00% vs 46.00% for hybrid alone  (+22 pp, +48% relative)
+  Recall@1:  40.00% vs 32.00%                   (+8 pp,  +25% relative)
+  Token F1:  23.59% vs 19.79%                   (+3.80 pp, +19% relative)
+
+The gain is directly attributable to resolving decontextualised follow-up
+turns. Without rewriting, "yes", "no", "where can I find more info?",
+"what are the fees for that?" carry no standalone retrieval signal. With
+rewriting, the LLM uses the dialogue history to produce queries like
+"What are the fees for DMV call center exemptions in New York City?",
+which both BM25 (keyword match) and dense (semantic match) can rank
+correctly.
+
+42 of 50 examples were rewritten (the 8 first turns had no history and
+passed through unchanged). The rewriter added one LLM call per turn,
+roughly doubling the API cost of the retrieval stage.
+
+The remaining 32% Recall@5 failures after rewriting fall into two
+categories:
+1. Turns where even the rewritten query is too vague ("how to clear
+   up DMV issues and update address after receiving a letter") because
+   the dialogue itself is underspecified.
+2. Turns where the correct answer spans multiple sections and the top-5
+   window does not cover all of them.
+
+========================================================================
 EXPECTED PROGRESSION
 ========================================================================
 
-The four completed experiments establish the retrieval baseline with
-correct section-level indexing. The dominant failure mode across all
-experiments is now clearly single-turn retrieval on decontextualised
-conversational questions. "Yes", "No", "Where can I find more info?",
-"What are the fees for that?" carry no standalone retrieval signal
-regardless of retrieval method. Recall@5 = 46% represents the
-section-level single-turn ceiling for this evaluation set.
+Step 4 (RAG) is now complete. The five experiments establish a full
+retrieval and answer-quality ladder on MultiDoc2Dial.
 
-Next steps in order of expected impact:
+Next steps:
 
-1. Multi-turn query rewriting. The LLM rewrites the current user turn
-   into a self-contained query using the preceding dialogue history.
-   This directly addresses the dominant failure mode and is expected
-   to produce the largest single improvement in Recall@K. With
-   decontextualised turns resolved, both BM25 and dense would benefit,
-   and hybrid fusion would remain the strongest method.
-
-2. Knowledge Graph retrieval. Structured entity and relation retrieval
+1. Knowledge Graph construction (Step 5). Transform MultiDoc2Dial
+   documents into structured graphs. Entity and relation retrieval
    supports precise, grounded answers for multi-hop questions spanning
    multiple documents — a qualitatively different information source
    from passage retrieval.
 
-3. Graph RAG. Combines structured KG evidence with unstructured
-   section context.
+2. KG-based retrieval (Step 6). Query the KG as a structured context
+   source for conversational QA.
 
-4. Agentic approaches. Dynamic routing between retrieval tools with
-   explicit conversation state management.
+3. Graph RAG (Step 7). Combine structured KG evidence with section
+   retrieval.
+
+4. Agentic approaches (Step 8). Dynamic routing between retrieval tools
+   with explicit conversation state management.
 
 Recall@K will be tracked alongside EM/F1 in all future experiments
 to separate retrieval quality from answer generation quality.

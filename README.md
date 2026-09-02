@@ -57,29 +57,32 @@ Six progressive architectures are developed and compared:
 - [x] 19 unit tests for evaluation metrics.
 
 **Step 4 — Retrieval and RAG**
-- [x] BM25 retriever over 35,659 MultiDoc2Dial spans (`src/rag/retriever.py`).
-  - Result: Token F1 **12.11%**, Recall@5 2.33%.
+- [x] Section-level indexing: heading + all following content spans joined as one retrieval unit (`src/data/loader.py`: `load_sections()`).
+- [x] BM25 retriever over 4,114 sections (`src/rag/retriever.py`).
+  - Result: Token F1 **20.68%**, Recall@5 40.00%.
 - [x] Dense retriever using `BAAI/bge-small-en-v1.5` embeddings, cosine similarity, disk-cached index (`src/rag/dense_retriever.py`).
-  - Result: Token F1 **15.91%**, Recall@5 6.00%.
+  - Result: Token F1 **19.44%**, Recall@5 42.00%.
 - [x] Hybrid retriever combining BM25 + dense via Reciprocal Rank Fusion (`src/rag/hybrid_retriever.py`).
-  - Result: Token F1 **14.32%**, Recall@5 5.00%.
-  - Dense alone outperforms hybrid — BM25 adds noise on short conversational queries.
-- [x] 10 unit tests for BM25, 10 for dense, 9 for hybrid/RRF.
+  - Result: Token F1 **19.79%**, Recall@5 46.00%.
+- [x] Multi-turn query rewriting: LLM rewrites each user turn into a standalone query using dialogue history (`src/rag/query_rewriter.py`).
+  - Result: Token F1 **23.59%**, Recall@5 **68.00%** (+22 pp over hybrid alone).
+- [x] 10 unit tests for BM25, 10 for dense, 9 for hybrid/RRF, 12 for query rewriter (64 total).
 
 ### Experiment Results (MultiDoc2Dial validation, 50 examples)
 
 | Experiment | Token F1 | Recall@1 | Recall@5 |
 | :--- | :---: | :---: | :---: |
 | LLM-only baseline | 7.53% | — | — |
-| RAG — BM25 | 12.11% | 1.67% | 2.33% |
-| RAG — Hybrid (BM25 + dense, RRF) | 14.32% | 1.67% | 5.00% |
-| RAG — Dense (bge-small) | **15.91%** | **3.67%** | **6.00%** |
+| RAG — BM25 | 20.68% | 30.00% | 40.00% |
+| RAG — Dense (bge-small) | 19.44% | 24.00% | 42.00% |
+| RAG — Hybrid (BM25 + dense, RRF) | 19.79% | 32.00% | 46.00% |
+| RAG — Hybrid + Query Rewriting | **23.59%** | **40.00%** | **68.00%** |
 
 See [`experiments_description.txt`](experiments_description.txt) for full analysis.
 
 ### Next Stage
 
-**Step 4 (continued):** Multi-turn query rewriting — rewrite each user turn into a standalone query using dialogue history, addressing the dominant retrieval failure mode.
+**Step 5:** Knowledge Graph construction — transform MultiDoc2Dial documents into structured graphs for entity- and relation-based retrieval.
 
 ---
 
@@ -90,7 +93,7 @@ See [`experiments_description.txt`](experiments_description.txt) for full analys
 | **Weeks 1–2** | **Step 1: Background Study** | Review *Knowledge Graphs and LLMs in Action* (Parts 1, 3, 5, 6). | Completed |
 | **Weeks 2–3** | **Step 2: Dataset Analysis** | Dataset analysis and preparation of MultiDoc2Dial (and EnronQA). | Completed |
 | **Weeks 3–4** | **Step 3: LLM Baseline** | LLM-only baseline, evaluation pipeline, EM + token F1 metrics. | Completed |
-| **Weeks 4–6** | **Step 4: Retrieval and RAG** | BM25 and dense retrieval baselines; hybrid and multi-turn query rewriting. | In Progress |
+| **Weeks 4–6** | **Step 4: Retrieval and RAG** | BM25 and dense retrieval baselines; hybrid and multi-turn query rewriting. | Completed |
 | **Weeks 6–9** | **Step 5: KG Construction** | Unstructured document transformation into structured Knowledge Graphs. | Planned |
 | **Weeks 9–11** | **Step 6: KG-based Retrieval** | Natural language querying of Knowledge Graphs for conversational QA. | Planned |
 | **Weeks 11–14** | **Step 7: Graph RAG** | Hybrid architectures combining structured graph data and textual context. | Planned |
@@ -136,8 +139,9 @@ LLM_MODEL=gpt-5.4-nano-smirnov
 | `python experiments/rag_baseline.py` | BM25 RAG baseline |
 | `python experiments/rag_dense_baseline.py` | Dense RAG baseline (bge-small; builds index on first run) |
 | `python experiments/rag_hybrid_baseline.py` | Hybrid RAG baseline (BM25 + dense, RRF) |
+| `python experiments/rag_rewrite_baseline.py` | Hybrid + query rewriting baseline |
 | `python experiments/evaluate_baseline.py --input experiments/results/<file>.jsonl` | Evaluate any result file |
-| `python -m unittest discover tests` | Run all unit tests (52 tests) |
+| `python -m unittest discover tests` | Run all unit tests (64 tests) |
 
 ### 5. Note on Dense Index
 
@@ -160,7 +164,8 @@ llm_rag/
 │   ├── rag/                      # Retrieval components
 │   │   ├── retriever.py          # BM25 retriever
 │   │   ├── dense_retriever.py    # Dense retriever (bge-small)
-│   │   └── hybrid_retriever.py   # Hybrid retriever (BM25 + dense, RRF)
+│   │   ├── hybrid_retriever.py   # Hybrid retriever (BM25 + dense, RRF)
+│   │   └── query_rewriter.py     # LLM-based multi-turn query rewriter
 │   ├── kg/                       # Knowledge Graph (Stage 5–6, planned)
 │   └── agents/                   # Agentic orchestration (Stage 8, planned)
 │
@@ -169,6 +174,7 @@ llm_rag/
 │   ├── rag_baseline.py           # BM25 RAG baseline runner
 │   ├── rag_dense_baseline.py     # Dense RAG baseline runner
 │   ├── rag_hybrid_baseline.py    # Hybrid RAG baseline runner (BM25 + dense, RRF)
+│   ├── rag_rewrite_baseline.py   # Hybrid + query rewriting baseline runner
 │   ├── evaluate_baseline.py      # Evaluation script (EM + token F1)
 │   ├── test_llm_basic.py         # API connectivity smoke test
 │   ├── test_llm_conversation.py  # Single-query conversational test
@@ -180,7 +186,9 @@ llm_rag/
 │       ├── rag_dense_baseline.jsonl
 │       ├── rag_dense_baseline_evaluation.json
 │       ├── rag_hybrid_baseline.jsonl
-│       └── rag_hybrid_baseline_evaluation.json
+│       ├── rag_hybrid_baseline_evaluation.json
+│       ├── rag_rewrite_baseline.jsonl
+│       └── rag_rewrite_baseline_evaluation.json
 │
 ├── tests/
 │   ├── test_client.py
@@ -188,7 +196,8 @@ llm_rag/
 │   ├── test_evaluation_metrics.py
 │   ├── test_retriever.py
 │   ├── test_dense_retriever.py
-│   └── test_hybrid_retriever.py
+│   ├── test_hybrid_retriever.py
+│   └── test_query_rewriter.py
 │
 ├── data/
 │   ├── multidoc2dial/            # Dataset files (git-ignored)
