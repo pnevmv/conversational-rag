@@ -38,3 +38,6 @@ Thumbs.db
 
 # Setup instructions
 SETUP.MD
+
+# Claude Code memory
+memory/
