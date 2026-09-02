@@ -1,34 +1,79 @@
 {
   "experiment": "llm_baseline",
-  "input_file": "experiments/results/llm_baseline.jsonl",
+  "input_file": "/Users/nothingtodo/VSCodeProjects/llm_rag/experiments/results/llm_baseline.jsonl",
   "total_examples": 50,
   "evaluated": 50,
   "skipped": 0,
   "aggregate": {
+    "n": 50,
     "exact_match": 0.0,
     "f1": 0.14199574059854492,
-    "n": 50
+    "f1_ci": {
+      "mean": 0.14199574059854492,
+      "ci_low": 0.11333932447234031,
+      "ci_high": 0.16758714214726986
+    },
+    "exact_match_ci": {
+      "mean": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0
+    }
   },
   "answerable": {
+    "n": 47,
     "exact_match": 0.0,
     "f1": 0.15038385102513221,
-    "n": 47
+    "f1_ci": {
+      "mean": 0.15038385102513221,
+      "ci_low": 0.1231926715789126,
+      "ci_high": 0.1749750715592236
+    },
+    "exact_match_ci": {
+      "mean": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0
+    }
   },
   "unanswerable": {
+    "n": 3,
     "exact_match": 0.0,
     "f1": 0.010582010582010581,
-    "n": 3,
-    "abstain_rate": 0.0
+    "f1_ci": {
+      "mean": 0.010582010582010581,
+      "ci_low": 0.0,
+      "ci_high": 0.031746031746031744
+    },
+    "exact_match_ci": {
+      "mean": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0
+    },
+    "abstain_rate": 0.0,
+    "abstain_rate_ci": {
+      "mean": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0
+    }
   },
   "doc_switch": {
-    "exact_match": 0.0,
     "f1": 0.0,
+    "exact_match": 0.0,
     "n": 0
   },
   "same_doc": {
+    "n": 50,
     "exact_match": 0.0,
     "f1": 0.14199574059854492,
-    "n": 50
+    "f1_ci": {
+      "mean": 0.14199574059854492,
+      "ci_low": 0.11333932447234031,
+      "ci_high": 0.16758714214726986
+    },
+    "exact_match_ci": {
+      "mean": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0
+    }
   },
   "per_example": [
     {
@@ -44,6 +89,7 @@
       "f1": 0.24561403508771928,
       "recall_at_1": null,
       "recall_at_5": null,
+      "domain_recall": null,
       "top_retrieval_score": null
     },
     {
@@ -59,6 +105,7 @@
       "f1": 0.14705882352941177,
       "recall_at_1": null,
       "recall_at_5": null,
+      "domain_recall": null,
       "top_retrieval_score": null
     },
     {
@@ -74,6 +121,7 @@
       "f1": 0.0,
       "recall_at_1": null,
       "recall_at_5": null,
+      "domain_recall": null,
       "top_retrieval_score": null
     },
     {
@@ -89,6 +137,7 @@
       "f1": 0.3461538461538462,
       "recall_at_1": null,
       "recall_at_5": null,
+      "domain_recall": null,
       "top_retrieval_score": null
     },
     {
@@ -104,6 +153,7 @@
       "f1": 0.13114754098360656,
       "recall_at_1": null,
       "recall_at_5": null,
+      "domain_recall": null,
       "top_retrieval_score": null
     },
     {
@@ -119,6 +169,7 @@
       "f1": 0.0,
       "recall_at_1": null,
       "recall_at_5": null,
+      "domain_recall": null,
       "top_retrieval_score": null
     },
     {
@@ -134,6 +185,7 @@
       "f1": 0.0,
       "recall_at_1": null,
       "recall_at_5": null,
+      "domain_recall": null,
       "top_retrieval_score": null
     },
     {
@@ -149,6 +201,7 @@
       "f1": 0.21538461538461537,
       "recall_at_1": null,
       "recall_at_5": null,
+      "domain_recall": null,
       "top_retrieval_score": null
     },
     {
@@ -164,6 +217,7 @@
       "f1": 0.07142857142857142,
       "recall_at_1": null,
       "recall_at_5": null,
+      "domain_recall": null,
       "top_retrieval_score": null
     },
     {
@@ -179,6 +233,7 @@
       "f1": 0.21686746987951808,
       "recall_at_1": null,
       "recall_at_5": null,
+      "domain_recall": null,
       "top_retrieval_score": null
     },
     {
@@ -194,6 +249,7 @@
       "f1": 0.0,
       "recall_at_1": null,
       "recall_at_5": null,
+      "domain_recall": null,
       "top_retrieval_score": null
     },
     {
@@ -209,6 +265,7 @@
       "f1": 0.0,
       "recall_at_1": null,
       "recall_at_5": null,
+      "domain_recall": null,
       "top_retrieval_score": null
     },
     {
@@ -224,6 +281,7 @@
       "f1": 0.15873015873015872,
       "recall_at_1": null,
       "recall_at_5": null,
+      "domain_recall": null,
       "top_retrieval_score": null
     },
     {
@@ -239,6 +297,7 @@
       "f1": 0.20588235294117646,
       "recall_at_1": null,
       "recall_at_5": null,
+      "domain_recall": null,
       "top_retrieval_score": null
     },
     {
@@ -254,6 +313,7 @@
       "f1": 0.1095890410958904,
       "recall_at_1": null,
       "recall_at_5": null,
+      "domain_recall": null,
       "top_retrieval_score": null
     },
     {
@@ -269,6 +329,7 @@
       "f1": 0.2222222222222222,
       "recall_at_1": null,
       "recall_at_5": null,
+      "domain_recall": null,
       "top_retrieval_score": null
     },
     {
@@ -284,6 +345,7 @@
       "f1": 0.10526315789473682,
       "recall_at_1": null,
       "recall_at_5": null,
+      "domain_recall": null,
       "top_retrieval_score": null
     },
     {
@@ -299,6 +361,7 @@
       "f1": 0.18823529411764706,
       "recall_at_1": null,
       "recall_at_5": null,
+      "domain_recall": null,
       "top_retrieval_score": null
     },
     {
@@ -314,6 +377,7 @@
       "f1": 0.13333333333333333,
       "recall_at_1": null,
       "recall_at_5": null,
+      "domain_recall": null,
       "top_retrieval_score": null
     },
     {
@@ -329,6 +393,7 @@
       "f1": 0.19999999999999998,
       "recall_at_1": null,
       "recall_at_5": null,
+      "domain_recall": null,
       "top_retrieval_score": null
     },
     {
@@ -344,6 +409,7 @@
       "f1": 0.038461538461538464,
       "recall_at_1": null,
       "recall_at_5": null,
+      "domain_recall": null,
       "top_retrieval_score": null
     },
     {
@@ -359,6 +425,7 @@
       "f1": 0.06557377049180327,
       "recall_at_1": null,
       "recall_at_5": null,
+      "domain_recall": null,
       "top_retrieval_score": null
     },
     {
@@ -374,6 +441,7 @@
       "f1": 0.17777777777777776,
       "recall_at_1": null,
       "recall_at_5": null,
+      "domain_recall": null,
       "top_retrieval_score": null
     },
     {
@@ -389,6 +457,7 @@
       "f1": 0.417910447761194,
       "recall_at_1": null,
       "recall_at_5": null,
+      "domain_recall": null,
       "top_retrieval_score": null
     },
     {
@@ -404,6 +473,7 @@
       "f1": 0.16393442622950818,
       "recall_at_1": null,
       "recall_at_5": null,
+      "domain_recall": null,
       "top_retrieval_score": null
     },
     {
@@ -419,6 +489,7 @@
       "f1": 0.1643835616438356,
       "recall_at_1": null,
       "recall_at_5": null,
+      "domain_recall": null,
       "top_retrieval_score": null
     },
     {
@@ -434,6 +505,7 @@
       "f1": 0.05,
       "recall_at_1": null,
       "recall_at_5": null,
+      "domain_recall": null,
       "top_retrieval_score": null
     },
     {
@@ -449,6 +521,7 @@
       "f1": 0.16393442622950818,
       "recall_at_1": null,
       "recall_at_5": null,
+      "domain_recall": null,
       "top_retrieval_score": null
     },
     {
@@ -464,6 +537,7 @@
       "f1": 0.031746031746031744,
       "recall_at_1": null,
       "recall_at_5": null,
+      "domain_recall": null,
       "top_retrieval_score": null
     },
     {
@@ -479,6 +553,7 @@
       "f1": 0.2571428571428572,
       "recall_at_1": null,
       "recall_at_5": null,
+      "domain_recall": null,
       "top_retrieval_score": null
     },
     {
@@ -494,6 +569,7 @@
       "f1": 0.0,
       "recall_at_1": null,
       "recall_at_5": null,
+      "domain_recall": null,
       "top_retrieval_score": null
     },
     {
@@ -509,6 +585,7 @@
       "f1": 0.196078431372549,
       "recall_at_1": null,
       "recall_at_5": null,
+      "domain_recall": null,
       "top_retrieval_score": null
     },
     {
@@ -524,6 +601,7 @@
       "f1": 0.16,
       "recall_at_1": null,
       "recall_at_5": null,
+      "domain_recall": null,
       "top_retrieval_score": null
     },
     {
@@ -539,6 +617,7 @@
       "f1": 0.12244897959183675,
       "recall_at_1": null,
       "recall_at_5": null,
+      "domain_recall": null,
       "top_retrieval_score": null
     },
     {
@@ -554,6 +633,7 @@
       "f1": 0.10344827586206898,
       "recall_at_1": null,
       "recall_at_5": null,
+      "domain_recall": null,
       "top_retrieval_score": null
     },
     {
@@ -569,6 +649,7 @@
       "f1": 0.22222222222222224,
       "recall_at_1": null,
       "recall_at_5": null,
+      "domain_recall": null,
       "top_retrieval_score": null
     },
     {
@@ -584,6 +665,7 @@
       "f1": 0.13888888888888892,
       "recall_at_1": null,
       "recall_at_5": null,
+      "domain_recall": null,
       "top_retrieval_score": null
     },
     {
@@ -599,6 +681,7 @@
       "f1": 0.11764705882352941,
       "recall_at_1": null,
       "recall_at_5": null,
+      "domain_recall": null,
       "top_retrieval_score": null
     },
     {
@@ -614,6 +697,7 @@
       "f1": 0.04545454545454545,
       "recall_at_1": null,
       "recall_at_5": null,
+      "domain_recall": null,
       "top_retrieval_score": null
     },
     {
@@ -629,6 +713,7 @@
       "f1": 0.2153846153846154,
       "recall_at_1": null,
       "recall_at_5": null,
+      "domain_recall": null,
       "top_retrieval_score": null
     },
     {
@@ -644,6 +729,7 @@
       "f1": 0.14814814814814814,
       "recall_at_1": null,
       "recall_at_5": null,
+      "domain_recall": null,
       "top_retrieval_score": null
     },
     {
@@ -659,6 +745,7 @@
       "f1": 0.0,
       "recall_at_1": null,
       "recall_at_5": null,
+      "domain_recall": null,
       "top_retrieval_score": null
     },
     {
@@ -674,6 +761,7 @@
       "f1": 0.16666666666666666,
       "recall_at_1": null,
       "recall_at_5": null,
+      "domain_recall": null,
       "top_retrieval_score": null
     },
     {
@@ -689,6 +777,7 @@
       "f1": 0.22535211267605634,
       "recall_at_1": null,
       "recall_at_5": null,
+      "domain_recall": null,
       "top_retrieval_score": null
     },
     {
@@ -704,6 +793,7 @@
       "f1": 0.09302325581395347,
       "recall_at_1": null,
       "recall_at_5": null,
+      "domain_recall": null,
       "top_retrieval_score": null
     },
     {
@@ -719,6 +809,7 @@
       "f1": 0.2894736842105263,
       "recall_at_1": null,
       "recall_at_5": null,
+      "domain_recall": null,
       "top_retrieval_score": null
     },
     {
@@ -734,6 +825,7 @@
       "f1": 0.13043478260869562,
       "recall_at_1": null,
       "recall_at_5": null,
+      "domain_recall": null,
       "top_retrieval_score": null
     },
     {
@@ -749,6 +841,7 @@
       "f1": 0.345679012345679,
       "recall_at_1": null,
       "recall_at_5": null,
+      "domain_recall": null,
       "top_retrieval_score": null
     },
     {
@@ -764,6 +857,7 @@
       "f1": 0.11940298507462686,
       "recall_at_1": null,
       "recall_at_5": null,
+      "domain_recall": null,
       "top_retrieval_score": null
     },
     {
@@ -779,6 +873,7 @@
       "f1": 0.03225806451612903,
       "recall_at_1": null,
       "recall_at_5": null,
+      "domain_recall": null,
       "top_retrieval_score": null
     }
   ]

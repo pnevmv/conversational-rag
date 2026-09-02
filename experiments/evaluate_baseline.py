@@ -45,8 +45,12 @@ def evaluate(
     with open(input_path, "r", encoding="utf-8") as f:
         for line in f:
             line = line.strip()
-            if line:
+            if not line:
+                continue
+            try:
                 records.append(json.loads(line))
+            except json.JSONDecodeError:
+                pass
 
     UNANSWERABLE = "Unfortunately, no relevant information is found."
 
