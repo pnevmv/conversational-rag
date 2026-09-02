@@ -164,6 +164,7 @@ def _extract_domain_pairs(dial_data: Dict, domain: str, limit: int) -> List[Dict
     for dial in dial_data.get(domain, []):
         dial_id = dial["dial_id"]
         turns = dial.get("turns", [])
+        prev_doc_id: Optional[str] = None
         for i in range(len(turns) - 1):
             u_turn = turns[i]
             a_turn = turns[i + 1]
@@ -175,11 +176,17 @@ def _extract_domain_pairs(dial_data: Dict, domain: str, limit: int) -> List[Dict
                 continue
             references = a_turn.get("references", [])
             ref_docs = [r["doc_id"] for r in references if "doc_id" in r]
+            current_doc_id = ref_docs[0] if ref_docs else None
             history = [
                 {"role": t["role"], "utterance": t["utterance"]}
                 for t in turns[:i]
                 if t.get("utterance", "").strip()
             ]
+            is_doc_switch = (
+                prev_doc_id is not None
+                and current_doc_id is not None
+                and current_doc_id != prev_doc_id
+            )
             pairs.append({
                 "example_id": f"{dial_id}_{u_turn['turn_id']}",
                 "domain": domain,
@@ -188,10 +195,12 @@ def _extract_domain_pairs(dial_data: Dict, domain: str, limit: int) -> List[Dict
                 "question": q_text,
                 "reference_answer": ref_text,
                 "is_unanswerable": ref_text == UNANSWERABLE_PHRASE,
-                "document_id": ref_docs[0] if ref_docs else None,
+                "document_id": current_doc_id,
                 "grounding": references,
                 "dialogue_history": history,
+                "is_doc_switch": is_doc_switch,
             })
+            prev_doc_id = current_doc_id
             if len(pairs) >= limit:
                 return pairs
     return pairs

@@ -13,6 +13,15 @@ from src.llm import LLMClient
 from src.rag import BM25Retriever
 
 TOP_K = 5
+UNANSWERABLE = "Unfortunately, no relevant information is found."
+
+
+def top_score(retrieved: List[Dict[str, Any]]) -> float:
+    if not retrieved:
+        return 0.0
+    r = retrieved[0]
+    return r.get("rrf_score", r.get("score", 0.0))
+
 
 PROMPT_TEMPLATE = (
     "You are a government services agent. Answer the customer's question in 1-2 plain sentences "
@@ -87,6 +96,7 @@ def run_rag_baseline(
     domain: Optional[str] = None,
     max_examples: int = 50,
     top_k: int = TOP_K,
+    score_threshold: Optional[float] = None,
     output_path: Optional[Path] = None,
 ) -> Dict[str, Any]:
     """
@@ -148,20 +158,28 @@ def run_rag_baseline(
 
             context = format_context(retrieved)
             prompt = PROMPT_TEMPLATE.format(context=context, question=question)
+            ts = top_score(retrieved)
 
-            start = time.time()
-            try:
-                model_answer = client.generate(prompt=prompt)
-                status = "success"
+            if score_threshold is not None and ts < score_threshold:
+                model_answer = UNANSWERABLE
+                status = "abstained"
                 error_msg = None
                 successful += 1
-                print(f"  Answered in {time.time() - start:.2f}s")
-            except Exception as e:
-                model_answer = None
-                status = "error"
-                error_msg = str(e)
-                failed += 1
-                print(f"  Failed: {error_msg}")
+                print(f"  Abstained (score={ts:.4f} < {score_threshold})")
+            else:
+                start = time.time()
+                try:
+                    model_answer = client.generate(prompt=prompt)
+                    status = "success"
+                    error_msg = None
+                    successful += 1
+                    print(f"  Answered in {time.time() - start:.2f}s")
+                except Exception as e:
+                    model_answer = None
+                    status = "error"
+                    error_msg = str(e)
+                    failed += 1
+                    print(f"  Failed: {error_msg}")
 
             record = {
                 "example_id": ex_id,
@@ -171,12 +189,14 @@ def run_rag_baseline(
                 "question": question,
                 "reference_answer": ex["reference_answer"],
                 "is_unanswerable": ex.get("is_unanswerable", False),
+                "is_doc_switch": ex.get("is_doc_switch", False),
                 "document_id": ex["document_id"],
                 "grounding": grounding,
                 "retrieved_spans": retrieved,
                 "context": context,
                 "prompt": prompt,
                 "model_answer": model_answer,
+                "top_retrieval_score": ts,
                 "recall_at_1": r1,
                 "recall_at_5": r5,
                 "domain_recall": dr,
@@ -221,6 +241,8 @@ def main():
     parser.add_argument("--domain", default=None)
     parser.add_argument("--max-examples", type=int, default=50)
     parser.add_argument("--top-k", type=int, default=TOP_K)
+    parser.add_argument("--score-threshold", type=float, default=None,
+                        help="Abstain if top-1 retrieval score < threshold")
     parser.add_argument("--output", default=None)
 
     args = parser.parse_args()
@@ -229,6 +251,7 @@ def main():
         domain=args.domain,
         max_examples=args.max_examples,
         top_k=args.top_k,
+        score_threshold=args.score_threshold,
         output_path=Path(args.output) if args.output else None,
     )
 

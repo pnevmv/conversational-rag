@@ -54,23 +54,36 @@ def evaluate(
             "reference_answer": rec["reference_answer"],
             "model_answer": rec["model_answer"],
             "is_unanswerable": is_unans,
+            "is_doc_switch": rec.get("is_doc_switch", False),
             "abstained": abstained,
             "exact_match": scores["exact_match"],
             "f1": scores["f1"],
+            "recall_at_1": rec.get("recall_at_1"),
+            "recall_at_5": rec.get("recall_at_5"),
+            "top_retrieval_score": rec.get("top_retrieval_score"),
         })
 
     n = len(results)
     answerable = [r for r in results if not r["is_unanswerable"]]
     unanswerable = [r for r in results if r["is_unanswerable"]]
+    doc_switch = [r for r in results if r["is_doc_switch"]]
+    same_doc = [r for r in results if not r["is_doc_switch"]]
 
     def _agg(subset):
         if not subset:
             return {"exact_match": 0.0, "f1": 0.0, "n": 0}
-        return {
+        agg = {
             "exact_match": sum(r["exact_match"] for r in subset) / len(subset),
             "f1": sum(r["f1"] for r in subset) / len(subset),
             "n": len(subset),
         }
+        r1_vals = [r["recall_at_1"] for r in subset if r.get("recall_at_1") is not None]
+        r5_vals = [r["recall_at_5"] for r in subset if r.get("recall_at_5") is not None]
+        if r1_vals:
+            agg["recall_at_1"] = sum(r1_vals) / len(r1_vals)
+        if r5_vals:
+            agg["recall_at_5"] = sum(r5_vals) / len(r5_vals)
+        return agg
 
     abstain_rate = sum(r["abstained"] for r in unanswerable) / len(unanswerable) if unanswerable else 0.0
 
@@ -83,6 +96,8 @@ def evaluate(
         "aggregate": _agg(results),
         "answerable": _agg(answerable),
         "unanswerable": {**_agg(unanswerable), "abstain_rate": abstain_rate},
+        "doc_switch": _agg(doc_switch),
+        "same_doc": _agg(same_doc),
         "per_example": results,
     }
 
@@ -119,6 +134,14 @@ def main():
         print(f"  Answerable   (n={ans['n']:2d}): F1 {ans['f1']*100:.2f}%")
     if unans["n"]:
         print(f"  Unanswerable (n={unans['n']:2d}): F1 {unans['f1']*100:.2f}%  abstain_rate {unans['abstain_rate']*100:.0f}%")
+    ds = report["doc_switch"]
+    sd = report["same_doc"]
+    if ds["n"]:
+        r5_str = f"  R@5 {ds['recall_at_5']*100:.1f}%" if "recall_at_5" in ds else ""
+        print(f"  Doc-switch   (n={ds['n']:2d}): F1 {ds['f1']*100:.2f}%{r5_str}")
+    if sd["n"]:
+        r5_str = f"  R@5 {sd['recall_at_5']*100:.1f}%" if "recall_at_5" in sd else ""
+        print(f"  Same-doc     (n={sd['n']:2d}): F1 {sd['f1']*100:.2f}%{r5_str}")
     print("----------------------------------------")
     print(f"Full report saved to:\n  {output_path}")
 

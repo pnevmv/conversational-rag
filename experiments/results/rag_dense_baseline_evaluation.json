@@ -6,19 +6,39 @@
   "skipped": 0,
   "aggregate": {
     "exact_match": 0.02,
-    "f1": 0.19243079951418463,
-    "n": 50
+    "f1": 0.19187999553697374,
+    "n": 50,
+    "recall_at_1": 0.2,
+    "recall_at_5": 0.38
   },
   "answerable": {
     "exact_match": 0.0,
-    "f1": 0.18343702075977086,
-    "n": 47
+    "f1": 0.18207736469117128,
+    "n": 47,
+    "recall_at_1": 0.2127659574468085,
+    "recall_at_5": 0.40425531914893614
   },
   "unanswerable": {
     "exact_match": 0.3333333333333333,
-    "f1": 0.3333333333333333,
+    "f1": 0.34545454545454546,
     "n": 3,
+    "recall_at_1": 0.0,
+    "recall_at_5": 0.0,
     "abstain_rate": 0.3333333333333333
+  },
+  "doc_switch": {
+    "exact_match": 0.0,
+    "f1": 0.1516044406103717,
+    "n": 9,
+    "recall_at_1": 0.1111111111111111,
+    "recall_at_5": 0.2222222222222222
+  },
+  "same_doc": {
+    "exact_match": 0.024390243902439025,
+    "f1": 0.20072097100866684,
+    "n": 41,
+    "recall_at_1": 0.21951219512195122,
+    "recall_at_5": 0.4146341463414634
   },
   "per_example": [
     {
@@ -26,55 +46,75 @@
       "domain": "dmv",
       "question": "My insurance ended so what should i do",
       "reference_answer": "You will need to get insurance or we will suspend your registration and license",
-      "model_answer": "If your insurance ended, your insurance company notified the DMV and you must follow the instructions in the letter; if you have insurance, contact your company or agent and ask them to file a notice of coverage with the DMV electronically. If you do not have auto liability insurance, you must surrender your vehicle registration and plates to the DMV immediately.",
+      "model_answer": "If your insurance ended, the letter means your insurance company notified the DMV that coverage ended and no new coverage was reported. If you have insurance, follow the letter and ask your insurance company to file a notice of coverage with the DMV electronically; if you do not have auto liability insurance, you must surrender your vehicle registration and plates to the DMV immediately and do not use your vehicle.",
       "is_unanswerable": false,
+      "is_doc_switch": false,
       "abstained": false,
       "exact_match": 0.0,
-      "f1": 0.2028985507246377
+      "f1": 0.15384615384615383,
+      "recall_at_1": 0.0,
+      "recall_at_5": 1.0,
+      "top_retrieval_score": 0.7456072568893433
     },
     {
       "example_id": "08a4c73e6eece0ee2b3a64a3949ee0ff_1",
       "domain": "ssa",
       "question": "I need help with planning my Social Security survivor benefits.",
       "reference_answer": "Do you need information about planning for your future Social Security survivor benefits?",
-      "model_answer": "Social Security can help your family with survivor benefits if the worker who died earned enough Social Security credits through work. The survivor benefits may be available to a spouse, child, or parent, and the number of credits needed depends on the worker’s age when they died.",
+      "model_answer": "You may be eligible for Social Security survivor benefits if you are the spouse, child, or parent of a worker who dies and that worker worked long enough under Social Security to qualify. Benefits depend on the number of Social Security credits the worker earned, and you can find information about credits and eligibility in the SSA Survivors Planner.",
       "is_unanswerable": false,
+      "is_doc_switch": false,
       "abstained": false,
       "exact_match": 0.0,
-      "f1": 0.18181818181818182
+      "f1": 0.23880597014925373,
+      "recall_at_1": 0.0,
+      "recall_at_5": 1.0,
+      "top_retrieval_score": 0.7933447360992432
     },
     {
       "example_id": "40dffec1f37241d6ba631901f00aedd7_1",
       "domain": "studentaid",
       "question": "Hello, I need some help with my application for student aid, please.",
       "reference_answer": "a",
-      "model_answer": "You can get in-depth information on applying for federal student aid at StudentAid.gov, including the aid application process. If you need additional help, you can visit StudentAid.gov or call the Federal Student Aid Information Center toll-free at 1-800-433-3243.",
+      "model_answer": "To get help with your student aid application, use StudentAid.gov for in-depth information on applying for financial aid. You can also call the Federal Student Aid Information Center toll-free at 1-800-433-3243 (TTY: 1-800-730-8913).",
       "is_unanswerable": false,
+      "is_doc_switch": false,
       "abstained": false,
       "exact_match": 0.0,
-      "f1": 0.0
+      "f1": 0.0,
+      "recall_at_1": 0.0,
+      "recall_at_5": 0.0,
+      "top_retrieval_score": 0.7728254199028015
     },
     {
       "example_id": "80eba80595a3509dc4dc3e26babf83b3_1",
       "domain": "va",
       "question": "how do you Check your VA claim or appeal status",
       "reference_answer": "Find out how to check the status of a VA claim or appeal online",
-      "model_answer": "Go to your “My VA” dashboard after you’re signed in, scroll down to the “Track Claims” section, and click “View Status” for the specific claim or appeal to see more details and supporting evidence.",
+      "model_answer": "Go to your “My VA” dashboard once you’re signed in, then scroll down to the “Track Claims” section to see a summary of your open claims or appeals. Click “View Status” for a specific claim to see detailed status information and supporting evidence.",
       "is_unanswerable": false,
+      "is_doc_switch": false,
       "abstained": false,
       "exact_match": 0.0,
-      "f1": 0.18181818181818182
+      "f1": 0.1923076923076923,
+      "recall_at_1": 1.0,
+      "recall_at_5": 1.0,
+      "top_retrieval_score": 0.9371265769004822
     },
     {
       "example_id": "1409501a35697e0ce68561e29577b90a_3",
       "domain": "dmv",
       "question": "Don't do that I'll get insurance",
       "reference_answer": "Okay, have you received a letter from the DMV letting you know how to clear things up?",
-      "model_answer": "If your insurance coverage is cancelled or about to expire, do not use your vehicle and surrender your vehicle plates to the DMV immediately. If you don’t have liability insurance or don’t plan to replace it, surrender your vehicle registration and plates before your insurance coverage ends.",
+      "model_answer": "Do not use your vehicle if your insurance coverage is cancelled, even if you think it is a mistake. If you don’t have liability insurance or it’s about to expire and you don’t plan to replace it, surrender your vehicle plates to the DMV immediately.",
       "is_unanswerable": false,
+      "is_doc_switch": false,
       "abstained": false,
       "exact_match": 0.0,
-      "f1": 0.13114754098360656
+      "f1": 0.1724137931034483,
+      "recall_at_1": 0.0,
+      "recall_at_5": 0.0,
+      "top_retrieval_score": 0.711016058921814
     },
     {
       "example_id": "08a4c73e6eece0ee2b3a64a3949ee0ff_3",
@@ -83,9 +123,13 @@
       "reference_answer": "Unfortunately, no relevant information is found.",
       "model_answer": "Unfortunately, no relevant information is found.",
       "is_unanswerable": true,
+      "is_doc_switch": false,
       "abstained": true,
       "exact_match": 1.0,
-      "f1": 1.0
+      "f1": 1.0,
+      "recall_at_1": 0.0,
+      "recall_at_5": 0.0,
+      "top_retrieval_score": 0.6727961897850037
     },
     {
       "example_id": "40dffec1f37241d6ba631901f00aedd7_4",
@@ -94,42 +138,58 @@
       "reference_answer": "a",
       "model_answer": "Unfortunately, no relevant information is found.",
       "is_unanswerable": false,
+      "is_doc_switch": false,
       "abstained": true,
       "exact_match": 0.0,
-      "f1": 0.0
+      "f1": 0.0,
+      "recall_at_1": 0.0,
+      "recall_at_5": 0.0,
+      "top_retrieval_score": 0.687865138053894
     },
     {
       "example_id": "80eba80595a3509dc4dc3e26babf83b3_3",
       "domain": "va",
       "question": "Can I use the tool?",
       "reference_answer": "Do you have one of the following accounts? A Premium My HealtheVet account , or\n    A Premium DS Logon account used for eBenefits and milConnect ,  or\n     that you can create here on VA.gov  A verified ID.me account",
-      "model_answer": "To use the “Check Your VA Claim Or Appeal Status” tool, you need a free Premium My HealtheVet account, a Premium DS Logon account used for eBenefits and milConnect, or a verified ID.me account you can create on VA.gov.",
+      "model_answer": "Yes, you can use this tool if you have a free Premium My HealtheVet account, a Premium DS Logon account used for eBenefits and milConnect, or a verified ID.me account you can create on VA.gov.",
       "is_unanswerable": false,
+      "is_doc_switch": false,
       "abstained": false,
       "exact_match": 0.0,
-      "f1": 0.7164179104477612
+      "f1": 0.75,
+      "recall_at_1": 1.0,
+      "recall_at_5": 1.0,
+      "top_retrieval_score": 0.7307376861572266
     },
     {
       "example_id": "1409501a35697e0ce68561e29577b90a_5",
       "domain": "dmv",
       "question": "I have, that is why I am here to clear that up and change the address on my license and registration",
       "reference_answer": "Okay, we can take care of that",
-      "model_answer": "By New York State law, you must report a change of residence to the DMV within 10 days, including the address for both your driver license and each registered vehicle. You can change the address online through MyDMV using the ID number and document number from your New York State driver license, learner permit, or Non-Driver ID.",
+      "model_answer": "By New York law, you must report a change of address to DMV within 10 days. You can change the address on your license and registrations through MyDMV using the ID number and document number from your New York State driver license, learner permit, or non-driver ID.",
       "is_unanswerable": false,
+      "is_doc_switch": false,
       "abstained": false,
       "exact_match": 0.0,
-      "f1": 0.06779661016949154
+      "f1": 0.0784313725490196,
+      "recall_at_1": 1.0,
+      "recall_at_5": 1.0,
+      "top_retrieval_score": 0.7164738178253174
     },
     {
       "example_id": "08a4c73e6eece0ee2b3a64a3949ee0ff_5",
       "domain": "ssa",
       "question": "What would my widower receive in benefits?",
       "reference_answer": "In the event of your passing, your widower would start receiving reduced benefits at age 60 or full benefits if they are at retirement age or older.",
-      "model_answer": "A widower can receive full Social Security survivor benefits at full retirement age or reduced benefits as early as age 60. If he is disabled (with the disability starting before or within seven years of the worker’s death), he can begin receiving benefits as early as age 50, and he can receive benefits at any age if he has not remarried and is caring for the deceased worker’s child who is under 16 or disabled.",
+      "model_answer": "Your widower can receive reduced survivor benefits as early as age 60 or full benefits at full retirement age or older, or benefits as early as age 50 if he is disabled and the disability started before or within seven years of your death. If he has not remarried and takes care of your child who is under age 16 or disabled, he can receive survivor benefits at any age.",
       "is_unanswerable": false,
+      "is_doc_switch": false,
       "abstained": false,
       "exact_match": 0.0,
-      "f1": 0.3298969072164949
+      "f1": 0.3789473684210526,
+      "recall_at_1": 1.0,
+      "recall_at_5": 1.0,
+      "top_retrieval_score": 0.7997747659683228
     },
     {
       "example_id": "40dffec1f37241d6ba631901f00aedd7_7",
@@ -138,20 +198,28 @@
       "reference_answer": "a",
       "model_answer": "Unfortunately, no relevant information is found.",
       "is_unanswerable": false,
+      "is_doc_switch": false,
       "abstained": true,
       "exact_match": 0.0,
-      "f1": 0.0
+      "f1": 0.0,
+      "recall_at_1": 0.0,
+      "recall_at_5": 0.0,
+      "top_retrieval_score": 0.687865138053894
     },
     {
       "example_id": "80eba80595a3509dc4dc3e26babf83b3_5",
       "domain": "va",
       "question": "yes",
       "reference_answer": "ok you just log into one of those",
-      "model_answer": "Unfortunately, no relevant information is found.",
+      "model_answer": "yes or no survey: yes or no survey:",
       "is_unanswerable": false,
-      "abstained": true,
+      "is_doc_switch": false,
+      "abstained": false,
       "exact_match": 0.0,
-      "f1": 0.0
+      "f1": 0.0,
+      "recall_at_1": 0.0,
+      "recall_at_5": 0.0,
+      "top_retrieval_score": 0.6976821422576904
     },
     {
       "example_id": "1409501a35697e0ce68561e29577b90a_7",
@@ -160,86 +228,118 @@
       "reference_answer": "Sure, it is. You can contact your college and get a certified copy.",
       "model_answer": "Unfortunately, no relevant information is found.",
       "is_unanswerable": false,
+      "is_doc_switch": true,
       "abstained": true,
       "exact_match": 0.0,
-      "f1": 0.1111111111111111
+      "f1": 0.1111111111111111,
+      "recall_at_1": 0.0,
+      "recall_at_5": 0.0,
+      "top_retrieval_score": 0.7960025668144226
     },
     {
       "example_id": "08a4c73e6eece0ee2b3a64a3949ee0ff_7",
       "domain": "ssa",
       "question": "Of course, and regarding doing other types of work, to obtain the status of disabled I should not be able to do any type of work?",
       "reference_answer": "Yes, if you are unable to do any other type of work then you will be able to get disability.",
-      "model_answer": "No. To be found disabled, you must not be able to do the work you did previously, and at the next step we also consider whether you can do other work despite your impairment, based on your medical conditions, age, education, past work experience, and transferable skills. If you can do other work, your claim will be denied.",
+      "model_answer": "No—you don’t need to be unable to do any type of work to be considered disabled; SSA looks at whether you can do other work despite your impairment. If you can’t do other work, they’ll decide you’re disabled; if you can do other work, your claim will be denied.",
       "is_unanswerable": false,
+      "is_doc_switch": true,
       "abstained": false,
       "exact_match": 0.0,
-      "f1": 0.2894736842105263
+      "f1": 0.40579710144927533,
+      "recall_at_1": 1.0,
+      "recall_at_5": 1.0,
+      "top_retrieval_score": 0.8095496296882629
     },
     {
       "example_id": "40dffec1f37241d6ba631901f00aedd7_9",
       "domain": "studentaid",
       "question": "What if my parents are unwilling to provide their information on my FAFSA form?",
       "reference_answer": "You would have to choose the one that says I am unable to provide info about my parent.",
-      "model_answer": "You can’t be considered independent just because your parents refuse to help with the FAFSA form. If they still won’t provide information, you can select the option that you’re unable to provide parent information and request consideration for an unsubsidized loan, but you won’t receive an EFC and you may not be able to get other federal student aid.",
+      "model_answer": "You can’t be considered independent just because your parents refuse to help with the FAFSA, but you may be able to submit the FAFSA online by selecting the option that you’re unable to provide parent information, which may allow you to receive only an unsubsidized loan (if the financial aid office approves). If you submit without parent information, your FAFSA won’t be fully processed and you won’t receive an EFC, so contact your school’s financial aid office right away.",
       "is_unanswerable": false,
+      "is_doc_switch": true,
       "abstained": false,
       "exact_match": 0.0,
-      "f1": 0.19444444444444442
+      "f1": 0.15555555555555553,
+      "recall_at_1": 0.0,
+      "recall_at_5": 1.0,
+      "top_retrieval_score": 0.9104950428009033
     },
     {
       "example_id": "80eba80595a3509dc4dc3e26babf83b3_7",
       "domain": "va",
       "question": "I see. Another question about your VA benefits and care. What are the requirements for the pension?",
       "reference_answer": "Apply for monthly payments for wartime Veterans and survivors with limited or no income who meet certain age and disability requirements",
-      "model_answer": "To be eligible for VA pension, you must not have received a dishonorable discharge, and your yearly family income and net worth must be within limits set by Congress. You also must meet wartime service requirements and be at least 65, have a permanent and total disability, be in a nursing home for long-term care due to disability, or be receiving Social Security Disability Insurance or Supplemental Security Income.",
+      "model_answer": "To be eligible for VA Pension, you must not have received a dishonorable discharge, and your yearly family income and net worth must meet limits set by Congress. You also must have qualifying wartime service and meet at least one requirement such as being at least 65, having a permanent and total disability, needing long-term nursing home care due to disability, or receiving Social Security Disability Insurance or Supplemental Security Income.",
       "is_unanswerable": false,
+      "is_doc_switch": true,
       "abstained": false,
       "exact_match": 0.0,
-      "f1": 0.22988505747126436
+      "f1": 0.17777777777777778,
+      "recall_at_1": 0.0,
+      "recall_at_5": 0.0,
+      "top_retrieval_score": 0.821722686290741
     },
     {
       "example_id": "1409501a35697e0ce68561e29577b90a_9",
       "domain": "dmv",
       "question": "Great. I think that I can found some bills, of some services, would that help too?",
       "reference_answer": "Yes, as long as they be a phone, electricity, gas, water or cable bill.",
-      "model_answer": "Yes, exploring other aid options could help you find additional financial aid resources for paying for college and related costs like books and housing.",
+      "model_answer": "Yes, you can explore other aid options that may help with college costs. Veterans education benefits for survivors and dependents may also provide money for tuition, housing, books, and supplies.",
       "is_unanswerable": false,
+      "is_doc_switch": false,
       "abstained": false,
       "exact_match": 0.0,
-      "f1": 0.05405405405405406
+      "f1": 0.046511627906976744,
+      "recall_at_1": 0.0,
+      "recall_at_5": 0.0,
+      "top_retrieval_score": 0.6749822497367859
     },
     {
       "example_id": "08a4c73e6eece0ee2b3a64a3949ee0ff_9",
       "domain": "ssa",
       "question": "I want to make sure that my family is taken care of financially after I pass away. What is the procedure for receiving Social Security survivor benefits?",
       "reference_answer": "Your Social Security can help ensure that your family is taken care of if you have earned enough credits through working.",
-      "model_answer": "If you are getting benefits on your spouse’s or parent’s record, you generally will not need to file an application because we will automatically change your monthly benefits to survivors benefits after we receive the report of death. If you are getting retirement or disability benefits on your own record (or not getting benefits), you will need to apply for survivors benefits promptly, since in some cases benefits may not be retroactive.",
+      "model_answer": "If you are getting benefits on your spouse’s or parent’s record, you generally will not need to file an application for survivors benefits because SSA will automatically change your monthly benefits after they receive the report of death. If you are getting retirement or disability benefits on your own record, you will need to apply for survivors benefits promptly, since benefits may not be retroactive in some cases.",
       "is_unanswerable": false,
+      "is_doc_switch": true,
       "abstained": false,
       "exact_match": 0.0,
-      "f1": 0.10989010989010987
+      "f1": 0.11494252873563218,
+      "recall_at_1": 0.0,
+      "recall_at_5": 0.0,
+      "top_retrieval_score": 0.7915997505187988
     },
     {
       "example_id": "40dffec1f37241d6ba631901f00aedd7_11",
       "domain": "studentaid",
       "question": "Why would I use my stepparents info?",
       "reference_answer": "Using your stepparents info on the FAFSA form gives an accurate picture of your family's financial ability.",
-      "model_answer": "If you have a stepparent who is married to your legal parent, you generally must provide their information on your FAFSA to create an accurate picture of your family’s total financial strength. The only exception is for the FAFSA questions about parents’ education level, where your parents are considered your birth or adoptive parents and your stepparent is not included.",
+      "model_answer": "If your stepparent is married to your legal parent, you generally must include your stepparent’s information on the FAFSA to help create an accurate picture of your family’s total financial strength. The one exception is for the FAFSA questions about parents’ education level, where your stepparent isn’t considered your parent for those two questions.",
       "is_unanswerable": false,
+      "is_doc_switch": false,
       "abstained": false,
       "exact_match": 0.0,
-      "f1": 0.22535211267605632
+      "f1": 0.24615384615384614,
+      "recall_at_1": 1.0,
+      "recall_at_5": 1.0,
+      "top_retrieval_score": 0.7821131348609924
     },
     {
       "example_id": "80eba80595a3509dc4dc3e26babf83b3_9",
       "domain": "va",
       "question": "What burial help is available?",
       "reference_answer": "Get help planning a burial in a VA national cemetery , order a headstone or other memorial item to honor a Veteran 's service , and apply for survivor and dependent benefits .",
-      "model_answer": "If you qualify for burial benefits, you’ll receive a VA burial and memorial benefits folder by mail with your pre-need decision letter, a National Cemetery Administration brochure, and a burial benefits information sheet. This folder also includes copies of the supporting documents you submitted with your application.",
+      "model_answer": "If you qualify for burial benefits, you’ll receive a VA burial and memorial benefits folder in the mail with a pre-need decision letter, a National Cemetery Administration brochure and burial benefits information sheet, and copies of the supporting documents you submitted.",
       "is_unanswerable": false,
+      "is_doc_switch": false,
       "abstained": false,
       "exact_match": 0.0,
-      "f1": 0.2608695652173913
+      "f1": 0.3225806451612903,
+      "recall_at_1": 0.0,
+      "recall_at_5": 0.0,
+      "top_retrieval_score": 0.7391341328620911
     },
     {
       "example_id": "1409501a35697e0ce68561e29577b90a_11",
@@ -248,9 +348,13 @@
       "reference_answer": "Yes, it's also a valid document, no matter if you have no longer that union job.",
       "model_answer": "Unfortunately, no relevant information is found.",
       "is_unanswerable": false,
+      "is_doc_switch": false,
       "abstained": true,
       "exact_match": 0.0,
-      "f1": 0.09523809523809522
+      "f1": 0.09523809523809522,
+      "recall_at_1": 0.0,
+      "recall_at_5": 0.0,
+      "top_retrieval_score": 0.6667169332504272
     },
     {
       "example_id": "08a4c73e6eece0ee2b3a64a3949ee0ff_11",
@@ -259,53 +363,73 @@
       "reference_answer": "we will recalculate your benefit amount",
       "model_answer": "Unfortunately, no relevant information is found.",
       "is_unanswerable": false,
+      "is_doc_switch": true,
       "abstained": true,
       "exact_match": 0.0,
-      "f1": 0.0
+      "f1": 0.0,
+      "recall_at_1": 0.0,
+      "recall_at_5": 0.0,
+      "top_retrieval_score": 0.7137546539306641
     },
     {
       "example_id": "95a7c95147ebb2148200478a459319b8_1",
       "domain": "studentaid",
       "question": "I wanted to know about career options",
       "reference_answer": "we can give you a link so you can look at more information",
-      "model_answer": "You can explore career options by assessing your career goals and understanding earning potential to help you find a college or career school that fits your needs. Veterans can also attend a Transition Assistance Program briefing and use the CareerScope assessment to match their interests and skills to careers and training programs.",
+      "model_answer": "You can explore career options by assessing your interests and goals to match them with potential careers, or by using VA transition support like a Transition Assistance Program briefing and the CareerScope assessment to get recommendations for careers and training programs.",
       "is_unanswerable": false,
+      "is_doc_switch": false,
       "abstained": false,
       "exact_match": 0.0,
-      "f1": 0.13114754098360654
+      "f1": 0.07843137254901959,
+      "recall_at_1": 0.0,
+      "recall_at_5": 1.0,
+      "top_retrieval_score": 0.7663005590438843
     },
     {
       "example_id": "80eba80595a3509dc4dc3e26babf83b3_11",
       "domain": "va",
       "question": "What health care information do you have?",
       "reference_answer": "You can Apply for VA health care , find out how to access services , and manage your health and benefits online .",
-      "model_answer": "VA asks you to provide information about your health insurance coverage (including coverage under a spouse’s plan) so they can bill your private health insurance provider for care, supplies, or medicine they provide to treat non–service-connected conditions; they don’t bill Medicare or Medicaid.",
+      "model_answer": "The VA asks you to provide information on your health insurance coverage so they can bill your private health insurance provider for care, supplies, or medicine provided to treat non-service-connected conditions. The VA does not bill Medicare or Medicaid, but may bill Medicare supplemental health insurance for covered services.",
       "is_unanswerable": false,
+      "is_doc_switch": false,
       "abstained": false,
       "exact_match": 0.0,
-      "f1": 0.29032258064516125
+      "f1": 0.2985074626865672,
+      "recall_at_1": 0.0,
+      "recall_at_5": 0.0,
+      "top_retrieval_score": 0.7905374765396118
     },
     {
       "example_id": "98c58a56af5e55754eeb7d427928ff66_1",
       "domain": "dmv",
       "question": "I need to change my address.",
       "reference_answer": "You need to report it to the DMV.",
-      "model_answer": "To change your address, follow the Social Security Administration’s address change instructions. If you’re ordering a replacement license or permit, change your address first, since documents are sent to the address on record.",
+      "model_answer": "To change your address, use the Social Security Administration’s “Change of Address” process. After you move, update your address first before ordering any replacements for documents.",
       "is_unanswerable": false,
+      "is_doc_switch": false,
       "abstained": false,
       "exact_match": 0.0,
-      "f1": 0.10810810810810811
+      "f1": 0.125,
+      "recall_at_1": 0.0,
+      "recall_at_5": 0.0,
+      "top_retrieval_score": 0.8698728680610657
     },
     {
       "example_id": "08a4c73e6eece0ee2b3a64a3949ee0ff_13",
       "domain": "ssa",
       "question": "I'd like to learn more about Benefits Planner as well. What kind of care will my children get?",
       "reference_answer": "Your children who are under 18 or age 19 if still attending school full time can receive Social Security benefits if they are unmarried.",
-      "model_answer": "Social Security’s Benefits Planner can explain the benefits available to your family when you retire, become disabled, or die. You can use the “Benefits for Your Family” and retirement tools to see what benefits your children may be eligible for.",
+      "model_answer": "The Social Security Administration’s Benefits Planner can help you understand benefits for you and your family when you retire, become disabled, or when you die, including benefits for your children. Use the Benefits Planner “Benefits For Your Family” section to see what your family may be eligible for.",
       "is_unanswerable": false,
+      "is_doc_switch": true,
       "abstained": false,
       "exact_match": 0.0,
-      "f1": 0.1935483870967742
+      "f1": 0.2,
+      "recall_at_1": 0.0,
+      "recall_at_5": 0.0,
+      "top_retrieval_score": 0.7372052073478699
     },
     {
       "example_id": "95a7c95147ebb2148200478a459319b8_4",
@@ -314,119 +438,163 @@
       "reference_answer": "Do you like working with computers?",
       "model_answer": "Unfortunately, no relevant information is found.",
       "is_unanswerable": false,
+      "is_doc_switch": false,
       "abstained": true,
       "exact_match": 0.0,
-      "f1": 0.0
+      "f1": 0.0,
+      "recall_at_1": 0.0,
+      "recall_at_5": 0.0,
+      "top_retrieval_score": 0.6944769620895386
     },
     {
       "example_id": "0f7382d1abc14110f335fa03220cc033_1",
       "domain": "va",
       "question": "What can I do if I don't agree with a board decision?",
       "reference_answer": "Do you have new and relevant evidence to support your case?",
-      "model_answer": "If you disagree with the Board’s decision and have new and relevant evidence, you can file a Supplemental Claim or appeal to the U.S. Court of Appeals for Veterans Claims.",
+      "model_answer": "If you disagree with the Board’s decision and have new and relevant evidence, you can file a Supplemental Claim, or you can appeal to the U.S. Court of Appeals for Veterans Claims.",
       "is_unanswerable": false,
+      "is_doc_switch": false,
       "abstained": false,
       "exact_match": 0.0,
-      "f1": 0.368421052631579
+      "f1": 0.35,
+      "recall_at_1": 0.0,
+      "recall_at_5": 1.0,
+      "top_retrieval_score": 0.7171112298965454
     },
     {
       "example_id": "98c58a56af5e55754eeb7d427928ff66_4",
       "domain": "dmv",
       "question": "Yes, I just have to change the address.",
       "reference_answer": "Unfortunately, no relevant information is found.",
-      "model_answer": "If your address changes, you must notify DMV Revenue Accounts; if you use ACH, your account liaison can update the address using the system. If you do not use ACH, send a letter to DMV Revenue Accounts with both your old and new address, on letterhead, including your account number, signed and dated.",
+      "model_answer": "If your address changes, you must notify the DMV by updating the address through the address change process for the DMV records you want to update. If you’re updating an address for DMV Revenue Accounts and you don’t use ACH, you must send a letter with your old and new address, including your account number, on letterhead, signed and dated.",
       "is_unanswerable": true,
+      "is_doc_switch": false,
       "abstained": false,
       "exact_match": 0.0,
-      "f1": 0.0
+      "f1": 0.0,
+      "recall_at_1": 0.0,
+      "recall_at_5": 0.0,
+      "top_retrieval_score": 0.8282769918441772
     },
     {
       "example_id": "32e3c1e1d6824a9bf68c88cde9b9b91a_1",
       "domain": "ssa",
       "question": "How do I apply for disability benefits?",
       "reference_answer": "I can help you with that. First off, you should apply for benefits as soon as you become disabled.",
-      "model_answer": "You should apply for disability benefits as soon as you become disabled, and you can apply online. Print and review the Adult Disability Checklist to gather the information you need, then complete the Disability Benefit Application.",
+      "model_answer": "You should apply for disability benefits as soon as you become disabled. You can apply online by printing and reviewing the Adult Disability Checklist and then completing the Disability Benefit Application.",
       "is_unanswerable": false,
+      "is_doc_switch": false,
       "abstained": false,
       "exact_match": 0.0,
-      "f1": 0.5
+      "f1": 0.5416666666666666,
+      "recall_at_1": 1.0,
+      "recall_at_5": 1.0,
+      "top_retrieval_score": 0.8682135343551636
     },
     {
       "example_id": "95a7c95147ebb2148200478a459319b8_6",
       "domain": "studentaid",
       "question": "I use them but wouldn't care to work on computer related things, anything else?",
       "reference_answer": "Unfortunately, no relevant information is found.",
-      "model_answer": "If you can’t do the work you did in the past, Social Security looks at whether you can do other work despite your impairment, considering your medical conditions, age, education, past work experience, and transferable skills. If you can’t do other work, you’ll be decided disabled; if you can do other work, your claim will be denied.",
+      "model_answer": "If you can’t do the work you did in the past, Social Security will look to see if there is other work you could do despite your impairment, considering your medical conditions, age, education, past work experience, and transferable skills. If you can do other work, your claim will be denied.",
       "is_unanswerable": true,
+      "is_doc_switch": false,
       "abstained": false,
       "exact_match": 0.0,
-      "f1": 0.0
+      "f1": 0.03636363636363636,
+      "recall_at_1": 0.0,
+      "recall_at_5": 0.0,
+      "top_retrieval_score": 0.6124268770217896
     },
     {
       "example_id": "0f7382d1abc14110f335fa03220cc033_3",
       "domain": "va",
       "question": "Yes, I have new and relevant information that will support my case.",
       "reference_answer": "Then you may file a Supplemental Claim or appeal to the U.S. Court of Appeals for Veterans Claims.",
-      "model_answer": "To file a Supplemental Claim, you must add evidence that VA didn’t have before and that is relevant to your case. You can submit the evidence yourself or identify evidence (such as medical records) for VA to get.",
+      "model_answer": "You can file a Supplemental Claim as long as you add evidence that is both new (VA didn’t have it before the last decision) and relevant (it could prove or disprove something about your case). You can submit the evidence yourself or identify evidence for VA to get, and VA can’t accept the claim without it.",
       "is_unanswerable": false,
+      "is_doc_switch": false,
       "abstained": false,
       "exact_match": 0.0,
-      "f1": 0.2692307692307693
+      "f1": 0.2058823529411765,
+      "recall_at_1": 0.0,
+      "recall_at_5": 0.0,
+      "top_retrieval_score": 0.7196138501167297
     },
     {
       "example_id": "98c58a56af5e55754eeb7d427928ff66_6",
       "domain": "dmv",
       "question": "What if my insurance had lapsed?",
       "reference_answer": "Your license and registration could be suspended.",
-      "model_answer": "An insurance lapse means there was no liability insurance coverage for your New York-registered vehicle for a period of time, and the DMV can suspend your registration and driver license. If your lapse is 90 days or less, you can pay to remove the suspension; if the registration suspension period is more than 90 days, you must surrender your vehicle registration and plates and your driver license will be suspended until you pay a $50 termination fee.",
+      "model_answer": "An insurance lapse means there is no liability insurance coverage for a vehicle registered in New York State for a period of time, and the DMV can suspend your registration and driver license. If the lapse is more than 90 days, you must surrender your vehicle registration and plates, and to reinstate your driver license you must pay a $50 license suspension termination fee.",
       "is_unanswerable": false,
+      "is_doc_switch": false,
       "abstained": false,
       "exact_match": 0.0,
-      "f1": 0.15384615384615383
+      "f1": 0.12307692307692308,
+      "recall_at_1": 0.0,
+      "recall_at_5": 0.0,
+      "top_retrieval_score": 0.7982908487319946
     },
     {
       "example_id": "32e3c1e1d6824a9bf68c88cde9b9b91a_4",
       "domain": "ssa",
       "question": "No, I don't think I am ready.",
       "reference_answer": "Ok, no problem. Are you deaf or hard of hearing?",
-      "model_answer": "How do I prepare before starting my application?",
+      "model_answer": "Unfortunately, no relevant information is found.",
       "is_unanswerable": false,
-      "abstained": false,
+      "is_doc_switch": false,
+      "abstained": true,
       "exact_match": 0.0,
-      "f1": 0.0
+      "f1": 0.125,
+      "recall_at_1": 0.0,
+      "recall_at_5": 0.0,
+      "top_retrieval_score": 0.5735739469528198
     },
     {
       "example_id": "95a7c95147ebb2148200478a459319b8_8",
       "domain": "studentaid",
       "question": "Do you have any info for the parents to look at?",
       "reference_answer": "Is this information for a parent that is planning ahead for a child's higher education?",
-      "model_answer": "Yes. Federal Student Aid provides resources for parents to learn about saving early, finding tax breaks, and understanding parent loans to support a child’s college journey.",
+      "model_answer": "Yes, Federal Student Aid provides resources for parents of students, including guidance on saving early, finding tax breaks, and understanding parent loans to support a child’s college journey.",
       "is_unanswerable": false,
+      "is_doc_switch": false,
       "abstained": false,
       "exact_match": 0.0,
-      "f1": 0.10526315789473685
+      "f1": 0.1,
+      "recall_at_1": 1.0,
+      "recall_at_5": 1.0,
+      "top_retrieval_score": 0.7308608293533325
     },
     {
       "example_id": "0f7382d1abc14110f335fa03220cc033_5",
       "domain": "va",
       "question": "Could you help me how to file a supplementary claim? What can you do for careers and employment?",
       "reference_answer": "You can apply for vocational rehabilitation services, get support for your Veteran-owned small business, and access other career resources.",
-      "model_answer": "You can file a Supplemental Claim within 1 year of a decision if you have new evidence relevant to your case, and you must add evidence VA didn’t have before. The Supplemental Claim option isn’t available for fiduciary claims, and it may not be available if multiple people are claiming the same benefit.",
+      "model_answer": "You can file a Supplemental Claim within 1 year of a decision if you have new and relevant evidence that VA didn’t have before, unless you have a fiduciary claim or you’re part of a multiple-party claim (rare), where the Supplemental Claim option isn’t available.",
       "is_unanswerable": false,
+      "is_doc_switch": true,
       "abstained": false,
       "exact_match": 0.0,
-      "f1": 0.14705882352941177
+      "f1": 0.10169491525423728,
+      "recall_at_1": 0.0,
+      "recall_at_5": 0.0,
+      "top_retrieval_score": 0.7460468411445618
     },
     {
       "example_id": "98c58a56af5e55754eeb7d427928ff66_8",
       "domain": "dmv",
       "question": "Ok, yes, they are good alternatives. I know you ask a lot for birth certificates, but what if you don't have one handy?",
       "reference_answer": "You can go and use the NYS Department of Health Vital Records to lend you a hand on that. You can even order those through an independent partner.",
-      "model_answer": "If you don’t have a birth certificate handy, Social Security may be able to accept a religious record made before age 5 showing your date of birth, a U.S. hospital record of your birth, or a U.S. passport. For anyone age 12 or older requesting an original Social Security number, you must appear in person for an interview.",
+      "model_answer": "If you don’t have a birth certificate handy, Social Security may consider other documents to prove age and citizenship, such as a religious record made before age 5 showing your date of birth, a U.S. hospital record of your birth, or a U.S. passport. Also, anyone age 12 or older requesting an original Social Security number must appear in person for an interview.",
       "is_unanswerable": false,
+      "is_doc_switch": true,
       "abstained": false,
       "exact_match": 0.0,
-      "f1": 0.1038961038961039
+      "f1": 0.09756097560975609,
+      "recall_at_1": 0.0,
+      "recall_at_5": 0.0,
+      "top_retrieval_score": 0.6642407178878784
     },
     {
       "example_id": "32e3c1e1d6824a9bf68c88cde9b9b91a_6",
@@ -435,9 +603,13 @@
       "reference_answer": "Do you have access to a telephone?",
       "model_answer": "Unfortunately, no relevant information is found.",
       "is_unanswerable": false,
+      "is_doc_switch": false,
       "abstained": true,
       "exact_match": 0.0,
-      "f1": 0.0
+      "f1": 0.0,
+      "recall_at_1": 0.0,
+      "recall_at_5": 0.0,
+      "top_retrieval_score": 0.6201909780502319
     },
     {
       "example_id": "95a7c95147ebb2148200478a459319b8_10",
@@ -446,20 +618,28 @@
       "reference_answer": "We have resources for parents to learn more about saving early, finding tax breaks, and understanding parent loans to help support their child's college journey.",
       "model_answer": "Unfortunately, no relevant information is found.",
       "is_unanswerable": false,
+      "is_doc_switch": false,
       "abstained": true,
       "exact_match": 0.0,
-      "f1": 0.0
+      "f1": 0.0,
+      "recall_at_1": 0.0,
+      "recall_at_5": 0.0,
+      "top_retrieval_score": 0.6080562472343445
     },
     {
       "example_id": "0f7382d1abc14110f335fa03220cc033_7",
       "domain": "va",
       "question": "Seems awfully useful, ok. What about family member benefits?",
       "reference_answer": "On our page you can learn about the benefits you may qualify for as a spouse, dependent, or survivor. You can also find out what you're eligible for as a family member caring for a Veteran with disabilities.",
-      "model_answer": "Family member benefits are available for spouses, dependents, and survivors, including benefits you may qualify for when caring for a Veteran with disabilities. You can also find eligibility information for certain counseling services, training, and education benefits for dependent family members.",
+      "model_answer": "Family member benefits include what you may qualify for as a spouse, dependent, or survivor, including eligibility for benefits when caring for a Veteran with disabilities. You can also find information on counseling, training, and education benefits for dependent family members of service members or Veterans with service-connected disabilities.",
       "is_unanswerable": false,
+      "is_doc_switch": false,
       "abstained": false,
       "exact_match": 0.0,
-      "f1": 0.48648648648648646
+      "f1": 0.5925925925925926,
+      "recall_at_1": 0.0,
+      "recall_at_5": 1.0,
+      "top_retrieval_score": 0.7252323031425476
     },
     {
       "example_id": "98c58a56af5e55754eeb7d427928ff66_10",
@@ -468,108 +648,148 @@
       "reference_answer": "Sure. You can contact your college to ask them for a certified copy.",
       "model_answer": "Unfortunately, no relevant information is found.",
       "is_unanswerable": false,
+      "is_doc_switch": false,
       "abstained": true,
       "exact_match": 0.0,
-      "f1": 0.0
+      "f1": 0.0,
+      "recall_at_1": 0.0,
+      "recall_at_5": 0.0,
+      "top_retrieval_score": 0.7125025987625122
     },
     {
       "example_id": "32e3c1e1d6824a9bf68c88cde9b9b91a_9",
       "domain": "ssa",
       "question": "Do you have any documents or publications that I can read?",
       "reference_answer": "We do, what are you interested in? Applying online for disability benefits? We also have documents on disability benefits and a starter kit.",
-      "model_answer": "Yes, you can read publications such as “Apply Online for Disability Benefits,” the “Disability Benefits” materials, the “Disability Starter Kit,” the “Adult Disability Checklist,” and “The Appeals Process” from the Social Security Administration.",
+      "model_answer": "The Social Security Administration provides publications including “Apply Online for Disability Benefits,” “Disability Benefits,” “Disability Starter Kit,” “Adult Disability Checklist,” and “The Appeals Process.”",
       "is_unanswerable": false,
+      "is_doc_switch": false,
       "abstained": false,
       "exact_match": 0.0,
-      "f1": 0.27450980392156865
+      "f1": 0.2666666666666666,
+      "recall_at_1": 0.0,
+      "recall_at_5": 1.0,
+      "top_retrieval_score": 0.6820008158683777
     },
     {
       "example_id": "95a7c95147ebb2148200478a459319b8_12",
       "domain": "studentaid",
       "question": "do you have any info on how college can help me?",
       "reference_answer": "Yes, you can look at our Reasons to Attend a College or Career School section",
-      "model_answer": "Yes. Federal Student Aid provides resources on preparing for college or career school, including exploring your options and understanding college costs and financial aid. You can also find in-depth information at StudentAid.gov and use fafsa.gov for the Free Application for Federal Student Aid (FAFSA).",
+      "model_answer": "Yes. The Federal Student Aid resources explain how to get ready for college by exploring your options, defining your goals and interests, understanding college costs, and planning financially and academically.",
       "is_unanswerable": false,
+      "is_doc_switch": false,
       "abstained": false,
       "exact_match": 0.0,
-      "f1": 0.2807017543859649
+      "f1": 0.1395348837209302,
+      "recall_at_1": 0.0,
+      "recall_at_5": 1.0,
+      "top_retrieval_score": 0.7423983216285706
     },
     {
       "example_id": "0f7382d1abc14110f335fa03220cc033_9",
       "domain": "va",
       "question": "Alright. Which brings me to service member benefits. What benefits can a service member expect?",
       "reference_answer": "On our page you can find out what benefits you may be eligible for during service and which time-sensitive benefits to consider when separating or retiring.",
-      "model_answer": "If you’re serving on active duty in the United States uniformed services, including active National Guard and Reserve with federal pay, you may be eligible for VA benefits both during service and after separation or retirement. The VA also has service member benefits, including time-sensitive benefits to consider when separating or retiring.",
+      "model_answer": "If you’re serving on active duty in the United States uniformed services, including active National Guard and Reserve with federal pay, you may be eligible for VA benefits during service and after separation or retirement. You can find out which benefits you may qualify for and when to apply through the service member benefits information on VA.gov.",
       "is_unanswerable": false,
+      "is_doc_switch": false,
       "abstained": false,
       "exact_match": 0.0,
-      "f1": 0.47368421052631576
+      "f1": 0.4691358024691359,
+      "recall_at_1": 1.0,
+      "recall_at_5": 1.0,
+      "top_retrieval_score": 0.7688312530517578
     },
     {
       "example_id": "98c58a56af5e55754eeb7d427928ff66_12",
       "domain": "dmv",
       "question": "Are you sure? I don't want to waste my time there.",
       "reference_answer": "Absolutely, that document is totally valid for this procedure.",
-      "model_answer": "Unfortunately, no relevant information is found.",
+      "model_answer": "Yes, if you are an authorized TNC driver, you may drop off a TNC passenger in New York City that you picked up outside the City.",
       "is_unanswerable": false,
-      "abstained": true,
+      "is_doc_switch": false,
+      "abstained": false,
       "exact_match": 0.0,
-      "f1": 0.13333333333333333
+      "f1": 0.0625,
+      "recall_at_1": 0.0,
+      "recall_at_5": 0.0,
+      "top_retrieval_score": 0.5807718634605408
     },
     {
       "example_id": "32e3c1e1d6824a9bf68c88cde9b9b91a_11",
       "domain": "ssa",
       "question": "I am wondering about if I don't have enough work credits to be eligible for disability. What should I do?",
       "reference_answer": "We do have some information called \"Your income and resources\" that you can access on page 5 of our Supplemental Security Income SSI booklet.",
-      "model_answer": "If you don’t have enough work credits to qualify for disability benefits, you generally must meet both a recent work test and a duration work test based on your age when your disability started. If you are statutorily blind, you may only need to meet the duration work test and there is no recent work test requirement.",
+      "model_answer": "If you don’t have enough work credits to qualify for disability benefits, you may still be evaluated based on whether you meet the recent work test and duration work test requirements, which depend on your age when your disability begins. If you are statutorily blind, you only need to meet the duration work test and there is no recent work test requirement.",
       "is_unanswerable": false,
+      "is_doc_switch": false,
       "abstained": false,
       "exact_match": 0.0,
-      "f1": 0.1282051282051282
+      "f1": 0.11904761904761904,
+      "recall_at_1": 0.0,
+      "recall_at_5": 0.0,
+      "top_retrieval_score": 0.8046386241912842
     },
     {
       "example_id": "5c1c3c6a47d0193987bc89846589348b_1",
       "domain": "studentaid",
       "question": "hello i would like to get information about new applicants",
       "reference_answer": "You are not currently on an income-based plan and want to apply?",
-      "model_answer": "To apply as a new applicant for Income-Driven Student Loan Repayment, you should follow the “New Applicants” guidance under Federal Student Aid. Unfortunately, no additional details about what information you need are provided in the context.",
+      "model_answer": "For new applicants, you can apply for Income-Driven Student Loan Repayment through Federal Student Aid. If you’re applying for Social Security disability benefits, the application will require the information identified in the SSA “Information You Need To Apply.”",
       "is_unanswerable": false,
+      "is_doc_switch": false,
       "abstained": false,
       "exact_match": 0.0,
-      "f1": 0.18181818181818182
+      "f1": 0.13043478260869562,
+      "recall_at_1": 0.0,
+      "recall_at_5": 0.0,
+      "top_retrieval_score": 0.8240424990653992
     },
     {
       "example_id": "0f7382d1abc14110f335fa03220cc033_11",
       "domain": "va",
       "question": "Ok, and since I'm not the youngest anymore, can you tell me something about burials for Veterans?",
       "reference_answer": "Of course. You can get help planning a burial in a VA national cemetery, order a headstone or other memorial item to honor a Veteran's service, and apply for survivor and dependent benefits.",
-      "model_answer": "To be eligible for burial in a VA national cemetery, you must be a Veteran who didn’t receive a dishonorable discharge, or the spouse or dependent child of a service member or Veteran (in some cases, an unmarried adult child if you aren’t married). If a service member dies on active duty, they are eligible for burial without a pre-need decision letter.",
+      "model_answer": "VA national cemetery burial eligibility depends on your service history (or the service history of the Veteran or service member who is sponsoring your application, such as a spouse or unmarried adult child), and decisions are finalized at the time of need even if earlier eligibility was determined. If a service member dies on active duty, they are eligible for burial without a pre-need decision letter.",
       "is_unanswerable": false,
+      "is_doc_switch": false,
       "abstained": false,
       "exact_match": 0.0,
-      "f1": 0.2891566265060241
+      "f1": 0.20224719101123598,
+      "recall_at_1": 0.0,
+      "recall_at_5": 0.0,
+      "top_retrieval_score": 0.7118529081344604
     },
     {
       "example_id": "56f37985586c76d125118233adb410fa_1",
       "domain": "dmv",
       "question": "how do i pay dial in search account fees?",
       "reference_answer": "paying customers must include a deposit with the application. your first deposit must be enough to pay for two months of searches.",
-      "model_answer": "Paying customers must include a deposit with the application, and your first deposit must be enough to cover two months of searches. Credit card payment is not available; when you make a search, the search fee is subtracted from your account balance.",
+      "model_answer": "Paying customers must include a deposit with the application, and the first deposit must be enough to pay for two months of searches. When we accept your application, your deposit is added to your account balance, and each search fee is subtracted from that balance; credit card payment is not available.",
       "is_unanswerable": false,
+      "is_doc_switch": false,
       "abstained": false,
       "exact_match": 0.0,
-      "f1": 0.6206896551724138
+      "f1": 0.5882352941176471,
+      "recall_at_1": 1.0,
+      "recall_at_5": 1.0,
+      "top_retrieval_score": 0.8654940128326416
     },
     {
       "example_id": "8e0770d85d9e7f13ee04580aa88fcca3_1",
       "domain": "ssa",
       "question": "What documents do I need to get a corrected Social Security Card?",
       "reference_answer": "Citizenship is one option.",
-      "model_answer": "If you need a corrected Social Security card, you must show proof of your identity, immigration status, and work authorization, and provide certain documents to correct the information on your card. For example, Social Security can accept only certain documents as proof of identity (such as a U.S. driver’s license, state-issued non-driver ID, or U.S. passport).",
+      "model_answer": "If you request a replacement or corrected Social Security card, you must show proof of your identity, immigration status, and work authorization. If you need to correct information on your card or change your name, you must also provide certain accepted documents showing the change.",
       "is_unanswerable": false,
+      "is_doc_switch": false,
       "abstained": false,
       "exact_match": 0.0,
-      "f1": 0.0
+      "f1": 0.0,
+      "recall_at_1": 0.0,
+      "recall_at_5": 1.0,
+      "top_retrieval_score": 0.8469337224960327
     }
   ]
 }
