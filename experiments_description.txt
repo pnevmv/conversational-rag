@@ -4,18 +4,13 @@ Danil Smirnov, M.Sc. Computer Engineering, University of Padua
 Supervisor: Prof. Gianmaria Silvello
 
 ========================================================================
-EVALUATION SET (v2 — balanced multi-domain)
+EVALUATION SET
 ========================================================================
 
 All experiments use the same deterministic subset of 50 examples drawn
-from the MultiDoc2Dial validation split. Examples are sampled via
-round-robin interleaving across all four domains to ensure balanced
-domain coverage:
-
-  DMV: 13 examples, SSA: 13 examples, StudentAid: 12 examples, VA: 12 examples
-
-Unanswerable examples (reference == abstention phrase): 3
-These come from SSA, DMV, and StudentAid domains.
+from the MultiDoc2Dial validation split. Examples are consecutive
+user→agent turn pairs extracted across all four domains (DMV, SSA, VA,
+StudentAid) in sorted domain order, capped at 50.
 
 Using the same evaluation set across all experiments is intentional: it
 allows the effect of each retrieval/knowledge mechanism to be studied
@@ -30,31 +25,9 @@ Evaluation metrics:
     normalised reference answer.
   - Recall@K: fraction of gold grounding spans found in the top-K
     retrieved results. Each grounding entry is a (doc_id, id_sp) pair.
-    With section-based indexing, a retrieved section counts as a hit if
-    any of its constituent span IDs matches a gold grounding entry.
-  - Domain Recall@K: fraction of top-K retrieved sections whose doc_id
-    maps to the same domain as the gold grounding document. Measures
-    whether the retriever stays in the right domain.
-  - Abstain Rate: for unanswerable examples, fraction where the model
-    replied exactly "Unfortunately, no relevant information is found."
-
-Prompt style (agent voice): all experiments use a 1-2 sentence agent-
-voice prompt with few-shot examples — no bullets, no bold, no preamble.
-Abstention phrase: "Unfortunately, no relevant information is found."
-
-========================================================================
-NOTE ON INDEXING: SPAN-LEVEL vs SECTION-LEVEL
-========================================================================
-
-All RAG experiments use section-level indexing: each section groups a
-heading span with all following content spans until the next heading,
-joined as a single retrieval unit. The section's span_ids field lists
-all constituent span IDs so Recall@K can still be checked against the
-dataset's original per-span grounding annotations.
-
-This change reduced the corpus from 35,659 individual spans to 4,114
-sections and produced a 10–20× improvement in Recall@K across all
-retrieval methods.
+    With section-based indexing (see note below), a retrieved section
+    counts as a hit if any of its constituent span IDs matches a gold
+    grounding entry.
 
 ========================================================================
 EXPERIMENT 1 — LLM-ONLY BASELINE
@@ -66,32 +39,72 @@ The model receives only the user question with no external context,
 no retrieved passages, and no document information.
 
 Prompt template:
-  "You are a government services agent. Answer the customer's question
-   in 1-2 plain sentences. No bullet points, no bold text, no preamble.
-   If you don't know, reply exactly:
-   'Unfortunately, no relevant information is found.'
+  "Answer the following question as accurately as possible.
 
-   Customer: {question}
-   Agent:"
+   Question:
+   {question}"
 
 Model: gpt-5.4-nano-smirnov (Azure OpenAI)
-Examples evaluated: 50 / 50 (47 answerable, 3 unanswerable)
+Examples evaluated: 50 / 50
 Failures: 0
 
 Results
 -------
-  Exact Match       :  0.00%
-  Token F1          : 14.09%
-  Token F1 (answ.)  : 14.85%
-  Token F1 (unansw.):  2.15%
-  Abstain rate      :  0%
+  Exact Match : 0.00%
+  Token F1    : 7.53%
 
 Interpretation
 --------------
-The model never abstains on unanswerable examples: without a context to
-point at, it hallucinates plausible answers. F1 is non-trivial because
-some domain-specific vocabulary overlaps between questions and answers.
-The agent-voice prompt keeps output short, which limits garbage text.
+Zero exact matches are expected: the reference answers are short,
+precise agent utterances ("You will need to get insurance or we will
+suspend your registration and license"), while the model generates
+multi-paragraph explanations. The token-level F1 of 7.53% captures
+incidental lexical overlap only.
+
+The key qualitative finding motivating retrieval: the model misinterprets
+ambiguous, domain-specific questions. For example, given:
+
+  Question:  "My insurance ended so what should i do"
+  Reference: "You will need to get insurance or we will suspend your
+              registration and license"
+
+The LLM-only model responded with general health insurance advice
+(Healthcare.gov, COBRA, Medicaid), having no way to know the question
+concerns DMV vehicle registration. Without access to the source
+documents, the model defaults to its parametric knowledge, which may
+match a different, more common interpretation of the question.
+
+This result establishes the control condition. Any improvement in
+subsequent experiments is attributable to the retrieval or knowledge
+mechanism added.
+
+========================================================================
+NOTE ON INDEXING: SPAN-LEVEL vs SECTION-LEVEL
+========================================================================
+
+Initial RAG experiments (v1) indexed each document span individually.
+MultiDoc2Dial documents contain heading spans (h3/h4 tags) that carry
+only a heading string with no answer content — for example:
+
+  "How do I pay DIAL-IN Search Account fees?"
+  "County use tax chart…"
+  "How will I know my application has been accepted?"
+
+When these were retrieved as top-ranked results, the LLM received only
+the heading and no answer text, leading to responses such as "the
+context only shows the heading." This affected approximately a dozen
+of the 50 evaluation examples.
+
+All RAG experiments were subsequently re-run with section-level
+indexing: each section groups a heading span with all following content
+spans until the next heading, joined as a single retrieval unit. The
+section's span_ids field lists all constituent span IDs so Recall@K
+can still be checked against the dataset's original per-span grounding
+annotations.
+
+This change reduced the corpus from 35,659 individual spans to 4,114
+sections and produced a 10–20× improvement in Recall@K across all
+retrieval methods. All results reported below use section-level indexing.
 
 ========================================================================
 EXPERIMENT 2 — RAG BASELINE (BM25)
@@ -99,34 +112,63 @@ EXPERIMENT 2 — RAG BASELINE (BM25)
 
 Setup
 -----
-A BM25 retriever (BM25Okapi, rank-bm25 library) built over 4,114
-sections from 488 MultiDoc2Dial documents across all four domains.
+A BM25 retriever (BM25Okapi, rank-bm25 library) is built over all
+4,114 sections extracted from 488 MultiDoc2Dial documents across all
+four domains. Each section's text is the joined heading and content.
+
+For each question, the top-5 sections are retrieved and formatted as a
+context block, which is prepended to the prompt:
+
+  "You are a helpful assistant. Answer the question using only the
+   context provided below. If the context does not contain enough
+   information, say so briefly.
+
+   Context:
+   [1] <document title> — <section heading>
+   <section text>
+   ...
+
+   Question:
+   {question}"
 
 Retrieval method : BM25Okapi (lexical, no embeddings)
 Corpus size      : 4,114 sections from 488 documents
 top_k            : 5
 Model            : gpt-5.4-nano-smirnov (Azure OpenAI)
-Examples evaluated: 50 / 50 (47 answerable, 3 unanswerable)
-Failures          : 0
+Examples evaluated: 50 / 50
+Failures          : 0  (0 vs 1 in v1 — content filter false positive
+                    resolved by retrieving different sections)
 
 Results
 -------
-  Exact Match       :  4.00%
-  Token F1          : 20.69%
-  Token F1 (answ.)  : 17.75%
-  Token F1 (unansw.): 66.67%
-  Abstain rate      : 67%
-  Recall@1          : 12.00%
-  Recall@5          : 22.00%
-  Domain Recall@5   : 58.00%
+  Exact Match  : 0.00%
+  Token F1     : 20.68%
+
+  Retrieval quality (averaged over all 50 examples):
+    Recall@1   : 30.00%
+    Recall@5   : 40.00%
+
+Comparison to LLM-only baseline
+---------------------------------
+  Token F1 delta : +13.15 percentage points  (+174% relative)
 
 Interpretation
 --------------
-Best abstain rate (67%) of all experiments. BM25 sometimes retrieves no
-relevant text for unanswerable questions, correctly triggering abstention.
-Domain recall is lowest (58%): cross-domain lexical overlap (e.g. SSA
-and VA both use "benefits/disability") causes wrong-domain hits.
-Answerable F1 (17.75%) is lower than dense/hybrid.
+BM25 with section-level indexing achieves strong retrieval on questions
+that contain explicit keywords matching the section heading. When a
+question asks "how do I pay dial-in search account fees?", BM25 ranks
+the section headed "How do I pay DIAL-IN Search Account fees?" at rank 1
+and retrieves the full answer text.
+
+Recall@5 of 40% is primarily driven by keyword-bearing questions. The
+remaining 60% of failures are structurally decontextualised follow-up
+turns ("Yes", "No", "Where can I find more info?", "What are the fees
+for that?") where BM25 cannot match any relevant section without the
+preceding dialogue context.
+
+Exact Match remains 0% for the same reason as the LLM-only baseline:
+the model generates explanatory prose rather than reproducing the
+verbatim short reference answers.
 
 ========================================================================
 EXPERIMENT 3 — RAG DENSE BASELINE (BGE-SMALL)
@@ -134,9 +176,19 @@ EXPERIMENT 3 — RAG DENSE BASELINE (BGE-SMALL)
 
 Setup
 -----
-Dense retriever using BAAI/bge-small-en-v1.5 (384-dim embeddings),
-cosine similarity, disk-cached index. BGE asymmetric retrieval: queries
-prepended with instruction prefix; section embeddings without prefix.
+A dense retriever is built using the BAAI/bge-small-en-v1.5 embedding
+model (sentence-transformers, 384-dimensional embeddings). The same
+4,114 sections are indexed. Each section is embedded once and the index
+is cached to disk (data/cache/) for subsequent runs.
+
+Retrieval is exact cosine similarity via a matrix-vector dot product
+over L2-normalised embeddings. The BGE asymmetric retrieval convention
+is applied: queries are prepended with the instruction prefix
+"Represent this sentence for searching relevant passages: " while
+section embeddings are built without any prefix.
+
+The prompt template and top_k=5 are identical to Experiment 2,
+ensuring a fair comparison of the retrieval method only.
 
 Retrieval method : Dense cosine similarity (bge-small-en-v1.5)
 Embedding dim    : 384
@@ -144,26 +196,42 @@ Corpus size      : 4,114 sections from 488 documents
 Index build time : ~15 seconds on Apple MPS (cached thereafter)
 top_k            : 5
 Model            : gpt-5.4-nano-smirnov (Azure OpenAI)
-Examples evaluated: 50 / 50 (47 answerable, 3 unanswerable)
+Examples evaluated: 50 / 50
 Failures          : 0
 
 Results
 -------
-  Exact Match       :  2.00%
-  Token F1          : 19.24%
-  Token F1 (answ.)  : 18.34%
-  Token F1 (unansw.): 33.33%
-  Abstain rate      : 33%
-  Recall@1          : 20.00%
-  Recall@5          : 38.00%
-  Domain Recall@5   : 66.80%
+  Exact Match  : 0.00%
+  Token F1     : 19.44%
+
+  Retrieval quality (averaged over all 50 examples):
+    Recall@1   : 24.00%
+    Recall@5   : 42.00%
+
+Comparison to previous experiments
+------------------------------------
+  Experiment          EM      Token F1   Recall@1   Recall@5   n
+  LLM-only          0.00%     7.53%        —          —        50
+  RAG BM25          0.00%    20.68%       30.00%     40.00%    50
+  RAG Dense (bge)   0.00%    19.44%       24.00%     42.00%    50
 
 Interpretation
 --------------
-Dense embeddings improve domain targeting (+8.8 pp vs. BM25 domain recall)
-and Recall@1 vs. BM25 (+8 pp). Abstain rate drops to 33%: the dense model
-retrieves semantically similar-looking text even for unanswerable questions,
-giving the LLM something to work with and reducing abstentions.
+Dense retrieval achieves higher Recall@5 than BM25 (42% vs 40%) by
+bridging vocabulary gaps between questions and sections that share
+meaning but not exact terms. However, BM25 leads on Token F1 (20.68%
+vs 19.44%) and Recall@1 (30% vs 24%).
+
+The BM25 advantage at Recall@1 reflects the nature of the dataset:
+many questions are reformulations of section headings ("how do i pay
+dial in search account fees?"), which BM25 matches exactly at rank 1.
+Dense retrieval spreads probability mass across semantically similar
+sections, placing the correct section in top-5 more often but less
+frequently at rank 1.
+
+The Recall@5 gap between dense and BM25 is narrow (2 pp). The dominant
+remaining failure mode for both methods is decontextualised follow-up
+turns, which carry no retrievable signal regardless of retrieval method.
 
 ========================================================================
 EXPERIMENT 4 — RAG HYBRID BASELINE (BM25 + BGE-SMALL, RRF)
@@ -171,34 +239,35 @@ EXPERIMENT 4 — RAG HYBRID BASELINE (BM25 + BGE-SMALL, RRF)
 
 Setup
 -----
-Hybrid retriever combining BM25 and dense via Reciprocal Rank Fusion
-(RRF, k=60, pool_factor=3). Each ranker retrieves 15 candidates; the
-merged list is truncated to top_k=5.
+A hybrid retriever combines the BM25 retriever (Experiment 2) and the
+dense retriever (Experiment 3) via Reciprocal Rank Fusion (RRF).
+
+RRF merges ranked lists without requiring score normalisation. Each
+section's RRF score is the sum of 1 / (k + rank_i) across all rankers
+that retrieved it, where k=60 is the standard constant from Cormack
+et al. (2009). Sections that appear highly in both lists are boosted;
+sections from a single list are scored by how highly that list placed them.
+
+To give fusion a meaningful pool to work with, each ranker retrieves
+pool_factor × top_k candidates (pool_factor=3, so 15 per ranker).
+The merged list is then truncated to top_k=5.
 
 Retrieval method : RRF over BM25 + bge-small-en-v1.5
 pool_factor      : 3  (each ranker retrieves 15 candidates)
 RRF k constant   : 60
 top_k            : 5
 Model            : gpt-5.4-nano-smirnov (Azure OpenAI)
-Examples evaluated: 50 / 50 (47 answerable, 3 unanswerable)
+Examples evaluated: 50 / 50
 Failures          : 0
 
 Results
 -------
-  Exact Match       :  2.00%
-  Token F1          : 21.77%  (best non-rewrite F1)
-  Token F1 (answ.)  : 20.97%  (best non-rewrite answerable F1)
-  Token F1 (unansw.): 34.36%
-  Abstain rate      : 33%
-  Recall@1          : 12.00%
-  Recall@5          : 36.00%
-  Domain Recall@5   : 63.60%
+  Exact Match  : 0.00%
+  Token F1     : 19.79%
 
-Interpretation
---------------
-Best overall F1 without query rewriting. RRF fuses BM25 and dense
-rankings, combining lexical precision with semantic coverage. Domain
-recall sits between BM25 and dense as expected.
+  Retrieval quality (averaged over all 50 examples):
+    Recall@1   : 32.00%
+    Recall@5   : 46.00%
 
 ========================================================================
 EXPERIMENT 5 — RAG HYBRID + MULTI-TURN QUERY REWRITING
@@ -207,51 +276,226 @@ EXPERIMENT 5 — RAG HYBRID + MULTI-TURN QUERY REWRITING
 Setup
 -----
 Before retrieval, a query rewriter (LLM call) receives the full
-preceding dialogue history (window=6 turns) and rewrites the current
-user turn into a self-contained search query. The rewritten query is
-passed to the hybrid retriever (Experiment 4). The LLM answer generation
-uses the original user question (not the rewritten query).
+preceding dialogue history and rewrites the current user turn into a
+self-contained search query. The rewritten query is then passed to the
+hybrid retriever (Experiment 4). The LLM answer generation step is
+identical to all previous RAG experiments — the original user question
+is sent to the LLM, not the rewritten query.
+
+Rewriter prompt (abbreviated):
+  "Given a conversation history and the current user message, rewrite
+   the current message as a short, self-contained search query. Output
+   ONLY the rewritten query. Resolve all pronouns and references using
+   the conversation history. If the message is already self-contained,
+   return it unchanged."
 
 History window : last 6 turns (3 exchanges)
 Retrieval      : Hybrid (BM25 + bge-small, RRF, pool_factor=3, k=60)
 top_k          : 5
 Model          : gpt-5.4-nano-smirnov (Azure OpenAI, both rewriter and generator)
-Examples evaluated: 50 / 50 (47 answerable, 3 unanswerable)
+Examples evaluated: 50 / 50
+Rewrites performed: 42 / 50 (first turn of each dialogue has no history)
 Failures          : 0
 
 Example rewrites:
   "yes"                        → "Does the requirement to include a
                                   deposit with the application for
-                                  paying Dial-in search account fees apply?"
+                                  paying Dial-in search account fees
+                                  apply?"
   "What are the fees for that?" → "What are the fees for DMV call
                                   center exemptions in New York City?"
   "Where can I find more info?" → "Where can I find more information
-                                  about New York DMV vehicle registration
-                                  insurance requirements?"
+                                  about New York DMV vehicle
+                                  registration insurance requirements?"
+  "Can I use my union card?"   → "Can I use my union card as proof of
+                                  identification for DMV requirements?"
 
 Results
 -------
-  Exact Match       :  0.00%
-  Token F1          : 20.40%
-  Token F1 (answ.)  : 21.70%  (best answerable F1 overall)
-  Token F1 (unansw.):  0.00%
-  Abstain rate      :  0%
-  Recall@1          : 28.00%
-  Recall@5          : 44.00%
-  Domain Recall@5   : 87.20%  (best domain recall by far)
+  Exact Match  : 0.00%
+  Token F1     : 23.59%
 
-Interpretation
---------------
-Query rewriting dramatically improves domain recall (+23.6 pp vs. hybrid)
-and answerable F1 (+21.70%). The rewritten query is so specific that the
-retriever always finds something plausible — which prevents abstention on
-unanswerable examples (abstain rate 0%). This is the main failure mode:
-better retrieval hurts unanswerable handling.
+  Retrieval quality (averaged over all 50 examples):
+    Recall@1   : 40.00%
+    Recall@5   : 68.00%
 
 ========================================================================
 CUMULATIVE RESULTS SUMMARY
 ========================================================================
 
+  Experiment                      EM   Token F1  Recall@1  Recall@5   n
+  -----------------------------------------------------------------------
+  LLM-only                      0.00%    7.53%      —         —        50
+  RAG BM25                      0.00%   20.68%     30.00%    40.00%    50
+  RAG Dense (bge-small)         0.00%   19.44%     24.00%    42.00%    50
+  RAG Hybrid (BM25+dense,RRF)   0.00%   19.79%     32.00%    46.00%    50
+  RAG Hybrid + Query Rewriting  0.00%   23.59%     40.00%    68.00%    50
+
+========================================================================
+ANALYSIS — HYBRID vs COMPONENTS
+========================================================================
+
+With section-level indexing, both BM25 and dense are now competitive
+rankers, and hybrid retrieval correctly outperforms both components:
+
+  Recall@5:  Hybrid 46% > Dense 42% > BM25 40%
+  Recall@1:  Hybrid 32% > BM25 30% > Dense 24%
+  Token F1:  BM25 20.68% > Hybrid 19.79% > Dense 19.44%
+
+This is the expected behaviour of RRF when both component rankers are
+strong: sections that both BM25 and dense rank highly get boosted, while
+sections retrieved by only one ranker are demoted. The result confirms
+the finding from earlier experiments that hybrid methods are most
+effective when the component rankers are complementary — and that
+complementarity was absent when BM25 indexed empty heading spans.
+
+The Token F1 ordering (BM25 > Hybrid > Dense) reflects a different
+dynamic: BM25 tends to surface the single most keyword-relevant section
+at rank 1, and when that is the correct section it provides clean,
+focused context. Hybrid and dense retrieve broader semantic coverage
+which may dilute the highest-quality section with semantically related
+but slightly off-target content.
+
+The key reversal from v1 (span-level indexing):
+
+  v1 results:  BM25 Recall@5 = 2.33%, Dense = 6.00%, Hybrid = 5.00%
+  v2 results:  BM25 Recall@5 = 40.0%, Dense = 42.0%, Hybrid = 46.0%
+
+In v1, hybrid underperformed dense because BM25's rankings were noise
+(heading spans with no content). In v2, with sections, BM25 is
+competitive and hybrid fusion is genuinely beneficial.
+
+========================================================================
+ANALYSIS — QUERY REWRITING IMPACT
+========================================================================
+
+Query rewriting is the single largest improvement in the project so far:
+
+  Recall@5:  68.00% vs 46.00% for hybrid alone  (+22 pp, +48% relative)
+  Recall@1:  40.00% vs 32.00%                   (+8 pp,  +25% relative)
+  Token F1:  23.59% vs 19.79%                   (+3.80 pp, +19% relative)
+
+The gain is directly attributable to resolving decontextualised follow-up
+turns. Without rewriting, "yes", "no", "where can I find more info?",
+"what are the fees for that?" carry no standalone retrieval signal. With
+rewriting, the LLM uses the dialogue history to produce queries like
+"What are the fees for DMV call center exemptions in New York City?",
+which both BM25 (keyword match) and dense (semantic match) can rank
+correctly.
+
+42 of 50 examples were rewritten (the 8 first turns had no history and
+passed through unchanged). The rewriter added one LLM call per turn,
+roughly doubling the API cost of the retrieval stage.
+
+The remaining 32% Recall@5 failures after rewriting fall into two
+categories:
+1. Turns where even the rewritten query is too vague ("how to clear
+   up DMV issues and update address after receiving a letter") because
+   the dialogue itself is underspecified.
+2. Turns where the correct answer spans multiple sections and the top-5
+   window does not cover all of them.
+
+========================================================================
+EXPECTED PROGRESSION
+========================================================================
+
+Step 4 (RAG) is now complete. The five experiments establish a full
+retrieval and answer-quality ladder on MultiDoc2Dial.
+
+Next steps:
+
+1. Knowledge Graph construction (Step 5). Transform MultiDoc2Dial
+   documents into structured graphs. Entity and relation retrieval
+   supports precise, grounded answers for multi-hop questions spanning
+   multiple documents — a qualitatively different information source
+   from passage retrieval.
+
+2. KG-based retrieval (Step 6). Query the KG as a structured context
+   source for conversational QA.
+
+3. Graph RAG (Step 7). Combine structured KG evidence with section
+   retrieval.
+
+4. Agentic approaches (Step 8). Dynamic routing between retrieval tools
+   with explicit conversation state management.
+
+Recall@K will be tracked alongside EM/F1 in all future experiments
+to separate retrieval quality from answer generation quality.
+
+========================================================================
+PIPELINE FIXES & RE-EVALUATION (v3 — balanced multi-domain set)
+========================================================================
+
+The following fixes were applied after the v2 results above. All five
+experiments were re-run on a corrected evaluation set.
+
+Fix 1 — Balanced domain sampling
+---------------------------------
+The original 50-example set was accidentally all-DMV: load_qa_pairs()
+iterated domains in sorted order and hit max_examples=50 before leaving
+DMV. Fixed by round-robin interleaving across all four domains:
+
+  New set: DMV=13, SSA=13, StudentAid=12, VA=12  (total: 50)
+
+This is the correct evaluation protocol. The old all-DMV results above
+were re-labelled as the v2 "single-domain" run.
+
+Fix 2 — Agent-voice few-shot prompt
+-------------------------------------
+~2/3 of RAG answers contained "the context doesn't say...", bold text,
+or bullet lists. All RAG experiments now use a strict agent-voice prompt:
+
+  "You are a government services agent. Answer the customer's question
+   in 1-2 plain sentences using only the context below. No bullet
+   points, no bold text, no preamble.
+   If the context does not contain relevant information, reply exactly:
+   'Unfortunately, no relevant information is found.'
+
+   Examples:
+   Customer: Do I need insurance to register my vehicle?
+   Agent: Yes, you must have liability insurance to register a vehicle
+          in New York.
+
+   Customer: How do I pay DIAL-IN search account fees?
+   Agent: Paying customers must include a deposit with the application;
+          your first deposit must cover two months of searches.
+
+   Context:
+   {context}
+
+   Customer: {question}
+   Agent:"
+
+The LLM-only baseline uses the same voice without the context/examples.
+
+Fix 3 — Unanswerable tagging and abstain rate
+----------------------------------------------
+Three reference answers are exactly "Unfortunately, no relevant
+information is found." (from SSA, DMV, StudentAid domains).
+Each example now carries is_unanswerable=True/False. evaluate_baseline.py
+reports answerable and unanswerable F1 separately, plus:
+
+  abstain_rate = fraction of unanswerable examples where model replied
+                 exactly with the abstention phrase.
+
+Fix 4 — Domain Recall@K metric
+--------------------------------
+VA/SSA/FAFSA pages were appearing in retrieval results for DMV
+questions. A new metric was added to quantify this:
+
+  Domain Recall@K = fraction of top-K retrieved sections whose doc_id
+                    maps to the same domain as the gold grounding.
+
+Built from load_doc_domain_map() which reads multidoc2dial_doc.json and
+returns {doc_id: domain} for all 488 documents.
+
+Fix 5 — Hardcoded experiment label in evaluate_baseline.py
+------------------------------------------------------------
+The JSON output always had "experiment": "llm_baseline" regardless of
+input file. Fixed to: input_path.stem.replace("_evaluation", "").
+
+V3 RESULTS (balanced set, agent-voice prompt)
+---------------------------------------------
   Experiment              EM     F1    F1(ans) F1(un) Abst  R@1   R@5  DomR
   -----------------------------------------------------------------------
   LLM-only              0.00% 14.09% 14.85%  2.15%    0%    —     —     —
@@ -260,48 +504,29 @@ CUMULATIVE RESULTS SUMMARY
   RAG Hybrid (RRF)      2.00% 21.77% 20.97% 34.36%   33%  12%   36%   64%
   RAG Hybrid + Rewrite  0.00% 20.40% 21.70%  0.00%    0%  28%   44%   87%
 
-Columns: F1(ans) = answerable F1; F1(un) = unanswerable F1; Abst = abstain
-rate on unanswerable; R@1/R@5 = Recall@1/5; DomR = Domain Recall@5.
+  Columns: F1(ans/un) = answerable/unanswerable split; Abst = abstain
+  rate on unanswerable (n=3); R@1/R@5 = Recall@1/5; DomR = Domain Recall@5.
 
-========================================================================
-KEY TAKEAWAYS
-========================================================================
+Why Recall@5 is lower than v2 (all-DMV) results
+-------------------------------------------------
+The old all-DMV results (R@5: BM25 40%, Dense 42%, Hybrid 46%, Rewrite
+68%) were inflated by the single-domain setting:
+  1. All-DMV questions skewed toward self-contained first turns; the
+     balanced set includes more decontextualised follow-up turns from
+     all four dialogues, which are harder to retrieve without rewriting.
+  2. Single-domain retrieval has no cross-domain noise. In the balanced
+     set, SSA and VA questions share vocabulary ("benefits", "disability")
+     and BM25 retrieves wrong-domain sections (Domain Recall 58%).
 
-1. Domain recall surfaces a real retrieval failure: only 58% of retrieved
-   sections come from the correct domain in the BM25 baseline. Query
-   rewriting nearly fixes this (87.2% domain recall).
+The v3 numbers are harder but reflect a realistic multi-domain scenario.
 
-2. Abstain behaviour is anti-correlated with retrieval quality: better
-   retrieval means the LLM gets more (possibly off-topic but plausible)
-   context and abstains less. BM25 abstains 67%, rewrite abstains 0%.
-
-3. Hybrid RRF is the best single method when unanswerable handling matters
-   (33% abstain, best overall F1 at 21.77%).
-
-4. Query rewriting is the single biggest lever for answerable questions:
-   best answerable F1 (21.70%) and best domain recall (87.2%). At the
-   cost of one extra LLM call per turn.
-
-5. The agent-voice prompt (1-2 plain sentences, no bullets/bold) keeps
-   output tight and reduces hallucination tokens, but abstention control
-   requires a retrieval signal — the LLM alone never abstains.
-
-========================================================================
-EXPECTED PROGRESSION
-========================================================================
-
-Step 4 (RAG) is now complete. Next steps:
-
-1. Knowledge Graph construction (Step 5). Transform MultiDoc2Dial
-   documents into structured graphs for entity- and relation-based retrieval.
-
-2. KG-based retrieval (Step 6). Query the KG as a structured context
-   source for conversational QA.
-
-3. Graph RAG (Step 7). Combine structured KG evidence with section retrieval.
-
-4. Agentic approaches (Step 8). Dynamic routing between retrieval tools
-   with explicit conversation state management.
-
-Recall@K and Domain Recall@K will be tracked alongside EM/F1 in all
-future experiments to separate retrieval quality from answer generation.
+Key findings
+-------------
+1. Abstain rate is anti-correlated with retrieval quality. BM25 abstains
+   67% (retrieves nothing for unanswerable → triggers abstention). Query
+   rewriting abstains 0% (always finds something plausible → no abstention).
+   Better retrieval hurts unanswerable handling.
+2. Hybrid RRF is best when unanswerable handling matters: highest overall
+   F1 (21.77%) and 33% abstain rate.
+3. Query rewriting gives highest answerable F1 (21.70%) and domain recall
+   (87.2%), at the cost of one extra LLM call per turn and 0% abstain.
