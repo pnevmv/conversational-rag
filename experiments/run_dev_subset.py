@@ -1,16 +1,20 @@
 """Run all pipelines on the fixed 500-example dev subset using parallel LLM calls.
 
 Pipelines executed:
-  llm_baseline, oracle_context, rag_bm25, rag_dense, rag_hybrid, rag_hybrid_rewrite
+  llm_baseline, oracle_context, rag_bm25, rag_dense, rag_hybrid, rag_hybrid_rewrite,
+  oracle_v2, rewrite_v2,            (agent-style prompt v2)
+  rewrite_rerank, rewrite_rerank_v2 (cross-encoder reranker, old/new prompt)
 
 Results written to experiments/results/dev_500/<pipeline>.jsonl (same schema as
 the full-split JSONL files so evaluate_diagnostics.py works unchanged).
 
 LLM calls use a thread pool (--workers, default 8) and a disk cache
 (experiments/cache/) so re-runs skip already-answered prompts.
+Reranker scores are cached separately in experiments/cache/reranker/.
 """
 import argparse
 import json
+import random
 import sys
 import time
 from pathlib import Path
@@ -22,12 +26,15 @@ sys.path.insert(0, str(PROJECT_ROOT))
 from src.data import load_qa_pairs, load_sections, load_doc_domain_map
 from src.evaluation.metrics import compute_metrics
 from src.llm import LLMClient, LLMCache, generate_batch
-from src.rag import BM25Retriever, DenseRetriever, HybridRetriever, QueryRewriter
+from src.rag import BM25Retriever, DenseRetriever, HybridRetriever, QueryRewriter, Reranker
+from src.rag.reranker import MAX_TOKENS as RERANKER_MODEL_MAX_TOKENS
 
 RESULTS_DIR = PROJECT_ROOT / "experiments" / "results" / "dev_500"
 CACHE_DIR = PROJECT_ROOT / "experiments" / "cache"
+RERANKER_CACHE_DIR = PROJECT_ROOT / "experiments" / "cache" / "reranker"
 DEV_IDS_FILE = PROJECT_ROOT / "data" / "dev_500_ids.json"
 TOP_K = 5
+RERANKER_RETRIEVE_K = 50
 
 RAG_PROMPT = (
     "You are a government services agent. Answer the customer's question in 1-2 plain sentences "
@@ -49,6 +56,53 @@ LLM_PROMPT = (
     "If you don't know, reply exactly: \"Unfortunately, no relevant information is found.\"\n\n"
     "Customer: {question}\nAgent:"
 )
+
+
+def _load_few_shot_examples() -> List[Tuple[str, str]]:
+    """Return 3 (question, answer) pairs from the train split (seed=42, 3 domains)."""
+    from collections import defaultdict
+
+    train = load_qa_pairs(split="train", max_examples=None)
+    by_domain: Dict[str, List] = defaultdict(list)
+    for ex in train:
+        by_domain[ex["domain"]].append(ex)
+
+    def _is_good(ex: Dict) -> bool:
+        ref = ex["reference_answer"]
+        if ex.get("is_unanswerable"):
+            return False
+        if ref.endswith("?"):
+            return False
+        if len(ref) < 30 or len(ref) > 220:
+            return False
+        words = ref.lower().split()
+        return any(w in words[:3] for w in ["you", "your", "you'll", "you're", "you've"])
+
+    picks: List[Tuple[str, str]] = []
+    for domain in ["dmv", "ssa", "va"]:
+        pool = [ex for ex in by_domain[domain] if _is_good(ex)]
+        rng = random.Random(42)
+        rng.shuffle(pool)
+        if pool:
+            ex = pool[0]
+            picks.append((ex["question"], ex["reference_answer"]))
+    return picks
+
+
+def _build_agent_prompt(few_shots: List[Tuple[str, str]]) -> str:
+    """Build the agent-style (v2) prompt template with embedded few-shot examples."""
+    ex_str = "\n\n".join(f"Customer: {q}\nAgent: {a}" for q, a in few_shots)
+    return (
+        "You are a government services agent. Answer the customer's question in 1–2 short, "
+        "plain sentences using only the context below. Address the customer directly using "
+        "second person (you/your). Do not use bullet points, bold text, or numbered lists. "
+        "Do not begin your reply with phrases like \"Based on the context\" or "
+        "\"According to the document\".\n"
+        "If the context does not contain the answer, reply exactly: "
+        "\"Unfortunately, no relevant information is found.\"\n\n"
+        f"Examples:\n{ex_str}\n\n"
+        "Context:\n{context}\n\nCustomer: {question}\nAgent:"
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -158,7 +212,11 @@ def _build_span_index(sections: List[Dict]) -> Dict[Tuple, Dict]:
 
 
 def run_oracle_context(
-    examples: List[Dict], client: LLMClient, cache: LLMCache, workers: int
+    examples: List[Dict],
+    client: LLMClient,
+    cache: LLMCache,
+    workers: int,
+    prompt_template: Optional[str] = None,
 ) -> List[Dict]:
     print("  Building span index...")
     sections = load_sections()
@@ -186,8 +244,9 @@ def run_oracle_context(
             parts.append(f"{header}\n{s['text']}")
         return "\n\n".join(parts)
 
+    tmpl = prompt_template if prompt_template is not None else RAG_PROMPT
     contexts = [_fmt(_gold_sections(ex["grounding"])) for ex in examples]
-    prompts = [RAG_PROMPT.format(context=ctx, question=ex["question"])
+    prompts = [tmpl.format(context=ctx, question=ex["question"])
                for ex, ctx in zip(examples, contexts)]
 
     print(f"  Generating ({workers} workers)...")
@@ -229,8 +288,14 @@ def run_rag_retrieval(
     doc_domain_map: Dict,
     workers: int,
     rewriter: Optional[Any] = None,
+    reranker: Optional[Any] = None,
+    prompt_template: Optional[str] = None,
 ) -> List[Dict]:
-    """Generic RAG pipeline. If rewriter is given, rewrites queries first (two LLM round-trips)."""
+    """Generic RAG pipeline.
+
+    If rewriter is given, rewrites queries first (extra LLM round-trip).
+    If reranker is given, retrieves RERANKER_RETRIEVE_K candidates and reranks to TOP_K.
+    """
 
     # Phase 1: rewrite queries (batch) if needed
     questions = [ex["question"] for ex in examples]
@@ -263,10 +328,25 @@ def run_rag_retrieval(
         rewritten = questions
 
     # Phase 2: retrieve for all (sequential, fast)
-    print("  Retrieving...")
+    retrieve_k = RERANKER_RETRIEVE_K if reranker is not None else TOP_K
+    print(f"  Retrieving (top-{retrieve_k})...")
     retrieved_all = []
     for q in rewritten:
-        retrieved_all.append(retriever.retrieve(q, top_k=TOP_K))
+        retrieved_all.append(retriever.retrieve(q, top_k=retrieve_k))
+
+    # Phase 2b: rerank if requested
+    top_reranker_scores: List[Optional[float]] = [None] * len(examples)
+    if reranker is not None:
+        print(f"  Reranking {len(examples)} examples (top-{retrieve_k} → top-{TOP_K})...")
+        rerank_results = reranker.rerank_many(
+            rewritten, retrieved_all, top_k=TOP_K
+        )
+        retrieved_all = [docs for docs, _ in rerank_results]
+        top_reranker_scores = [score for _, score in rerank_results]
+        print(
+            f"  Reranking done. Truncated sections (>{RERANKER_MODEL_MAX_TOKENS} tokens): "
+            f"{reranker.n_truncated}"
+        )
 
     # Phase 3: compute recall metrics, build generation prompts
     r1_list, r5_list, dr_list = [], [], []
@@ -275,8 +355,9 @@ def run_rag_retrieval(
         r5_list.append(recall_at_k(retrieved, ex["grounding"], 5))
         dr_list.append(domain_recall_at_k(retrieved, ex["domain"], TOP_K, doc_domain_map))
 
+    tmpl = prompt_template if prompt_template is not None else RAG_PROMPT
     contexts = [format_context(r) for r in retrieved_all]
-    gen_prompts = [RAG_PROMPT.format(context=ctx, question=ex["question"])
+    gen_prompts = [tmpl.format(context=ctx, question=ex["question"])
                    for ex, ctx in zip(examples, contexts)]
 
     # Phase 4: batch generate answers
@@ -284,8 +365,11 @@ def run_rag_retrieval(
     answers = _batch(client, cache, gen_prompts, workers)
 
     records = []
-    for i, (ex, retrieved, ctx, prompt, r1, r5, dr, (answer, status)) in enumerate(
-        zip(examples, retrieved_all, contexts, gen_prompts, r1_list, r5_list, dr_list, answers)
+    for i, (ex, retrieved, ctx, prompt, r1, r5, dr, rr_score, (answer, status)) in enumerate(
+        zip(
+            examples, retrieved_all, contexts, gen_prompts,
+            r1_list, r5_list, dr_list, top_reranker_scores, answers,
+        )
     ):
         rec: Dict[str, Any] = {
             "example_id": ex["example_id"],
@@ -310,6 +394,8 @@ def run_rag_retrieval(
         }
         if rewriter is not None:
             rec["rewritten_query"] = rewritten[i]
+        if rr_score is not None:
+            rec["top_reranker_score"] = rr_score
         records.append(rec)
     return records
 
@@ -324,9 +410,14 @@ def main():
                         help="Parallel LLM threads (default: 8)")
     parser.add_argument("--cache-dir", default=str(CACHE_DIR))
     parser.add_argument("--subset-file", default=str(DEV_IDS_FILE))
-    parser.add_argument("--pipelines", nargs="+",
-                        default=["llm", "oracle", "bm25", "dense", "hybrid", "rewrite"],
-                        help="Which pipelines to run")
+    parser.add_argument(
+        "--pipelines", nargs="+",
+        default=["llm", "oracle", "bm25", "dense", "hybrid", "rewrite"],
+        help=(
+            "Which pipelines to run. Original: llm oracle bm25 dense hybrid rewrite. "
+            "New: oracle_v2 rewrite_v2 rewrite_rerank rewrite_rerank_v2"
+        ),
+    )
     args = parser.parse_args()
 
     t0 = time.time()
@@ -401,6 +492,66 @@ def main():
                                     doc_domain_map, args.workers,
                                     rewriter=rewriter)
         write_jsonl(records, RESULTS_DIR / "rag_rewrite_baseline.jsonl")
+        print(f"  Done in {time.time()-t:.1f}s\n")
+
+    # ---- Agent prompt v2 on Oracle ------------------------------------------
+    if "oracle_v2" in pipelines:
+        print("=== Oracle (agent prompt v2) ===")
+        t = time.time()
+        few_shots = _load_few_shot_examples()
+        agent_prompt = _build_agent_prompt(few_shots)
+        records = run_oracle_context(examples, client, cache, args.workers,
+                                     prompt_template=agent_prompt)
+        write_jsonl(records, RESULTS_DIR / "oracle_context_v2.jsonl")
+        print(f"  Done in {time.time()-t:.1f}s\n")
+
+    # ---- Agent prompt v2 on Hybrid + Rewrite --------------------------------
+    if "rewrite_v2" in pipelines:
+        print("=== RAG Hybrid + Rewrite (agent prompt v2) ===")
+        t = time.time()
+        few_shots = _load_few_shot_examples()
+        agent_prompt = _build_agent_prompt(few_shots)
+        retriever = HybridRetriever()
+        retriever.build_index()
+        rewriter = QueryRewriter(client=client)
+        records = run_rag_retrieval(examples, retriever, client, cache,
+                                    doc_domain_map, args.workers,
+                                    rewriter=rewriter,
+                                    prompt_template=agent_prompt)
+        write_jsonl(records, RESULTS_DIR / "rag_rewrite_baseline_v2.jsonl")
+        print(f"  Done in {time.time()-t:.1f}s\n")
+
+    # ---- Hybrid + Rewrite + Rerank (old prompt) -----------------------------
+    if "rewrite_rerank" in pipelines:
+        print("=== RAG Hybrid + Rewrite + Rerank ===")
+        t = time.time()
+        retriever = HybridRetriever()
+        retriever.build_index()
+        rewriter = QueryRewriter(client=client)
+        reranker = Reranker(cache_dir=RERANKER_CACHE_DIR)
+        records = run_rag_retrieval(examples, retriever, client, cache,
+                                    doc_domain_map, args.workers,
+                                    rewriter=rewriter,
+                                    reranker=reranker)
+        write_jsonl(records, RESULTS_DIR / "rag_rewrite_rerank.jsonl")
+        print(f"  Done in {time.time()-t:.1f}s\n")
+
+    # ---- Hybrid + Rewrite + Rerank (agent prompt v2) ------------------------
+    if "rewrite_rerank_v2" in pipelines:
+        print("=== RAG Hybrid + Rewrite + Rerank (agent prompt v2) ===")
+        t = time.time()
+        few_shots = _load_few_shot_examples()
+        agent_prompt = _build_agent_prompt(few_shots)
+        retriever = HybridRetriever()
+        retriever.build_index()
+        rewriter = QueryRewriter(client=client)
+        reranker = Reranker(cache_dir=RERANKER_CACHE_DIR)
+        records = run_rag_retrieval(examples, retriever, client, cache,
+                                    doc_domain_map, args.workers,
+                                    rewriter=rewriter,
+                                    reranker=reranker,
+                                    prompt_template=agent_prompt)
+        write_jsonl(records, RESULTS_DIR / "rag_rewrite_rerank_v2.jsonl")
         print(f"  Done in {time.time()-t:.1f}s\n")
 
     elapsed = time.time() - t0

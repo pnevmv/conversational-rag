@@ -832,3 +832,113 @@ Key findings
    statistically significant at p=0.017, confirming the dev-500
    numbers are reliable enough to distinguish system-level changes.
 
+
+========================================================================
+STEP 7 — PROMPT V2 AND CROSS-ENCODER RERANKER (dev-500)
+========================================================================
+
+DATE: 2026-09-04
+PIPELINES: oracle_context_v2, rag_rewrite_baseline_v2,
+           rag_rewrite_rerank, rag_rewrite_rerank_v2
+
+------------------------------------------------------------------------
+7.1 MOTIVATION
+------------------------------------------------------------------------
+
+Two follow-up experiments were run on dev-500 to probe whether the
+generation ceiling or retrieval precision was the binding bottleneck:
+
+  Experiment A — Agent-style prompt v2
+    The existing RAG_PROMPT uses two hardcoded few-shot pairs (vehicle
+    registration, DIAL-IN search). The new prompt adds three real
+    (question, answer) pairs sampled from the MultiDoc2Dial TRAIN split
+    (seed=42, one each from dmv/ssa/va domains), tightens the style
+    constraints (1–2 sentences, second person, no markdown or preamble),
+    and keeps the exact abstention phrase unchanged.
+
+  Experiment B — Cross-encoder reranker
+    src/rag/reranker.py wraps BAAI/bge-reranker-base (CrossEncoder).
+    The HybridRetriever retrieves top-50 candidates; the reranker scores
+    all (rewritten_query, section_text) pairs and returns the top-5.
+    Sections longer than 512 tokens (the model's max) are silently
+    truncated by the model; 1924/25000 pairs exceeded this limit in the
+    first run (subsequent runs use the disk cache and report 0).
+    Reranker scores are cached separately in experiments/cache/reranker/
+    keyed by SHA-256(query + "\x00" + text).
+
+------------------------------------------------------------------------
+7.2 FEW-SHOT EXAMPLES (train split, seed=42)
+------------------------------------------------------------------------
+
+  Domain: dmv
+    Q: What happens if I lost my document?
+    A: you must wait for it to arrive before you can create a MyDMV account
+
+  Domain: ssa
+    Q: Is there any chance that I can get benefits for my parents?
+       What is the process of applying for benefits online?
+    A: You complete your application online where you are asked to agree
+       to the Terms of Service Agreement. You then either create or log
+       into your personal Social Security account
+
+  Domain: va
+    Q: How do I get a claims agent or attorney help me?
+    A: You would need to fill out an Appointment of Individual as
+       Claimant's Representative VA Form 21-22a and you can download it.
+
+------------------------------------------------------------------------
+7.3 RESULTS — dev-500 (n=500, bootstrap 95% CI, seed=42)
+------------------------------------------------------------------------
+
+  Experiment              F1% [CI]          R@5%  AR%   FA%   AP%
+  LLM-only                16.3 [15.0–17.6]   —    19.4   7.7  14.3
+  Oracle                  36.1 [34.0–38.4] 100.0  25.8   4.1  29.6
+  Oracle (agent prompt)   36.3 [34.4–38.5] 100.0  16.1   1.9  35.7
+  RAG Hybrid+Rewrite      28.0 [26.2–30.0]  61.2  35.5   7.0  25.0
+  RAG Hybrid+Rewrite (v2) 27.8 [25.9–29.8]  61.2  29.0   4.9  28.1
+  Rewrite+Rerank          28.2 [26.3–30.0]  67.4  32.3   6.8  23.8
+  Rewrite+Rerank (v2)     28.0 [26.2–29.9]  67.4  25.8   5.1  25.0
+
+  AR = Abstain Recall (unanswerable questions correctly abstained),
+  FA = False Abstention rate (answerable questions where model abstained),
+  AP = Abstain Precision.
+
+------------------------------------------------------------------------
+7.4 PAIRED BOOTSTRAP TESTS (n=500, seed=42)
+------------------------------------------------------------------------
+
+  Oracle (v2) vs Oracle:              Δ=+0.25 pp  p=0.319  (n.s.)
+  Rewrite (v2) vs Rewrite:            Δ=−0.21 pp  p=0.607  (n.s.)
+  Rewrite+Rerank vs Rewrite:          Δ=+0.16 pp  p=0.414  (n.s.)
+  Rewrite+Rerank (v2) vs Rewrite(v2): Δ=+0.22 pp  p=0.394  (n.s.)
+
+------------------------------------------------------------------------
+7.5 INTERPRETATION
+------------------------------------------------------------------------
+
+1. Agent-style prompt (v2): no significant F1 difference on either
+   Oracle or Hybrid+Rewrite. However, the new prompt consistently
+   reduces the false-abstention rate (Oracle: 4.1%→1.9%; Rewrite:
+   7.0%→4.9%) and improves abstain precision. The model becomes more
+   conservative: it abstains less often overall but more accurately.
+   The tradeoff is a drop in abstain recall (Rewrite: 35.5%→29.0%).
+
+2. Cross-encoder reranker: R@5 rises from 61.2% to 67.4% (+6.2 pp)
+   and the retrieval-hit count increases from 286 to 316 (+30 examples
+   that now have the gold section in the top-5). Despite this, F1 does
+   not improve significantly (+0.16 pp, p=0.414). The generation
+   ceiling constrains the benefit: F1-hit (the score when retrieval
+   succeeds) is already low (~33%), so adding 30 more "hits" barely
+   moves the aggregate number. The bottleneck has shifted from
+   retrieval precision to generation quality.
+
+3. Neither intervention unlocks new F1 headroom. The persistent gap
+   between Oracle F1 (36%) and any retrieval-augmented system (≤28%)
+   suggests the next productive step is generation-side: better
+   answer synthesis from retrieved sections, or fine-tuning on
+   MultiDoc2Dial training dialogues.
+
+4. Run time: 20.3 min total for all four new pipelines (12 workers).
+   Reranking (CPU, bge-reranker-base, batch_size=256): 12.5 min for
+   25,000 pairs on first run; fully cached on the second pass.
+

@@ -55,6 +55,12 @@ DISPLAY_NAMES = {
     "rag_rewrite_baseline": "RAG Hybrid+Rewrite",
     # dev_500 variants
     "rag_bm25_baseline": "RAG BM25",
+    # dev_500 new-prompt variants
+    "oracle_context_v2": "Oracle (agent prompt)",
+    "rag_rewrite_baseline_v2": "RAG Hybrid+Rewrite (agent prompt)",
+    # dev_500 reranker variants
+    "rag_rewrite_rerank": "RAG Hybrid+Rewrite+Rerank",
+    "rag_rewrite_rerank_v2": "RAG Hybrid+Rewrite+Rerank (agent prompt)",
 }
 
 
@@ -233,15 +239,17 @@ def _pct(val: Optional[float], ci: Optional[Dict] = None, n: Optional[int] = Non
 def render_markdown(
     results: Dict[str, Dict],
     paired: Optional[Dict] = None,
+    paired_list: Optional[List[Dict]] = None,
     title: str = "Diagnostic Evaluation",
 ) -> str:
     order = [
         "llm_baseline_full", "oracle_context_full",
         "rag_baseline_full", "rag_dense_baseline_full",
         "rag_hybrid_baseline_full", "rag_rewrite_baseline_full",
-        "llm_baseline", "oracle_context",
-        "rag_baseline", "rag_dense_baseline",
-        "rag_hybrid_baseline", "rag_rewrite_baseline",
+        "llm_baseline", "oracle_context", "oracle_context_v2",
+        "rag_bm25_baseline", "rag_baseline", "rag_dense_baseline",
+        "rag_hybrid_baseline", "rag_rewrite_baseline", "rag_rewrite_baseline_v2",
+        "rag_rewrite_rerank", "rag_rewrite_rerank_v2",
     ]
     keys = [k for k in order if k in results] + [k for k in results if k not in order]
 
@@ -269,10 +277,17 @@ def render_markdown(
 
     lines = [f"# {title}\n", header + "\n".join(rows_md)]
 
-    if paired:
-        a = paired["system_a"]
-        b = paired["system_b"]
-        t = paired["test"]
+    # Support both old single `paired` arg and new `paired_list`
+    all_tests = []
+    if paired_list:
+        all_tests = paired_list
+    elif paired:
+        all_tests = [paired]
+
+    for pt in all_tests:
+        a = pt["system_a"]
+        b = pt["system_b"]
+        t = pt["test"]
         sig = "**significant**" if t["p_value"] < 0.05 else "not significant"
         lines.append(
             f"\n## Paired Bootstrap Test: {a} vs {b} (Token F1, n={t['n_paired']})\n\n"
@@ -295,7 +310,12 @@ def run_diagnostics(
     n_boot: int = 1000,
     paired_a: str = "rag_rewrite_baseline_full",
     paired_b: str = "rag_hybrid_baseline_full",
+    extra_paired: Optional[List[Tuple[str, str]]] = None,
 ) -> Dict[str, Any]:
+    """Evaluate all files and write JSON + Markdown.
+
+    extra_paired: additional (stem_a, stem_b) pairs beyond the default one.
+    """
     results: Dict[str, Dict] = {}
     for path in input_paths:
         if not path.exists():
@@ -305,42 +325,53 @@ def run_diagnostics(
         stem, r = evaluate_file(path, n_boot=n_boot)
         results[stem] = r
 
-    # Paired bootstrap test (rewrite vs hybrid)
-    paired_result = None
-    # Try both full and short names
-    def _find(key):
+    def _find(key: str) -> Optional[str]:
         if key in results:
             return key
         short = key.replace("_full", "")
         return short if short in results else None
 
-    ka = _find(paired_a)
-    kb = _find(paired_b)
-    if ka and kb:
-        ra = results[ka]["_per_example_f1"]
-        rb = results[kb]["_per_example_f1"]
+    def _make_paired(ka: str, kb: str) -> Optional[Dict]:
+        ka2, kb2 = _find(ka), _find(kb)
+        if not (ka2 and kb2):
+            return None
+        ra = results[ka2]["_per_example_f1"]
+        rb = results[kb2]["_per_example_f1"]
         shared = sorted(set(ra) & set(rb))
-        if shared:
-            scores_a = [ra[eid] for eid in shared]
-            scores_b = [rb[eid] for eid in shared]
-            paired_result = {
-                "system_a": results[ka]["name"],
-                "system_b": results[kb]["name"],
-                "test": paired_bootstrap_test(scores_a, scores_b, n_boot=n_boot),
-            }
-            print(
-                f"\n  Paired test ({results[ka]['name']} vs {results[kb]['name']}): "
-                f"Δ={paired_result['test']['mean_diff']*100:+.2f} pp  "
-                f"p={paired_result['test']['p_value']:.3f}"
-            )
+        if not shared:
+            return None
+        scores_a = [ra[eid] for eid in shared]
+        scores_b = [rb[eid] for eid in shared]
+        pt = {
+            "system_a": results[ka2]["name"],
+            "system_b": results[kb2]["name"],
+            "test": paired_bootstrap_test(scores_a, scores_b, n_boot=n_boot),
+        }
+        print(
+            f"\n  Paired test ({pt['system_a']} vs {pt['system_b']}): "
+            f"Δ={pt['test']['mean_diff']*100:+.2f} pp  "
+            f"p={pt['test']['p_value']:.3f}"
+        )
+        return pt
+
+    paired_list: List[Dict] = []
+    pt = _make_paired(paired_a, paired_b)
+    if pt:
+        paired_list.append(pt)
+    for a, b in (extra_paired or []):
+        pt = _make_paired(a, b)
+        if pt:
+            paired_list.append(pt)
 
     # Strip internal per-example data before serialising
     clean_results = {k: {kk: vv for kk, vv in v.items() if not kk.startswith("_")}
                      for k, v in results.items()}
 
-    payload = {"experiments": clean_results}
-    if paired_result:
-        payload["paired_test"] = paired_result
+    payload: Dict[str, Any] = {"experiments": clean_results}
+    if len(paired_list) == 1:
+        payload["paired_test"] = paired_list[0]
+    elif paired_list:
+        payload["paired_tests"] = paired_list
 
     output_json.parent.mkdir(parents=True, exist_ok=True)
     with open(output_json, "w", encoding="utf-8") as f:
@@ -349,7 +380,7 @@ def run_diagnostics(
 
     md = render_markdown(
         results,
-        paired=paired_result,
+        paired_list=paired_list or None,
         title="Diagnostic Evaluation — MultiDoc2Dial",
     )
     with open(output_md, "w", encoding="utf-8") as f:

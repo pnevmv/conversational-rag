@@ -63,6 +63,43 @@
       "abstain_precision": 0.2962962962962963,
       "n_abstained": 27
     },
+    "oracle_context_v2": {
+      "name": "Oracle (agent prompt)",
+      "path": "experiments/results/dev_500/oracle_context_v2.jsonl",
+      "n_total": 500,
+      "n_evaluated": 500,
+      "n_skipped": 0,
+      "n_unanswerable": 31,
+      "n_answerable": 469,
+      "f1": {
+        "mean": 0.36324172983002445,
+        "ci_low": 0.34361344849820147,
+        "ci_high": 0.385359997772167
+      },
+      "r5": {
+        "mean": 1.0,
+        "ci_low": 1.0,
+        "ci_high": 1.0
+      },
+      "f1_hit": {
+        "ci": {
+          "mean": 0.3758352295226679,
+          "ci_low": 0.3564850458415094,
+          "ci_high": 0.39582830957341814
+        },
+        "n": 469
+      },
+      "f1_miss": null,
+      "abstain_recall": 0.16129032258064516,
+      "abstain_recall_ci": {
+        "mean": 0.16129032258064516,
+        "ci_low": 0.03225806451612903,
+        "ci_high": 0.2903225806451613
+      },
+      "false_abstention": 0.019189765458422176,
+      "abstain_precision": 0.35714285714285715,
+      "n_abstained": 14
+    },
     "rag_bm25_baseline": {
       "name": "RAG BM25",
       "path": "experiments/results/dev_500/rag_bm25_baseline.jsonl",
@@ -238,17 +275,195 @@
       "false_abstention": 0.07036247334754797,
       "abstain_precision": 0.25,
       "n_abstained": 44
+    },
+    "rag_rewrite_baseline_v2": {
+      "name": "RAG Hybrid+Rewrite (agent prompt)",
+      "path": "experiments/results/dev_500/rag_rewrite_baseline_v2.jsonl",
+      "n_total": 500,
+      "n_evaluated": 500,
+      "n_skipped": 0,
+      "n_unanswerable": 31,
+      "n_answerable": 469,
+      "f1": {
+        "mean": 0.27832823743834517,
+        "ci_low": 0.2587749115495445,
+        "ci_high": 0.29762978119873884
+      },
+      "r5": {
+        "mean": 0.612,
+        "ci_low": 0.568,
+        "ci_high": 0.65205
+      },
+      "f1_hit": {
+        "ci": {
+          "mean": 0.3349770079716073,
+          "ci_low": 0.3127568353162787,
+          "ci_high": 0.3585802154243655
+        },
+        "n": 286
+      },
+      "f1_miss": {
+        "ci": {
+          "mean": 0.18919024971331952,
+          "ci_low": 0.16958168292607617,
+          "ci_high": 0.2097866881242177
+        },
+        "n": 183
+      },
+      "abstain_recall": 0.2903225806451613,
+      "abstain_recall_ci": {
+        "mean": 0.2903225806451613,
+        "ci_low": 0.12903225806451613,
+        "ci_high": 0.45161290322580644
+      },
+      "false_abstention": 0.04904051172707889,
+      "abstain_precision": 0.28125,
+      "n_abstained": 32
+    },
+    "rag_rewrite_rerank": {
+      "name": "RAG Hybrid+Rewrite+Rerank",
+      "path": "experiments/results/dev_500/rag_rewrite_rerank.jsonl",
+      "n_total": 500,
+      "n_evaluated": 500,
+      "n_skipped": 0,
+      "n_unanswerable": 31,
+      "n_answerable": 469,
+      "f1": {
+        "mean": 0.2820324164106788,
+        "ci_low": 0.26266894258832824,
+        "ci_high": 0.30044773451239654
+      },
+      "r5": {
+        "mean": 0.674,
+        "ci_low": 0.62995,
+        "ci_high": 0.712
+      },
+      "f1_hit": {
+        "ci": {
+          "mean": 0.3343660968641101,
+          "ci_low": 0.312428732997596,
+          "ci_high": 0.35538260992354775
+        },
+        "n": 316
+      },
+      "f1_miss": {
+        "ci": {
+          "mean": 0.16842648331823662,
+          "ci_low": 0.14796497410661474,
+          "ci_high": 0.19047046073969343
+        },
+        "n": 153
+      },
+      "abstain_recall": 0.3225806451612903,
+      "abstain_recall_ci": {
+        "mean": 0.3225806451612903,
+        "ci_low": 0.16129032258064516,
+        "ci_high": 0.5161290322580645
+      },
+      "false_abstention": 0.06823027718550106,
+      "abstain_precision": 0.23809523809523808,
+      "n_abstained": 42
+    },
+    "rag_rewrite_rerank_v2": {
+      "name": "RAG Hybrid+Rewrite+Rerank (agent prompt)",
+      "path": "experiments/results/dev_500/rag_rewrite_rerank_v2.jsonl",
+      "n_total": 500,
+      "n_evaluated": 500,
+      "n_skipped": 0,
+      "n_unanswerable": 31,
+      "n_answerable": 469,
+      "f1": {
+        "mean": 0.28049712760427087,
+        "ci_low": 0.2619180493107937,
+        "ci_high": 0.2987591101233765
+      },
+      "r5": {
+        "mean": 0.674,
+        "ci_low": 0.62995,
+        "ci_high": 0.712
+      },
+      "f1_hit": {
+        "ci": {
+          "mean": 0.3333532150311035,
+          "ci_low": 0.312158360011643,
+          "ci_high": 0.3543412360238956
+        },
+        "n": 316
+      },
+      "f1_miss": {
+        "ci": {
+          "mean": 0.17398809454683012,
+          "ci_low": 0.15459972005795752,
+          "ci_high": 0.1974197019575893
+        },
+        "n": 153
+      },
+      "abstain_recall": 0.25806451612903225,
+      "abstain_recall_ci": {
+        "mean": 0.25806451612903225,
+        "ci_low": 0.12903225806451613,
+        "ci_high": 0.41935483870967744
+      },
+      "false_abstention": 0.0511727078891258,
+      "abstain_precision": 0.25,
+      "n_abstained": 32
     }
   },
-  "paired_test": {
-    "system_a": "RAG Hybrid+Rewrite",
-    "system_b": "RAG Hybrid",
-    "test": {
-      "mean_diff": 0.019398050735278012,
-      "ci_low": 0.0007095366793595344,
-      "ci_high": 0.03483299398627796,
-      "p_value": 0.017,
-      "n_paired": 500
+  "paired_tests": [
+    {
+      "system_a": "RAG Hybrid+Rewrite",
+      "system_b": "RAG Hybrid",
+      "test": {
+        "mean_diff": 0.019398050735278012,
+        "ci_low": 0.0007095366793595344,
+        "ci_high": 0.03483299398627796,
+        "p_value": 0.017,
+        "n_paired": 500
+      }
+    },
+    {
+      "system_a": "Oracle (agent prompt)",
+      "system_b": "Oracle",
+      "test": {
+        "mean_diff": 0.0024749067783982385,
+        "ci_low": -0.00874795276985746,
+        "ci_high": 0.013221956151125975,
+        "p_value": 0.319,
+        "n_paired": 500
+      }
+    },
+    {
+      "system_a": "RAG Hybrid+Rewrite (agent prompt)",
+      "system_b": "RAG Hybrid+Rewrite",
+      "test": {
+        "mean_diff": -0.002076752234989768,
+        "ci_low": -0.016801032389418234,
+        "ci_high": 0.01352624231595198,
+        "p_value": 0.607,
+        "n_paired": 500
+      }
+    },
+    {
+      "system_a": "RAG Hybrid+Rewrite+Rerank",
+      "system_b": "RAG Hybrid+Rewrite",
+      "test": {
+        "mean_diff": 0.001627426737343812,
+        "ci_low": -0.012717975103170112,
+        "ci_high": 0.015984441325619946,
+        "p_value": 0.414,
+        "n_paired": 500
+      }
+    },
+    {
+      "system_a": "RAG Hybrid+Rewrite+Rerank (agent prompt)",
+      "system_b": "RAG Hybrid+Rewrite (agent prompt)",
+      "test": {
+        "mean_diff": 0.0021688901659256865,
+        "ci_low": -0.011324439037527908,
+        "ci_high": 0.015559907189920407,
+        "p_value": 0.394,
+        "n_paired": 500
+      }
     }
-  }
+  ]
 }
