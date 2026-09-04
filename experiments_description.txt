@@ -942,3 +942,110 @@ generation ceiling or retrieval precision was the binding bottleneck:
    Reranking (CPU, bge-reranker-base, batch_size=256): 12.5 min for
    25,000 pairs on first run; fully cached on the second pass.
 
+
+========================================================================
+STEP 8 — RAG SECTION SUMMARY AND FUTURE DIRECTIONS
+========================================================================
+
+DATE: 2026-09-04
+
+------------------------------------------------------------------------
+8.1 END-TO-END SUMMARY OF THE RAG SECTION
+------------------------------------------------------------------------
+
+Seven systems were evaluated on MultiDoc2Dial across four domains
+(dmv, ssa, studentaid, va) using a fixed 500-example dev subset
+(125/domain, seed=42) plus the full 4,427-example validation split
+for the five original pipelines.
+
+System progression (dev-500, F1%):
+
+  LLM-only (no context)              16.3%   — parametric memory baseline
+  RAG BM25                           24.5%   — sparse retrieval
+  RAG Dense (bge-small-en-v1.5)      25.7%   — dense retrieval
+  RAG Hybrid (BM25 + Dense, RRF)     26.1%   — hybrid retrieval
+  RAG Hybrid + Query Rewrite         28.0%*  — conversational decontextualisation
+  RAG Hybrid + Rewrite + Rerank      28.2%   — cross-encoder reranker (top-50→5)
+  RAG Hybrid + Rewrite (agent v2)    27.8%   — generation prompt ablation
+  Oracle (gold sections given)       36.1%   — generation ceiling
+
+  * p=0.017 vs Hybrid; all other pairwise improvements are not significant.
+
+R@5 progression:
+  BM25: 39.1%  →  Dense: 38.4%  →  Hybrid: 43.2%
+  →  Hybrid+Rewrite: 61.2%  →  Hybrid+Rewrite+Rerank: 67.4%
+
+The rewriter is the largest single gain (+18 pp R@5 and +1.94 pp F1).
+The reranker improves R@5 by a further +6.2 pp but does not translate
+to F1, confirming that the bottleneck from this point is generation
+quality, not retrieval precision.
+
+Abstention: RAG Dense achieves the highest unanswerable recall (83.9%)
+but with the highest false-abstention rate (22.1%). Hybrid+Rewrite
+gives the best calibration (35.5% recall, 7.0% false abstentions).
+The agent-style prompt v2 halves false abstentions (→4.9%) with a
+moderate recall drop (→29.0%).
+
+------------------------------------------------------------------------
+8.2 WHAT WAS NOT DONE — SCOPE LIMITATIONS
+------------------------------------------------------------------------
+
+The following were explicitly out of scope for this section and
+should be addressed before drawing conclusions beyond the dev subset:
+
+  - Full-split evaluation with bootstrap CIs for Steps 7 experiments
+    (prompt v2 and reranker). Only the five original pipelines were
+    run on the full 4,427-example validation split.
+
+  - Automatic evaluation beyond token-level F1. Token F1 does not
+    penalise fluent but factually incorrect answers, does not reward
+    paraphrase, and does not capture response style.
+
+  - Fine-tuning or instruction-tuning on MultiDoc2Dial training data.
+
+  - Knowledge graph or structured-evidence approaches (planned for a
+    later section).
+
+------------------------------------------------------------------------
+8.3 REMARK — RECOMMENDED NEXT STEPS
+------------------------------------------------------------------------
+
+Two concrete extensions are recommended before moving to the next
+research section:
+
+  1. Full validation split for Steps 7 pipelines
+     Run oracle_context_v2, rag_rewrite_baseline_v2, rag_rewrite_rerank,
+     and rag_rewrite_rerank_v2 on all 4,427 validation examples with
+     bootstrap 95% CIs, exactly as was done for the five original
+     pipelines in Step 5. This will confirm whether the dev-500 p-values
+     hold at scale or whether the small effect sizes disappear.
+
+  2. LLM-based evaluation judge (open-weight model)
+     Replace or supplement token F1 with an LLM judge that scores
+     each (question, context, reference_answer, model_answer) tuple on
+     correctness and faithfulness. Candidates for the judge model:
+
+       - Qwen2.5-14B-Instruct: strong multilingual instruction-following,
+         runs on a single 24 GB GPU via llama.cpp / vLLM int4, good
+         calibration on factual tasks.
+       - Llama 3.1 8B Instruct: smaller, faster, widely validated as an
+         evaluation judge in recent work; fits on 16 GB GPU in int4.
+
+     The judge should be run locally (not via the Azure OpenAI endpoint)
+     to keep evaluation costs zero and to avoid mixing the judge with the
+     system under evaluation. A binary correct/incorrect label plus a
+     short rationale per example is sufficient; a 0–3 graded scale is
+     an option if finer discrimination is needed.
+
+     Implementation sketch:
+       src/evaluation/llm_judge.py  — JudgeClient wrapping llama.cpp
+                                      server or vLLM inference endpoint
+       experiments/run_judge.py     — applies judge to any JSONL result
+                                      file, appends judge_score field
+       experiments/evaluate_with_judge.py — aggregates judge scores
+                                            alongside F1 in diagnostics
+
+     The judge result files should be kept separate from the raw JSONL
+     outputs so that F1-only evaluation remains reproducible without
+     requiring the judge to be available.
+
