@@ -53,6 +53,8 @@ DISPLAY_NAMES = {
     "rag_dense_baseline": "RAG Dense",
     "rag_hybrid_baseline": "RAG Hybrid",
     "rag_rewrite_baseline": "RAG Hybrid+Rewrite",
+    # dev_500 variants
+    "rag_bm25_baseline": "RAG BM25",
 }
 
 
@@ -135,7 +137,7 @@ def evaluate_file(
     skipped = 0
 
     for rec in records:
-        if rec.get("status") not in ("success", "abstained") or rec.get("model_answer") is None:
+        if rec.get("status") not in ("success", "abstained", "cached") or rec.get("model_answer") is None:
             skipped += 1
             continue
         answer = rec["model_answer"]
