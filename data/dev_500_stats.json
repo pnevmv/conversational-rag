@@ -1,0 +1,13 @@
+{
+  "total": 500,
+  "per_domain": {
+    "ssa": 125,
+    "dmv": 125,
+    "studentaid": 125,
+    "va": 125
+  },
+  "unanswerable": 31,
+  "doc_switch": 94,
+  "seed": 42,
+  "per_domain_target": 125
+}
