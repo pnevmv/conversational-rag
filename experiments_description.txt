@@ -722,3 +722,113 @@ Key findings (full split)
    whether a better reader model or answer-extraction approach can
    close this gap.
 
+
+========================================================================
+STEP 6 — DEV-500 SUBSET, PARALLEL PIPELINE, AND DIAGNOSTIC EVALUATION
+========================================================================
+
+Date: 2026-09-04
+
+Infrastructure changes
+-----------------------
+Fixed evaluation subset (data/dev_500_ids.json)
+  500 examples, 125 per domain (dmv/ssa/studentaid/va), seed=42.
+  31 unanswerable, 94 doc-switch turns.
+  All dev experiments use this file. Full split reserved for the
+  final Step 4 table only.
+
+Parallel LLM runner (src/llm/parallel.py, src/llm/cache.py)
+  Thread pool (12 workers used here), retry/backoff on rate-limit
+  errors, prompt-hash disk cache under experiments/cache/.
+  First run: 17.1 min for all 6 pipelines on 500 examples.
+  Subsequent runs: seconds (cache hit-rate reaches 100%).
+
+Oracle-context baseline (experiments/oracle_context.py)
+  LLM receives the gold grounding section(s) directly — no retrieval.
+  Identical prompt and post-processing as RAG pipelines.
+  F1 of this experiment is the generation ceiling.
+
+Abstention detection (src/evaluation/metrics.py: is_abstention())
+  Single shared function: checks for "no relevant information" in the
+  response (case-insensitive). Replaces the per-script exact-match
+  check and catches minor phrasing variations.
+
+Diagnostic evaluator (experiments/evaluate_diagnostics.py)
+  Per-experiment: F1 overall, F1 by retrieval hit/miss, Recall@5,
+  abstain recall (unanswerable subset), false-abstention rate
+  (answerable subset), abstain precision. All means have 95%
+  bootstrap CIs (1,000 resamples, seed=42).
+  Also runs a paired bootstrap test between Hybrid+Rewrite and Hybrid.
+
+Dev-500 diagnostic results (2026-09-04)
+-----------------------------------------
+Subset: 500 examples, 31 unanswerable, 94 doc-switch.
+n values below reflect examples that returned a non-error status.
+
+  Experiment          n    F1%   [95% CI]
+  LLM-only           500  16.3  [15.0–17.6]
+  Oracle             500  36.1  [34.0–38.4]   ← generation ceiling
+  RAG BM25           499  24.5  [22.4–26.4]
+  RAG Dense          498  25.7  [23.5–28.0]
+  RAG Hybrid         500  26.1  [24.1–28.1]
+  RAG Hybrid+Rewrite 500  28.0  [26.2–30.0]
+
+F1 by retrieval hit (gold section in top-5) vs miss
+  Experiment          F1-hit%  [CI]          (n)   F1-miss%  [CI]        (n)
+  RAG BM25            36.0    [33.3–38.6]   (193)  14.2     [12.8–15.8] (275)
+  RAG Dense           35.1    [32.2–37.8]   (189)  12.8     [11.3–14.4] (278)
+  RAG Hybrid          35.4    [32.8–37.9]   (214)  13.9     [12.3–15.6] (255)
+  RAG Hybrid+Rewrite  33.3    [30.9–35.7]   (286)  18.3     [16.3–20.4] (183)
+  Oracle              36.7    [34.8–38.7]   (469)  —        (always hit)
+
+Retrieval quality
+  Experiment          R@5%   [95% CI]
+  RAG BM25            39.1  [34.7–42.9]
+  RAG Dense           38.4  [34.5–42.6]
+  RAG Hybrid          43.2  [39.0–47.6]
+  RAG Hybrid+Rewrite  61.2  [56.8–65.2]
+  Oracle             100.0  [100.0–100.0]
+
+Abstention metrics (31 unanswerable examples in dev-500)
+  Experiment          Abstain Rec%  [CI]      False Abstain%  Abstain Prec%
+  LLM-only            19.4  [6.5–35.5]        7.7            14.3
+  Oracle              25.8  [9.7–41.9]         4.1            29.6
+  RAG BM25            41.9  [25.8–58.1]       15.4            15.3
+  RAG Dense           83.9  [71.0–93.5]       22.1            20.2
+  RAG Hybrid          61.3  [41.9–77.4]       16.0            20.2
+  RAG Hybrid+Rewrite  35.5  [19.4–51.6]        7.0            25.0
+
+Paired bootstrap test — Hybrid+Rewrite vs Hybrid (Token F1, n=500)
+  Mean difference: +1.94 pp   95% CI [0.07–3.48]   p=0.017 (significant)
+
+Key findings
+-------------
+1. Generation ceiling is 36.1% F1 (oracle). Best RAG system (Hybrid+
+   Rewrite) reaches 28.0%, leaving an 8 pp gap. This confirms that
+   retrieval quality, not the model's ability to read retrieved text,
+   is the binding constraint at the current stage.
+
+2. The hit/miss gap is ~18–23 pp across all RAG systems. When the gold
+   section is in the top-5, F1 is 33–37%; when it is not, F1 drops to
+   12–19%. Oracle per-hit F1 is 36.7%, meaning all RAG systems are
+   close to the generation ceiling on the examples they retrieve
+   correctly. The bottleneck is coverage (how many examples reach the
+   hit state), not per-hit generation quality.
+
+3. Rewrite increases hit coverage (286 vs 193–214 for other systems)
+   but its per-hit F1 (33.3%) is slightly below BM25/Hybrid (35–36%).
+   The rewriter gains more hits than it trades away in per-hit quality,
+   so overall F1 improves — but the quality-per-hit degradation is a
+   sign that longer, rewritten contexts sometimes dilute the answer.
+
+4. Abstain precision is highest for the Oracle (29.6%) and Rewrite
+   (25.0%). Dense has excellent abstain recall (83.9%) but a false-
+   abstention rate of 22.1% — it fires on too many answerable turns.
+   Rewrite is best-calibrated: 35.5% recall, 7.0% false abstentions.
+   Improving abstain recall without increasing false abstentions is the
+   outstanding calibration problem.
+
+5. The Hybrid+Rewrite vs Hybrid F1 improvement (+1.94 pp) is
+   statistically significant at p=0.017, confirming the dev-500
+   numbers are reliable enough to distinguish system-level changes.
+
