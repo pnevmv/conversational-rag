@@ -1,0 +1,108 @@
+%!TEX root = ../main.tex
+
+\addtocontents{toc}{\protect\vskip1em}
+\chapter*{Conclusions}\label{ch:conclusions}
+\markboth{Conclusions}{}
+\addcontentsline{toc}{chapter}{Conclusions}
+
+
+% ===========================================================================
+\section*{Summary of Findings}
+
+This thesis presented a progressive empirical investigation of \gls{rag} for
+document-grounded \gls{cqa} on the \gls{mdd} benchmark. Five \gls{rag} pipeline
+configurations were evaluated on the full 4{,}427-example validation split and
+on a fixed 500-example diagnostic subset, with a further two ablations on the
+diagnostic subset. The key findings are as follows.
+
+\textbf{\gls{rag} substantially improves over the \gls{llm}-only baseline.} The
+\gls{llm}-only system achieves $\fone = 15.9\%$ on the full validation split.
+All \gls{rag} configurations outperform this substantially, with the best system
+(Hybrid+Rewrite) reaching $\fone = 26.8\%$, a gain of $+10.9$~pp. The performance
+ordering is consistent across both the full split and dev-500.
+
+\textbf{Query rewriting is the single most impactful intervention.} Adding
+conversational query rewriting to hybrid retrieval raises \ratk{5} from 44.7\%
+to 59.5\% on the full split ($+14.8$~pp) and improves \fone{} by $+2.0$~pp
+($p = 0.017$, paired bootstrap). The improvement is driven by the rewriter
+correctly anchoring retrieval to the target domain, raising domain-level
+\ratk{5} from 69.4\% to 92.5\%.
+
+\textbf{The oracle ceiling reveals a generation bottleneck.} The oracle
+experiment (gold context provided directly) achieves $\fone = 36.1\%$, establishing
+the generation ceiling for this model--prompt combination. The 8.1~pp gap between
+the best \gls{rag} system and the oracle corresponds partly to retrieval misses
+(31\% of dev-500 examples) and partly to the generation quality for retrieved
+examples (F1-hit $\approx$ 33.3\%). Closing this gap requires improvements to
+both generation quality (better prompts, larger models, or \gls{llm}-judge
+evaluation) and retrieval coverage.
+
+\textbf{Reranking improves retrieval but not generation.} The cross-encoder
+reranker raises \ratk{5} from 61.2\% to 67.4\% ($+6.2$~pp), recovering 30
+additional correct sections among the 500 dev examples. However, the
+corresponding \fone{} gain of $+0.16$~pp is not statistically significant
+($p = 0.414$). Once retrieval recall is sufficiently high, further improvements
+yield diminishing returns because the generation quality for retrieved examples
+is the binding constraint.
+
+\textbf{Agent-style prompting reduces false abstentions without a \fone{} gain.}
+The v2 prompt reduces the false-abstention rate from 7.0\% to 4.9\% on
+Hybrid+Rewrite and from 4.1\% to 1.9\% on the oracle system, while abstain
+precision improves. Token \fone{} is unchanged ($p > 0.3$ in all paired tests).
+Prompt engineering can improve calibration but is unlikely to drive large \fone{}
+gains within the current pipeline structure.
+
+
+% ===========================================================================
+\section*{Scope Limitations}
+
+All ablation experiments (oracle, v2 prompt, reranker) were conducted on the
+dev-500 diagnostic subset. Reported confidence intervals are correspondingly
+wider than those for the full split; differences below $\sim$1~pp should be
+interpreted with caution. The five base pipelines were evaluated on the full
+split, but the ablation configurations (Steps 7–8 in the experimental sequence)
+were not, due to the computational cost of re-running full-split experiments
+with parallel \gls{llm} generation ($\sim$8\,h per pipeline).
+
+Token \fone{} is the sole generation metric reported. As noted in
+Chapter~\ref{ch:rag}, reference answers are verbatim extracts from the source
+document, while the model produces paraphrases; semantically correct paraphrases
+receive low token \fone{}. An \gls{llm}-based judge evaluating semantic
+correctness rather than token overlap would provide a more reliable signal,
+particularly for the v2 prompt ablation.
+
+
+% ===========================================================================
+\section*{Future Directions}
+
+\textbf{Full-split ablations.} The most immediate next step is to run the
+Hybrid+Rewrite+Rerank, Oracle (v2), and Hybrid+Rewrite (v2) pipelines on the
+full validation split to validate the dev-500 findings at scale.
+
+\textbf{LLM-judge evaluation.} Replacing or complementing token \fone{} with
+a local \gls{llm} judge (e.g.\ Qwen2.5-14B-Instruct or Llama~3.1~8B) would
+close the semantic gap between generation style and reference format. The
+evaluation protocol would score each (question, context, prediction, reference)
+tuple on a three-point scale (correct / partially correct / incorrect) and
+report agreement with human judgements as a calibration measure.
+
+\textbf{Knowledge graph augmentation.} The \gls{mdd} corpus is amenable to
+\gls{kg} construction: entities such as benefit programmes, eligibility
+conditions, deadlines, and fees can be extracted and linked across documents.
+A hybrid pipeline that combines flat-document retrieval with graph-query
+traversal (\emph{Graph~\gls{rag}}) could surface multi-hop relational evidence
+that dense retrieval over raw text is likely to miss, particularly for questions
+that span multiple documents or require chained inference over extracted facts.
+
+\textbf{Agent architectures.} Beyond pipeline \gls{rag}, an agent-based
+architecture could orchestrate multiple specialised tools --- a retrieval tool,
+a graph-query tool, and a code-execution tool for numerical reasoning --- using
+the \gls{llm} as a planner. This would address the limitation of fixed-$K$
+context windows for multi-hop questions and allow the system to refine its
+retrieval strategy based on intermediate findings.
+
+\textbf{Evaluation of unanswerable calibration.} With only 31 unanswerable
+examples in dev-500 (and 226 in the full split), abstention metrics are
+noisy. Augmenting the dataset with additional unanswerable examples, or
+evaluating on a purpose-built unanswerable-question benchmark, would enable
+more reliable conclusions about abstention behaviour across pipeline variants.

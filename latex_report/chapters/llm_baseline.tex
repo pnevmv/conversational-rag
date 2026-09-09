@@ -1,0 +1,129 @@
+%!TEX root = ../main.tex
+
+\chapter{LLM-Only Baseline}\label{ch:llm_baseline}
+
+Before introducing retrieval, we establish a baseline that relies solely on the
+\gls{llm}'s parametric knowledge to answer questions. This baseline quantifies the
+contribution of the training-time knowledge of the model and provides a lower bound
+for the \gls{rag} experiments that follow.
+
+
+% ===========================================================================
+\section{System Design}
+
+\subsection{Language Model}
+
+All \gls{llm} calls in this thesis are routed through an Azure~OpenAI endpoint
+using the \texttt{gpt-5.4-nano} model series. The model receives each prompt as a
+single user turn and returns a text completion. Temperature is set to~$0$ to
+maximise reproducibility. The \gls{api} client is implemented in
+\texttt{src/llm/client.py} and is shared across all pipelines; no second inference
+client is introduced at any point.
+
+To avoid redundant \gls{api} calls during iterative development, all prompt-response
+pairs are cached on disk keyed by the SHA-256 hash of the prompt string, in
+\texttt{experiments/cache/}. Generation across large example sets is parallelised
+using a thread pool (\texttt{ThreadPoolExecutor}) with exponential back-off on
+rate-limit errors.
+
+\subsection{Prompt Design}
+
+The \gls{llm}-only prompt instructs the model to act as a government-services agent
+and to answer in one to two plain sentences. The exact abstention phrase is fixed
+so that the \texttt{is\_abstention()} evaluation function can detect it reliably.
+The prompt used for this baseline is:
+
+\begin{quote}
+\small\ttfamily
+You are a government services agent. Answer the customer's question in 1-2 plain
+sentences. No bullet points, no bold text, no preamble. If you don't know, reply
+exactly: ``Unfortunately, no relevant information is found.''
+
+Customer: \{question\}\\
+Agent:
+\end{quote}
+
+No retrieved context is provided. The model must answer from parametric knowledge
+alone, with the dialogue history available only implicitly through the question text
+(which may be decontextualised in later turns).
+
+
+% ===========================================================================
+\section{Results}
+
+\subsection{Initial 50-Example Evaluation}
+
+A preliminary evaluation on a balanced set of 50 examples (drawn before the dev-500
+subset was formalised) was used to validate the evaluation pipeline and the prompt
+design. Results are shown in Table~\ref{tab:llm:initial}.
+
+\begin{table}[ht]
+    \centering
+    \caption{LLM-only baseline on the initial 50-example set.}
+    \label{tab:llm:initial}
+    \begin{tabular}{lrr}
+        \toprule
+        Metric & Value \\
+        \midrule
+        Exact Match (EM)    & 0.0\% \\
+        Token \fone{}        & 14.2\% \\
+        \fone{} (answerable) & 15.0\% \\
+        \fone{} (unanswerable) & 1.1\% \\
+        Abstain rate         & 0.0\% \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+The model does not abstain on any question in the absence of a retrieval signal,
+meaning it always produces an answer even for questions that have no supporting
+document. The \fone{} on unanswerable examples (1.1\%) is near zero because the
+model generates plausible-sounding but unsupported responses that share little
+token overlap with the reference abstention phrase.
+
+\subsection{Dev-500 Evaluation}
+
+On the fixed 500-example dev subset, the \gls{llm}-only system achieves a token
+\fone{} of $16.3\%$ with a 95\% bootstrap confidence interval of
+$[15.0, 17.6]$ (Table~\ref{tab:llm:dev500}). Abstain recall is low (19.4\%),
+confirming that without a retrieval signal the model rarely produces the expected
+abstention phrase. The false-abstention rate of 7.7\% indicates that even this
+low recall comes at the cost of some incorrect abstentions on answerable questions.
+
+\begin{table}[ht]
+    \centering
+    \caption{LLM-only baseline on the dev-500 subset ($n = 500$, 95\% bootstrap CI).}
+    \label{tab:llm:dev500}
+    \begin{tabular}{lr}
+        \toprule
+        Metric & Value \\
+        \midrule
+        Token \fone{} [CI]   & 16.3\% $[15.0, 17.6]$ \\
+        Abstain recall [CI]  & 19.4\% $[6.5, 35.5]$ \\
+        False abstention     & 7.7\% \\
+        Abstain precision    & 14.3\% \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+
+% ===========================================================================
+\section{Analysis}
+
+The 16.3\% \fone{} establishes that the model possesses some relevant knowledge
+about government services from its pre-training data, but is far from reliable for
+this task. The low abstain recall (19.4\%) confirms that without a retrieval signal
+providing an empty or irrelevant context, the model will almost always attempt an
+answer. This is consistent with findings from the broader \gls{rag} literature:
+parametric models tend to confabulate rather than abstain when queried outside
+their confident knowledge range.
+
+The relatively high confidence-interval width for abstain recall (CI width 29.0~pp)
+reflects the small number of unanswerable examples in the dev-500 subset ($n = 31$),
+which makes abstention metrics noisy. For this reason, paired bootstrap tests on
+abstention metrics are treated as illustrative rather than definitive.
+
+This baseline motivates the \gls{rag} pipeline developed in the next chapter: the
+retrieval step is expected both to improve answer quality on answerable questions
+(by providing relevant context) and to enable more reliable abstention (by providing
+an empty or irrelevant context on unanswerable inputs, which the generation prompt
+can then treat as a signal to abstain).

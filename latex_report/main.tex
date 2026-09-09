@@ -1,0 +1,81 @@
+%!TEX TS-program = lualatex
+%!TEX encoding = UTF-8 Unicode
+
+\documentclass[%
+    %language=italian,
+]{unipd-thesis-modern}
+
+
+% additional packages
+\usepackage{booktabs}
+\usepackage{siunitx}
+\usepackage{listings}
+\usepackage{microtype}
+
+%% (optional) draft watermark:
+%\usepackage[color={[gray]{0.85}}]{draftwatermark}
+
+% ToC customization
+\setlength{\cftbeforechapskip}{7pt}
+\setcounter{tocdepth}{3}
+
+
+% titles
+\title{Grounded Conversational Question Answering:\\
+A Systematic Evaluation of Retrieval-Augmented\\
+and Knowledge-Graph-Based Approaches}
+\thesisHeader{Department of Information Engineering\\Master's Thesis in Computer Engineering}
+\academicYear{2025/2026}
+
+% student
+\author{Danil Smirnov}
+\studentId{2137849}
+
+% supervisor
+\advisor{Prof. Gianmaria Silvello}{University of Padova}
+
+% second cover
+\secondpage{\input{docs/secondcover}}
+
+% dedication
+\dedication{\textit{To my family}}
+
+% custom symbols
+\input{custom-symbols}
+
+% bibliography
+\addbibresource{refs.bib}
+
+\begin{document}
+    % cover, ToC, abstract, acknowledgements, etc.
+    \frontmatter
+
+    % main content
+    \mainmatter
+
+    % introduction
+    \input{chapters/introduction}
+    \glsresetall
+
+
+    % Part I — Foundations
+    \part{\label{prt:foundations}Foundations}
+
+    \input{chapters/background}
+    \input{chapters/dataset}
+
+
+    % Part II — Experiments
+    \part{\label{prt:experiments}Experiments}
+
+    \input{chapters/llm_baseline}
+    \input{chapters/rag}
+
+
+    % conclusions
+    \bookmarksetup{startatroot}
+    \input{chapters/conclusions}
+
+    % glossary, bibliography, acknowledgements
+    \backmatter
+\end{document}

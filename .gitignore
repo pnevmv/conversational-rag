@@ -31,6 +31,34 @@ logs/
 
 # Reference books (large binaries, copyrighted)
 *.pdf
+# Allow template and asset PDFs tracked in the repo
+!latex_report/template/*.pdf
+!latex_report/img/*.pdf
+
+# LaTeX build artifacts
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.fdb_latexmk
+*.fls
+*.run.xml
+*.synctex.gz
+*.toc
+*.lof
+*.lot
+*.acn
+*.acr
+*.alg
+*.glg
+*.gls
+*.glo
+*.ist
+*.xdy
+pdfa.xmpi
+
+# LLM / reranker disk caches
+experiments/cache/
 
 # OS specific files
 .DS_Store

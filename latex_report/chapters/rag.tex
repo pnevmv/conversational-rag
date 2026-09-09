@@ -1,0 +1,404 @@
+%!TEX root = ../main.tex
+
+\chapter{Retrieval-Augmented Generation}\label{ch:rag}
+
+This chapter describes the \gls{rag} pipeline developed in this work and presents
+the experimental results. Section~\ref{sec:rag:arch} describes the architecture
+and indexing strategy. Sections~\ref{sec:rag:retrieval}--\ref{sec:rag:reranker}
+describe the retrieval and reranking components. Section~\ref{sec:rag:generation}
+covers the generation prompt design. Sections~\ref{sec:rag:fullsplit}
+and~\ref{sec:rag:dev500} present results on the full validation split and the
+dev-500 subset respectively. Section~\ref{sec:rag:analysis} analyses the findings.
+
+
+% ===========================================================================
+\section{Pipeline Architecture}\label{sec:rag:arch}
+
+The \gls{rag} pipeline consists of three sequential stages:
+
+\begin{enumerate}
+    \item \textbf{Query preparation.} The raw question is optionally rewritten
+          into a self-contained form using the dialogue history
+          (Section~\ref{sec:rag:rewrite}).
+    \item \textbf{Retrieval.} The (rewritten) query is used to retrieve the
+          top-$K$ document sections from the indexed corpus
+          (Section~\ref{sec:rag:retrieval}). Optionally, the top-$K'$ retrieved
+          candidates are reranked by a cross-encoder and truncated to the top-$K$
+          (Section~\ref{sec:rag:reranker}).
+    \item \textbf{Generation.} The retrieved sections are formatted as a context
+          block and appended to the generation prompt together with the original
+          question; the \gls{llm} produces the final answer
+          (Section~\ref{sec:rag:generation}).
+\end{enumerate}
+
+\subsection{Section-Level Indexing}
+
+Documents are indexed at the \emph{section level}: each section is defined as a
+heading together with all content spans that follow it until the next heading of
+equal or higher level. The section-level granularity was chosen to balance
+retrieval specificity (coarser than paragraph-level) with context completeness
+(finer than document-level).
+
+Each section is stored as a dictionary with fields \texttt{doc\_id},
+\texttt{id\_sp} (the span identifier used in grounding annotations),
+\texttt{title}, \texttt{section\_title}, \texttt{text}, and
+\texttt{span\_ids} (the set of all span IDs covered by the section). The
+\texttt{span\_ids} field enables Recall@$K$ to be computed correctly even when a
+section covers multiple annotated spans.
+
+The full corpus of 4{,}114 sections is indexed at the start of each experiment;
+the BM25 index is built in memory using \texttt{rank\_bm25}, the dense index is
+embedded using \texttt{BAAI/bge-small-en-v1.5} and the result matrix is cached
+on disk so that subsequent runs skip re-encoding.
+
+
+% ===========================================================================
+\section{Retrieval Strategies}\label{sec:rag:retrieval}
+
+Four retrieval strategies are evaluated. All strategies return the top-$K = 5$
+sections for passage to the generator, with the exception of the reranker pipeline
+which first retrieves $K' = 50$ candidates.
+
+\subsection{BM25}
+
+The BM25 retriever (\texttt{BM25Okapi}, $k_1 = 1.2$, $b = 0.75$) is built over
+the concatenation of section heading and body text, tokenised by whitespace after
+lowercasing. All sections with a non-zero BM25 score are ranked; sections with
+zero scores are excluded (they contain no query term matches). This zero-score
+property makes BM25 a potential abstention signal for certain unanswerable
+questions~\cite{robertson2009bm25}.
+
+\subsection{Dense Retrieval}
+
+The dense retriever uses \texttt{BAAI/bge-small-en-v1.5} to produce 384-dimensional
+embeddings for all sections and for each query. Retrieval is by cosine similarity.
+The model was pre-trained on a large collection of sentence pairs and fine-tuned for
+general-purpose retrieval, making it competitive with larger models at lower
+computational cost.
+
+\subsection{Hybrid Retrieval with RRF}
+
+The hybrid retriever fuses the ranked lists of BM25 and dense retrieval using
+\gls{rrf} with $k_{\mathrm{rrf}} = 60$. It returns the top-$K$ sections
+by fused score. The RRF formula down-weights sections that rank poorly in either
+list while rewarding those that rank highly in both, producing a fused ranking
+that is more robust than either individual retriever.
+
+\subsection{Query Rewriting for Conversational Input}\label{sec:rag:rewrite}
+
+Follow-up questions in a multi-turn dialogue are frequently under-specified (e.g.\
+``Can I appeal that?'' after a prior turn about a traffic violation decision).
+Submitting such questions as-is to a retrieval system typically yields poor results
+because the query text contains little discriminating content.
+
+To address this, we implement a \emph{query rewriter}: an additional \gls{llm} call
+that reformulates the current question into a self-contained query given the dialogue
+history. The rewrite prompt uses a sliding window of the last six agent--user turn
+pairs and instructs the model to produce a single, complete question that includes
+all necessary context. An example rewrite:
+
+\begin{quote}
+\small
+\textit{History:} User: ``I got a traffic violation.'' Agent: ``I can help with
+that. What kind of violation was it?'' User: ``It was a speeding ticket.''
+
+\textit{Original question:} ``Can I appeal that?''
+
+\textit{Rewritten:} ``How can I appeal a speeding ticket traffic violation?''
+\end{quote}
+
+Only questions in turns with a non-empty dialogue history are rewritten (434 of 500
+dev-500 examples); first-turn questions that are already self-contained are passed
+to retrieval unchanged.
+
+
+% ===========================================================================
+\section{Cross-Encoder Reranking}\label{sec:rag:reranker}
+
+As a second-stage refinement, we evaluate \texttt{BAAI/bge-reranker-base}, a
+cross-encoder that scores (query, section) pairs by computing cross-attention
+between query tokens and section tokens. This produces more accurate relevance
+judgements than bi-encoder cosine similarity at the cost of $O(K')$ forward passes.
+
+The reranking pipeline:
+\begin{enumerate}
+    \item Retrieve the top $K' = 50$ candidates using the Hybrid+Rewrite retriever.
+    \item Score all 50 (rewritten query, section text) pairs with the cross-encoder.
+    \item Select the top $K = 5$ sections by cross-encoder score.
+\end{enumerate}
+
+Cross-encoder scores for each (query, text) pair are cached on disk
+(keyed by SHA-256 of the concatenation), so subsequent runs with the same rewritten
+queries are fully cached.
+
+\textbf{Truncation.} The cross-encoder truncates inputs exceeding 512 tokens.
+In the first run on dev-500, 1{,}924 of 25{,}000 (query, section) pairs exceeded
+this limit; on subsequent cached runs, truncation counts are not recomputed.
+
+
+% ===========================================================================
+\section{Generation Prompt}\label{sec:rag:generation}
+
+The default generation prompt (\emph{v1}) formats the top-$K$ retrieved sections
+as a numbered list of context blocks, each headed by document title and section
+heading, and instructs the model to answer in one to two plain sentences using only
+the provided context:
+
+\begin{quote}
+\small\ttfamily
+You are a government services agent. Answer the customer's question in 1-2 plain
+sentences using only the context below. No bullet points, no bold text, no preamble.
+If the context does not contain relevant information, reply exactly:
+``Unfortunately, no relevant information is found.''
+
+Examples:\\
+Customer: Do I need insurance to register my vehicle?\\
+Agent: Yes, you must have liability insurance to register a vehicle in New York.\\
+...
+
+Context:\\
+\{context\}
+
+Customer: \{question\}\\
+Agent:
+\end{quote}
+
+\subsection{Agent-Style Prompt (v2)}\label{sec:rag:prompt}
+
+A second prompt variant (\emph{v2}) was designed to reinforce three stylistic
+properties that the v1 prompt only weakly enforces: explicit second-person address,
+prohibition of markdown formatting, and prohibition of preamble phrases such as
+``Based on the context\ldots''. Three few-shot examples were drawn from the
+MultiDoc2Dial training split (seed~42, one from each of the DMV, SSA, and VA
+domains) to demonstrate the target style. The abstention phrase is unchanged.
+
+The v2 prompt preamble reads:
+
+\begin{quote}
+\small\ttfamily
+You are a government services agent. Answer the customer's question in 1--2 short,
+plain sentences using only the context below. Address the customer directly using
+second person (you/your). Do not use bullet points, bold text, or numbered lists.
+Do not begin your reply with phrases like ``Based on the context'' or ``According
+to the document''.
+\end{quote}
+
+The paired bootstrap test between v2 and v1 is reported in
+Section~\ref{sec:rag:dev500}.
+
+
+% ===========================================================================
+\section{Oracle Upper Bound}\label{sec:rag:oracle}
+
+To disentangle retrieval failures from generation failures, we establish an
+\emph{oracle} baseline in which the model is given the gold grounding sections
+directly, bypassing retrieval entirely. Recall@5 is set to 1.0 for all answerable
+examples by construction; unanswerable examples receive an empty context.
+
+The oracle \fone{} establishes the \emph{generation ceiling}: the highest \fone{}
+achievable by any retrieval system on this data and model combination, assuming
+perfect retrieval. Any gap between the best \gls{rag} system and the oracle
+represents an upper bound on the gain achievable through retrieval improvements.
+
+
+% ===========================================================================
+\section{Results: Full Validation Split}\label{sec:rag:fullsplit}
+
+Table~\ref{tab:rag:fullsplit} reports generation quality on the full MultiDoc2Dial
+validation split ($n = 4{,}427$) for the five original pipelines.
+Bootstrap 95\% confidence intervals use 1{,}000 resamples with percentile method
+(seed~42).
+
+\begin{table}[ht]
+    \centering
+    \caption{Generation quality on the full validation split ($n = 4{,}427$).
+             95\% bootstrap CIs in brackets.}
+    \label{tab:rag:fullsplit}
+    \begin{tabular}{lrr}
+        \toprule
+        System & EM\% [CI] & \fone{}\% [CI] \\
+        \midrule
+        LLM-only           & 0.77 [0.54, 1.04] & 15.88 [15.54, 16.29] \\
+        RAG BM25           & 2.67 [2.19, 3.14] & 24.11 [23.46, 24.77] \\
+        RAG Dense          & 3.52 [2.98, 4.07] & 24.58 [23.89, 25.28] \\
+        RAG Hybrid         & 2.67 [2.22, 3.19] & 24.75 [24.09, 25.43] \\
+        RAG Hybrid+Rewrite & 1.90 [1.52, 2.31] & 26.78 [26.19, 27.46] \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Table~\ref{tab:rag:fullsplit_ret} reports retrieval quality. Domain Recall@5 measures
+the fraction of the top-5 sections drawn from the correct domain.
+
+\begin{table}[ht]
+    \centering
+    \caption{Retrieval quality on the full validation split.
+             95\% bootstrap CIs in brackets.}
+    \label{tab:rag:fullsplit_ret}
+    \begin{tabular}{lrrr}
+        \toprule
+        System & \ratk{1}\% [CI] & \ratk{5}\% [CI] & Domain \ratk{5}\% [CI] \\
+        \midrule
+        RAG BM25           & 21.03 [19.83, 22.18] & 40.61 [39.32, 42.01] & 65.95 [64.86, 67.04] \\
+        RAG Dense          & 21.51 [20.24, 22.74] & 40.96 [39.48, 42.50] & 70.46 [69.34, 71.65] \\
+        RAG Hybrid         & 23.85 [22.56, 25.07] & 44.70 [43.21, 46.19] & 69.39 [68.35, 70.43] \\
+        RAG Hybrid+Rewrite & 30.64 [29.35, 31.98] & 59.45 [58.04, 60.87] & 92.46 [91.85, 93.04] \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Table~\ref{tab:rag:docswitch} shows retrieval quality broken down by dialogue turn
+type (document-switch vs.\ same-document).
+
+\begin{table}[ht]
+    \centering
+    \caption{Recall@5 by turn type on the full validation split.}
+    \label{tab:rag:docswitch}
+    \begin{tabular}{lrr}
+        \toprule
+        System & Doc-switch \ratk{5}\% & Same-doc \ratk{5}\% \\
+        \midrule
+        RAG BM25           & 50.28 & 38.12 \\
+        RAG Dense          & 55.00 & 37.35 \\
+        RAG Hybrid         & 56.59 & 41.65 \\
+        RAG Hybrid+Rewrite & 52.71 & 61.18 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+
+% ===========================================================================
+\section{Results: Dev-500 Diagnostic Subset}\label{sec:rag:dev500}
+
+Table~\ref{tab:rag:dev500} reports the full diagnostic evaluation on dev-500,
+including the oracle ceiling and the v2 prompt and reranker ablations.
+All systems use $K = 5$ retrieved sections.
+
+\begin{table}[htbp]
+    \centering
+    \small
+    \caption{Diagnostic evaluation on dev-500 ($n = 500$, 95\% bootstrap CI).
+             AR = abstain recall, FA = false-abstention rate,
+             AP = abstain precision.}
+    \label{tab:rag:dev500}
+    \begin{tabular}{lrrrrrr}
+        \toprule
+        System & \fone{}\% [CI] & \ratk{5}\% & AR\% & FA\% & AP\% \\
+        \midrule
+        LLM-only           & 16.3 [15.0, 17.6] &  ---  & 19.4 &  7.7 & 14.3 \\
+        Oracle             & 36.1 [34.0, 38.4] & 100.0 & 25.8 &  4.1 & 29.6 \\
+        Oracle (v2 prompt) & 36.3 [34.4, 38.5] & 100.0 & 16.1 &  1.9 & 35.7 \\
+        \midrule
+        RAG BM25           & 24.5 [22.4, 26.4] &  39.1 & 41.9 & 15.4 & 15.3 \\
+        RAG Dense          & 25.7 [23.5, 28.0] &  38.4 & 83.9 & 22.1 & 20.2 \\
+        RAG Hybrid         & 26.1 [24.1, 28.1] &  43.2 & 61.3 & 16.0 & 20.2 \\
+        RAG Hybrid+Rewrite & 28.0 [26.2, 30.0] &  61.2 & 35.5 &  7.0 & 25.0 \\
+        \quad (v2 prompt)  & 27.8 [25.9, 29.8] &  61.2 & 29.0 &  4.9 & 28.1 \\
+        \midrule
+        Hybrid+Rewrite+Rerank           & 28.2 [26.3, 30.0] &  67.4 & 32.3 &  6.8 & 23.8 \\
+        \quad (v2 prompt)  & 28.0 [26.2, 29.9] &  67.4 & 25.8 &  5.1 & 25.0 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Paired Bootstrap Tests}
+
+Table~\ref{tab:rag:paired} reports paired bootstrap tests on token \fone{} between
+selected system pairs. The test statistic is the mean paired difference; the
+$p$-value is the fraction of bootstrap resamples in which the difference is
+$\leq 0$ (i.e.\ one-sided test: does system A outperform system B?).
+
+\begin{table}[ht]
+    \centering
+    \caption{Paired bootstrap tests on token \fone{} (dev-500, $n = 500$, $B = 1{,}000$).}
+    \label{tab:rag:paired}
+    \begin{tabular}{llrrr}
+        \toprule
+        System A & System B & $\Delta$\fone{}\% & 95\% CI & $p$-value \\
+        \midrule
+        Hybrid+Rewrite      & Hybrid            & $+1.94$ & $[0.07, 3.48]$  & 0.017$^*$ \\
+        Oracle (v2)         & Oracle            & $+0.25$ & $[-0.87, 1.32]$ & 0.319 \\
+        Hybrid+Rewrite (v2) & Hybrid+Rewrite    & $-0.21$ & $[-1.68, 1.35]$ & 0.607 \\
+        Rerank              & Hybrid+Rewrite    & $+0.16$ & $[-1.27, 1.60]$ & 0.414 \\
+        Rerank (v2)         & Hybrid+Rewrite (v2) & $+0.22$ & $[-1.13, 1.56]$ & 0.394 \\
+        \bottomrule
+        \multicolumn{5}{l}{\small $^*$ statistically significant at $\alpha = 0.05$}
+    \end{tabular}
+\end{table}
+
+
+% ===========================================================================
+\section{Analysis}\label{sec:rag:analysis}
+
+\subsection{The Retrieval--Generation Gap}
+
+The oracle ceiling of $\fone = 36.1\%$ on dev-500 reveals that even with perfect
+retrieval the model produces answers that overlap only about one-third of the
+reference tokens. This reflects the nature of the task: reference answers in
+\gls{mdd} are verbatim extracts from the source document, while the model is
+instructed to produce concise, agent-style paraphrases. Token \fone{} undervalues
+semantically correct paraphrases, so the true generation quality may be higher than
+it appears.
+
+The best \gls{rag} system (Hybrid+Rewrite) achieves $\fone = 28.0\%$, an 8.1~pp
+gap below the oracle ceiling. On dev-500, $286$ of $469$ answerable examples have
+the gold section in the top-5 (retrieval hit), and F1-hit for those examples is
+33.3\%. For the $183$ examples where retrieval misses ($\fone = 18.3\%$), the model
+is limited to whatever partial context it retrieves. This \emph{hit--miss gap}
+of approximately 15~pp is consistent across all retrieval strategies
+and indicates that improving retrieval coverage is the primary lever for improving
+generation quality.
+
+\subsection{Effect of Query Rewriting}
+
+Query rewriting produces the largest single improvement across all evaluated
+interventions: $+1.94$~pp \fone{} ($p = 0.017$) on dev-500 and $+2.04$~pp on the
+full validation split. More strikingly, \ratk{5} rises from 43.2\% (Hybrid, no
+rewrite) to 61.2\% ($+18$~pp), and domain recall rises to 92.5\% --- the rewriter
+effectively anchors retrieval to the correct domain in almost all cases.
+
+The improvement is concentrated on same-document follow-up questions, where the
+decontextualised rewrite provides the exact vocabulary of the target document
+section. Document-switch turns, by contrast, benefit less from rewriting because
+the rewriter encodes the vocabulary of the \emph{previous} document, pulling
+retrieval toward it and away from the new one. Hybrid retrieval (no rewrite)
+achieves better doc-switch \ratk{5} (56.6\%) than Hybrid+Rewrite (52.7\%).
+
+\subsection{Effect of Cross-Encoder Reranking}
+
+The cross-encoder reranker improves \ratk{5} from 61.2\% to 67.4\% ($+6.2$~pp) and
+increases the retrieval-hit count from 286 to 316 examples ($+30$). Despite this,
+\fone{} improves by only $+0.16$~pp ($p = 0.414$, not significant). The explanation
+lies in the generation ceiling: F1-hit is only $\sim$33\%, so adding 30 more
+``hit'' examples at this quality level shifts the aggregate \fone{} by less than 0.2~pp.
+The bottleneck has shifted from retrieval precision to generation quality.
+
+\subsection{Effect of the Agent-Style Prompt}
+
+The v2 prompt produces no statistically significant change in \fone{} on either the
+oracle or the Hybrid+Rewrite system. However, it consistently reduces the
+false-abstention rate: from 4.1\% to 1.9\% on Oracle, and from 7.0\% to 4.9\% on
+Hybrid+Rewrite. The model becomes more conservative --- it abstains less frequently
+overall but more accurately. The tradeoff is a reduction in abstain recall (Oracle:
+25.8\% $\to$ 16.1\%; Hybrid+Rewrite: 35.5\% $\to$ 29.0\%).
+
+\subsection{Abstention Calibration}
+
+Among the five original retrieval strategies, Dense achieves the highest abstain
+recall (83.9\%) but at the cost of a 22.1\% false-abstention rate --- it abstains
+on far too many answerable questions. This is because the dense retriever assigns
+high similarity scores to semantically plausible (but incorrect) sections for
+unanswerable questions, which in turn produces a context that the model perceives
+as relevant, leading to an answer rather than abstention. Paradoxically,
+unanswerable questions sometimes generate a stronger retrieval signal than
+answerable ones when using dense retrieval.
+
+Hybrid+Rewrite achieves the best calibration among the five systems: 35.5\% abstain
+recall, 7.0\% false abstentions, and 25.0\% abstain precision. The v2 prompt shifts
+this to 29.0\% / 4.9\% / 28.1\%, trading some recall for a lower false-abstention
+rate and higher precision.
+
+Improving abstain recall without increasing false abstentions remains an open
+problem for this pipeline. Approaches such as a retrieval sufficiency check (an
+additional \gls{llm} call that judges whether the retrieved context answers the
+question) or training a dedicated classification head are planned for future work.

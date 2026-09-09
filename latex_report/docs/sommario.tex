@@ -1,0 +1,31 @@
+%!TEX root = ../main.tex
+
+\begin{abstract}[it]
+
+Il question answering conversazionale su collezioni di documenti pone sfide
+specifiche rispetto al question answering su dominio aperto: le risposte devono
+essere radicate in un corpus definito, le domande sono spesso decontestualizzate
+nel corso di più turni di dialogo, e alcune domande non trovano risposta nei
+documenti disponibili.
+
+Questa tesi presenta una valutazione empirica sistematica di approcci a questo
+problema, utilizzando \gls{mdd} come benchmark principale --- un dataset di
+dialoghi orientati agli obiettivi, fondati su documenti di servizi governativi.
+Partendo da un sistema basato esclusivamente su \gls{llm} (\fone{} = 15,9\% sul
+validation set completo), viene sviluppata progressivamente una pipeline completa
+di \gls{rag} con recupero ibrido sparso--denso e riscrittura conversazionale delle
+query, raggiungendo un \fone{} di 26,8\%.
+
+Un esperimento con contesto oracle (sezioni di riferimento fornite direttamente al
+modello) stabilisce un tetto di generazione del 36,1\% di \fone{}, evidenziando
+che la qualità della generazione, e non solo il recupero, è un fattore limitante.
+Un reranker cross-encoder migliora la precisione del recupero (\ratk{5}: da 61,2\%
+a 67,4\%) senza produrre un guadagno statisticamente significativo in \fone{},
+confermando che il collo di bottiglia si è spostato verso la qualità della
+generazione.
+
+La tesi si conclude con una descrizione delle attività future pianificate:
+costruzione e interrogazione di grafi della conoscenza, architetture Graph-\gls{rag}
+e approcci basati su agenti.
+
+\end{abstract}

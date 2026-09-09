@@ -1,0 +1,38 @@
+%!TEX root = ../main.tex
+
+\begin{abstract}
+
+Conversational question answering over document collections poses several challenges
+that distinguish it from standard open-domain \gls{qa}: answers must be grounded in a
+specific corpus, questions are often decontextualised across multiple dialogue turns,
+and some questions lack supporting evidence and must be identified as unanswerable.
+This thesis presents a systematic empirical evaluation of approaches to this
+problem, using \gls{mdd} as the primary benchmark --- a dataset of goal-oriented
+dialogues grounded in government-service documents spanning four domains.
+
+We begin with a simple \gls{llm}-only baseline and progressively develop a full
+\gls{rag} pipeline, evaluating each design choice in terms of generation quality,
+retrieval precision, and abstention calibration.
+Starting from a parametric-memory baseline of 15.9\% token \fone{} on the full
+validation split, we find that incorporating retrieved context raises performance to
+26.8\% (\fone) with hybrid sparse--dense retrieval and conversational query rewriting
+--- a statistically significant improvement confirmed by paired bootstrap tests.
+An oracle experiment, in which the model is given gold supporting sections directly,
+establishes a generation ceiling of 36.1\% \fone{}, revealing that approximately two
+thirds of the gap between the best \gls{rag} system and the oracle is attributable to
+retrieval failures rather than generation deficiencies.
+
+We additionally evaluate two targeted interventions: an agent-style generation
+prompt with few-shot examples drawn from the training split, and a cross-encoder
+reranker that expands retrieval to the top 50 candidates before selecting the final
+five. The reranker increases \ratk{5} by 6.2 percentage points (61.2\% to 67.4\%)
+but does not produce a statistically significant \fone{} improvement, confirming that
+the generation ceiling has become the dominant bottleneck once retrieval precision
+is sufficiently high.
+
+The thesis concludes with an outline of planned future work, including knowledge
+graph construction and retrieval, graph-\gls{rag} architectures, and agent-based
+orchestration, as well as a recommendation to supplement token \fone{} with an
+open-weight \gls{llm} judge for more reliable generation evaluation.
+
+\end{abstract}
