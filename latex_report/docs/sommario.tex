@@ -17,12 +17,13 @@ di \gls{rag} con recupero ibrido sparso--denso e riscrittura conversazionale del
 query, raggiungendo un \fone{} di 26,8\%.
 
 Un esperimento con contesto oracle (sezioni di riferimento fornite direttamente al
-modello) stabilisce un tetto di generazione del 36,1\% di \fone{}, evidenziando
-che la qualità della generazione, e non solo il recupero, è un fattore limitante.
+modello) stabilisce un tetto di generazione del 36,1\% di \fone{}; circa due terzi
+del divario rispetto al miglior sistema \gls{rag} sono dovuti a errori di recupero.
 Un reranker cross-encoder migliora la precisione del recupero (\ratk{5}: da 61,2\%
-a 67,4\%) senza produrre un guadagno statisticamente significativo in \fone{},
-confermando che il collo di bottiglia si è spostato verso la qualità della
-generazione.
+a 67,4\%) senza produrre un guadagno statisticamente significativo in \fone{}:
+l'analisi per esempio mostra che il generatore sfrutta pienamente le nuove sezioni
+pertinenti recuperate, ma il guadagno è in gran parte compensato dalle sezioni
+corrette che il reranker esclude dalle prime cinque.
 
 La tesi si conclude con una descrizione delle attività future pianificate:
 costruzione e interrogazione di grafi della conoscenza, architetture Graph-\gls{rag}

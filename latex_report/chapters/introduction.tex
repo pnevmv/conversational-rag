@@ -93,10 +93,11 @@ The main contributions of this work are:
 
     \item Paired bootstrap tests showing that conversational query rewriting
           provides the only statistically significant \fone{} improvement
-          ($\Delta = {+}1.94$~pp, $p = 0.017$) among the evaluated interventions,
+          among the evaluated interventions ($\Delta = {+}1.94$~pp, $p = 0.017$
+          on dev-500; $\Delta = {+}2.03$~pp, $p < 0.001$ on the full split),
           while a cross-encoder reranker improves retrieval precision
           (${\Delta}\ratk{5} = {+}6.2$~pp) without yielding a significant
-          generation gain.
+          generation gain, together with a per-example analysis explaining why.
 
     \item An analysis of abstention calibration, identifying the trade-off between
           unanswerable recall and false abstention rate across retrieval strategies.

@@ -34,8 +34,8 @@ The \gls{rag} pipeline consists of three sequential stages:
 \subsection{Section-Level Indexing}
 
 Documents are indexed at the \emph{section level}: each section is defined as a
-heading together with all content spans that follow it until the next heading of
-equal or higher level. The section-level granularity was chosen to balance
+heading together with all content spans that follow it until the next heading,
+regardless of heading level. The section-level granularity was chosen to balance
 retrieval specificity (coarser than paragraph-level) with context completeness
 (finer than document-level).
 
@@ -63,9 +63,9 @@ which first retrieves $K' = 50$ candidates.
 
 The BM25 retriever (\texttt{BM25Okapi}, $k_1 = 1.2$, $b = 0.75$) is built over
 the concatenation of section heading and body text, tokenised by whitespace after
-lowercasing. All sections with a non-zero BM25 score are ranked; sections with
-zero scores are excluded (they contain no query term matches). This zero-score
-property makes BM25 a potential abstention signal for certain unanswerable
+lowercasing. All sections are ranked by BM25 score and the top-$K$ are returned.
+Because BM25 scores are zero for sections that share no term with the query,
+the top-1 score is a potential abstention signal for certain unanswerable
 questions~\cite{robertson2009bm25}.
 
 \subsection{Dense Retrieval}
@@ -93,8 +93,8 @@ because the query text contains little discriminating content.
 
 To address this, we implement a \emph{query rewriter}: an additional \gls{llm} call
 that reformulates the current question into a self-contained query given the dialogue
-history. The rewrite prompt uses a sliding window of the last six agent--user turn
-pairs and instructs the model to produce a single, complete question that includes
+history. The rewrite prompt uses a sliding window of the last six dialogue turns
+(three user--agent exchanges) and instructs the model to produce a single, complete question that includes
 all necessary context. An example rewrite:
 
 \begin{quote}
@@ -107,9 +107,9 @@ that. What kind of violation was it?'' User: ``It was a speeding ticket.''
 \textit{Rewritten:} ``How can I appeal a speeding ticket traffic violation?''
 \end{quote}
 
-Only questions in turns with a non-empty dialogue history are rewritten (434 of 500
-dev-500 examples); first-turn questions that are already self-contained are passed
-to retrieval unchanged.
+Only questions in turns with a non-empty dialogue history are submitted to the
+rewriter (434 of 500 dev-500 examples, of which 431 were actually changed);
+first-turn questions are passed to retrieval unchanged.
 
 
 % ===========================================================================
@@ -227,6 +227,13 @@ Bootstrap 95\% confidence intervals use 1{,}000 resamples with percentile method
     \end{tabular}
 \end{table}
 
+A paired bootstrap test on the full split (same procedure as
+Section~\ref{sec:rag:dev500}, restricted to the $4{,}419$ examples for which both
+systems returned an answer) confirms the gain from query rewriting: Hybrid+Rewrite
+outperforms Hybrid by $\Delta\fone = {+}2.03$~pp (95\% CI $[1.43, 2.57]$,
+$p < 0.001$), and outperforms the \gls{llm}-only baseline by
+$\Delta\fone = {+}10.89$~pp (95\% CI $[10.28, 11.50]$, $p < 0.001$).
+
 Table~\ref{tab:rag:fullsplit_ret} reports retrieval quality. Domain Recall@5 measures
 the fraction of the top-5 sections drawn from the correct domain.
 
@@ -281,7 +288,7 @@ All systems use $K = 5$ retrieved sections.
              AR = abstain recall, FA = false-abstention rate,
              AP = abstain precision.}
     \label{tab:rag:dev500}
-    \begin{tabular}{lrrrrrr}
+    \begin{tabular}{lrrrrr}
         \toprule
         System & \fone{}\% [CI] & \ratk{5}\% & AR\% & FA\% & AP\% \\
         \midrule
@@ -343,17 +350,24 @@ it appears.
 The best \gls{rag} system (Hybrid+Rewrite) achieves $\fone = 28.0\%$, an 8.1~pp
 gap below the oracle ceiling. On dev-500, $286$ of $469$ answerable examples have
 the gold section in the top-5 (retrieval hit), and F1-hit for those examples is
-33.3\%. For the $183$ examples where retrieval misses ($\fone = 18.3\%$), the model
-is limited to whatever partial context it retrieves. This \emph{hit--miss gap}
-of approximately 15~pp is consistent across all retrieval strategies
-and indicates that improving retrieval coverage is the primary lever for improving
-generation quality.
+33.3\%. For the $183$ examples (39\% of answerable ones) where retrieval misses,
+$\fone = 18.3\%$: the model is limited to whatever partial context it retrieves.
+This \emph{hit--miss gap} is large for every retrieval strategy: 21.8~pp for BM25,
+22.3~pp for Dense, 21.5~pp for Hybrid, and 15.0~pp for Hybrid+Rewrite.
+
+These figures allow the oracle gap to be decomposed. If every retrieval miss were
+converted into a hit at the observed F1-hit, \fone{} would rise by approximately
+$183 \times (33.3 - 18.3) / 500 \approx 5.5$~pp, i.e.\ roughly two thirds of the
+8.1~pp gap. The remainder reflects the lower F1-hit of the Hybrid+Rewrite system
+(33.3\%) relative to the oracle (36.7\%), plausibly caused by distractor
+sections in the top-5 context, which the oracle does not contain. Retrieval
+coverage therefore remains the primary lever for improving answer quality.
 
 \subsection{Effect of Query Rewriting}
 
 Query rewriting produces the largest single improvement across all evaluated
-interventions: $+1.94$~pp \fone{} ($p = 0.017$) on dev-500 and $+2.04$~pp on the
-full validation split. More strikingly, \ratk{5} rises from 43.2\% (Hybrid, no
+interventions: $+1.94$~pp \fone{} ($p = 0.017$) on dev-500 and $+2.03$~pp
+($p < 0.001$) on the full validation split. More strikingly, \ratk{5} rises from 43.2\% (Hybrid, no
 rewrite) to 61.2\% ($+18$~pp), and domain recall rises to 92.5\% --- the rewriter
 effectively anchors retrieval to the correct domain in almost all cases.
 
@@ -368,10 +382,47 @@ achieves better doc-switch \ratk{5} (56.6\%) than Hybrid+Rewrite (52.7\%).
 
 The cross-encoder reranker improves \ratk{5} from 61.2\% to 67.4\% ($+6.2$~pp) and
 increases the retrieval-hit count from 286 to 316 examples ($+30$). Despite this,
-\fone{} improves by only $+0.16$~pp ($p = 0.414$, not significant). The explanation
-lies in the generation ceiling: F1-hit is only $\sim$33\%, so adding 30 more
-``hit'' examples at this quality level shifts the aggregate \fone{} by less than 0.2~pp.
-The bottleneck has shifted from retrieval precision to generation quality.
+\fone{} improves by only $+0.16$~pp ($p = 0.414$, not significant).
+
+This small aggregate change is \emph{not} explained by a generation ceiling. Given
+the hit--miss gap of $\sim$15~pp, a net gain of 30 hits would be expected to raise
+\fone{} by roughly $30 \times 15 / 500 \approx 0.9$~pp. Table~\ref{tab:rag:rerank}
+decomposes the observed change by how the reranker altered each example's
+retrieval outcome.
+
+\begin{table}[ht]
+    \centering
+    \caption{Per-example decomposition of the \fone{} change from Hybrid+Rewrite
+             to Hybrid+Rewrite+Rerank (dev-500, v1 prompt). ``Contribution'' is
+             the group's share of the change in the 500-example mean.}
+    \label{tab:rag:rerank}
+    \small
+    \begin{tabular}{lrrrr}
+        \toprule
+        Retrieval outcome (Rewrite $\to$ Rerank) & $n$ & \fone{} before & \fone{} after & Contribution (pp) \\
+        \midrule
+        miss $\to$ hit   &  53 & 21.9 & 33.2 & $+1.20$ \\
+        hit $\to$ miss   &  23 & 30.4 & 21.3 & $-0.42$ \\
+        hit $\to$ hit    & 263 & 33.6 & 33.5 & $-0.06$ \\
+        miss $\to$ miss  & 130 & 16.9 & 16.0 & $-0.21$ \\
+        unanswerable     &  31 &  --- &  --- & $-0.35$ \\
+        \midrule
+        Total            & 500 &      &      & $+0.16$ \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+When the reranker newly retrieves the gold section (53 examples), \fone{} rises by
+11.3~pp to 33.2\%, matching the F1-hit of examples that were already hits. The
+generator therefore exploits the additional evidence fully. The aggregate gain is
+small because the reranker also \emph{displaces} the gold section for 23 examples
+that were previously hits (\fone{} $-9.1$~pp), slightly degrades the
+miss$\to$miss group, and abstains less often on unanswerable questions (abstain
+recall 35.5\% $\to$ 32.3\%). The net $+30$ hits is the difference of 53 gains and
+23 losses, and the resulting effect is too small to be detected at $n = 500$.
+Reranking thus remains a promising direction, provided the loss of previously
+correct sections can be reduced (e.g.\ by fusing the cross-encoder score with the
+first-stage RRF score rather than replacing it).
 
 \subsection{Effect of the Agent-Style Prompt}
 
@@ -386,12 +437,14 @@ overall but more accurately. The tradeoff is a reduction in abstain recall (Orac
 
 Among the five original retrieval strategies, Dense achieves the highest abstain
 recall (83.9\%) but at the cost of a 22.1\% false-abstention rate --- it abstains
-on far too many answerable questions. This is because the dense retriever assigns
-high similarity scores to semantically plausible (but incorrect) sections for
-unanswerable questions, which in turn produces a context that the model perceives
-as relevant, leading to an answer rather than abstention. Paradoxically,
-unanswerable questions sometimes generate a stronger retrieval signal than
-answerable ones when using dense retrieval.
+on far too many answerable questions. Its abstain precision (20.2\%) is no higher
+than Hybrid's, which indicates that Dense does not identify unanswerable questions
+more accurately; it simply abstains more often overall. A plausible explanation is
+that dense retrieval returns topically related but non-answering sections more
+often than lexical retrieval does (its \ratk{5} is the lowest of the four
+strategies), so the generator more frequently judges the context insufficient and
+falls back to the abstention phrase, for answerable and unanswerable questions
+alike.
 
 Hybrid+Rewrite achieves the best calibration among the five systems: 35.5\% abstain
 recall, 7.0\% false abstentions, and 25.0\% abstain precision. The v2 prompt shifts
