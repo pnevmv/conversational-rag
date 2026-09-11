@@ -44,52 +44,69 @@ Six progressive architectures are developed and compared:
 
 ### Completed
 
-**Step 3 — LLM Baseline**
+**Step 3 — LLM Baseline and Evaluation Layer**
 - [x] Azure OpenAI API integration (`gpt-5.4-nano-smirnov` via `LLMClient`).
-- [x] MultiDoc2Dial dataset loader with round-robin multi-domain sampling (`src/data/loader.py`).
-- [x] JSONL experiment logger (`src/evaluation/logger.py`).
-- [x] Deterministic 50-example benchmark on MultiDoc2Dial validation split (balanced 4-domain).
-- [x] Result: Token F1 **14.09%**, Exact Match 0.00%, Abstain 0%.
-
-**Step 3.5 — Evaluation Layer**
-- [x] Reusable Exact Match and token-level F1 metrics (`src/evaluation/metrics.py`).
-- [x] Evaluation script with answerable/unanswerable split and abstain rate (`experiments/evaluate_baseline.py`).
-- [x] 19 unit tests for evaluation metrics.
+- [x] MultiDoc2Dial loader with round-robin multi-domain sampling (`src/data/loader.py`).
+- [x] Exact Match, token F1, Recall@K, Domain Recall@K, and abstention metrics (`src/evaluation/metrics.py`).
+- [x] Unanswerable and document-switch tagging per turn.
 
 **Step 4 — Retrieval and RAG**
-- [x] Section-level indexing: heading + all following content spans joined as one retrieval unit (`src/data/loader.py`: `load_sections()`).
-- [x] BM25 retriever over 4,114 sections (`src/rag/retriever.py`).
-  - Result: Token F1 **20.69%**, Recall@5 22.00%, Domain Recall 58.00%, Abstain 67%.
-- [x] Dense retriever using `BAAI/bge-small-en-v1.5` embeddings, cosine similarity, disk-cached index (`src/rag/dense_retriever.py`).
-  - Result: Token F1 **19.24%**, Recall@5 38.00%, Domain Recall 66.80%, Abstain 33%.
-- [x] Hybrid retriever combining BM25 + dense via Reciprocal Rank Fusion (`src/rag/hybrid_retriever.py`).
-  - Result: Token F1 **21.77%** (best), Recall@5 36.00%, Domain Recall 63.60%, Abstain 33%.
-- [x] Multi-turn query rewriting: LLM rewrites each user turn into a standalone query using dialogue history (`src/rag/query_rewriter.py`).
-  - Result: Token F1 **20.40%**, Recall@5 44.00%, Domain Recall **87.20%** (best), Answerable F1 **21.70%** (best).
-- [x] Domain Recall@K metric: fraction of top-K retrieved sections from the gold document's domain.
-- [x] Unanswerable tagging (`is_unanswerable`) and abstain rate metric.
-- [x] Agent-voice few-shot prompt across all RAG experiments.
-- [x] 10 unit tests for BM25, 10 for dense, 9 for hybrid/RRF, 12 for query rewriter (64 total).
+- [x] Section-level indexing: heading + following content spans as one retrieval unit (4,114 sections from 488 documents).
+- [x] BM25, dense (`BAAI/bge-small-en-v1.5`), and hybrid (RRF) retrievers (`src/rag/`).
+- [x] LLM-based multi-turn query rewriting (`src/rag/query_rewriter.py`).
+- [x] Cross-encoder reranker (`BAAI/bge-reranker-base`, top-50 → top-5) (`src/rag/reranker.py`).
+- [x] Oracle-context baseline (gold sections given directly) as the generation ceiling.
+- [x] Agent-style prompt v2 with few-shot examples from the training split.
+- [x] Parallel LLM runner with disk cache (`src/llm/parallel.py`, `src/llm/cache.py`).
+- [x] Fixed 500-example dev subset (125/domain, seed 42) and diagnostic evaluator with bootstrap 95% CIs and paired bootstrap tests.
+- [x] Thesis write-up of Steps 3–4 (`latex_report/`).
 
-### Experiment Results (MultiDoc2Dial validation, 50 examples, balanced 4-domain)
+### Experiment Results
 
-50 examples sampled round-robin across DMV/SSA/VA/StudentAid (13/13/12/12). 3 unanswerable examples. Agent-voice prompt with few-shot examples; exact abstention phrase.
+**Full validation split** (n = 4,427; 95% bootstrap CIs in [brackets])
 
-| Experiment | Token F1 | F1 (answ.) | Abstain | Recall@1 | Recall@5 | Domain Recall |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| LLM-only baseline | 14.09% | 14.85% | 0% | — | — | — |
-| RAG — BM25 | 20.69% | 17.75% | 67% | 12.00% | 22.00% | 58.00% |
-| RAG — Dense (bge-small) | 19.24% | 18.34% | 33% | 20.00% | 38.00% | 66.80% |
-| RAG — Hybrid (BM25 + dense, RRF) | **21.77%** | 20.97% | 33% | 12.00% | 36.00% | 63.60% |
-| RAG — Hybrid + Query Rewriting | 20.40% | **21.70%** | 0% | **28.00%** | **44.00%** | **87.20%** |
+| System | Token F1 | Recall@5 | Domain Recall@5 |
+| :--- | :---: | :---: | :---: |
+| LLM-only | 15.88 [15.54, 16.29] | — | — |
+| RAG — BM25 | 24.11 [23.46, 24.77] | 40.61 | 65.95 |
+| RAG — Dense (bge-small) | 24.58 [23.89, 25.28] | 40.96 | 70.46 |
+| RAG — Hybrid (BM25 + dense, RRF) | 24.75 [24.09, 25.43] | 44.70 | 69.39 |
+| RAG — Hybrid + Query Rewriting | **26.78** [26.19, 27.46] | **59.45** | **92.46** |
 
-Abstain = fraction of unanswerable examples where model replied exactly with the abstention phrase. Domain Recall = fraction of top-5 retrieved sections from the gold document's domain.
+Query rewriting vs. hybrid: +2.03 pp F1, 95% CI [1.43, 2.57], p < 0.001 (paired bootstrap).
 
-See [`experiments_description.txt`](experiments_description.txt) for full analysis.
+**Dev-500 diagnostic subset** (n = 500)
 
-### Next Stage
+| System | Token F1 | Recall@5 | Abstain recall | False abstention |
+| :--- | :---: | :---: | :---: | :---: |
+| LLM-only | 16.3 | — | 19.4 | 7.7 |
+| Oracle (gold sections) | 36.1 | 100.0 | 25.8 | 4.1 |
+| RAG — Hybrid + Rewrite | 28.0 | 61.2 | 35.5 | 7.0 |
+| RAG — Hybrid + Rewrite + Rerank | 28.2 | 67.4 | 32.3 | 6.8 |
 
-**Step 5:** Knowledge Graph construction — transform MultiDoc2Dial documents into structured graphs for entity- and relation-based retrieval.
+Key findings:
+- Query rewriting is the only statistically significant F1 improvement among the interventions.
+- About two thirds of the 8.1 pp gap to the oracle comes from retrieval misses.
+- The reranker raises Recall@5 by 6.2 pp but not F1. It gains 53 gold sections and displaces 23 previously retrieved ones; the generator fully uses the new hits.
+
+See [`experiments_description.txt`](experiments_description.txt) and the thesis chapter `latex_report/chapters/rag.tex` for full analysis.
+
+### In Progress
+
+**Step 5 — Knowledge Graph Construction** (phase 1 done, schema under review)
+- [x] Neo4j 5 Community in Docker, client with env-based config and uniqueness constraints (`src/kg/client.py`).
+- [x] Structural layer, loaded idempotently (`src/kg/structure.py`): Domain → Document → Section → Span, plus `NEXT` between consecutive sections. Section ids match the RAG index (`make_section_id()`), so retrieval results map directly to graph nodes.
+
+  | Nodes | Count | Relationships | Count |
+  | :--- | ---: | :--- | ---: |
+  | Domain | 4 | HAS_DOCUMENT | 488 |
+  | Document | 488 | HAS_SECTION | 4,114 |
+  | Section | 4,114 | HAS_SPAN | 35,659 |
+  | Span | 35,659 | NEXT | 3,626 |
+
+- [x] Pilot open extraction on 32 sections (8/domain, seed 42), structured JSON output at temperature 0 (`src/kg/extract.py`). Output: 318 entities, 264 relations; 97.4% of evidence quotes match the section text exactly or up to punctuation.
+- [x] Schema proposal (9 entity types, 10–11 relations) mapped from the pilot's open types: [`experiments/kg/schema_proposal.md`](experiments/kg/schema_proposal.md).
+- [ ] Closed-schema extraction over all 4,114 sections, entity resolution, and loading the KG layer into Neo4j.
 
 ---
 
@@ -100,8 +117,8 @@ See [`experiments_description.txt`](experiments_description.txt) for full analys
 | **Weeks 1–2** | **Step 1: Background Study** | Review *Knowledge Graphs and LLMs in Action* (Parts 1, 3, 5, 6). | Completed |
 | **Weeks 2–3** | **Step 2: Dataset Analysis** | Dataset analysis and preparation of MultiDoc2Dial (and EnronQA). | Completed |
 | **Weeks 3–4** | **Step 3: LLM Baseline** | LLM-only baseline, evaluation pipeline, EM + token F1 metrics. | Completed |
-| **Weeks 4–6** | **Step 4: Retrieval and RAG** | BM25 and dense retrieval baselines; hybrid and multi-turn query rewriting. | Completed |
-| **Weeks 6–9** | **Step 5: KG Construction** | Unstructured document transformation into structured Knowledge Graphs. | Planned |
+| **Weeks 4–6** | **Step 4: Retrieval and RAG** | BM25, dense, hybrid, query rewriting, reranking, oracle ceiling; full-split and dev-500 evaluation. | Completed |
+| **Weeks 6–9** | **Step 5: KG Construction** | Unstructured document transformation into structured Knowledge Graphs. | In progress |
 | **Weeks 9–11** | **Step 6: KG-based Retrieval** | Natural language querying of Knowledge Graphs for conversational QA. | Planned |
 | **Weeks 11–14** | **Step 7: Graph RAG** | Hybrid architectures combining structured graph data and textual context. | Planned |
 | **Weeks 14–17** | **Step 8: Agent-based Approaches** | Autonomous agents for reasoning, query construction, and source selection. | Planned |
@@ -136,21 +153,37 @@ Set in `.env`:
 AZURE_OPENAI_API_KEY=your_azure_openai_api_key_here
 AZURE_OPENAI_BASE_URL=https://2026-foundry.services.ai.azure.com/openai/v1
 LLM_MODEL=gpt-5.4-nano-smirnov
+
+NEO4J_URI=bolt://localhost:7687
+NEO4J_USER=neo4j
+NEO4J_PASSWORD=change_me_min_8_chars
 ```
 
-### 4. Run Experiments
+### 4. Start Neo4j (for the KG steps)
+
+```bash
+docker compose up -d neo4j      # browser at http://localhost:7474
+```
+
+### 5. Run Experiments
 
 | Command | Description |
 | :--- | :--- |
-| `python experiments/llm_baseline.py` | LLM-only baseline (50 examples) |
+| `python experiments/llm_baseline.py` | LLM-only baseline |
 | `python experiments/rag_baseline.py` | BM25 RAG baseline |
 | `python experiments/rag_dense_baseline.py` | Dense RAG baseline (bge-small; builds index on first run) |
 | `python experiments/rag_hybrid_baseline.py` | Hybrid RAG baseline (BM25 + dense, RRF) |
 | `python experiments/rag_rewrite_baseline.py` | Hybrid + query rewriting baseline |
+| `python experiments/oracle_context.py` | Oracle-context baseline (gold sections) |
+| `python experiments/run_dev_subset.py --workers 12` | All pipelines on the dev-500 subset, in parallel with disk cache |
+| `python experiments/evaluate_diagnostics.py` | Diagnostic evaluation with bootstrap CIs and paired tests |
 | `python experiments/evaluate_baseline.py --input experiments/results/<file>.jsonl` | Evaluate any result file |
+| `python -m src.kg.structure` | Load the KG structural layer into Neo4j (idempotent) |
+| `python -m src.kg.extract` | Pilot open extraction (32 sections, cached) |
+| `python -m src.kg.pilot_stats` | Aggregate pilot extraction for schema design |
 | `python -m unittest discover tests` | Run all unit tests (64 tests) |
 
-### 5. Note on Dense Index
+### 6. Note on Dense Index
 
 The first run of `rag_dense_baseline.py` downloads `BAAI/bge-small-en-v1.5` (~130 MB) and builds the embedding index (~27 seconds on Apple MPS). The index is cached to `data/cache/` and reused on all subsequent runs.
 
@@ -161,41 +194,41 @@ The first run of `rag_dense_baseline.py` downloads `BAAI/bge-small-en-v1.5` (~13
 ```text
 llm_rag/
 ├── src/
-│   ├── llm/                      # Azure OpenAI client
-│   │   └── client.py
-│   ├── data/                     # MultiDoc2Dial loader
+│   ├── llm/                      # Azure OpenAI client, parallel runner, disk cache
+│   │   ├── client.py
+│   │   ├── parallel.py
+│   │   └── cache.py
+│   ├── data/                     # MultiDoc2Dial loader (sections, QA pairs, section ids)
 │   │   └── loader.py
-│   ├── evaluation/               # Metrics (EM, token F1) and experiment logger
+│   ├── evaluation/               # Metrics (EM, F1, Recall@K, abstention) and logger
 │   │   ├── metrics.py
 │   │   └── logger.py
 │   ├── rag/                      # Retrieval components
 │   │   ├── retriever.py          # BM25 retriever
 │   │   ├── dense_retriever.py    # Dense retriever (bge-small)
 │   │   ├── hybrid_retriever.py   # Hybrid retriever (BM25 + dense, RRF)
-│   │   └── query_rewriter.py     # LLM-based multi-turn query rewriter
-│   ├── kg/                       # Knowledge Graph (Stage 5–6, planned)
-│   └── agents/                   # Agentic orchestration (Stage 8, planned)
+│   │   ├── query_rewriter.py     # LLM-based multi-turn query rewriter
+│   │   └── reranker.py           # Cross-encoder reranker (bge-reranker-base)
+│   ├── kg/                       # Knowledge Graph (Step 5)
+│   │   ├── client.py             # Neo4j client (env config, constraints, counts)
+│   │   ├── structure.py          # Structural layer loader
+│   │   ├── extract.py            # Pilot open entity/relation extraction
+│   │   └── pilot_stats.py        # Pilot aggregation and evidence check
+│   └── agents/                   # Agentic orchestration (planned)
 │
 ├── experiments/
 │   ├── llm_baseline.py           # LLM-only baseline runner
-│   ├── rag_baseline.py           # BM25 RAG baseline runner
-│   ├── rag_dense_baseline.py     # Dense RAG baseline runner
-│   ├── rag_hybrid_baseline.py    # Hybrid RAG baseline runner (BM25 + dense, RRF)
-│   ├── rag_rewrite_baseline.py   # Hybrid + query rewriting baseline runner
-│   ├── evaluate_baseline.py      # Evaluation script (EM + token F1)
-│   ├── test_llm_basic.py         # API connectivity smoke test
-│   ├── test_llm_conversation.py  # Single-query conversational test
-│   └── results/
-│       ├── llm_baseline.jsonl
-│       ├── llm_baseline_evaluation.json
-│       ├── rag_baseline.jsonl
-│       ├── rag_baseline_evaluation.json
-│       ├── rag_dense_baseline.jsonl
-│       ├── rag_dense_baseline_evaluation.json
-│       ├── rag_hybrid_baseline.jsonl
-│       ├── rag_hybrid_baseline_evaluation.json
-│       ├── rag_rewrite_baseline.jsonl
-│       └── rag_rewrite_baseline_evaluation.json
+│   ├── rag_*_baseline.py         # BM25 / dense / hybrid / rewrite RAG runners
+│   ├── oracle_context.py         # Oracle-context baseline (generation ceiling)
+│   ├── create_dev_subset.py      # Builds the fixed dev-500 subset
+│   ├── run_dev_subset.py         # Parallel runner for all pipelines on dev-500
+│   ├── evaluate_baseline.py      # Per-file evaluation (EM, F1, recall, abstention)
+│   ├── evaluate_diagnostics.py   # Bootstrap CIs, hit/miss F1, paired tests
+│   ├── results/                  # Result JSONL + evaluation JSON (full split, dev_500/)
+│   └── kg/                       # Pilot extraction output and schema proposal
+│
+├── latex_report/                 # Thesis (LuaLaTeX, unipd-thesis-modern)
+├── docker-compose.yml            # Neo4j 5 Community
 │
 ├── tests/
 │   ├── test_client.py
@@ -208,6 +241,7 @@ llm_rag/
 │
 ├── data/
 │   ├── multidoc2dial/            # Dataset files (git-ignored)
+│   ├── dev_500_ids.json          # Fixed dev-500 subset ids
 │   └── cache/                    # Dense index cache (git-ignored)
 │
 ├── experiments_description.txt   # Detailed experiment analysis and results
