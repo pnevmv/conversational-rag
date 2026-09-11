@@ -84,6 +84,14 @@ def load_dialogues(
     return all_dialogues
 
 
+def make_section_id(doc_id: str, id_sp: str) -> str:
+    """Stable section identifier shared by the RAG index and the knowledge graph.
+
+    A retrieval result's (doc_id, id_sp) maps to the KG Section with this id.
+    """
+    return f"{doc_id}::{id_sp}"
+
+
 def _doc_to_sections(doc_id: str, doc: Dict[str, Any]) -> List[Dict[str, Any]]:
     """
     Split a document into sections, each composed of a heading span and all
@@ -108,9 +116,11 @@ def _doc_to_sections(doc_id: str, doc: Dict[str, Any]) -> List[Dict[str, Any]]:
     def _flush() -> None:
         if not cur_ids:
             return
+        id_sp = cur_heading_id or cur_ids[0]
         sections.append({
+            "section_id": make_section_id(doc_id, id_sp),
             "doc_id": doc_id,
-            "id_sp": cur_heading_id or cur_ids[0],
+            "id_sp": id_sp,
             "span_ids": list(cur_ids),
             "title": title,
             "section_title": cur_heading,

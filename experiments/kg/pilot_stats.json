@@ -1,0 +1,4269 @@
+{
+  "n_sections": 32,
+  "n_sections_empty": 0,
+  "n_entities": 318,
+  "n_relations": 264,
+  "entity_types": [
+    {
+      "type": "EligibilityCondition",
+      "count": 29,
+      "examples": [
+        {
+          "name": "AgeRequirement",
+          "evidence": "must be at least 21 years of age",
+          "section_id": "Become a driving school instructor#3_0::10"
+        },
+        {
+          "name": "ValidLicenseDurationRequirement",
+          "evidence": "has been valid for at least 2 years preceding application",
+          "section_id": "Become a driving school instructor#3_0::10"
+        },
+        {
+          "name": "VehicleClassRequirement",
+          "evidence": "in the class of vehicle that the instructor intends to teach in",
+          "section_id": "Become a driving school instructor#3_0::10"
+        }
+      ]
+    },
+    {
+      "type": "Service",
+      "count": 24,
+      "examples": [
+        {
+          "name": "SafetyInspection",
+          "evidence": "When you need a safety inspection",
+          "section_id": "About New York State Inspections#3_0::1"
+        },
+        {
+          "name": "RoadTest",
+          "evidence": "before you take your road test",
+          "section_id": "Get a learner permit#1_0::31"
+        },
+        {
+          "name": "HazMat Endorsement",
+          "evidence": "apply for a HazMat endorsement",
+          "section_id": "Get a  hazardous materials (HazMat) endorsement#3_0::5"
+        }
+      ]
+    },
+    {
+      "type": "Document",
+      "count": 14,
+      "examples": [
+        {
+          "name": "ValidInspectionSticker",
+          "evidence": "A valid inspection sticker must be displayed on your vehicle.",
+          "section_id": "About New York State Inspections#3_0::1"
+        },
+        {
+          "name": "VehicleRegistrationSticker",
+          "evidence": "\"Your' registration' is the sticker placed on your windshield\"",
+          "section_id": "Registrations#3_0::1"
+        },
+        {
+          "name": "PaperRegistrationCertificate",
+          "evidence": "\"and the paper registration certificate that you must keep in your vehicle.\"",
+          "section_id": "Registrations#3_0::1"
+        }
+      ]
+    },
+    {
+      "type": "Requirement",
+      "count": 11,
+      "examples": [
+        {
+          "name": "VehicleRegistrationAndTitleRequirement",
+          "evidence": "\"You or your business must register and title at a DMV office any vehicle you own or lease.\"",
+          "section_id": "Registrations#3_0::1"
+        },
+        {
+          "name": "SupervisedDrivingPractice",
+          "evidence": "you must have supervised driving practice",
+          "section_id": "Get a learner permit#1_0::31"
+        },
+        {
+          "name": "AcceptableProofOfCitizenshipOrResidentStatus",
+          "evidence": "HAZ-11 for a list of acceptable proof of citizenship or resident status",
+          "section_id": "Get a  hazardous materials (HazMat) endorsement#3_0::5"
+        }
+      ]
+    },
+    {
+      "type": "Outcome",
+      "count": 11,
+      "examples": [
+        {
+          "name": "CombinationOfBenefits",
+          "evidence": "he or she will get a combination of benefits that equals that higher amount",
+          "section_id": "Benefits Planner: Disability | Family Benefits | Social Security Administration#2_0::33"
+        },
+        {
+          "name": "SpouseSocialSecurityBenefitOnYourRecordMayBeAffected",
+          "evidence": "his or her Social Security benefit on your record may be affected",
+          "section_id": "Benefits Planner: Disability | Family Benefits | Social Security Administration#2_0::33"
+        },
+        {
+          "name": "BaseBenefitAmountForLife",
+          "evidence": "The amount you receive when you first get benefits sets the base for the amount you will receive for the rest of your life.",
+          "section_id": "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#1_0::2"
+        }
+      ]
+    },
+    {
+      "type": "RegistrationClass",
+      "count": 8,
+      "examples": [
+        {
+          "name": "AgriculturalRegistrationClass",
+          "evidence": "The classes include Agricultural AGR",
+          "section_id": "Commercial vehicle registration fees, vehicle use taxes and supplemental fees#3_0::34"
+        },
+        {
+          "name": "AmbulanceRegistrationClass",
+          "evidence": "Ambulance AMB",
+          "section_id": "Commercial vehicle registration fees, vehicle use taxes and supplemental fees#3_0::34"
+        },
+        {
+          "name": "FarmRegistrationClass",
+          "evidence": "Farm FAR",
+          "section_id": "Commercial vehicle registration fees, vehicle use taxes and supplemental fees#3_0::34"
+        }
+      ]
+    },
+    {
+      "type": "PlateConfiguration",
+      "count": 8,
+      "examples": [
+        {
+          "name": "MedallionTaxiPlateConfigurationTnnnnnC",
+          "evidence": "plate number configuration of \" TnnnnnC \"",
+          "section_id": "Commercial vehicle registration fees, vehicle use taxes and supplemental fees#3_0::34"
+        },
+        {
+          "name": "MedallionTaxiPlateConfigurationTnnnnnnC",
+          "evidence": "or \" TnnnnnnC \"",
+          "section_id": "Commercial vehicle registration fees, vehicle use taxes and supplemental fees#3_0::34"
+        },
+        {
+          "name": "MedallionTaxiPlateConfigurationTnnnnnT",
+          "evidence": "This tax does not include Medallion taxis with plate number configurations: \" TnnnnnT \"",
+          "section_id": "Commercial vehicle registration fees, vehicle use taxes and supplemental fees#3_0::34"
+        }
+      ]
+    },
+    {
+      "type": "Program",
+      "count": 8,
+      "examples": [
+        {
+          "name": "CaseReview",
+          "evidence": "we review your case from time to time to verify that you are still disabled",
+          "section_id": "Benefits Planner: Disability | Are You Working | Social Security Administration#2_0::1"
+        },
+        {
+          "name": "Unpaid Refund Discharge",
+          "evidence": "\"apply for an unpaid refund discharge\"",
+          "section_id": "Unpaid Refund Discharge | Federal Student Aid#1_0::7"
+        },
+        {
+          "name": "Closed School Discharge",
+          "evidence": "\"eligible for a closed school discharge\"",
+          "section_id": "Unpaid Refund Discharge | Federal Student Aid#1_0::7"
+        }
+      ]
+    },
+    {
+      "type": "Benefit",
+      "count": 6,
+      "examples": [
+        {
+          "name": "SpouseRetirementBenefitsOnOwnRecord",
+          "evidence": "retirement benefits on his or her own record",
+          "section_id": "Benefits Planner: Disability | Family Benefits | Social Security Administration#2_0::33"
+        },
+        {
+          "name": "SpouseBenefitPayableOnYourRecord",
+          "evidence": "the spouse benefit that is payable on your record",
+          "section_id": "Benefits Planner: Disability | Family Benefits | Social Security Administration#2_0::33"
+        },
+        {
+          "name": "DisabilityBenefits",
+          "evidence": "you will continue to receive benefits as long as you are disabled",
+          "section_id": "Benefits Planner: Disability | Are You Working | Social Security Administration#2_0::1"
+        }
+      ]
+    },
+    {
+      "type": "Agency",
+      "count": 5,
+      "examples": [
+        {
+          "name": "Traffic Violations Bureau (TVB) (TVB)",
+          "evidence": "schedule a hearing at a Traffic Violations Bureau TVB.",
+          "section_id": "Plead to or pay TVB tickets#1_0::42"
+        },
+        {
+          "name": "Department of Homeland Security (DHS)",
+          "evidence": "permission to work from the Department of Homeland Security DHS",
+          "section_id": "Learn what documents you will need to get a Social Security Card | Social Security Administration#9_0::1"
+        },
+        {
+          "name": "IRS",
+          "evidence": "the IRS provides to us",
+          "section_id": "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0::32"
+        }
+      ]
+    },
+    {
+      "type": "BenefitStartTiming",
+      "count": 5,
+      "examples": [
+        {
+          "name": "StartBenefitsBeforeFullRetirementAge",
+          "evidence": "If you decide to start benefits : before your full retirement age , your benefit will be smaller but you will receive it for a longer period of time.",
+          "section_id": "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#1_0::2"
+        },
+        {
+          "name": "StartBenefitsAtOrAfterFullRetirementAge",
+          "evidence": "at your full retirement age or later , you will receive a larger monthly benefit for a shorter period of time.",
+          "section_id": "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#1_0::2"
+        },
+        {
+          "name": "DelayStartingBenefitsUntilFullRetirementAgeOrLater",
+          "evidence": "you may want to delay starting your benefits until full retirement age or later.",
+          "section_id": "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#1_0::2"
+        }
+      ]
+    },
+    {
+      "type": "Test",
+      "count": 4,
+      "examples": [
+        {
+          "name": "VisionTest",
+          "evidence": "a vision test",
+          "section_id": "Become a driving school instructor#3_0::10"
+        },
+        {
+          "name": "RoadSignTest",
+          "evidence": "road sign test",
+          "section_id": "Become a driving school instructor#3_0::10"
+        },
+        {
+          "name": "WrittenTest",
+          "evidence": "written test",
+          "section_id": "Become a driving school instructor#3_0::10"
+        }
+      ]
+    },
+    {
+      "type": "Organization",
+      "count": 4,
+      "examples": [
+        {
+          "name": "AutoDealer",
+          "evidence": "\"Auto dealers can register and title vehicles\"",
+          "section_id": "Registrations#3_0::1"
+        },
+        {
+          "name": "School",
+          "evidence": "\"contact that school\"",
+          "section_id": "Unpaid Refund Discharge | Federal Student Aid#1_0::7"
+        },
+        {
+          "name": "Loan Servicer",
+          "evidence": "\"Contact your loan servicer for more information.\"",
+          "section_id": "Unpaid Refund Discharge | Federal Student Aid#1_0::7"
+        }
+      ]
+    },
+    {
+      "type": "FeeAmount",
+      "count": 4,
+      "examples": [
+        {
+          "name": "FeeListedInChart",
+          "evidence": "add 3.25% to the fee listed in the chart",
+          "section_id": "Commercial vehicle registration fees, vehicle use taxes and supplemental fees#3_0::34"
+        },
+        {
+          "name": "Premium Amount",
+          "evidence": "send you a letter with your premium amount",
+          "section_id": "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0::32"
+        },
+        {
+          "name": "Income-Related Monthly Adjustment Amount",
+          "evidence": "you ll pay an income - related monthly adjustment amount only on the benefit you have",
+          "section_id": "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0::32"
+        }
+      ]
+    },
+    {
+      "type": "Process",
+      "count": 4,
+      "examples": [
+        {
+          "name": "Application Submission",
+          "evidence": "you haven t submitted the application or correction yet",
+          "section_id": "Filling Out the FAFSA® Form | Federal Student Aid#1_0::211"
+        },
+        {
+          "name": "Correction Submission",
+          "evidence": "you haven t submitted the application or correction yet",
+          "section_id": "Filling Out the FAFSA® Form | Federal Student Aid#1_0::211"
+        },
+        {
+          "name": "Qualification Determination",
+          "evidence": "“Find out if you qualify and how to apply.”",
+          "section_id": "VA Survivors Pension | Veterans Affairs#1_0::1"
+        }
+      ]
+    },
+    {
+      "type": "Office",
+      "count": 3,
+      "examples": [
+        {
+          "name": "Traffic Violations Bureau (TVB) Office",
+          "evidence": "At a TVB office You can plead to or pay a TVB ticket, and schedule a hearing at a Traffic Violations Bureau TVB.",
+          "section_id": "Plead to or pay TVB tickets#1_0::42"
+        },
+        {
+          "name": "Regular DMV Issuing Office",
+          "evidence": "You cannot plead to or pay a TVB ticket, or schedule a hearing at a regular DMV Issuing Office.",
+          "section_id": "Plead to or pay TVB tickets#1_0::42"
+        },
+        {
+          "name": "FinancialAidOffice",
+          "evidence": "so that the financial aid office can subtract that amount",
+          "section_id": "Finding and Applying for Scholarships | Federal Student Aid#1_0::55"
+        }
+      ]
+    },
+    {
+      "type": "Course",
+      "count": 3,
+      "examples": [
+        {
+          "name": "DriverTrainingAndTrafficSafetyCourse",
+          "evidence": "complete a course in driver training and traffic safety, approved by the Commissioner",
+          "section_id": "Become a driving school instructor#3_0::10"
+        },
+        {
+          "name": "PreLicensingCourse",
+          "evidence": "If you want to teach the Pre - licensing Course",
+          "section_id": "Become a driving school instructor#3_0::10"
+        },
+        {
+          "name": "TeachingTechniquesAndMethodologyCourse",
+          "evidence": "successfully complete a 30-hour Teaching Techniques and Methodology course",
+          "section_id": "Become a driving school instructor#3_0::10"
+        }
+      ]
+    },
+    {
+      "type": "TimePeriod",
+      "count": 3,
+      "examples": [
+        {
+          "name": "InspectionFrequency",
+          "evidence": "every 12 months",
+          "section_id": "About New York State Inspections#3_0::1"
+        },
+        {
+          "name": "SupportHours",
+          "evidence": "from 8:00 a.m. to 5:30 p.m., Monday through Friday.",
+          "section_id": "Apply for Retirement Benefits | SSA#1_0::161"
+        },
+        {
+          "name": "ServiceDuration",
+          "evidence": "These services generally last up to 24 months.",
+          "section_id": "VR&E Independent Living Track | Veterans Affairs#1_0::18"
+        }
+      ]
+    },
+    {
+      "type": "InformationPage",
+      "count": 3,
+      "examples": [
+        {
+          "name": "VehiclePlatesInformation",
+          "evidence": "\"See information about vehicle plates\"",
+          "section_id": "Registrations#3_0::1"
+        },
+        {
+          "name": "VehicleTitlesInformation",
+          "evidence": "\"or vehicle titles\"",
+          "section_id": "Registrations#3_0::1"
+        },
+        {
+          "name": "Medical Certification Requirements",
+          "evidence": "See Medical Certification Requirements [5] for more information.",
+          "section_id": "Get a  hazardous materials (HazMat) endorsement#3_0::5"
+        }
+      ]
+    },
+    {
+      "type": "Fee",
+      "count": 3,
+      "examples": [
+        {
+          "name": "DealerFee",
+          "evidence": "\"and charge a fee for this.\"",
+          "section_id": "Registrations#3_0::1"
+        },
+        {
+          "name": "SupplementalFee",
+          "evidence": "The chart show the use taxes and supplemental fees",
+          "section_id": "Commercial vehicle registration fees, vehicle use taxes and supplemental fees#3_0::34"
+        },
+        {
+          "name": "AdditionalFee",
+          "evidence": "Several registration classes are exempt from the additional fee",
+          "section_id": "Commercial vehicle registration fees, vehicle use taxes and supplemental fees#3_0::34"
+        }
+      ]
+    },
+    {
+      "type": "Form",
+      "count": 3,
+      "examples": [
+        {
+          "name": "MV-15FOIL",
+          "evidence": "Permissible uses are listed on Page 2 of the MV-15FOIL",
+          "section_id": "File a Freedom of Information Law (FOIL) request#1_0::37"
+        },
+        {
+          "name": "Loan Discharge Application: Unpaid Refund",
+          "evidence": "\"complete the Loan Discharge Application: Unpaid Refund\"",
+          "section_id": "Unpaid Refund Discharge | Federal Student Aid#1_0::7"
+        },
+        {
+          "name": "FAFSA Form",
+          "evidence": "into the FAFSA form via the IRS DRT",
+          "section_id": "Filling Out the FAFSA® Form | Federal Student Aid#1_0::211"
+        }
+      ]
+    },
+    {
+      "type": "DocumentRequirement",
+      "count": 3,
+      "examples": [
+        {
+          "name": "OriginalDocuments",
+          "evidence": "You must present original documents or copies certified by the agency that issued them",
+          "section_id": "Learn what documents you will need to get a Social Security Card | Social Security Administration#9_0::1"
+        },
+        {
+          "name": "CertifiedCopies",
+          "evidence": "You must present original documents or copies certified by the agency that issued them",
+          "section_id": "Learn what documents you will need to get a Social Security Card | Social Security Administration#9_0::1"
+        },
+        {
+          "name": "CurrentNotExpiredDocuments",
+          "evidence": "All documents must be current not expired",
+          "section_id": "Learn what documents you will need to get a Social Security Card | Social Security Administration#9_0::1"
+        }
+      ]
+    },
+    {
+      "type": "DocumentRestriction",
+      "count": 3,
+      "examples": [
+        {
+          "name": "NoPhotocopies",
+          "evidence": "We cannot accept photocopies or notarized copies",
+          "section_id": "Learn what documents you will need to get a Social Security Card | Social Security Administration#9_0::1"
+        },
+        {
+          "name": "NoNotarizedCopies",
+          "evidence": "We cannot accept photocopies or notarized copies",
+          "section_id": "Learn what documents you will need to get a Social Security Card | Social Security Administration#9_0::1"
+        },
+        {
+          "name": "NoReceiptForDocumentApplication",
+          "evidence": "We cannot accept a receipt showing you applied for the document",
+          "section_id": "Learn what documents you will need to get a Social Security Card | Social Security Administration#9_0::1"
+        }
+      ]
+    },
+    {
+      "type": "Consequence",
+      "count": 3,
+      "examples": [
+        {
+          "name": "GiveUpSomeBenefitsDueToEarnings",
+          "evidence": "Depending on the amount of your benefit and your earnings for the year , you may have to give up some of your benefits.",
+          "section_id": "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#1_0::2"
+        },
+        {
+          "name": "LosePaycheckIfStopWorking",
+          "evidence": "If you stop working , not only will you lose your paycheck",
+          "section_id": "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#1_0::2"
+        },
+        {
+          "name": "LoseEmployerProvidedHealthInsuranceIfStopWorking",
+          "evidence": "but you may also lose valuable employer provided health insurance.",
+          "section_id": "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#1_0::2"
+        }
+      ]
+    },
+    {
+      "type": "HealthCoverageOption",
+      "count": 3,
+      "examples": [
+        {
+          "name": "MedicareAtAge65",
+          "evidence": "You can apply for just Medicare at age 65 and start receiving retirement benefits later.",
+          "section_id": "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#1_0::2"
+        },
+        {
+          "name": "ExtendHealthInsuranceCoverageAfterRetire",
+          "evidence": "or if you can temporarily extend your health insurance coverage after you retire.",
+          "section_id": "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#1_0::2"
+        },
+        {
+          "name": "SwitchToSpouseHealthInsurance",
+          "evidence": "if you are married and your spouse is employed , you may be able to switch to their health insurance.",
+          "section_id": "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#1_0::2"
+        }
+      ]
+    },
+    {
+      "type": "LoanProgram",
+      "count": 3,
+      "examples": [
+        {
+          "name": "DirectLoans",
+          "evidence": "General forbearances are available for Direct Loans, Federal Family Education FFEL Program loans, and Perkins Loans.",
+          "section_id": "Student Loan Forbearance | Federal Student Aid#1_0::56"
+        },
+        {
+          "name": "FederalFamilyEducationFFELProgramLoans",
+          "evidence": "General forbearances are available for Direct Loans, Federal Family Education FFEL Program loans, and Perkins Loans.",
+          "section_id": "Student Loan Forbearance | Federal Student Aid#1_0::56"
+        },
+        {
+          "name": "PerkinsLoans",
+          "evidence": "General forbearances are available for Direct Loans, Federal Family Education FFEL Program loans, and Perkins Loans.",
+          "section_id": "Student Loan Forbearance | Federal Student Aid#1_0::56"
+        }
+      ]
+    },
+    {
+      "type": "Place",
+      "count": 3,
+      "examples": [
+        {
+          "name": "NewYorkCity",
+          "evidence": "adding up all the applications reported under \" New York City \"",
+          "section_id": "Questions and Answers About FAFSA® Completion Data | Federal Student Aid#1_0::116"
+        },
+        {
+          "name": "Queens",
+          "evidence": "would exclude any institutions reported being within \" Queens \"",
+          "section_id": "Questions and Answers About FAFSA® Completion Data | Federal Student Aid#1_0::116"
+        },
+        {
+          "name": "Jamaica",
+          "evidence": "or even within \" Jamaica, \" a smaller neighborhood within the New York City Borough of Queens.",
+          "section_id": "Questions and Answers About FAFSA® Completion Data | Federal Student Aid#1_0::116"
+        }
+      ]
+    },
+    {
+      "type": "Role",
+      "count": 3,
+      "examples": [
+        {
+          "name": "School Certifying Official",
+          "evidence": "“You should contact your school s certifying official to make sure your program is approved for VA benefits.”",
+          "section_id": "Fry Scholarships | Veterans Affairs#1_0::33"
+        },
+        {
+          "name": "VocationalRehabilitationCounselor (VRC)",
+          "evidence": "\"Your Vocational Rehabilitation Counselor VRC can provide\"",
+          "section_id": "VR&E Reemployment Track | Veterans Affairs#1_0::1"
+        },
+        {
+          "name": "VeteranWoman",
+          "evidence": "“As a woman Veteran , you re part of the fastest - growing group”",
+          "section_id": "Women's Health Care Needs | Veterans Affairs#1_0::1"
+        }
+      ]
+    },
+    {
+      "type": "Regulation",
+      "count": 2,
+      "examples": [
+        {
+          "name": "Commissioner’s Regulations Part 76.16",
+          "evidence": "requirements identified in Commissioner s Regulations Part 76.16",
+          "section_id": "Become a driving school instructor#3_0::10"
+        },
+        {
+          "name": "FederalMedicalRequirements (49 CFR Part 391)",
+          "evidence": "meet the federal medical requirements in 49 CFR Part 391",
+          "section_id": "Get a  hazardous materials (HazMat) endorsement#3_0::5"
+        }
+      ]
+    },
+    {
+      "type": "Certificate",
+      "count": 2,
+      "examples": [
+        {
+          "name": "Driving School Instructor Certificate",
+          "evidence": "Before your Driving School Instructor Certificate can be renewed",
+          "section_id": "Become a driving school instructor#3_0::10"
+        },
+        {
+          "name": "USDOT Medical Examiner's Certificate",
+          "evidence": "have a valid USDOT Medical Examiner's Certificate",
+          "section_id": "Get a  hazardous materials (HazMat) endorsement#3_0::5"
+        }
+      ]
+    },
+    {
+      "type": "CourseDuration",
+      "count": 2,
+      "examples": [
+        {
+          "name": "30HourCourse",
+          "evidence": "consisting of at least 30 hours",
+          "section_id": "Become a driving school instructor#3_0::10"
+        },
+        {
+          "name": "TeachingTechniquesAndMethodologyCourseDuration",
+          "evidence": "successfully complete a 30-hour Teaching Techniques and Methodology course",
+          "section_id": "Become a driving school instructor#3_0::10"
+        }
+      ]
+    },
+    {
+      "type": "CitizenshipStatus",
+      "count": 2,
+      "examples": [
+        {
+          "name": "U.S. Citizen",
+          "evidence": "You must be a U.S. citizen",
+          "section_id": "Get a  hazardous materials (HazMat) endorsement#3_0::5"
+        },
+        {
+          "name": "Lawful Permanent Resident",
+          "evidence": "or a lawful permanent resident of the U.S.",
+          "section_id": "Get a  hazardous materials (HazMat) endorsement#3_0::5"
+        }
+      ]
+    },
+    {
+      "type": "TransactionType",
+      "count": 2,
+      "examples": [
+        {
+          "name": "OriginalRegistration",
+          "evidence": "for all original registrations and renewals",
+          "section_id": "Commercial vehicle registration fees, vehicle use taxes and supplemental fees#3_0::34"
+        },
+        {
+          "name": "Renewal",
+          "evidence": "for all original registrations and renewals",
+          "section_id": "Commercial vehicle registration fees, vehicle use taxes and supplemental fees#3_0::34"
+        }
+      ]
+    },
+    {
+      "type": "Website",
+      "count": 2,
+      "examples": [
+        {
+          "name": "DepartmentOfTaxationAndFinanceWebsite",
+          "evidence": "You can see the current sales tax rates by jurisdiction [3] at the Department of Taxation and Finance website",
+          "section_id": "Commercial vehicle registration fees, vehicle use taxes and supplemental fees#3_0::34"
+        },
+        {
+          "name": "My Federal Student Aid",
+          "evidence": "\"Find out who your loan servicer is by logging in to My Federal Student Aid.\"",
+          "section_id": "Unpaid Refund Discharge | Federal Student Aid#1_0::7"
+        }
+      ]
+    },
+    {
+      "type": "Amount",
+      "count": 2,
+      "examples": [
+        {
+          "name": "HigherAmount",
+          "evidence": "if the spouse benefit that is payable on your record is a higher amount",
+          "section_id": "Benefits Planner: Disability | Family Benefits | Social Security Administration#2_0::33"
+        },
+        {
+          "name": "ScholarshipAmount",
+          "evidence": "subtract that amount from your cost of attendance",
+          "section_id": "Finding and Applying for Scholarships | Federal Student Aid#1_0::55"
+        }
+      ]
+    },
+    {
+      "type": "Circumstance",
+      "count": 2,
+      "examples": [
+        {
+          "name": "HealthImprovement",
+          "evidence": "your health may improve to the point where you are no longer disabled",
+          "section_id": "Benefits Planner: Disability | Are You Working | Social Security Administration#2_0::1"
+        },
+        {
+          "name": "ReturnToWork",
+          "evidence": "or you go back to work",
+          "section_id": "Benefits Planner: Disability | Are You Working | Social Security Administration#2_0::1"
+        }
+      ]
+    },
+    {
+      "type": "PhoneNumber",
+      "count": 2,
+      "examples": [
+        {
+          "name": "SSAPhoneNumber",
+          "evidence": "call us 1 - 800 - 772 - 1213",
+          "section_id": "Apply for Retirement Benefits | SSA#1_0::161"
+        },
+        {
+          "name": "SSATTYNumber",
+          "evidence": "TTY 1 - 800 - 325 - 0778",
+          "section_id": "Apply for Retirement Benefits | SSA#1_0::161"
+        }
+      ]
+    },
+    {
+      "type": "IncomeComponent",
+      "count": 2,
+      "examples": [
+        {
+          "name": "Adjusted Gross Income (Total AGI)",
+          "evidence": "Your MAGI is your total adjusted gross income",
+          "section_id": "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0::32"
+        },
+        {
+          "name": "Tax-Exempt Interest Income",
+          "evidence": "and tax - exempt interest income",
+          "section_id": "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0::32"
+        }
+      ]
+    },
+    {
+      "type": "FilingStatus",
+      "count": 2,
+      "examples": [
+        {
+          "name": "Married Filing Jointly",
+          "evidence": "If you file your taxes as married, filing jointly",
+          "section_id": "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0::32"
+        },
+        {
+          "name": "Other Filing Status",
+          "evidence": "If you file your taxes using a different status",
+          "section_id": "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0::32"
+        }
+      ]
+    },
+    {
+      "type": "MedicareProgram",
+      "count": 2,
+      "examples": [
+        {
+          "name": "Part B",
+          "evidence": "you ll pay higher premiums for your Part B",
+          "section_id": "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0::32"
+        },
+        {
+          "name": "Medicare Prescription Drug Coverage",
+          "evidence": "and Medicare prescription drug coverage",
+          "section_id": "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0::32"
+        }
+      ]
+    },
+    {
+      "type": "PolicyConsequence",
+      "count": 2,
+      "examples": [
+        {
+          "name": "No Additional Letter When Enrolling Later in Same Year",
+          "evidence": "we won t send you another letter explaining how we made this determination",
+          "section_id": "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0::32"
+        },
+        {
+          "name": "Law Does Not Apply If Income Not Greater Than Limits",
+          "evidence": "if your income isn t greater than the limits described above , this law does not apply to you",
+          "section_id": "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0::32"
+        }
+      ]
+    },
+    {
+      "type": "EarningsLimit",
+      "count": 2,
+      "examples": [
+        {
+          "name": "EarningsLimitsBetweenAge62AndFullRetirementAge",
+          "evidence": "there are limits on how much you can earn each year between age 62 and full retirement age and still get all your benefits.",
+          "section_id": "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#1_0::2"
+        },
+        {
+          "name": "NoEarningsLimitAfterFullRetirementAge",
+          "evidence": "Once you reach full retirement age , there is no limit on how much you can earn.",
+          "section_id": "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#1_0::2"
+        }
+      ]
+    },
+    {
+      "type": "RecalculationProcess",
+      "count": 2,
+      "examples": [
+        {
+          "name": "BenefitRecalculationAfterFullRetirementAge",
+          "evidence": "After you reach full retirement age , we recalculate your benefit amount to give you credit for any months in which you did not receive a benefit because of your earnings.",
+          "section_id": "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#1_0::2"
+        },
+        {
+          "name": "CheckAdditionalEarningsIncrease",
+          "evidence": "When additional earnings appear on your record , we check whether they will increase your monthly benefit.",
+          "section_id": "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#1_0::2"
+        }
+      ]
+    },
+    {
+      "type": "LifeExpectancy",
+      "count": 2,
+      "examples": [
+        {
+          "name": "LifeExpectancyAfterAge65",
+          "evidence": "A man who turned 65 in 2014 can expect to live about another 19.3 years.",
+          "section_id": "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#1_0::2"
+        },
+        {
+          "name": "LifeExpectancyWomenAfterAge65",
+          "evidence": "A woman who turned 65 the same year can expect to live about another 21.6 years.",
+          "section_id": "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#1_0::2"
+        }
+      ]
+    },
+    {
+      "type": "LifeExpectancyStatistic",
+      "count": 2,
+      "examples": [
+        {
+          "name": "ProbabilityLivePastAge90",
+          "evidence": "About one out of every four 65-year - olds today will live past age 90.",
+          "section_id": "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#1_0::2"
+        },
+        {
+          "name": "ProbabilityLivePastAge95",
+          "evidence": "One out of 10 will live past age 95.",
+          "section_id": "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#1_0::2"
+        }
+      ]
+    },
+    {
+      "type": "Action",
+      "count": 2,
+      "examples": [
+        {
+          "name": "StudentAid Account Login",
+          "evidence": "To see if you are one of those users , simply log in to your account , and then look for the Aidan owl icon",
+          "section_id": "Aidan | The FSA Virtual Assistant | Federal Student Aid#1_0::49"
+        },
+        {
+          "name": "Manual Entry of Tax Information",
+          "evidence": "enter the information manually instead",
+          "section_id": "Filling Out the FAFSA® Form | Federal Student Aid#1_0::211"
+        }
+      ]
+    },
+    {
+      "type": "Device",
+      "count": 2,
+      "examples": [
+        {
+          "name": "Desktop Device",
+          "evidence": "on either your desktop or mobile device.",
+          "section_id": "Aidan | The FSA Virtual Assistant | Federal Student Aid#1_0::49"
+        },
+        {
+          "name": "Mobile Device",
+          "evidence": "on either your desktop or mobile device.",
+          "section_id": "Aidan | The FSA Virtual Assistant | Federal Student Aid#1_0::49"
+        }
+      ]
+    },
+    {
+      "type": "CalculationQuestion",
+      "count": 2,
+      "examples": [
+        {
+          "name": "StateTotalCalculation",
+          "evidence": "Can I add up all the submitted applications from a single state file to calculate a state total?",
+          "section_id": "Questions and Answers About FAFSA® Completion Data | Federal Student Aid#1_0::116"
+        },
+        {
+          "name": "CityTotalCalculation",
+          "evidence": "What about adding up all the submitted applications from a single city?",
+          "section_id": "Questions and Answers About FAFSA® Completion Data | Federal Student Aid#1_0::116"
+        }
+      ]
+    },
+    {
+      "type": "LocationConcept",
+      "count": 2,
+      "examples": [
+        {
+          "name": "OfficialSchoolLocation",
+          "evidence": "The official location of a school or the location most commonly reported by students may actually be a suburb falling within a larger city's limits.",
+          "section_id": "Questions and Answers About FAFSA® Completion Data | Federal Student Aid#1_0::116"
+        },
+        {
+          "name": "SuburbWithinCityLimits",
+          "evidence": "may actually be a suburb falling within a larger city's limits.",
+          "section_id": "Questions and Answers About FAFSA® Completion Data | Federal Student Aid#1_0::116"
+        }
+      ]
+    },
+    {
+      "type": "DataAvailabilityCondition",
+      "count": 2,
+      "examples": [
+        {
+          "name": "WithholdingTotalsOrSchoolNames",
+          "evidence": "Any analysis must also consider the impact of withholding the totals or names of schools with fewer than five completed applications.",
+          "section_id": "Questions and Answers About FAFSA® Completion Data | Federal Student Aid#1_0::116"
+        },
+        {
+          "name": "NeverMadePublicTotals",
+          "evidence": "Further , the totals for some schools are never made public because their class sizes essentially preclude them from having enough completed applications to ever be disclosed publicly.",
+          "section_id": "Questions and Answers About FAFSA® Completion Data | Federal Student Aid#1_0::116"
+        }
+      ]
+    },
+    {
+      "type": "EligibilityGroup",
+      "count": 2,
+      "examples": [
+        {
+          "name": "Qualified Surviving Spouses",
+          "evidence": "“qualified surviving spouses”",
+          "section_id": "VA Survivors Pension | Veterans Affairs#1_0::1"
+        },
+        {
+          "name": "Unmarried Dependent Children",
+          "evidence": "“unmarried dependent children”",
+          "section_id": "VA Survivors Pension | Veterans Affairs#1_0::1"
+        }
+      ]
+    },
+    {
+      "type": "Ticket",
+      "count": 1,
+      "examples": [
+        {
+          "name": "TVB Ticket",
+          "evidence": "You can plead to or pay a TVB ticket, and schedule a hearing at a Traffic Violations Bureau TVB.",
+          "section_id": "Plead to or pay TVB tickets#1_0::42"
+        }
+      ]
+    },
+    {
+      "type": "Hearing",
+      "count": 1,
+      "examples": [
+        {
+          "name": "Hearing",
+          "evidence": "You can plead to or pay a TVB ticket, and schedule a hearing at a Traffic Violations Bureau TVB.",
+          "section_id": "Plead to or pay TVB tickets#1_0::42"
+        }
+      ]
+    },
+    {
+      "type": "ServiceOrRole",
+      "count": 1,
+      "examples": [
+        {
+          "name": "Driving School Instructor",
+          "evidence": "What are the requirements to become a driving school instructor?",
+          "section_id": "Become a driving school instructor#3_0::10"
+        }
+      ]
+    },
+    {
+      "type": "AgencyOrOrganization",
+      "count": 1,
+      "examples": [
+        {
+          "name": "Licensed Driving School",
+          "evidence": "you must be employed by a driving school licensed by DMV",
+          "section_id": "Become a driving school instructor#3_0::10"
+        }
+      ]
+    },
+    {
+      "type": "GovernmentAgency",
+      "count": 1,
+      "examples": [
+        {
+          "name": "DMV",
+          "evidence": "licensed by DMV",
+          "section_id": "Become a driving school instructor#3_0::10"
+        }
+      ]
+    },
+    {
+      "type": "Provider",
+      "count": 1,
+      "examples": [
+        {
+          "name": "ApprovedCommunityCollegesAndDrivingSchools",
+          "evidence": "taught by various community colleges and driving schools that have been approved by DMV",
+          "section_id": "Become a driving school instructor#3_0::10"
+        }
+      ]
+    },
+    {
+      "type": "CourseLevel",
+      "count": 1,
+      "examples": [
+        {
+          "name": "CollegeLevelCourse",
+          "evidence": "a college - level course",
+          "section_id": "Become a driving school instructor#3_0::10"
+        }
+      ]
+    },
+    {
+      "type": "LocationType",
+      "count": 1,
+      "examples": [
+        {
+          "name": "DMVLicensedInspectionStation",
+          "evidence": "at a DMV - licensed inspection station",
+          "section_id": "About New York State Inspections#3_0::1"
+        }
+      ]
+    },
+    {
+      "type": "TriggerCondition",
+      "count": 1,
+      "examples": [
+        {
+          "name": "OwnershipTransfer",
+          "evidence": "when the ownership of the vehicle is transferred",
+          "section_id": "About New York State Inspections#3_0::1"
+        }
+      ]
+    },
+    {
+      "type": "DeadlineRule",
+      "count": 1,
+      "examples": [
+        {
+          "name": "InspectionExpirationRule",
+          "evidence": "Inspections expire the last day of the month punched on the inspection sticker.",
+          "section_id": "About New York State Inspections#3_0::1"
+        }
+      ]
+    },
+    {
+      "type": "AgencyOffice",
+      "count": 1,
+      "examples": [
+        {
+          "name": "DMVOffice",
+          "evidence": "\"at a DMV office\"",
+          "section_id": "Registrations#3_0::1"
+        }
+      ]
+    },
+    {
+      "type": "Vehicle",
+      "count": 1,
+      "examples": [
+        {
+          "name": "OwnedOrLeasedVehicle",
+          "evidence": "\"any vehicle you own or lease.\"",
+          "section_id": "Registrations#3_0::1"
+        }
+      ]
+    },
+    {
+      "type": "CourseRequirement",
+      "count": 1,
+      "examples": [
+        {
+          "name": "PreLicensingCourse",
+          "evidence": "you must take a pre - licensing course or a driver education course before you take your road test",
+          "section_id": "Get a learner permit#1_0::31"
+        }
+      ]
+    },
+    {
+      "type": "Restriction",
+      "count": 1,
+      "examples": [
+        {
+          "name": "LearnerPermitRestrictions",
+          "evidence": "you will need to follow all learner permit restrictions",
+          "section_id": "Get a learner permit#1_0::31"
+        }
+      ]
+    },
+    {
+      "type": "TimeRequirement",
+      "count": 1,
+      "examples": [
+        {
+          "name": "Under18RoadTestWaitPeriod",
+          "evidence": "If you are under age 18 , you must wait at least 6 months from the date you received your learner permit to schedule your road test",
+          "section_id": "Get a learner permit#1_0::31"
+        }
+      ]
+    },
+    {
+      "type": "PDFDocument",
+      "count": 1,
+      "examples": [
+        {
+          "name": "Important Information about the Hazardous Materials Endorsement (HAZ-11)",
+          "evidence": "See Important Information about the Hazardous Materials Endorsement pdf [4] HAZ-11",
+          "section_id": "Get a  hazardous materials (HazMat) endorsement#3_0::5"
+        }
+      ]
+    },
+    {
+      "type": "BackgroundCheckRequirement",
+      "count": 1,
+      "examples": [
+        {
+          "name": "FingerprintingForBackgroundChecks",
+          "evidence": "You must be fingerprinted for background checks",
+          "section_id": "Get a  hazardous materials (HazMat) endorsement#3_0::5"
+        }
+      ]
+    },
+    {
+      "type": "Instruction",
+      "count": 1,
+      "examples": [
+        {
+          "name": "Black Out the Picture",
+          "evidence": "If you wish , you may black out the picture",
+          "section_id": "File a Freedom of Information Law (FOIL) request#1_0::37"
+        }
+      ]
+    },
+    {
+      "type": "ServiceInformation",
+      "count": 1,
+      "examples": [
+        {
+          "name": "CountyUseTaxChart",
+          "evidence": "County use tax chart for counties outside of New York City",
+          "section_id": "Commercial vehicle registration fees, vehicle use taxes and supplemental fees#3_0::34"
+        }
+      ]
+    },
+    {
+      "type": "Tax",
+      "count": 1,
+      "examples": [
+        {
+          "name": "UseTax",
+          "evidence": "The chart show the use taxes and supplemental fees",
+          "section_id": "Commercial vehicle registration fees, vehicle use taxes and supplemental fees#3_0::34"
+        }
+      ]
+    },
+    {
+      "type": "TaxRate",
+      "count": 1,
+      "examples": [
+        {
+          "name": "SalesTaxRate",
+          "evidence": "The amount of the sales tax depends on the purchase price and your locality",
+          "section_id": "Commercial vehicle registration fees, vehicle use taxes and supplemental fees#3_0::34"
+        }
+      ]
+    },
+    {
+      "type": "Jurisdiction",
+      "count": 1,
+      "examples": [
+        {
+          "name": "Locality",
+          "evidence": "The amount of the sales tax depends on the purchase price and your locality",
+          "section_id": "Commercial vehicle registration fees, vehicle use taxes and supplemental fees#3_0::34"
+        }
+      ]
+    },
+    {
+      "type": "RoundingRule",
+      "count": 1,
+      "examples": [
+        {
+          "name": "NearestQuarterDollar",
+          "evidence": "change the result to the nearest $0.25",
+          "section_id": "Commercial vehicle registration fees, vehicle use taxes and supplemental fees#3_0::34"
+        }
+      ]
+    },
+    {
+      "type": "VehicleType",
+      "count": 1,
+      "examples": [
+        {
+          "name": "MedallionTaxi",
+          "evidence": "This tax applies to Medallion taxis",
+          "section_id": "Commercial vehicle registration fees, vehicle use taxes and supplemental fees#3_0::34"
+        }
+      ]
+    },
+    {
+      "type": "NotationRule",
+      "count": 1,
+      "examples": [
+        {
+          "name": "NumberLetterNotation",
+          "evidence": "n = number, a = letter",
+          "section_id": "Commercial vehicle registration fees, vehicle use taxes and supplemental fees#3_0::34"
+        }
+      ]
+    },
+    {
+      "type": "Pension",
+      "count": 1,
+      "examples": [
+        {
+          "name": "PensionBasedOnWorkNotCoveredBySocialSecurity",
+          "evidence": "a pension based on work not covered by Social Security, such as government or foreign work",
+          "section_id": "Benefits Planner: Disability | Family Benefits | Social Security Administration#2_0::33"
+        }
+      ]
+    },
+    {
+      "type": "ApplicantType",
+      "count": 1,
+      "examples": [
+        {
+          "name": "Noncitizen Adult",
+          "evidence": "Original Card for a Noncitizen Adult",
+          "section_id": "Learn what documents you will need to get a Social Security Card | Social Security Administration#9_0::1"
+        }
+      ]
+    },
+    {
+      "type": "Deadline",
+      "count": 1,
+      "examples": [
+        {
+          "name": "WithdrawalDeadline",
+          "evidence": "You have up to 12 months to withdraw your application, if you change your mind.",
+          "section_id": "Apply for Retirement Benefits | SSA#1_0::175"
+        }
+      ]
+    },
+    {
+      "type": "Application",
+      "count": 1,
+      "examples": [
+        {
+          "name": "SocialSecurityRetirementApplication",
+          "evidence": "Learn more about Withdrawing Your Social Security Retirement Application.",
+          "section_id": "Apply for Retirement Benefits | SSA#1_0::175"
+        }
+      ]
+    },
+    {
+      "type": "Account",
+      "count": 1,
+      "examples": [
+        {
+          "name": "MySocialSecurityAccount",
+          "evidence": "using your personal my Social Security account.",
+          "section_id": "Apply for Retirement Benefits | SSA#1_0::161"
+        }
+      ]
+    },
+    {
+      "type": "PolicyLimit",
+      "count": 1,
+      "examples": [
+        {
+          "name": "MaximumFamilyAmount",
+          "evidence": "there is a limit to the amount we can pay your family",
+          "section_id": "Benefits Planner: Disability | Family Benefits | Social Security Administration#1_0::15"
+        }
+      ]
+    },
+    {
+      "type": "BenefitAmountRule",
+      "count": 1,
+      "examples": [
+        {
+          "name": "MonthlyBenefitUpTo50Percent",
+          "evidence": "Each family member may be eligible for a monthly benefit of up to 50 percent of your disability benefit amount",
+          "section_id": "Benefits Planner: Disability | Family Benefits | Social Security Administration#1_0::15"
+        }
+      ]
+    },
+    {
+      "type": "Limit",
+      "count": 1,
+      "examples": [
+        {
+          "name": "FamilyLimit",
+          "evidence": "there is a limit to the amount we can pay your family",
+          "section_id": "Benefits Planner: Disability | Family Benefits | Social Security Administration#1_0::15"
+        }
+      ]
+    },
+    {
+      "type": "BenefitAmountRange",
+      "count": 1,
+      "examples": [
+        {
+          "name": "TotalFamilyBenefitRange",
+          "evidence": "generally the total amount you and your family can receive is between 150 and 180 percent of your disability benefit",
+          "section_id": "Benefits Planner: Disability | Family Benefits | Social Security Administration#1_0::15"
+        }
+      ]
+    },
+    {
+      "type": "ReductionRule",
+      "count": 1,
+      "examples": [
+        {
+          "name": "BenefitReductionProportionately",
+          "evidence": "the benefits to the family members will be reduced proportionately",
+          "section_id": "Benefits Planner: Disability | Family Benefits | Social Security Administration#1_0::15"
+        }
+      ]
+    },
+    {
+      "type": "OutcomeRule",
+      "count": 1,
+      "examples": [
+        {
+          "name": "YourBenefitNotAffected",
+          "evidence": "Your benefit will not be affected",
+          "section_id": "Benefits Planner: Disability | Family Benefits | Social Security Administration#1_0::15"
+        }
+      ]
+    },
+    {
+      "type": "ServiceOutcome",
+      "count": 1,
+      "examples": [
+        {
+          "name": "Higher Medicare Premiums",
+          "evidence": "If you must pay higher premiums , we use a sliding scale to calculate the adjustments",
+          "section_id": "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0::32"
+        }
+      ]
+    },
+    {
+      "type": "CalculationMethod",
+      "count": 1,
+      "examples": [
+        {
+          "name": "Sliding Scale Adjustment",
+          "evidence": "we use a sliding scale to calculate the adjustments",
+          "section_id": "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0::32"
+        }
+      ]
+    },
+    {
+      "type": "IncomeMeasure",
+      "count": 1,
+      "examples": [
+        {
+          "name": "Modified Adjusted Gross Income (MAGI)",
+          "evidence": "based on your modified adjusted gross income MAGI",
+          "section_id": "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0::32"
+        }
+      ]
+    },
+    {
+      "type": "Notice",
+      "count": 1,
+      "examples": [
+        {
+          "name": "Premium Determination Letter",
+          "evidence": "we ll send you a letter with your premium amount and the reason for our determination",
+          "section_id": "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0::32"
+        }
+      ]
+    },
+    {
+      "type": "Reason",
+      "count": 1,
+      "examples": [
+        {
+          "name": "Reason for Determination",
+          "evidence": "and the reason for our determination",
+          "section_id": "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0::32"
+        }
+      ]
+    },
+    {
+      "type": "AdministrativeAction",
+      "count": 1,
+      "examples": [
+        {
+          "name": "Automatic Adjustment to Other Program",
+          "evidence": "we ll apply an adjustment automatically to the other program when you enroll",
+          "section_id": "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0::32"
+        }
+      ]
+    },
+    {
+      "type": "DecisionFactor",
+      "count": 1,
+      "examples": [
+        {
+          "name": "RetirementBenefitsApplicationAgeDecision",
+          "evidence": "there is no one \" best age \" for everyone and, ultimately, it is your choice",
+          "section_id": "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#1_0::2"
+        }
+      ]
+    },
+    {
+      "type": "AgeThreshold",
+      "count": 1,
+      "examples": [
+        {
+          "name": "FullRetirementAge",
+          "evidence": "before your full retirement age",
+          "section_id": "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#1_0::2"
+        }
+      ]
+    },
+    {
+      "type": "BenefitAmount",
+      "count": 1,
+      "examples": [
+        {
+          "name": "MonthlyBenefitAmount",
+          "evidence": "Your monthly benefit amount can differ substantially based on the age when you start receiving benefits.",
+          "section_id": "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#1_0::2"
+        }
+      ]
+    },
+    {
+      "type": "Notification",
+      "count": 1,
+      "examples": [
+        {
+          "name": "SSARecalculatedBenefitLetter",
+          "evidence": "we will send you a letter telling you your new benefit amount.",
+          "section_id": "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#1_0::2"
+        }
+      ]
+    },
+    {
+      "type": "PlanningGuideline",
+      "count": 1,
+      "examples": [
+        {
+          "name": "LongTermPlanning",
+          "evidence": "be sure to plan for the long term.",
+          "section_id": "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#1_0::2"
+        }
+      ]
+    },
+    {
+      "type": "FinancialNeed",
+      "count": 1,
+      "examples": [
+        {
+          "name": "NeedExtraMoneyInLaterYears",
+          "evidence": "you may need the extra money more in later years",
+          "section_id": "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#1_0::2"
+        }
+      ]
+    },
+    {
+      "type": "RiskFactor",
+      "count": 1,
+      "examples": [
+        {
+          "name": "OutlivePensionsOrAnnuitiesWithLimits",
+          "evidence": "particularly if you may outlive pensions or annuities with limits on how long they are paid.",
+          "section_id": "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#1_0::2"
+        }
+      ]
+    },
+    {
+      "type": "EmployerBenefit",
+      "count": 1,
+      "examples": [
+        {
+          "name": "EmployerRetireeHealthBenefits",
+          "evidence": "Your employer should be able to tell you if you will have retiree health benefits",
+          "section_id": "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#1_0::2"
+        }
+      ]
+    },
+    {
+      "type": "ForbearanceProgram",
+      "count": 1,
+      "examples": [
+        {
+          "name": "GeneralForbearance",
+          "evidence": "General forbearances are available for Direct Loans, Federal Family Education FFEL Program loans, and Perkins Loans.",
+          "section_id": "Student Loan Forbearance | Federal Student Aid#1_0::56"
+        }
+      ]
+    },
+    {
+      "type": "UserGroup",
+      "count": 1,
+      "examples": [
+        {
+          "name": "Pilot Group of Users",
+          "evidence": "Aidan beta version is available only to a pilot group of users when they are logged in to their accounts.",
+          "section_id": "Aidan | The FSA Virtual Assistant | Federal Student Aid#1_0::49"
+        }
+      ]
+    },
+    {
+      "type": "InterfaceElement",
+      "count": 1,
+      "examples": [
+        {
+          "name": "Aidan Owl Icon",
+          "evidence": "look for the Aidan owl icon in the bottom right - hand corner of any page of the site on either your desktop or mobile device.",
+          "section_id": "Aidan | The FSA Virtual Assistant | Federal Student Aid#1_0::49"
+        }
+      ]
+    },
+    {
+      "type": "RolloutPlan",
+      "count": 1,
+      "examples": [
+        {
+          "name": "Wider Audience Rollout",
+          "evidence": "please check back in the future as we roll out this new service to a wider audience.",
+          "section_id": "Aidan | The FSA Virtual Assistant | Federal Student Aid#1_0::49"
+        }
+      ]
+    },
+    {
+      "type": "CompetenceRequirement",
+      "count": 1,
+      "examples": [
+        {
+          "name": "DemonstrateCompetenceInAcademicSubjects",
+          "evidence": "or demonstrate competence in all the academic subjects in which you teach",
+          "section_id": "Teacher Loan Forgiveness | Federal Student Aid#1_0::54"
+        }
+      ]
+    },
+    {
+      "type": "EvaluationStandard",
+      "count": 1,
+      "examples": [
+        {
+          "name": "HighObjectiveUniformStateStandardOfEvaluation",
+          "evidence": "based on a high, objective, uniform state standard of evaluation",
+          "section_id": "Teacher Loan Forgiveness | Federal Student Aid#1_0::54"
+        }
+      ]
+    },
+    {
+      "type": "EvaluationMethod",
+      "count": 1,
+      "examples": [
+        {
+          "name": "MultipleObjectiveMeasuresOfTeacherCompetency",
+          "evidence": "The uniform state standard of evaluation may involve multiple, objective measures of teacher competency",
+          "section_id": "Teacher Loan Forgiveness | Federal Student Aid#1_0::54"
+        }
+      ]
+    },
+    {
+      "type": "CompetencyArea",
+      "count": 1,
+      "examples": [
+        {
+          "name": "GradeAppropriateAcademicSubjectMatterKnowledgeAndTeachingSkills",
+          "evidence": "for both grade - appropriate academic subject matter knowledge and teaching skills",
+          "section_id": "Teacher Loan Forgiveness | Federal Student Aid#1_0::54"
+        }
+      ]
+    },
+    {
+      "type": "AlignmentRequirement",
+      "count": 1,
+      "examples": [
+        {
+          "name": "AlignedWithChallengingStateAcademicContentAndStudentAchievementStandards",
+          "evidence": "be aligned with challenging state academic content and student academic achievement standards",
+          "section_id": "Teacher Loan Forgiveness | Federal Student Aid#1_0::54"
+        }
+      ]
+    },
+    {
+      "type": "DevelopmentRequirement",
+      "count": 1,
+      "examples": [
+        {
+          "name": "DevelopedInConsultationWithCoreContentSpecialistsTeachersPrincipalsAndAdministrators",
+          "evidence": "and developed in consultation with core content specialists, teachers, principals, and school administrators",
+          "section_id": "Teacher Loan Forgiveness | Federal Student Aid#1_0::54"
+        }
+      ]
+    },
+    {
+      "type": "InformationRequirement",
+      "count": 1,
+      "examples": [
+        {
+          "name": "ObjectiveCoherentInformationAboutCoreContentKnowledgeAttainment",
+          "evidence": "provide objective, coherent information about your attainment of core content knowledge in the academic subjects in which you teach",
+          "section_id": "Teacher Loan Forgiveness | Federal Student Aid#1_0::54"
+        }
+      ]
+    },
+    {
+      "type": "UniformApplicationRequirement",
+      "count": 1,
+      "examples": [
+        {
+          "name": "AppliedUniformlyToAllTeachersSameSubjectAndGradeLevelThroughoutTheState",
+          "evidence": "be applied uniformly to all teachers in the same academic subject and the same grade level throughout the state",
+          "section_id": "Teacher Loan Forgiveness | Federal Student Aid#1_0::54"
+        }
+      ]
+    },
+    {
+      "type": "ConsiderationRule",
+      "count": 1,
+      "examples": [
+        {
+          "name": "TimeTeachingConsideredButNotPrimaryBasis",
+          "evidence": "take into consideration, but not be based primarily on, the time you have been teaching in the academic subject",
+          "section_id": "Teacher Loan Forgiveness | Federal Student Aid#1_0::54"
+        }
+      ]
+    },
+    {
+      "type": "PublicAccessRequirement",
+      "count": 1,
+      "examples": [
+        {
+          "name": "UniformStateStandardMadeAvailableToPublicUponRequest",
+          "evidence": "and be made available to the public upon request",
+          "section_id": "Teacher Loan Forgiveness | Federal Student Aid#1_0::54"
+        }
+      ]
+    },
+    {
+      "type": "Button",
+      "count": 1,
+      "examples": [
+        {
+          "name": "Reset FAFSA Button",
+          "evidence": "you can select the Reset FAFSA button at the top of the page",
+          "section_id": "Filling Out the FAFSA® Form | Federal Student Aid#1_0::211"
+        }
+      ]
+    },
+    {
+      "type": "QualityClaim",
+      "count": 1,
+      "examples": [
+        {
+          "name": "Fastest and Most Accurate Way",
+          "evidence": "The IRS DRT remains the fastest, most accurate way to input your tax return information into the FAFSA form",
+          "section_id": "Filling Out the FAFSA® Form | Federal Student Aid#1_0::211"
+        }
+      ]
+    },
+    {
+      "type": "ExpenseCategory",
+      "count": 1,
+      "examples": [
+        {
+          "name": "StudentEducationExpenses",
+          "evidence": "put aside for a student s education expenses",
+          "section_id": "Tax Benefits for Higher Education | Federal Student Aid#1_0::13"
+        }
+      ]
+    },
+    {
+      "type": "DataSet",
+      "count": 1,
+      "examples": [
+        {
+          "name": "FAFSACompletionData",
+          "evidence": "Questions and Answers About FAFSA® Completion Data",
+          "section_id": "Questions and Answers About FAFSA® Completion Data | Federal Student Aid#1_0::116"
+        }
+      ]
+    },
+    {
+      "type": "ApplicationCountCondition",
+      "count": 1,
+      "examples": [
+        {
+          "name": "LessThan5CompletedApplications",
+          "evidence": "If an institution is reported as having \" <5 \" completed applications , one cannot assume there were zero applications.",
+          "section_id": "Questions and Answers About FAFSA® Completion Data | Federal Student Aid#1_0::116"
+        }
+      ]
+    },
+    {
+      "type": "Cause",
+      "count": 1,
+      "examples": [
+        {
+          "name": "ClassSizesPrecludeDisclosure",
+          "evidence": "because their class sizes essentially preclude them from having enough completed applications to ever be disclosed publicly.",
+          "section_id": "Questions and Answers About FAFSA® Completion Data | Federal Student Aid#1_0::116"
+        }
+      ]
+    },
+    {
+      "type": "Consideration",
+      "count": 1,
+      "examples": [
+        {
+          "name": "AnalysisFactors",
+          "evidence": "be sure to consider these and other factors when conducting any analyses.",
+          "section_id": "Questions and Answers About FAFSA® Completion Data | Federal Student Aid#1_0::116"
+        }
+      ]
+    },
+    {
+      "type": "Scholarship",
+      "count": 1,
+      "examples": [
+        {
+          "name": "Scholarship",
+          "evidence": "A scholarship will affect your other student aid",
+          "section_id": "Finding and Applying for Scholarships | Federal Student Aid#1_0::55"
+        }
+      ]
+    },
+    {
+      "type": "StudentAid",
+      "count": 1,
+      "examples": [
+        {
+          "name": "OtherStudentAid",
+          "evidence": "your other student aid",
+          "section_id": "Finding and Applying for Scholarships | Federal Student Aid#1_0::55"
+        }
+      ]
+    },
+    {
+      "type": "Cost",
+      "count": 1,
+      "examples": [
+        {
+          "name": "CostOfAttendance",
+          "evidence": "can t be more than your cost of attendance at your college or career school",
+          "section_id": "Finding and Applying for Scholarships | Federal Student Aid#1_0::55"
+        }
+      ]
+    },
+    {
+      "type": "AidType",
+      "count": 1,
+      "examples": [
+        {
+          "name": "Loans",
+          "evidence": "from certain other aid, such as loans",
+          "section_id": "Finding and Applying for Scholarships | Federal Student Aid#1_0::55"
+        }
+      ]
+    },
+    {
+      "type": "FinancialAid",
+      "count": 1,
+      "examples": [
+        {
+          "name": "OtherFinancialAid",
+          "evidence": "any amount left can be covered by other financial aid",
+          "section_id": "Finding and Applying for Scholarships | Federal Student Aid#1_0::55"
+        }
+      ]
+    },
+    {
+      "type": "VeteranDesignation",
+      "count": 1,
+      "examples": [
+        {
+          "name": "VeteranDesignation",
+          "evidence": "all 50 states and Puerto Rico offer a Veteran designation an identifying mark printed on state-issued driver s licenses or IDs",
+          "section_id": "Types Of Veteran ID Cards | Veterans Affairs#1_0::56"
+        }
+      ]
+    },
+    {
+      "type": "Condition",
+      "count": 1,
+      "examples": [
+        {
+          "name": "StateVariationInDesignationType",
+          "evidence": "The type of Veteran designation may vary from state to state",
+          "section_id": "Types Of Veteran ID Cards | Veterans Affairs#1_0::56"
+        }
+      ]
+    },
+    {
+      "type": "Law",
+      "count": 1,
+      "examples": [
+        {
+          "name": "Uniformed Services Employment and Reemployment Rights Act (USERRA)",
+          "evidence": "\"protected under the Uniformed Services Employment and Reemployment Rights Act USERRA\"",
+          "section_id": "VR&E Reemployment Track | Veterans Affairs#1_0::1"
+        }
+      ]
+    },
+    {
+      "type": "PersonRole",
+      "count": 1,
+      "examples": [
+        {
+          "name": "Veteran",
+          "evidence": "\"As a Veteran , you re protected\"",
+          "section_id": "VR&E Reemployment Track | Veterans Affairs#1_0::1"
+        }
+      ]
+    },
+    {
+      "type": "ProtectionOutcome",
+      "count": 1,
+      "examples": [
+        {
+          "name": "CivilianCareerProtection",
+          "evidence": "\"you can t be disadvantaged in your civilian career because of your service\"",
+          "section_id": "VR&E Reemployment Track | Veterans Affairs#1_0::1"
+        }
+      ]
+    },
+    {
+      "type": "AccommodationOutcome",
+      "count": 1,
+      "examples": [
+        {
+          "name": "EmployerAccommodationNeeds",
+          "evidence": "\"can help your employer accommodate your needs\"",
+          "section_id": "VR&E Reemployment Track | Veterans Affairs#1_0::1"
+        }
+      ]
+    },
+    {
+      "type": "Example",
+      "count": 1,
+      "examples": [
+        {
+          "name": "Example Combined Disability Rating (2x10%)",
+          "evidence": "If you have 2 disabilities, each rated at 10% disabling , your combined disability rating is 19 %.",
+          "section_id": "About VA Disability Ratings | Veterans Affairs#1_0::36"
+        }
+      ]
+    },
+    {
+      "type": "PaymentType",
+      "count": 1,
+      "examples": [
+        {
+          "name": "Monthly Payments",
+          "evidence": "“offers monthly payments to qualified surviving spouses and unmarried dependent children”",
+          "section_id": "VA Survivors Pension | Veterans Affairs#1_0::1"
+        }
+      ]
+    },
+    {
+      "type": "BeneficiaryGroup",
+      "count": 1,
+      "examples": [
+        {
+          "name": "Wartime Veterans",
+          "evidence": "“wartime Veterans”",
+          "section_id": "VA Survivors Pension | Veterans Affairs#1_0::1"
+        }
+      ]
+    },
+    {
+      "type": "GoverningBody",
+      "count": 1,
+      "examples": [
+        {
+          "name": "Congress",
+          "evidence": "“limits set by Congress”",
+          "section_id": "VA Survivors Pension | Veterans Affairs#1_0::1"
+        }
+      ]
+    },
+    {
+      "type": "ServiceCategory",
+      "count": 1,
+      "examples": [
+        {
+          "name": "BenefitType",
+          "evidence": "What kind of benefits can I get? Depending on your needs , services may include :",
+          "section_id": "VR&E Independent Living Track | Veterans Affairs#1_0::18"
+        }
+      ]
+    },
+    {
+      "type": "Grant",
+      "count": 1,
+      "examples": [
+        {
+          "name": "AdaptiveHousingGrants",
+          "evidence": "Learn more about adaptive housing grants",
+          "section_id": "VR&E Independent Living Track | Veterans Affairs#1_0::18"
+        }
+      ]
+    }
+  ],
+  "relation_types": [
+    {
+      "relation": "REQUIRES",
+      "count": 20,
+      "examples": [
+        {
+          "triple": "VehicleRegistrationInNewYorkState -[REQUIRES]-> SafetyInspection",
+          "evidence": "All vehicles registered in New York State must get a safety inspection",
+          "section_id": "About New York State Inspections#3_0::1"
+        },
+        {
+          "triple": "SafetyInspection -[REQUIRES]-> ValidInspectionSticker",
+          "evidence": "A valid inspection sticker must be displayed on your vehicle.",
+          "section_id": "About New York State Inspections#3_0::1"
+        },
+        {
+          "triple": "SupervisedDrivingPractice -[REQUIRES]-> RoadTest",
+          "evidence": "you must have supervised driving practice",
+          "section_id": "Get a learner permit#1_0::31"
+        }
+      ]
+    },
+    {
+      "relation": "EXEMPTS",
+      "count": 8,
+      "examples": [
+        {
+          "triple": "AdditionalFee -[EXEMPTS]-> AgriculturalRegistrationClass",
+          "evidence": "Several registration classes are exempt from the additional fee. The classes include Agricultural AGR",
+          "section_id": "Commercial vehicle registration fees, vehicle use taxes and supplemental fees#3_0::34"
+        },
+        {
+          "triple": "AdditionalFee -[EXEMPTS]-> AmbulanceRegistrationClass",
+          "evidence": "The classes include Agricultural AGR, Ambulance AMB",
+          "section_id": "Commercial vehicle registration fees, vehicle use taxes and supplemental fees#3_0::34"
+        },
+        {
+          "triple": "AdditionalFee -[EXEMPTS]-> FarmRegistrationClass",
+          "evidence": "The classes include ... Farm FAR",
+          "section_id": "Commercial vehicle registration fees, vehicle use taxes and supplemental fees#3_0::34"
+        }
+      ]
+    },
+    {
+      "relation": "INCLUDES",
+      "count": 7,
+      "examples": [
+        {
+          "triple": "Premium Determination Letter -[INCLUDES]-> Premium Amount",
+          "evidence": "send you a letter with your premium amount",
+          "section_id": "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0::32"
+        },
+        {
+          "triple": "Premium Determination Letter -[INCLUDES]-> Reason for Determination",
+          "evidence": "and the reason for our determination",
+          "section_id": "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0::32"
+        },
+        {
+          "triple": "VA Survivors Pension -[INCLUDES]-> Application Process",
+          "evidence": "“and how to apply.”",
+          "section_id": "VA Survivors Pension | Veterans Affairs#1_0::1"
+        }
+      ]
+    },
+    {
+      "relation": "NOT_INCLUDED_FOR_PLATE_CONFIGURATION",
+      "count": 6,
+      "examples": [
+        {
+          "triple": "MedallionTaxi -[NOT_INCLUDED_FOR_PLATE_CONFIGURATION]-> MedallionTaxiPlateConfigurationTnnnnnT",
+          "evidence": "This tax does not include Medallion taxis with plate number configurations: \" TnnnnnT \"",
+          "section_id": "Commercial vehicle registration fees, vehicle use taxes and supplemental fees#3_0::34"
+        },
+        {
+          "triple": "MedallionTaxi -[NOT_INCLUDED_FOR_PLATE_CONFIGURATION]-> MedallionTaxiPlateConfigurationTnnnnnnT",
+          "evidence": "\" TnnnnnnT \"",
+          "section_id": "Commercial vehicle registration fees, vehicle use taxes and supplemental fees#3_0::34"
+        },
+        {
+          "triple": "MedallionTaxi -[NOT_INCLUDED_FOR_PLATE_CONFIGURATION]-> MedallionTaxiPlateConfigurationNana",
+          "evidence": "\" nana \"",
+          "section_id": "Commercial vehicle registration fees, vehicle use taxes and supplemental fees#3_0::34"
+        }
+      ]
+    },
+    {
+      "relation": "APPLIES_TO",
+      "count": 5,
+      "examples": [
+        {
+          "triple": "CountyUseTaxChart -[APPLIES_TO]-> OriginalRegistration",
+          "evidence": "for all original registrations and renewals",
+          "section_id": "Commercial vehicle registration fees, vehicle use taxes and supplemental fees#3_0::34"
+        },
+        {
+          "triple": "CountyUseTaxChart -[APPLIES_TO]-> Renewal",
+          "evidence": "for all original registrations and renewals",
+          "section_id": "Commercial vehicle registration fees, vehicle use taxes and supplemental fees#3_0::34"
+        },
+        {
+          "triple": "ApplicationWithdrawal -[APPLIES_TO]-> SocialSecurityRetirementApplication",
+          "evidence": "Learn more about Withdrawing Your Social Security Retirement Application.",
+          "section_id": "Apply for Retirement Benefits | SSA#1_0::175"
+        }
+      ]
+    },
+    {
+      "relation": "BASED_ON",
+      "count": 4,
+      "examples": [
+        {
+          "triple": "MonthlyBenefitUpTo50Percent -[BASED_ON]-> MaximumFamilyAmount",
+          "evidence": "Each family member may be eligible for a monthly benefit of up to 50 percent of your disability benefit amount",
+          "section_id": "Benefits Planner: Disability | Family Benefits | Social Security Administration#1_0::15"
+        },
+        {
+          "triple": "Higher Medicare Premiums -[BASED_ON]-> Modified Adjusted Gross Income (MAGI)",
+          "evidence": "based on your modified adjusted gross income MAGI",
+          "section_id": "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0::32"
+        },
+        {
+          "triple": "DemonstrateCompetenceInAcademicSubjects -[BASED_ON]-> HighObjectiveUniformStateStandardOfEvaluation",
+          "evidence": "based on a high, objective, uniform state standard of evaluation",
+          "section_id": "Teacher Loan Forgiveness | Federal Student Aid#1_0::54"
+        }
+      ]
+    },
+    {
+      "relation": "RESULTS_IN",
+      "count": 4,
+      "examples": [
+        {
+          "triple": "StartBenefitsBeforeFullRetirementAge -[RESULTS_IN]-> MonthlyBenefitAmount",
+          "evidence": "If you decide to start benefits : before your full retirement age , your benefit will be smaller",
+          "section_id": "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#1_0::2"
+        },
+        {
+          "triple": "StartBenefitsAtOrAfterFullRetirementAge -[RESULTS_IN]-> MonthlyBenefitAmount",
+          "evidence": "at your full retirement age or later , you will receive a larger monthly benefit",
+          "section_id": "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#1_0::2"
+        },
+        {
+          "triple": "CheckAdditionalEarningsIncrease -[RESULTS_IN]-> SSARecalculatedBenefitLetter",
+          "evidence": "If they do , we will send you a letter telling you your new benefit amount.",
+          "section_id": "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#1_0::2"
+        }
+      ]
+    },
+    {
+      "relation": "HAS_PDF",
+      "count": 4,
+      "examples": [
+        {
+          "triple": "VA Health Care -[HAS_PDF]-> VA Health Care",
+          "evidence": "Apply for VA health care PDF",
+          "section_id": "Print Out Your VA Welcome Kit | Veterans Affairs#1_0::13"
+        },
+        {
+          "triple": "Mental Health Services -[HAS_PDF]-> Mental Health Services",
+          "evidence": "Get started with mental health services PDF",
+          "section_id": "Print Out Your VA Welcome Kit | Veterans Affairs#1_0::13"
+        },
+        {
+          "triple": "Disability Rating -[HAS_PDF]-> Disability Rating",
+          "evidence": "Apply for a disability rating PDF",
+          "section_id": "Print Out Your VA Welcome Kit | Veterans Affairs#1_0::13"
+        }
+      ]
+    },
+    {
+      "relation": "REJECTS",
+      "count": 3,
+      "examples": [
+        {
+          "triple": "Social Security Number -[REJECTS]-> NoPhotocopies",
+          "evidence": "We cannot accept photocopies or notarized copies",
+          "section_id": "Learn what documents you will need to get a Social Security Card | Social Security Administration#9_0::1"
+        },
+        {
+          "triple": "Social Security Number -[REJECTS]-> NoNotarizedCopies",
+          "evidence": "We cannot accept photocopies or notarized copies",
+          "section_id": "Learn what documents you will need to get a Social Security Card | Social Security Administration#9_0::1"
+        },
+        {
+          "triple": "Social Security Number -[REJECTS]-> NoReceiptForDocumentApplication",
+          "evidence": "We cannot accept a receipt showing you applied for the document",
+          "section_id": "Learn what documents you will need to get a Social Security Card | Social Security Administration#9_0::1"
+        }
+      ]
+    },
+    {
+      "relation": "AVAILABLE_FOR",
+      "count": 3,
+      "examples": [
+        {
+          "triple": "GeneralForbearance -[AVAILABLE_FOR]-> DirectLoans",
+          "evidence": "General forbearances are available for Direct Loans, Federal Family Education FFEL Program loans, and Perkins Loans.",
+          "section_id": "Student Loan Forbearance | Federal Student Aid#1_0::56"
+        },
+        {
+          "triple": "GeneralForbearance -[AVAILABLE_FOR]-> FederalFamilyEducationFFELProgramLoans",
+          "evidence": "General forbearances are available for Direct Loans, Federal Family Education FFEL Program loans, and Perkins Loans.",
+          "section_id": "Student Loan Forbearance | Federal Student Aid#1_0::56"
+        },
+        {
+          "triple": "GeneralForbearance -[AVAILABLE_FOR]-> PerkinsLoans",
+          "evidence": "General forbearances are available for Direct Loans, Federal Family Education FFEL Program loans, and Perkins Loans.",
+          "section_id": "Student Loan Forbearance | Federal Student Aid#1_0::56"
+        }
+      ]
+    },
+    {
+      "relation": "SET_BY",
+      "count": 3,
+      "examples": [
+        {
+          "triple": "HighObjectiveUniformStateStandardOfEvaluation -[SET_BY]-> StateSetsUniformStateStandardOfEvaluation",
+          "evidence": "The uniform state standard of evaluation may involve multiple, objective measures of teacher competency and must be set by the state",
+          "section_id": "Teacher Loan Forgiveness | Federal Student Aid#1_0::54"
+        },
+        {
+          "triple": "Income Limits -[SET_BY]-> Congress",
+          "evidence": "“limits set by Congress”",
+          "section_id": "VA Survivors Pension | Veterans Affairs#1_0::1"
+        },
+        {
+          "triple": "Net Worth Limits -[SET_BY]-> Congress",
+          "evidence": "“limits set by Congress”",
+          "section_id": "VA Survivors Pension | Veterans Affairs#1_0::1"
+        }
+      ]
+    },
+    {
+      "relation": "PROVIDES",
+      "count": 3,
+      "examples": [
+        {
+          "triple": "HighObjectiveUniformStateStandardOfEvaluation -[PROVIDES]-> ObjectiveCoherentInformationAboutCoreContentKnowledgeAttainment",
+          "evidence": "provide objective, coherent information about your attainment of core content knowledge in the academic subjects in which you teach",
+          "section_id": "Teacher Loan Forgiveness | Federal Student Aid#1_0::54"
+        },
+        {
+          "triple": "VocationalRehabilitationCounselor (VRC) -[PROVIDES]-> RehabilitationServices",
+          "evidence": "\"can provide a full range of rehabilitation services\"",
+          "section_id": "VR&E Reemployment Track | Veterans Affairs#1_0::1"
+        },
+        {
+          "triple": "VA Survivors Pension -[PROVIDES]-> Monthly Payments",
+          "evidence": "“VA Survivors Pension offers monthly payments”",
+          "section_id": "VA Survivors Pension | Veterans Affairs#1_0::1"
+        }
+      ]
+    },
+    {
+      "relation": "IS_PART_OF",
+      "count": 2,
+      "examples": [
+        {
+          "triple": "Traffic Violations Bureau (TVB) Office -[IS_PART_OF]-> Traffic Violations Bureau (TVB) (TVB)",
+          "evidence": "schedule a hearing at a Traffic Violations Bureau TVB.",
+          "section_id": "Plead to or pay TVB tickets#1_0::42"
+        },
+        {
+          "triple": "WomenHealthServices -[IS_PART_OF]-> BenefitsAccess",
+          "evidence": "“as part of your benefits”",
+          "section_id": "Women's Health Care Needs | Veterans Affairs#1_0::1"
+        }
+      ]
+    },
+    {
+      "relation": "TRIGGERED_BY",
+      "count": 2,
+      "examples": [
+        {
+          "triple": "SafetyInspection -[TRIGGERED_BY]-> OwnershipTransfer",
+          "evidence": "every 12 months when the ownership of the vehicle is transferred",
+          "section_id": "About New York State Inspections#3_0::1"
+        },
+        {
+          "triple": "Higher Medicare Premiums -[TRIGGERED_BY]-> Premium Determination Letter",
+          "evidence": "If you must pay higher premiums , we ll send you a letter with your premium amount and the reason for our determination",
+          "section_id": "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0::32"
+        }
+      ]
+    },
+    {
+      "relation": "STATES_NOT_REQUIRED",
+      "count": 2,
+      "examples": [
+        {
+          "triple": "RegistrationNotOwnerNameRequirement -[STATES_NOT_REQUIRED]-> DMVOffice",
+          "evidence": "\"Registrations do not need to be in the owner's name\"",
+          "section_id": "Registrations#3_0::1"
+        },
+        {
+          "triple": "RegistrationNotSinglePersonRequirement -[STATES_NOT_REQUIRED]-> DMVOffice",
+          "evidence": "\"or for only one person.\"",
+          "section_id": "Registrations#3_0::1"
+        }
+      ]
+    },
+    {
+      "relation": "REFERENCES",
+      "count": 2,
+      "examples": [
+        {
+          "triple": "VehiclePlatesInformation -[REFERENCES]-> VehiclePlates",
+          "evidence": "\"See information about vehicle plates\"",
+          "section_id": "Registrations#3_0::1"
+        },
+        {
+          "triple": "VehicleTitlesInformation -[REFERENCES]-> VehicleTitle",
+          "evidence": "\"See information about vehicle plates [1] or vehicle titles [2].\"",
+          "section_id": "Registrations#3_0::1"
+        }
+      ]
+    },
+    {
+      "relation": "SHOWS",
+      "count": 2,
+      "examples": [
+        {
+          "triple": "CountyUseTaxChart -[SHOWS]-> UseTax",
+          "evidence": "The chart show the use taxes and supplemental fees",
+          "section_id": "Commercial vehicle registration fees, vehicle use taxes and supplemental fees#3_0::34"
+        },
+        {
+          "triple": "CountyUseTaxChart -[SHOWS]-> SupplementalFee",
+          "evidence": "The chart show the use taxes and supplemental fees",
+          "section_id": "Commercial vehicle registration fees, vehicle use taxes and supplemental fees#3_0::34"
+        }
+      ]
+    },
+    {
+      "relation": "DEPENDS_ON",
+      "count": 2,
+      "examples": [
+        {
+          "triple": "SalesTaxRate -[DEPENDS_ON]-> PurchasePrice",
+          "evidence": "The amount of the sales tax depends on the purchase price and your locality",
+          "section_id": "Commercial vehicle registration fees, vehicle use taxes and supplemental fees#3_0::34"
+        },
+        {
+          "triple": "SalesTaxRate -[DEPENDS_ON]-> Locality",
+          "evidence": "The amount of the sales tax depends on the purchase price and your locality",
+          "section_id": "Commercial vehicle registration fees, vehicle use taxes and supplemental fees#3_0::34"
+        }
+      ]
+    },
+    {
+      "relation": "SUBJECT_TO_TAX_FOR_PLATE_CONFIGURATION",
+      "count": 2,
+      "examples": [
+        {
+          "triple": "MedallionTaxi -[SUBJECT_TO_TAX_FOR_PLATE_CONFIGURATION]-> MedallionTaxiPlateConfigurationTnnnnnC",
+          "evidence": "This tax applies to Medallion taxis with a plate number configuration of \" TnnnnnC \"",
+          "section_id": "Commercial vehicle registration fees, vehicle use taxes and supplemental fees#3_0::34"
+        },
+        {
+          "triple": "MedallionTaxi -[SUBJECT_TO_TAX_FOR_PLATE_CONFIGURATION]-> MedallionTaxiPlateConfigurationTnnnnnnC",
+          "evidence": "or \" TnnnnnnC \"",
+          "section_id": "Commercial vehicle registration fees, vehicle use taxes and supplemental fees#3_0::34"
+        }
+      ]
+    },
+    {
+      "relation": "AFFECTS",
+      "count": 2,
+      "examples": [
+        {
+          "triple": "SpouseReceivesPensionNotCoveredBySocialSecurity -[AFFECTS]-> SpouseSocialSecurityBenefitOnYourRecordMayBeAffected",
+          "evidence": "his or her Social Security benefit on your record may be affected",
+          "section_id": "Benefits Planner: Disability | Family Benefits | Social Security Administration#2_0::33"
+        },
+        {
+          "triple": "Scholarship -[AFFECTS]-> OtherStudentAid",
+          "evidence": "A scholarship will affect your other student aid",
+          "section_id": "Finding and Applying for Scholarships | Federal Student Aid#1_0::55"
+        }
+      ]
+    },
+    {
+      "relation": "MAY_CHANGE_DUE_TO",
+      "count": 2,
+      "examples": [
+        {
+          "triple": "ContinuingEligibilityForDisabilityBenefits -[MAY_CHANGE_DUE_TO]-> HealthImprovement",
+          "evidence": "your health may improve to the point where you are no longer disabled",
+          "section_id": "Benefits Planner: Disability | Are You Working | Social Security Administration#2_0::1"
+        },
+        {
+          "triple": "ContinuingEligibilityForDisabilityBenefits -[MAY_CHANGE_DUE_TO]-> ReturnToWork",
+          "evidence": "or you go back to work",
+          "section_id": "Benefits Planner: Disability | Are You Working | Social Security Administration#2_0::1"
+        }
+      ]
+    },
+    {
+      "relation": "REQUIRES_ORIGINAL_OR_CERTIFIED_DOCUMENTS",
+      "count": 2,
+      "examples": [
+        {
+          "triple": "Social Security Number -[REQUIRES_ORIGINAL_OR_CERTIFIED_DOCUMENTS]-> OriginalDocuments",
+          "evidence": "You must present original documents or copies certified by the agency that issued them",
+          "section_id": "Learn what documents you will need to get a Social Security Card | Social Security Administration#9_0::1"
+        },
+        {
+          "triple": "Social Security Number -[REQUIRES_ORIGINAL_OR_CERTIFIED_DOCUMENTS]-> CertifiedCopies",
+          "evidence": "You must present original documents or copies certified by the agency that issued them",
+          "section_id": "Learn what documents you will need to get a Social Security Card | Social Security Administration#9_0::1"
+        }
+      ]
+    },
+    {
+      "relation": "IS_COMPOSED_OF",
+      "count": 2,
+      "examples": [
+        {
+          "triple": "Modified Adjusted Gross Income (MAGI) -[IS_COMPOSED_OF]-> Adjusted Gross Income (Total AGI)",
+          "evidence": "Your MAGI is your total adjusted gross income",
+          "section_id": "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0::32"
+        },
+        {
+          "triple": "Modified Adjusted Gross Income (MAGI) -[IS_COMPOSED_OF]-> Tax-Exempt Interest Income",
+          "evidence": "and tax - exempt interest income",
+          "section_id": "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0::32"
+        }
+      ]
+    },
+    {
+      "relation": "REQUIRES_MAGI_GREATER_THAN",
+      "count": 2,
+      "examples": [
+        {
+          "triple": "Higher Medicare Premiums -[REQUIRES_MAGI_GREATER_THAN]-> MAGI Threshold for Married Filing Jointly ($170,000)",
+          "evidence": "If you file your taxes as married, filing jointly and your MAGI is greater than $170,000 , you ll pay higher premiums",
+          "section_id": "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0::32"
+        },
+        {
+          "triple": "Higher Medicare Premiums -[REQUIRES_MAGI_GREATER_THAN]-> MAGI Threshold for Other Filing Status ($85,000)",
+          "evidence": "If you file your taxes using a different status, and your MAGI is greater than $85,000 , you ll pay higher premiums",
+          "section_id": "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0::32"
+        }
+      ]
+    },
+    {
+      "relation": "PAID_ON",
+      "count": 2,
+      "examples": [
+        {
+          "triple": "Income-Related Monthly Adjustment Amount -[PAID_ON]-> Part B",
+          "evidence": "If you have only one Medicare Part B or Medicare prescription drug coverage you ll pay an income - related monthly adjustment amount only on the benefit you have",
+          "section_id": "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0::32"
+        },
+        {
+          "triple": "Income-Related Monthly Adjustment Amount -[PAID_ON]-> Medicare Prescription Drug Coverage",
+          "evidence": "If you have only one Medicare Part B or Medicare prescription drug coverage you ll pay an income - related monthly adjustment amount only on the benefit you have",
+          "section_id": "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0::32"
+        }
+      ]
+    },
+    {
+      "relation": "APPLIES_WHEN",
+      "count": 2,
+      "examples": [
+        {
+          "triple": "Automatic Adjustment to Other Program -[APPLIES_WHEN]-> Automatic Adjustment to Other Program",
+          "evidence": "we ll apply an adjustment automatically to the other program when you enroll",
+          "section_id": "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0::32"
+        },
+        {
+          "triple": "WithholdingTotalsOrSchoolNames -[APPLIES_WHEN]-> FewerThanFiveCompletedApplications",
+          "evidence": "impact of withholding the totals or names of schools with fewer than five completed applications.",
+          "section_id": "Questions and Answers About FAFSA® Completion Data | Federal Student Aid#1_0::116"
+        }
+      ]
+    },
+    {
+      "relation": "CONDITIONED_ON",
+      "count": 2,
+      "examples": [
+        {
+          "triple": "Law Does Not Apply If Income Not Greater Than Limits -[CONDITIONED_ON]-> Modified Adjusted Gross Income (MAGI)",
+          "evidence": "if your income isn t greater than the limits described above , this law does not apply to you",
+          "section_id": "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0::32"
+        },
+        {
+          "triple": "SwitchToSpouseHealthInsurance -[CONDITIONED_ON]-> LoseEmployerProvidedHealthInsuranceIfStopWorking",
+          "evidence": "if you are married and your spouse is employed , you may be able to switch to their health insurance.",
+          "section_id": "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#1_0::2"
+        }
+      ]
+    },
+    {
+      "relation": "DIFFERS_BY",
+      "count": 2,
+      "examples": [
+        {
+          "triple": "MonthlyBenefitAmount -[DIFFERS_BY]-> StartBenefitsBeforeFullRetirementAge",
+          "evidence": "Your monthly benefit amount can differ substantially based on the age when you start receiving benefits.",
+          "section_id": "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#1_0::2"
+        },
+        {
+          "triple": "MonthlyBenefitAmount -[DIFFERS_BY]-> StartBenefitsAtOrAfterFullRetirementAge",
+          "evidence": "Your monthly benefit amount can differ substantially based on the age when you start receiving benefits.",
+          "section_id": "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#1_0::2"
+        }
+      ]
+    },
+    {
+      "relation": "SUPPORTS_CONSIDERATION_OF",
+      "count": 2,
+      "examples": [
+        {
+          "triple": "ProbabilityLivePastAge90 -[SUPPORTS_CONSIDERATION_OF]-> DelayStartingBenefitsUntilFullRetirementAgeOrLater",
+          "evidence": "About one out of every four 65-year - olds today will live past age 90.",
+          "section_id": "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#1_0::2"
+        },
+        {
+          "triple": "ProbabilityLivePastAge95 -[SUPPORTS_CONSIDERATION_OF]-> DelayStartingBenefitsUntilFullRetirementAgeOrLater",
+          "evidence": "One out of 10 will live past age 95.",
+          "section_id": "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#1_0::2"
+        }
+      ]
+    },
+    {
+      "relation": "BASED_ON_FAMILY_HISTORY",
+      "count": 2,
+      "examples": [
+        {
+          "triple": "DelayStartingBenefitsUntilFullRetirementAgeOrLater -[BASED_ON_FAMILY_HISTORY]-> LifeExpectancyAfterAge65",
+          "evidence": "If the answer is yes, and you have every reason to believe you will too , you may want to delay starting your benefits until full retirement age or later.",
+          "section_id": "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#1_0::2"
+        },
+        {
+          "triple": "StartBenefitsEarlierIfFamilyNotLongLived -[BASED_ON_FAMILY_HISTORY]-> LifeExpectancyAfterAge65",
+          "evidence": "If they didn't , you may choose to start receiving retirement benefits earlier.",
+          "section_id": "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#1_0::2"
+        }
+      ]
+    },
+    {
+      "relation": "RELATED_TO",
+      "count": 2,
+      "examples": [
+        {
+          "triple": "NeedExtraMoneyInLaterYears -[RELATED_TO]-> OutlivePensionsOrAnnuitiesWithLimits",
+          "evidence": "particularly if you may outlive pensions or annuities with limits on how long they are paid.",
+          "section_id": "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#1_0::2"
+        },
+        {
+          "triple": "AdaptiveHousingPrograms -[RELATED_TO]-> AdaptiveHousingGrants",
+          "evidence": "Learn more about adaptive housing grants",
+          "section_id": "VR&E Independent Living Track | Veterans Affairs#1_0::18"
+        }
+      ]
+    },
+    {
+      "relation": "LOCATED_ON",
+      "count": 2,
+      "examples": [
+        {
+          "triple": "Aidan Owl Icon -[LOCATED_ON]-> Desktop Device",
+          "evidence": "look for the Aidan owl icon in the bottom right - hand corner of any page of the site on either your desktop or mobile device.",
+          "section_id": "Aidan | The FSA Virtual Assistant | Federal Student Aid#1_0::49"
+        },
+        {
+          "triple": "Aidan Owl Icon -[LOCATED_ON]-> Mobile Device",
+          "evidence": "look for the Aidan owl icon in the bottom right - hand corner of any page of the site on either your desktop or mobile device.",
+          "section_id": "Aidan | The FSA Virtual Assistant | Federal Student Aid#1_0::49"
+        }
+      ]
+    },
+    {
+      "relation": "AVAILABLE_IF_NOT_SUBMITTED",
+      "count": 2,
+      "examples": [
+        {
+          "triple": "Reset FAFSA Button -[AVAILABLE_IF_NOT_SUBMITTED]-> Application Submission",
+          "evidence": "If , despite this , you still want to clear the information transferred via the IRS DRT and enter your tax information manually and you haven t submitted the application or correction yet you can select the Reset FAFSA button",
+          "section_id": "Filling Out the FAFSA® Form | Federal Student Aid#1_0::211"
+        },
+        {
+          "triple": "Reset FAFSA Button -[AVAILABLE_IF_NOT_SUBMITTED]-> Correction Submission",
+          "evidence": "and you haven t submitted the application or correction yet you can select the Reset FAFSA button",
+          "section_id": "Filling Out the FAFSA® Form | Federal Student Aid#1_0::211"
+        }
+      ]
+    },
+    {
+      "relation": "ANSWERED_NO",
+      "count": 2,
+      "examples": [
+        {
+          "triple": "StateTotalCalculation -[ANSWERED_NO]-> FAFSACompletionData",
+          "evidence": "The answer to both questions is no.",
+          "section_id": "Questions and Answers About FAFSA® Completion Data | Federal Student Aid#1_0::116"
+        },
+        {
+          "triple": "CityTotalCalculation -[ANSWERED_NO]-> FAFSACompletionData",
+          "evidence": "The answer to both questions is no.",
+          "section_id": "Questions and Answers About FAFSA® Completion Data | Federal Student Aid#1_0::116"
+        }
+      ]
+    },
+    {
+      "relation": "SUBTRACTS_FROM",
+      "count": 2,
+      "examples": [
+        {
+          "triple": "FinancialAidOffice -[SUBTRACTS_FROM]-> CostOfAttendance",
+          "evidence": "financial aid office can subtract that amount from your cost of attendance",
+          "section_id": "Finding and Applying for Scholarships | Federal Student Aid#1_0::55"
+        },
+        {
+          "triple": "FinancialAidOffice -[SUBTRACTS_FROM]-> Loans",
+          "evidence": "subtract that amount from your cost of attendance and from certain other aid, such as loans",
+          "section_id": "Finding and Applying for Scholarships | Federal Student Aid#1_0::55"
+        }
+      ]
+    },
+    {
+      "relation": "QUALIFIES_FOR",
+      "count": 2,
+      "examples": [
+        {
+          "triple": "ServiceConnectedDisability -[QUALIFIES_FOR]-> VocationalRehabilitationAndEmployment (VR&E) Reemployment track",
+          "evidence": "\"If you re a Veteran with a service - connected disability , the Vocational Rehabilitation and Employment VR&E Reemployment track can help\"",
+          "section_id": "VR&E Reemployment Track | Veterans Affairs#1_0::1"
+        },
+        {
+          "triple": "VeteranWoman -[QUALIFIES_FOR]-> VAHealthCareEligibilityCondition",
+          "evidence": "“As a woman Veteran , you re part of the fastest - growing group”",
+          "section_id": "Women's Health Care Needs | Veterans Affairs#1_0::1"
+        }
+      ]
+    },
+    {
+      "relation": "PAYS_TO",
+      "count": 2,
+      "examples": [
+        {
+          "triple": "VA Survivors Pension -[PAYS_TO]-> Qualified Surviving Spouses",
+          "evidence": "“monthly payments to qualified surviving spouses”",
+          "section_id": "VA Survivors Pension | Veterans Affairs#1_0::1"
+        },
+        {
+          "triple": "VA Survivors Pension -[PAYS_TO]-> Unmarried Dependent Children",
+          "evidence": "“monthly payments to … unmarried dependent children”",
+          "section_id": "VA Survivors Pension | Veterans Affairs#1_0::1"
+        }
+      ]
+    },
+    {
+      "relation": "ARE_RELATED_TO",
+      "count": 2,
+      "examples": [
+        {
+          "triple": "Qualified Surviving Spouses -[ARE_RELATED_TO]-> Wartime Veterans",
+          "evidence": "“qualified surviving spouses … of wartime Veterans”",
+          "section_id": "VA Survivors Pension | Veterans Affairs#1_0::1"
+        },
+        {
+          "triple": "Unmarried Dependent Children -[ARE_RELATED_TO]-> Wartime Veterans",
+          "evidence": "“unmarried dependent children of wartime Veterans”",
+          "section_id": "VA Survivors Pension | Veterans Affairs#1_0::1"
+        }
+      ]
+    },
+    {
+      "relation": "ALLOWS_PLEAD_OR_PAY",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "Traffic Violations Bureau (TVB) Office -[ALLOWS_PLEAD_OR_PAY]-> TVB Ticket",
+          "evidence": "At a TVB office You can plead to or pay a TVB ticket",
+          "section_id": "Plead to or pay TVB tickets#1_0::42"
+        }
+      ]
+    },
+    {
+      "relation": "ALLOWS_SCHEDULE_HEARING",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "Traffic Violations Bureau (TVB) Office -[ALLOWS_SCHEDULE_HEARING]-> Hearing",
+          "evidence": "and schedule a hearing at a Traffic Violations Bureau TVB.",
+          "section_id": "Plead to or pay TVB tickets#1_0::42"
+        }
+      ]
+    },
+    {
+      "relation": "PROHIBITS_PLEAD_OR_PAY",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "Regular DMV Issuing Office -[PROHIBITS_PLEAD_OR_PAY]-> TVB Ticket",
+          "evidence": "You cannot plead to or pay a TVB ticket",
+          "section_id": "Plead to or pay TVB tickets#1_0::42"
+        }
+      ]
+    },
+    {
+      "relation": "PROHIBITS_SCHEDULE_HEARING",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "Regular DMV Issuing Office -[PROHIBITS_SCHEDULE_HEARING]-> Hearing",
+          "evidence": "or schedule a hearing at a regular DMV Issuing Office.",
+          "section_id": "Plead to or pay TVB tickets#1_0::42"
+        }
+      ]
+    },
+    {
+      "relation": "REQUIRES_EMPLOYMENT_BY",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "Driving School Instructor -[REQUIRES_EMPLOYMENT_BY]-> Licensed Driving School",
+          "evidence": "First , you must be employed by a driving school licensed by DMV.",
+          "section_id": "Become a driving school instructor#3_0::10"
+        }
+      ]
+    },
+    {
+      "relation": "LICENSED_BY",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "Licensed Driving School -[LICENSED_BY]-> DMV",
+          "evidence": "a driving school licensed by DMV",
+          "section_id": "Become a driving school instructor#3_0::10"
+        }
+      ]
+    },
+    {
+      "relation": "GOVERNED_BY_REGULATION",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "Driving School Instructor -[GOVERNED_BY_REGULATION]-> Commissioner’s Regulations Part 76.16",
+          "evidence": "You must also meet several requirements identified in Commissioner s Regulations Part 76.16",
+          "section_id": "Become a driving school instructor#3_0::10"
+        }
+      ]
+    },
+    {
+      "relation": "REQUIRES_AGE_AT_LEAST",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "Driving School Instructor -[REQUIRES_AGE_AT_LEAST]-> AgeRequirement",
+          "evidence": "including must be at least 21 years of age",
+          "section_id": "Become a driving school instructor#3_0::10"
+        }
+      ]
+    },
+    {
+      "relation": "REQUIRES_VALID_FOR_AT_LEAST",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "Driving School Instructor -[REQUIRES_VALID_FOR_AT_LEAST]-> ValidLicenseDurationRequirement",
+          "evidence": "has been valid for at least 2 years preceding application",
+          "section_id": "Become a driving school instructor#3_0::10"
+        }
+      ]
+    },
+    {
+      "relation": "REQUIRES_VALID_FOR_VEHICLE_CLASS",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "Driving School Instructor -[REQUIRES_VALID_FOR_VEHICLE_CLASS]-> VehicleClassRequirement",
+          "evidence": "in the class of vehicle that the instructor intends to teach in",
+          "section_id": "Become a driving school instructor#3_0::10"
+        }
+      ]
+    },
+    {
+      "relation": "REQUIRES_NO_SUSPENSION_OR_REVOCATION",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "Driving School Instructor -[REQUIRES_NO_SUSPENSION_OR_REVOCATION]-> NoSuspensionOrRevocationLast2YearsRequirement",
+          "evidence": "and has not been suspended or revoked in the last 2 years",
+          "section_id": "Become a driving school instructor#3_0::10"
+        }
+      ]
+    },
+    {
+      "relation": "REQUIRES_ACCEPTABLE_DRIVING_RECORD",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "Driving School Instructor -[REQUIRES_ACCEPTABLE_DRIVING_RECORD]-> AcceptableDrivingRecordRequirement",
+          "evidence": "shows an acceptable driving record",
+          "section_id": "Become a driving school instructor#3_0::10"
+        }
+      ]
+    },
+    {
+      "relation": "REQUIRES_HIGH_SCHOOL_OR_EQUIVALENCY_DIPLOMA",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "Driving School Instructor -[REQUIRES_HIGH_SCHOOL_OR_EQUIVALENCY_DIPLOMA]-> HighSchoolOrEquivalencyDiplomaRequirement",
+          "evidence": "must have a high school or high school equivalency diploma",
+          "section_id": "Become a driving school instructor#3_0::10"
+        }
+      ]
+    },
+    {
+      "relation": "REQUIRES_VISION_TEST",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "Driving School Instructor -[REQUIRES_VISION_TEST]-> VisionTest",
+          "evidence": "including must be at least 21 years of age ... a vision test",
+          "section_id": "Become a driving school instructor#3_0::10"
+        }
+      ]
+    },
+    {
+      "relation": "REQUIRES_ROAD_SIGN_TEST",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "Driving School Instructor -[REQUIRES_ROAD_SIGN_TEST]-> RoadSignTest",
+          "evidence": "... a vision test road sign test",
+          "section_id": "Become a driving school instructor#3_0::10"
+        }
+      ]
+    },
+    {
+      "relation": "REQUIRES_WRITTEN_TEST",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "Driving School Instructor -[REQUIRES_WRITTEN_TEST]-> WrittenTest",
+          "evidence": "... road sign test written test",
+          "section_id": "Become a driving school instructor#3_0::10"
+        }
+      ]
+    },
+    {
+      "relation": "REQUIRES_DRIVING_TEST",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "Driving School Instructor -[REQUIRES_DRIVING_TEST]-> DrivingSchoolInstructorDrivingTest",
+          "evidence": "... written test driving school instructor driving test",
+          "section_id": "Become a driving school instructor#3_0::10"
+        }
+      ]
+    },
+    {
+      "relation": "REQUIRES_NO_CONVICTION_OF_CERTAIN_CRIMES",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "Driving School Instructor -[REQUIRES_NO_CONVICTION_OF_CERTAIN_CRIMES]-> NoFelonyOrCertainCrimeConvictionRequirement",
+          "evidence": "must never have been convicted of a felony or of any crime involving violence, dishonesty, deceit",
+          "section_id": "Become a driving school instructor#3_0::10"
+        }
+      ]
+    },
+    {
+      "relation": "RENEWAL_REQUIRES_COURSE",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "Driving School Instructor Certificate -[RENEWAL_REQUIRES_COURSE]-> DriverTrainingAndTrafficSafetyCourse",
+          "evidence": "Before your Driving School Instructor Certificate can be renewed , you must also complete a course in driver training and traffic safety",
+          "section_id": "Become a driving school instructor#3_0::10"
+        }
+      ]
+    },
+    {
+      "relation": "REQUIRES_AT_LEAST_DURATION",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "DriverTrainingAndTrafficSafetyCourse -[REQUIRES_AT_LEAST_DURATION]-> 30HourCourse",
+          "evidence": "approved by the Commissioner, consisting of at least 30 hours",
+          "section_id": "Become a driving school instructor#3_0::10"
+        }
+      ]
+    },
+    {
+      "relation": "TAUGHT_BY",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "30HourCourse -[TAUGHT_BY]-> ApprovedCommunityCollegesAndDrivingSchools",
+          "evidence": "This 30-hour course is taught by various community colleges and driving schools that have been approved by DMV",
+          "section_id": "Become a driving school instructor#3_0::10"
+        }
+      ]
+    },
+    {
+      "relation": "REQUIRES_TEACHING_TECHNIQUES_COURSE",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "PreLicensingCourse -[REQUIRES_TEACHING_TECHNIQUES_COURSE]-> TeachingTechniquesAndMethodologyCourse",
+          "evidence": "If you want to teach the Pre - licensing Course , you must also successfully complete a 30-hour Teaching Techniques and Methodology course",
+          "section_id": "Become a driving school instructor#3_0::10"
+        }
+      ]
+    },
+    {
+      "relation": "HAS_DURATION",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "TeachingTechniquesAndMethodologyCourse -[HAS_DURATION]-> TeachingTechniquesAndMethodologyCourseDuration",
+          "evidence": "successfully complete a 30-hour Teaching Techniques and Methodology course",
+          "section_id": "Become a driving school instructor#3_0::10"
+        }
+      ]
+    },
+    {
+      "relation": "IS_COLLEGE_LEVEL",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "TeachingTechniquesAndMethodologyCourse -[IS_COLLEGE_LEVEL]-> CollegeLevelCourse",
+          "evidence": "a college - level course",
+          "section_id": "Become a driving school instructor#3_0::10"
+        }
+      ]
+    },
+    {
+      "relation": "REQUIRES_BEHIND_THE_WHEEL_EXPERIENCE",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "PreLicensingCourse -[REQUIRES_BEHIND_THE_WHEEL_EXPERIENCE]-> BehindTheWheelExperienceRequirement",
+          "evidence": "and have at least one year experience as a behind - the - wheel certified driving school instructor.",
+          "section_id": "Become a driving school instructor#3_0::10"
+        }
+      ]
+    },
+    {
+      "relation": "DONE_AT",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "SafetyInspection -[DONE_AT]-> DMVLicensedInspectionStation",
+          "evidence": "must get a safety inspection at a DMV - licensed inspection station",
+          "section_id": "About New York State Inspections#3_0::1"
+        }
+      ]
+    },
+    {
+      "relation": "REQUIRED_EVERY",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "SafetyInspection -[REQUIRED_EVERY]-> InspectionFrequency",
+          "evidence": "every 12 months",
+          "section_id": "About New York State Inspections#3_0::1"
+        }
+      ]
+    },
+    {
+      "relation": "EXPIRES_BY_RULE",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "SafetyInspection -[EXPIRES_BY_RULE]-> InspectionExpirationRule",
+          "evidence": "Inspections expire the last day of the month punched on the inspection sticker.",
+          "section_id": "About New York State Inspections#3_0::1"
+        }
+      ]
+    },
+    {
+      "relation": "IS_STICKER_ON",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "VehicleRegistrationSticker -[IS_STICKER_ON]-> PaperRegistrationCertificate",
+          "evidence": "\"Your' registration' is the sticker placed on your windshield and the paper registration certificate\"",
+          "section_id": "Registrations#3_0::1"
+        }
+      ]
+    },
+    {
+      "relation": "MUST_BE_KEPT_IN",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "PaperRegistrationCertificate -[MUST_BE_KEPT_IN]-> OwnedOrLeasedVehicle",
+          "evidence": "\"the paper registration certificate that you must keep in your vehicle.\"",
+          "section_id": "Registrations#3_0::1"
+        }
+      ]
+    },
+    {
+      "relation": "APPLIES_AT",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "VehicleRegistrationAndTitleRequirement -[APPLIES_AT]-> DMVOffice",
+          "evidence": "\"must register and title at a DMV office\"",
+          "section_id": "Registrations#3_0::1"
+        }
+      ]
+    },
+    {
+      "relation": "REQUIRES_REGISTRATION_AND_TITLE_OF",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "VehicleRegistrationAndTitleRequirement -[REQUIRES_REGISTRATION_AND_TITLE_OF]-> OwnedOrLeasedVehicle",
+          "evidence": "\"any vehicle you own or lease.\"",
+          "section_id": "Registrations#3_0::1"
+        }
+      ]
+    },
+    {
+      "relation": "CAN_PERFORM",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "AutoDealer -[CAN_PERFORM]-> VehicleRegistrationAndTitleRequirement",
+          "evidence": "\"Auto dealers can register and title vehicles\"",
+          "section_id": "Registrations#3_0::1"
+        }
+      ]
+    },
+    {
+      "relation": "ISSUES",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "AutoDealer -[ISSUES]-> VehiclePlates",
+          "evidence": "\"and issue plates\"",
+          "section_id": "Registrations#3_0::1"
+        }
+      ]
+    },
+    {
+      "relation": "CHARGES_FEE",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "AutoDealer -[CHARGES_FEE]-> DealerFee",
+          "evidence": "\"and charge a fee for this.\"",
+          "section_id": "Registrations#3_0::1"
+        }
+      ]
+    },
+    {
+      "relation": "REQUIRES_FOLLOWING",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "LearnerPermitRestrictions -[REQUIRES_FOLLOWING]-> RoadTest",
+          "evidence": "you will need to follow all learner permit restrictions",
+          "section_id": "Get a learner permit#1_0::31"
+        }
+      ]
+    },
+    {
+      "relation": "GOVERNS_SCHEDULING_FOR",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "Under18RoadTestWaitPeriod -[GOVERNS_SCHEDULING_FOR]-> RoadTest",
+          "evidence": "you must wait at least 6 months from the date you received your learner permit to schedule your road test",
+          "section_id": "Get a learner permit#1_0::31"
+        }
+      ]
+    },
+    {
+      "relation": "LISTS",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "Important Information about the Hazardous Materials Endorsement (HAZ-11) -[LISTS]-> AcceptableProofOfCitizenshipOrResidentStatus",
+          "evidence": "HAZ-11 for a list of acceptable proof of citizenship or resident status",
+          "section_id": "Get a  hazardous materials (HazMat) endorsement#3_0::5"
+        }
+      ]
+    },
+    {
+      "relation": "PROVIDES_MORE_INFORMATION_ON",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "Medical Certification Requirements -[PROVIDES_MORE_INFORMATION_ON]-> FederalMedicalRequirements (49 CFR Part 391)",
+          "evidence": "See Medical Certification Requirements [5] for more information.",
+          "section_id": "Get a  hazardous materials (HazMat) endorsement#3_0::5"
+        }
+      ]
+    },
+    {
+      "relation": "REQUIRES_DOCUMENT",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "Freedom of Information Law (FOIL) Request -[REQUIRES_DOCUMENT]-> Photocopy of Driver License or Government Issued Photo ID Card",
+          "evidence": "If the records you are requesting include personal information , please also include a photocopy of your driver license or other government issued photo ID card.",
+          "section_id": "File a Freedom of Information Law (FOIL) request#1_0::37"
+        }
+      ]
+    },
+    {
+      "relation": "LISTED_ON",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "Permissible Use for the Record -[LISTED_ON]-> MV-15FOIL",
+          "evidence": "Permissible uses are listed on Page 2 of the MV-15FOIL.",
+          "section_id": "File a Freedom of Information Law (FOIL) request#1_0::37"
+        }
+      ]
+    },
+    {
+      "relation": "ALLOWS_ACTION",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "Photocopy of Driver License or Government Issued Photo ID Card -[ALLOWS_ACTION]-> Black Out the Picture",
+          "evidence": "If you wish , you may black out the picture.",
+          "section_id": "File a Freedom of Information Law (FOIL) request#1_0::37"
+        }
+      ]
+    },
+    {
+      "relation": "OBTAINED_FROM",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "SalesTaxRate -[OBTAINED_FROM]-> DepartmentOfTaxationAndFinanceWebsite",
+          "evidence": "You can see the current sales tax rates by jurisdiction [3] at the Department of Taxation and Finance website",
+          "section_id": "Commercial vehicle registration fees, vehicle use taxes and supplemental fees#3_0::34"
+        }
+      ]
+    },
+    {
+      "relation": "USED_TO_CALCULATE",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "FeeListedInChart -[USED_TO_CALCULATE]-> NearestQuarterDollar",
+          "evidence": "add 3.25% to the fee listed in the chart , and change the result to the nearest $0.25",
+          "section_id": "Commercial vehicle registration fees, vehicle use taxes and supplemental fees#3_0::34"
+        }
+      ]
+    },
+    {
+      "relation": "DEFINES",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "NumberLetterNotation -[DEFINES]-> NumberLetterNotation",
+          "evidence": "n = number, a = letter",
+          "section_id": "Commercial vehicle registration fees, vehicle use taxes and supplemental fees#3_0::34"
+        }
+      ]
+    },
+    {
+      "relation": "PAID_FIRST",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "SpouseRetirementBenefitsOnOwnRecord -[PAID_FIRST]-> SpouseBenefitPayableOnYourRecord",
+          "evidence": "we will always pay that amount first",
+          "section_id": "Benefits Planner: Disability | Family Benefits | Social Security Administration#2_0::33"
+        }
+      ]
+    },
+    {
+      "relation": "MAY_RESULT_IN",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "SpouseBenefitPayableOnYourRecord -[MAY_RESULT_IN]-> CombinationOfBenefits",
+          "evidence": "he or she will get a combination of benefits that equals that higher amount",
+          "section_id": "Benefits Planner: Disability | Family Benefits | Social Security Administration#2_0::33"
+        }
+      ]
+    },
+    {
+      "relation": "EQUALS",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "SpouseBenefitPayableOnYourRecord -[EQUALS]-> HigherAmount",
+          "evidence": "if the spouse benefit that is payable on your record is a higher amount",
+          "section_id": "Benefits Planner: Disability | Family Benefits | Social Security Administration#2_0::33"
+        }
+      ]
+    },
+    {
+      "relation": "INCLUDES_EXAMPLE",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "SpouseReceivesPensionNotCoveredBySocialSecurity -[INCLUDES_EXAMPLE]-> PensionBasedOnWorkNotCoveredBySocialSecurity",
+          "evidence": "such as government or foreign work",
+          "section_id": "Benefits Planner: Disability | Family Benefits | Social Security Administration#2_0::33"
+        }
+      ]
+    },
+    {
+      "relation": "CONTINUES_AS_LONG_AS",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "DisabilityBenefits -[CONTINUES_AS_LONG_AS]-> ContinuingEligibilityForDisabilityBenefits",
+          "evidence": "you will continue to receive benefits as long as you are disabled",
+          "section_id": "Benefits Planner: Disability | Are You Working | Social Security Administration#2_0::1"
+        }
+      ]
+    },
+    {
+      "relation": "VERIFIES",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "CaseReview -[VERIFIES]-> ContinuingEligibilityForDisabilityBenefits",
+          "evidence": "to verify that you are still disabled",
+          "section_id": "Benefits Planner: Disability | Are You Working | Social Security Administration#2_0::1"
+        }
+      ]
+    },
+    {
+      "relation": "PROVIDES_UPDATES_ON",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "CaseReview -[PROVIDES_UPDATES_ON]-> BenefitStatusUpdates",
+          "evidence": "We tell you if it is time to review your case and we also keep you informed about your benefit status",
+          "section_id": "Benefits Planner: Disability | Are You Working | Social Security Administration#2_0::1"
+        }
+      ]
+    },
+    {
+      "relation": "REQUIRES_PERMISSION_TO_WORK_FROM",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "Social Security Number -[REQUIRES_PERMISSION_TO_WORK_FROM]-> Department of Homeland Security (DHS)",
+          "evidence": "only noncitizens who have permission to work from the Department of Homeland Security DHS can apply for a Social Security number",
+          "section_id": "Learn what documents you will need to get a Social Security Card | Social Security Administration#9_0::1"
+        }
+      ]
+    },
+    {
+      "relation": "REQUIRES_ELIGIBILITY_FOR_NONCITIZEN_ADULT",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "Social Security Number -[REQUIRES_ELIGIBILITY_FOR_NONCITIZEN_ADULT]-> Noncitizen Adult",
+          "evidence": "Original Card for a Noncitizen Adult In general , only noncitizens who have permission to work from the Department of Homeland Security DHS can apply",
+          "section_id": "Learn what documents you will need to get a Social Security Card | Social Security Administration#9_0::1"
+        }
+      ]
+    },
+    {
+      "relation": "REQUIRES_CURRENT_NOT_EXPIRED_DOCUMENTS",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "Social Security Number -[REQUIRES_CURRENT_NOT_EXPIRED_DOCUMENTS]-> CurrentNotExpiredDocuments",
+          "evidence": "All documents must be current not expired",
+          "section_id": "Learn what documents you will need to get a Social Security Card | Social Security Administration#9_0::1"
+        }
+      ]
+    },
+    {
+      "relation": "ALLOWS_WITHDRAWAL_UNTIL",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "ApplicationWithdrawal -[ALLOWS_WITHDRAWAL_UNTIL]-> WithdrawalDeadline",
+          "evidence": "You have up to 12 months to withdraw your application, if you change your mind.",
+          "section_id": "Apply for Retirement Benefits | SSA#1_0::175"
+        }
+      ]
+    },
+    {
+      "relation": "REQUIRES_REPAYMENT_OF",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "ApplicationWithdrawal -[REQUIRES_REPAYMENT_OF]-> BenefitsReceived",
+          "evidence": "You will be required to repay any benefits you ve already received.",
+          "section_id": "Apply for Retirement Benefits | SSA#1_0::175"
+        }
+      ]
+    },
+    {
+      "relation": "CHECKS_STATUS_USING",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "OnlineApplicationStatus -[CHECKS_STATUS_USING]-> MySocialSecurityAccount",
+          "evidence": "check the status of your application online using your personal my Social Security account.",
+          "section_id": "Apply for Retirement Benefits | SSA#1_0::161"
+        }
+      ]
+    },
+    {
+      "relation": "AVAILABLE_AT",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "ApplicationStatusPhoneSupport -[AVAILABLE_AT]-> SupportHours",
+          "evidence": "you can call us 1 - 800 - 772 - 1213 TTY 1 - 800 - 325 - 0778 from 8:00 a.m. to 5:30 p.m., Monday through Friday.",
+          "section_id": "Apply for Retirement Benefits | SSA#1_0::161"
+        }
+      ]
+    },
+    {
+      "relation": "USES_PHONE_NUMBER",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "ApplicationStatusPhoneSupport -[USES_PHONE_NUMBER]-> SSAPhoneNumber",
+          "evidence": "you can call us 1 - 800 - 772 - 1213",
+          "section_id": "Apply for Retirement Benefits | SSA#1_0::161"
+        }
+      ]
+    },
+    {
+      "relation": "USES_TTY_NUMBER",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "ApplicationStatusPhoneSupport -[USES_TTY_NUMBER]-> SSATTYNumber",
+          "evidence": "TTY 1 - 800 - 325 - 0778",
+          "section_id": "Apply for Retirement Benefits | SSA#1_0::161"
+        }
+      ]
+    },
+    {
+      "relation": "LIMITS",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "MaximumFamilyAmount -[LIMITS]-> FamilyLimit",
+          "evidence": "there is a limit to the amount we can pay your family",
+          "section_id": "Benefits Planner: Disability | Family Benefits | Social Security Administration#1_0::15"
+        }
+      ]
+    },
+    {
+      "relation": "GENERALLY_BETWEEN",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "TotalFamilyBenefitRange -[GENERALLY_BETWEEN]-> MaximumFamilyAmount",
+          "evidence": "generally the total amount you and your family can receive is between 150 and 180 percent of your disability benefit",
+          "section_id": "Benefits Planner: Disability | Family Benefits | Social Security Administration#1_0::15"
+        }
+      ]
+    },
+    {
+      "relation": "APPLIES_IF_EXCEEDS",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "BenefitReductionProportionately -[APPLIES_IF_EXCEEDS]-> FamilyLimit",
+          "evidence": "If the sum of the benefits payable on your account is greater than the family limit",
+          "section_id": "Benefits Planner: Disability | Family Benefits | Social Security Administration#1_0::15"
+        }
+      ]
+    },
+    {
+      "relation": "NOT_AFFECTED_BY",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "YourBenefitNotAffected -[NOT_AFFECTED_BY]-> BenefitReductionProportionately",
+          "evidence": "Your benefit will not be affected",
+          "section_id": "Benefits Planner: Disability | Family Benefits | Social Security Administration#1_0::15"
+        }
+      ]
+    },
+    {
+      "relation": "CALCULATED_BY",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "Higher Medicare Premiums -[CALCULATED_BY]-> Sliding Scale Adjustment",
+          "evidence": "we use a sliding scale to calculate the adjustments",
+          "section_id": "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0::32"
+        }
+      ]
+    },
+    {
+      "relation": "PROVIDED_BY",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "Most Recent Federal Tax Return -[PROVIDED_BY]-> IRS",
+          "evidence": "the IRS provides to us",
+          "section_id": "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0::32"
+        }
+      ]
+    },
+    {
+      "relation": "DETERMINED_USING",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "Higher Medicare Premiums -[DETERMINED_USING]-> Most Recent Federal Tax Return",
+          "evidence": "Social Security uses the most recent federal tax return the IRS provides to us",
+          "section_id": "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0::32"
+        }
+      ]
+    },
+    {
+      "relation": "RESULT_OF",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "No Additional Letter When Enrolling Later in Same Year -[RESULT_OF]-> Automatic Adjustment to Other Program",
+          "evidence": "In this case , we won t send you another letter explaining how we made this determination",
+          "section_id": "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0::32"
+        }
+      ]
+    },
+    {
+      "relation": "INFORMS_DECISION_BY",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "RetirementBenefitsApplicationAgeDecision -[INFORMS_DECISION_BY]-> FullRetirementAge",
+          "evidence": "You should make an informed decision about when to apply for benefits based on your individual and family circumstances.",
+          "section_id": "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#1_0::2"
+        }
+      ]
+    },
+    {
+      "relation": "SETS_BASE_FOR",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "MonthlyBenefitAmount -[SETS_BASE_FOR]-> BaseBenefitAmountForLife",
+          "evidence": "The amount you receive when you first get benefits sets the base for the amount you will receive for the rest of your life.",
+          "section_id": "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#1_0::2"
+        }
+      ]
+    },
+    {
+      "relation": "APPLIES_BETWEEN",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "EarningsLimitsBetweenAge62AndFullRetirementAge -[APPLIES_BETWEEN]-> FullRetirementAge",
+          "evidence": "limits on how much you can earn each year between age 62 and full retirement age",
+          "section_id": "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#1_0::2"
+        }
+      ]
+    },
+    {
+      "relation": "MAY_CAUSE",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "EarningsLimitsBetweenAge62AndFullRetirementAge -[MAY_CAUSE]-> GiveUpSomeBenefitsDueToEarnings",
+          "evidence": "you may have to give up some of your benefits.",
+          "section_id": "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#1_0::2"
+        }
+      ]
+    },
+    {
+      "relation": "HAS_NO_EARNINGS_LIMIT",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "FullRetirementAge -[HAS_NO_EARNINGS_LIMIT]-> NoEarningsLimitAfterFullRetirementAge",
+          "evidence": "Once you reach full retirement age , there is no limit on how much you can earn.",
+          "section_id": "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#1_0::2"
+        }
+      ]
+    },
+    {
+      "relation": "TRIGGERS",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "FullRetirementAge -[TRIGGERS]-> BenefitRecalculationAfterFullRetirementAge",
+          "evidence": "After you reach full retirement age , we recalculate your benefit amount",
+          "section_id": "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#1_0::2"
+        }
+      ]
+    },
+    {
+      "relation": "PROVIDES_CREDIT_FOR",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "BenefitRecalculationAfterFullRetirementAge -[PROVIDES_CREDIT_FOR]-> EarningsLimitsBetweenAge62AndFullRetirementAge",
+          "evidence": "to give you credit for any months in which you did not receive a benefit because of your earnings.",
+          "section_id": "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#1_0::2"
+        }
+      ]
+    },
+    {
+      "relation": "ALLOWS",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "MedicareAtAge65 -[ALLOWS]-> StartBenefitsAtOrAfterFullRetirementAge",
+          "evidence": "You can apply for just Medicare at age 65 and start receiving retirement benefits later.",
+          "section_id": "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#1_0::2"
+        }
+      ]
+    },
+    {
+      "relation": "ADVISED_BY",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "LongTermPlanning -[ADVISED_BY]-> RetirementBenefitsApplicationAgeDecision",
+          "evidence": "When you think about retirement , be sure to plan for the long term.",
+          "section_id": "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#1_0::2"
+        }
+      ]
+    },
+    {
+      "relation": "BASED_ON_HEALTH",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "StartBenefitsEarlierIfNotInGoodHealth -[BASED_ON_HEALTH]-> StartBenefitsEarlierIfNotInGoodHealth",
+          "evidence": "If you are not in good health , you may decide to start your benefits earlier.",
+          "section_id": "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#1_0::2"
+        }
+      ]
+    },
+    {
+      "relation": "CO-OCCURS_WITH",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "LosePaycheckIfStopWorking -[CO-OCCURS_WITH]-> LoseEmployerProvidedHealthInsuranceIfStopWorking",
+          "evidence": "If you stop working , not only will you lose your paycheck , but you may also lose valuable employer provided health insurance.",
+          "section_id": "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#1_0::2"
+        }
+      ]
+    },
+    {
+      "relation": "LIMITS_COVERAGE_UNTIL",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "MedicareCoverageAge65 -[LIMITS_COVERAGE_UNTIL]-> MedicareAtAge65",
+          "evidence": "most people will not be covered by Medicare until they reach age 65.",
+          "section_id": "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#1_0::2"
+        }
+      ]
+    },
+    {
+      "relation": "INFORMS",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "EmployerRetireeHealthBenefits -[INFORMS]-> ExtendHealthInsuranceCoverageAfterRetire",
+          "evidence": "Your employer should be able to tell you if you will have retiree health benefits or if you can temporarily extend your health insurance coverage after you retire.",
+          "section_id": "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#1_0::2"
+        }
+      ]
+    },
+    {
+      "relation": "REQUIRES_CONTACT_BEFORE_APPLYING",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "Unpaid Refund Discharge -[REQUIRES_CONTACT_BEFORE_APPLYING]-> School",
+          "evidence": "\"If the school that you attended is still open , you should contact that school and attempt to resolve the issue\"",
+          "section_id": "Unpaid Refund Discharge | Federal Student Aid#1_0::7"
+        }
+      ]
+    },
+    {
+      "relation": "REQUIRES_CHECK_CLOSED_SCHOOL_DISCHARGE_ELIGIBILITY",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "Unpaid Refund Discharge -[REQUIRES_CHECK_CLOSED_SCHOOL_DISCHARGE_ELIGIBILITY]-> EligibilityForClosedSchoolDischarge",
+          "evidence": "\"If the school that you attended has closed , you should first determine if you may be eligible for a closed school discharge instead.\"",
+          "section_id": "Unpaid Refund Discharge | Federal Student Aid#1_0::7"
+        }
+      ]
+    },
+    {
+      "relation": "CONTACTS_FOR_INFORMATION",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "Unpaid Refund Discharge -[CONTACTS_FOR_INFORMATION]-> Loan Servicer",
+          "evidence": "\"Contact your loan servicer for more information.\"",
+          "section_id": "Unpaid Refund Discharge | Federal Student Aid#1_0::7"
+        }
+      ]
+    },
+    {
+      "relation": "IDENTIFIED_VIA",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "Loan Servicer -[IDENTIFIED_VIA]-> My Federal Student Aid",
+          "evidence": "\"Find out who your loan servicer is by logging in to My Federal Student Aid.\"",
+          "section_id": "Unpaid Refund Discharge | Federal Student Aid#1_0::7"
+        }
+      ]
+    },
+    {
+      "relation": "REQUIRES_COMPLETING_FORM",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "Unpaid Refund Discharge -[REQUIRES_COMPLETING_FORM]-> Loan Discharge Application: Unpaid Refund",
+          "evidence": "\"If you re ready to apply for the unpaid refund discharge , you must complete the Loan Discharge Application: Unpaid Refund\"",
+          "section_id": "Unpaid Refund Discharge | Federal Student Aid#1_0::7"
+        }
+      ]
+    },
+    {
+      "relation": "SENT_TO",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "Loan Discharge Application: Unpaid Refund -[SENT_TO]-> Loan Servicer",
+          "evidence": "\"send the completed form to your loan servicer.\"",
+          "section_id": "Unpaid Refund Discharge | Federal Student Aid#1_0::7"
+        }
+      ]
+    },
+    {
+      "relation": "AVAILABLE_TO",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "Aidan Beta Version -[AVAILABLE_TO]-> Pilot Group of Users",
+          "evidence": "Aidan beta version is available only to a pilot group of users",
+          "section_id": "Aidan | The FSA Virtual Assistant | Federal Student Aid#1_0::49"
+        }
+      ]
+    },
+    {
+      "relation": "REQUIRES_LOGIN_TO_ACCESS",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "Aidan Beta Version -[REQUIRES_LOGIN_TO_ACCESS]-> StudentAid Account Login",
+          "evidence": "when they are logged in to their accounts. To see if you are one of those users , simply log in to your account",
+          "section_id": "Aidan | The FSA Virtual Assistant | Federal Student Aid#1_0::49"
+        }
+      ]
+    },
+    {
+      "relation": "DISPLAYS_ICON_FOR",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "StudentAid Account Login -[DISPLAYS_ICON_FOR]-> Aidan Owl Icon",
+          "evidence": "log in to your account , and then look for the Aidan owl icon",
+          "section_id": "Aidan | The FSA Virtual Assistant | Federal Student Aid#1_0::49"
+        }
+      ]
+    },
+    {
+      "relation": "ABSENCE_MEANS_CHECK_BACK",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "Aidan Owl Icon -[ABSENCE_MEANS_CHECK_BACK]-> Wider Audience Rollout",
+          "evidence": "If you don t see the Aidan icon , please check back in the future as we roll out this new service to a wider audience.",
+          "section_id": "Aidan | The FSA Virtual Assistant | Federal Student Aid#1_0::49"
+        }
+      ]
+    },
+    {
+      "relation": "ALTERNATIVELY_REQUIRES",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "HighlyQualifiedTeacherRequirement -[ALTERNATIVELY_REQUIRES]-> DemonstrateCompetenceInAcademicSubjects",
+          "evidence": "you must also meet the applicable requirements for an elementary, middle, or secondary school teacher who is new to the profession or demonstrate competence in all the academic subjects in which you teach",
+          "section_id": "Teacher Loan Forgiveness | Federal Student Aid#1_0::54"
+        }
+      ]
+    },
+    {
+      "relation": "MAY_INVOLVE",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "HighObjectiveUniformStateStandardOfEvaluation -[MAY_INVOLVE]-> MultipleObjectiveMeasuresOfTeacherCompetency",
+          "evidence": "The uniform state standard of evaluation may involve multiple, objective measures of teacher competency",
+          "section_id": "Teacher Loan Forgiveness | Federal Student Aid#1_0::54"
+        }
+      ]
+    },
+    {
+      "relation": "COVERS",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "HighObjectiveUniformStateStandardOfEvaluation -[COVERS]-> GradeAppropriateAcademicSubjectMatterKnowledgeAndTeachingSkills",
+          "evidence": "must be set by the state for both grade - appropriate academic subject matter knowledge and teaching skills",
+          "section_id": "Teacher Loan Forgiveness | Federal Student Aid#1_0::54"
+        }
+      ]
+    },
+    {
+      "relation": "ALIGNED_WITH",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "HighObjectiveUniformStateStandardOfEvaluation -[ALIGNED_WITH]-> AlignedWithChallengingStateAcademicContentAndStudentAchievementStandards",
+          "evidence": "be aligned with challenging state academic content and student academic achievement standards",
+          "section_id": "Teacher Loan Forgiveness | Federal Student Aid#1_0::54"
+        }
+      ]
+    },
+    {
+      "relation": "DEVELOPED_IN_CONSULTATION_WITH",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "HighObjectiveUniformStateStandardOfEvaluation -[DEVELOPED_IN_CONSULTATION_WITH]-> DevelopedInConsultationWithCoreContentSpecialistsTeachersPrincipalsAndAdministrators",
+          "evidence": "and developed in consultation with core content specialists, teachers, principals, and school administrators",
+          "section_id": "Teacher Loan Forgiveness | Federal Student Aid#1_0::54"
+        }
+      ]
+    },
+    {
+      "relation": "APPLIED_UNIFORMLY",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "HighObjectiveUniformStateStandardOfEvaluation -[APPLIED_UNIFORMLY]-> AppliedUniformlyToAllTeachersSameSubjectAndGradeLevelThroughoutTheState",
+          "evidence": "be applied uniformly to all teachers in the same academic subject and the same grade level throughout the state",
+          "section_id": "Teacher Loan Forgiveness | Federal Student Aid#1_0::54"
+        }
+      ]
+    },
+    {
+      "relation": "CONSIDERS_BUT_NOT_BASED_PRIMARILY_ON",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "HighObjectiveUniformStateStandardOfEvaluation -[CONSIDERS_BUT_NOT_BASED_PRIMARILY_ON]-> TimeTeachingConsideredButNotPrimaryBasis",
+          "evidence": "take into consideration, but not be based primarily on, the time you have been teaching in the academic subject",
+          "section_id": "Teacher Loan Forgiveness | Federal Student Aid#1_0::54"
+        }
+      ]
+    },
+    {
+      "relation": "MADE_AVAILABLE_TO_PUBLIC_UPON_REQUEST",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "HighObjectiveUniformStateStandardOfEvaluation -[MADE_AVAILABLE_TO_PUBLIC_UPON_REQUEST]-> UniformStateStandardMadeAvailableToPublicUponRequest",
+          "evidence": "and be made available to the public upon request",
+          "section_id": "Teacher Loan Forgiveness | Federal Student Aid#1_0::54"
+        }
+      ]
+    },
+    {
+      "relation": "TRANSFERS_INFORMATION_TO",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "IRS Data Retrieval Tool (IRS DRT) -[TRANSFERS_INFORMATION_TO]-> FAFSA Form",
+          "evidence": "transferred my tax return information into the FAFSA form via the IRS DRT",
+          "section_id": "Filling Out the FAFSA® Form | Federal Student Aid#1_0::211"
+        }
+      ]
+    },
+    {
+      "relation": "ALTERNATIVE_TO",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "Manual Entry of Tax Information -[ALTERNATIVE_TO]-> IRS Data Retrieval Tool (IRS DRT)",
+          "evidence": "enter the information manually instead",
+          "section_id": "Filling Out the FAFSA® Form | Federal Student Aid#1_0::211"
+        }
+      ]
+    },
+    {
+      "relation": "DISCOURAGES_CLEARING",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "IRS Data Retrieval Tool (IRS DRT) -[DISCOURAGES_CLEARING]-> Application or Correction Clearing",
+          "evidence": "We strongly discourage clearing the information.",
+          "section_id": "Filling Out the FAFSA® Form | Federal Student Aid#1_0::211"
+        }
+      ]
+    },
+    {
+      "relation": "IS_FASTEST_AND_MOST_ACCURATE",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "IRS Data Retrieval Tool (IRS DRT) -[IS_FASTEST_AND_MOST_ACCURATE]-> Fastest and Most Accurate Way",
+          "evidence": "The IRS DRT remains the fastest, most accurate way to input your tax return information into the FAFSA form.",
+          "section_id": "Filling Out the FAFSA® Form | Federal Student Aid#1_0::211"
+        }
+      ]
+    },
+    {
+      "relation": "MAY_REDUCE_PAPERWORK",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "IRS Data Retrieval Tool (IRS DRT) -[MAY_REDUCE_PAPERWORK]-> Paperwork Reduction",
+          "evidence": "using the IRS DRT to enter your tax information into the FAFSA form may reduce the amount of paperwork you need to provide to your school later.",
+          "section_id": "Filling Out the FAFSA® Form | Federal Student Aid#1_0::211"
+        }
+      ]
+    },
+    {
+      "relation": "CLEARS_APPLICATION_OR_CORRECTION",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "Reset FAFSA Button -[CLEARS_APPLICATION_OR_CORRECTION]-> Application or Correction Clearing",
+          "evidence": "by doing so, the entire application or correction will be cleared",
+          "section_id": "Filling Out the FAFSA® Form | Federal Student Aid#1_0::211"
+        }
+      ]
+    },
+    {
+      "relation": "REQUIRES_STARTING_OVER",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "Application or Correction Clearing -[REQUIRES_STARTING_OVER]-> Starting Over",
+          "evidence": "and you will have to start the entire application or correction over again.",
+          "section_id": "Filling Out the FAFSA® Form | Federal Student Aid#1_0::211"
+        }
+      ]
+    },
+    {
+      "relation": "ALLOWS_UP_TO",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "Coverdell Education Savings Account -[ALLOWS_UP_TO]-> AnnualContributionLimit",
+          "evidence": "A Coverdell Education Savings Account allows up to $2,000 a year",
+          "section_id": "Tax Benefits for Higher Education | Federal Student Aid#1_0::13"
+        }
+      ]
+    },
+    {
+      "relation": "FUNDS",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "Coverdell Education Savings Account -[FUNDS]-> StudentEducationExpenses",
+          "evidence": "to be put aside for a student s education expenses",
+          "section_id": "Tax Benefits for Higher Education | Federal Student Aid#1_0::13"
+        }
+      ]
+    },
+    {
+      "relation": "FOR_SCHOOLS_AT_LEVELS",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "StudentEducationExpenses -[FOR_SCHOOLS_AT_LEVELS]-> EligibleSchoolLevels",
+          "evidence": "elementary, secondary, or college or career school",
+          "section_id": "Tax Benefits for Higher Education | Federal Student Aid#1_0::13"
+        }
+      ]
+    },
+    {
+      "relation": "MAY_BE_SUBURB_WITHIN",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "OfficialSchoolLocation -[MAY_BE_SUBURB_WITHIN]-> SuburbWithinCityLimits",
+          "evidence": "The official location of a school or the location most commonly reported by students may actually be a suburb falling within a larger city's limits.",
+          "section_id": "Questions and Answers About FAFSA® Completion Data | Federal Student Aid#1_0::116"
+        }
+      ]
+    },
+    {
+      "relation": "EXCLUDES_QUEENS",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "NewYorkCity -[EXCLUDES_QUEENS]-> Queens",
+          "evidence": "adding up all the applications reported under \" New York City \" would exclude any institutions reported being within \" Queens \"",
+          "section_id": "Questions and Answers About FAFSA® Completion Data | Federal Student Aid#1_0::116"
+        }
+      ]
+    },
+    {
+      "relation": "EXCLUDES_JAMAICA",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "NewYorkCity -[EXCLUDES_JAMAICA]-> Jamaica",
+          "evidence": "would exclude any institutions reported being within \" Queens \" or even within \" Jamaica, \"",
+          "section_id": "Questions and Answers About FAFSA® Completion Data | Federal Student Aid#1_0::116"
+        }
+      ]
+    },
+    {
+      "relation": "CANNOT_ASSUME_ZERO",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "LessThan5CompletedApplications -[CANNOT_ASSUME_ZERO]-> UnderestimatesApplications",
+          "evidence": "If an institution is reported as having \" <5 \" completed applications , one cannot assume there were zero applications.",
+          "section_id": "Questions and Answers About FAFSA® Completion Data | Federal Student Aid#1_0::116"
+        }
+      ]
+    },
+    {
+      "relation": "RESULT_OF_SUMMING_FILES",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "UnderestimatesApplications -[RESULT_OF_SUMMING_FILES]-> FAFSACompletionData",
+          "evidence": "summing the number of applications reported in these files always underestimates the number of applications.",
+          "section_id": "Questions and Answers About FAFSA® Completion Data | Federal Student Aid#1_0::116"
+        }
+      ]
+    },
+    {
+      "relation": "CAUSED_BY",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "NeverMadePublicTotals -[CAUSED_BY]-> ClassSizesPrecludeDisclosure",
+          "evidence": "totals for some schools are never made public because their class sizes essentially preclude them from having enough completed applications to ever be disclosed publicly.",
+          "section_id": "Questions and Answers About FAFSA® Completion Data | Federal Student Aid#1_0::116"
+        }
+      ]
+    },
+    {
+      "relation": "REQUIRES_CONSIDERATION_OF",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "AnalysisFactors -[REQUIRES_CONSIDERATION_OF]-> WithholdingTotalsOrSchoolNames",
+          "evidence": "Any analysis must also consider the impact of withholding the totals or names of schools with fewer than five completed applications.",
+          "section_id": "Questions and Answers About FAFSA® Completion Data | Federal Student Aid#1_0::116"
+        }
+      ]
+    },
+    {
+      "relation": "CAPPED_BY",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "OtherStudentAid -[CAPPED_BY]-> CostOfAttendance",
+          "evidence": "all your student aid added together can t be more than your cost of attendance",
+          "section_id": "Finding and Applying for Scholarships | Federal Student Aid#1_0::55"
+        }
+      ]
+    },
+    {
+      "relation": "INFORMED_TO",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "SchoolNotificationRequirement -[INFORMED_TO]-> FinancialAidOffice",
+          "evidence": "so that the financial aid office can subtract that amount",
+          "section_id": "Finding and Applying for Scholarships | Federal Student Aid#1_0::55"
+        }
+      ]
+    },
+    {
+      "relation": "COVERS_REMAINING_AMOUNT",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "OtherFinancialAid -[COVERS_REMAINING_AMOUNT]-> EligibilityForOtherFinancialAid",
+          "evidence": "any amount left can be covered by other financial aid for which you re eligible",
+          "section_id": "Finding and Applying for Scholarships | Federal Student Aid#1_0::55"
+        }
+      ]
+    },
+    {
+      "relation": "PRINTED_ON",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "VeteranDesignation -[PRINTED_ON]-> StateIssuedDriverLicenseOrID",
+          "evidence": "Veteran designation an identifying mark printed on state-issued driver s licenses or IDs",
+          "section_id": "Types Of Veteran ID Cards | Veterans Affairs#1_0::56"
+        }
+      ]
+    },
+    {
+      "relation": "MAY_ENABLE",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "VeteranDesignation -[MAY_ENABLE]-> DiscountsForVeterans",
+          "evidence": "If you have a Veteran s designation , you may be able to get discounts offered to Veterans at many stores, businesses, and restaurants",
+          "section_id": "Types Of Veteran ID Cards | Veterans Affairs#1_0::56"
+        }
+      ]
+    },
+    {
+      "relation": "MAY_REQUIRE",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "ApplicationForVeteranDesignation -[MAY_REQUIRE]-> AdditionalDocuments",
+          "evidence": "Some states may require additional documents",
+          "section_id": "Types Of Veteran ID Cards | Veterans Affairs#1_0::56"
+        }
+      ]
+    },
+    {
+      "relation": "CHECK_WITH",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "ApplicationForVeteranDesignation -[CHECK_WITH]-> StateDepartmentOfMotorVehicles",
+          "evidence": "Please check with your state s Department of Motor Vehicles about what you need to apply for a Veteran s designation for your state",
+          "section_id": "Types Of Veteran ID Cards | Veterans Affairs#1_0::56"
+        }
+      ]
+    },
+    {
+      "relation": "VARIES_BY",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "VeteranDesignation -[VARIES_BY]-> StateVariationInDesignationType",
+          "evidence": "The type of Veteran designation may vary from state to state",
+          "section_id": "Types Of Veteran ID Cards | Veterans Affairs#1_0::56"
+        }
+      ]
+    },
+    {
+      "relation": "HELPS_PICK",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "GI Bill Comparison Tool -[HELPS_PICK]-> School",
+          "evidence": "“The GI Bill Comparison Tool can help you pick a school.”",
+          "section_id": "Fry Scholarships | Veterans Affairs#1_0::33"
+        }
+      ]
+    },
+    {
+      "relation": "CONFIRMS_APPROVAL_FOR",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "School Certifying Official -[CONFIRMS_APPROVAL_FOR]-> Program Approval for VA Benefits",
+          "evidence": "“contact your school s certifying official to make sure your program is approved for VA benefits.”",
+          "section_id": "Fry Scholarships | Veterans Affairs#1_0::33"
+        }
+      ]
+    },
+    {
+      "relation": "PROTECTED_UNDER",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "Veteran -[PROTECTED_UNDER]-> Uniformed Services Employment and Reemployment Rights Act (USERRA)",
+          "evidence": "\"As a Veteran , you re protected under the Uniformed Services Employment and Reemployment Rights Act USERRA\"",
+          "section_id": "VR&E Reemployment Track | Veterans Affairs#1_0::1"
+        }
+      ]
+    },
+    {
+      "relation": "PREVENTS_DISADVANTAGE_IN",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "Uniformed Services Employment and Reemployment Rights Act (USERRA) -[PREVENTS_DISADVANTAGE_IN]-> CivilianCareerProtection",
+          "evidence": "\"This means you can t be disadvantaged in your civilian career because of your service\"",
+          "section_id": "VR&E Reemployment Track | Veterans Affairs#1_0::1"
+        }
+      ]
+    },
+    {
+      "relation": "HELPS_EMPLOYER_ACCOMMODATE",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "VocationalRehabilitationAndEmployment (VR&E) Reemployment track -[HELPS_EMPLOYER_ACCOMMODATE]-> EmployerAccommodationNeeds",
+          "evidence": "\"can help your employer accommodate your needs\"",
+          "section_id": "VR&E Reemployment Track | Veterans Affairs#1_0::1"
+        }
+      ]
+    },
+    {
+      "relation": "REFERS_TO",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "VocationalRehabilitationCounselor (VRC) -[REFERS_TO]-> DepartmentOfLabor",
+          "evidence": "\"can refer you directly to the Department of Labor to begin the process\"",
+          "section_id": "VR&E Reemployment Track | Veterans Affairs#1_0::1"
+        }
+      ]
+    },
+    {
+      "relation": "HELPS_RETURN_TO",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "VocationalRehabilitationAndEmployment (VR&E) Reemployment track -[HELPS_RETURN_TO]-> ReturnToFormerJob",
+          "evidence": "\"Find out how we can help you return to your former job\"",
+          "section_id": "VR&E Reemployment Track | Veterans Affairs#1_0::1"
+        }
+      ]
+    },
+    {
+      "relation": "SUPPORTS",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "VocationalRehabilitationAndEmployment (VR&E) Reemployment track -[SUPPORTS]-> EmployerNeedsSupport",
+          "evidence": "\"and support your employer in meeting your needs\"",
+          "section_id": "VR&E Reemployment Track | Veterans Affairs#1_0::1"
+        }
+      ]
+    },
+    {
+      "relation": "PROVIDES_ACCESS_TO",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "VAHealthCare -[PROVIDES_ACCESS_TO]-> WomenHealthServices",
+          "evidence": "“you can get access to high - quality women s health services as part of your benefits”",
+          "section_id": "Women's Health Care Needs | Veterans Affairs#1_0::1"
+        }
+      ]
+    },
+    {
+      "relation": "CALCULATED_USING",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "Combined VA Disability Ratings -[CALCULATED_USING]-> Combined Ratings Table",
+          "evidence": "we use the combined ratings table below to calculate your combined disability rating",
+          "section_id": "About VA Disability Ratings | Veterans Affairs#1_0::36"
+        }
+      ]
+    },
+    {
+      "relation": "AVAILABLE_AS",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "Combined Ratings Table -[AVAILABLE_AS]-> Combined Ratings Table PDF",
+          "evidence": "You can also download the full combined ratings table PDF",
+          "section_id": "About VA Disability Ratings | Veterans Affairs#1_0::36"
+        }
+      ]
+    },
+    {
+      "relation": "SPLIT_INTO",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "Combined Ratings Table -[SPLIT_INTO]-> Online Combined Ratings Tables",
+          "evidence": "we ve separated it into smaller tables, based on the percentage of the most severe, or highest rated, disability",
+          "section_id": "About VA Disability Ratings | Veterans Affairs#1_0::36"
+        }
+      ]
+    },
+    {
+      "relation": "INVITES",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "VA Survivors Pension -[INVITES]-> Qualification Determination",
+          "evidence": "“Find out if you qualify”",
+          "section_id": "VA Survivors Pension | Veterans Affairs#1_0::1"
+        }
+      ]
+    },
+    {
+      "relation": "GUIDES_ELIGIBILITY_FOR",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "EligibilityGuidanceForAdaptiveHousingPrograms -[GUIDES_ELIGIBILITY_FOR]-> AdaptiveHousingPrograms",
+          "evidence": "Guidance to help you understand if you re eligible for our adaptive - housing programs.",
+          "section_id": "VR&E Independent Living Track | Veterans Affairs#1_0::18"
+        }
+      ]
+    },
+    {
+      "relation": "ENABLES_HOME_CHANGES",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "AdaptiveHousingPrograms -[ENABLES_HOME_CHANGES]-> HomeChanges",
+          "evidence": "These programs can help you make changes to your home like widening doorways or adding ramps",
+          "section_id": "VR&E Independent Living Track | Veterans Affairs#1_0::18"
+        }
+      ]
+    },
+    {
+      "relation": "GENERALLY_LAST_UP_TO",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "BenefitType -[GENERALLY_LAST_UP_TO]-> ServiceDuration",
+          "evidence": "These services generally last up to 24 months.",
+          "section_id": "VR&E Independent Living Track | Veterans Affairs#1_0::18"
+        }
+      ]
+    },
+    {
+      "relation": "CAN_BE_EXTENDED_IN_SOME_CASES",
+      "count": 1,
+      "examples": [
+        {
+          "triple": "BenefitType -[CAN_BE_EXTENDED_IN_SOME_CASES]-> ExtendedServiceAvailability",
+          "evidence": "In some cases , you may be able to use services for longer than this.",
+          "section_id": "VR&E Independent Living Track | Veterans Affairs#1_0::18"
+        }
+      ]
+    }
+  ],
+  "evidence_check": {
+    "entities": {
+      "verbatim": 265,
+      "near_verbatim": 51,
+      "not_found": 2
+    },
+    "relations": {
+      "verbatim": 207,
+      "not_found": 13,
+      "near_verbatim": 44
+    }
+  },
+  "evidence_not_found": [
+    {
+      "kind": "relation",
+      "section_id": "Become a driving school instructor#3_0::10",
+      "item": "Driving School Instructor -[REQUIRES_VISION_TEST]-> VisionTest",
+      "evidence": "including must be at least 21 years of age ... a vision test"
+    },
+    {
+      "kind": "relation",
+      "section_id": "Become a driving school instructor#3_0::10",
+      "item": "PreLicensingCourse -[REQUIRES_TEACHING_TECHNIQUES_COURSE]-> TeachingTechniquesAndMethodologyCourse",
+      "evidence": "If you want to teach the Pre - licensing Course , you must also successfully complete a 30-hour Teaching Techniques and Methodology course"
+    },
+    {
+      "kind": "relation",
+      "section_id": "Commercial vehicle registration fees, vehicle use taxes and supplemental fees#3_0::34",
+      "item": "AdditionalFee -[EXEMPTS]-> FarmRegistrationClass",
+      "evidence": "The classes include ... Farm FAR"
+    },
+    {
+      "kind": "relation",
+      "section_id": "Commercial vehicle registration fees, vehicle use taxes and supplemental fees#3_0::34",
+      "item": "AdditionalFee -[EXEMPTS]-> HistoricalRegistrationClass",
+      "evidence": "The classes include ... Historical HIS"
+    },
+    {
+      "kind": "relation",
+      "section_id": "Commercial vehicle registration fees, vehicle use taxes and supplemental fees#3_0::34",
+      "item": "AdditionalFee -[EXEMPTS]-> HouseTrailerRegistrationClass",
+      "evidence": "The classes include ... House Trailer HOU"
+    },
+    {
+      "kind": "relation",
+      "section_id": "Commercial vehicle registration fees, vehicle use taxes and supplemental fees#3_0::34",
+      "item": "AdditionalFee -[EXEMPTS]-> SemiTrailerRegistrationClass",
+      "evidence": "The classes include ... Semi Trailer SEM"
+    },
+    {
+      "kind": "relation",
+      "section_id": "Commercial vehicle registration fees, vehicle use taxes and supplemental fees#3_0::34",
+      "item": "AdditionalFee -[EXEMPTS]-> SpecialPurposeCommercialRegistrationClass",
+      "evidence": "The classes include ... Special Purpose Commercial SPC"
+    },
+    {
+      "kind": "relation",
+      "section_id": "Commercial vehicle registration fees, vehicle use taxes and supplemental fees#3_0::34",
+      "item": "AdditionalFee -[EXEMPTS]-> TrailerRegistrationClass",
+      "evidence": "The classes include ... Trailer TRL"
+    },
+    {
+      "kind": "entity",
+      "section_id": "Unpaid Refund Discharge | Federal Student Aid#1_0::7",
+      "item": "Unpaid Refund Discharge",
+      "evidence": "\"apply for an unpaid refund discharge\""
+    },
+    {
+      "kind": "entity",
+      "section_id": "Questions and Answers About FAFSA® Completion Data | Federal Student Aid#1_0::116",
+      "item": "FAFSACompletionData",
+      "evidence": "Questions and Answers About FAFSA® Completion Data"
+    },
+    {
+      "kind": "relation",
+      "section_id": "VA Survivors Pension | Veterans Affairs#1_0::1",
+      "item": "VA Survivors Pension -[PAYS_TO]-> Unmarried Dependent Children",
+      "evidence": "“monthly payments to … unmarried dependent children”"
+    },
+    {
+      "kind": "relation",
+      "section_id": "VA Survivors Pension | Veterans Affairs#1_0::1",
+      "item": "Qualified Surviving Spouses -[ARE_RELATED_TO]-> Wartime Veterans",
+      "evidence": "“qualified surviving spouses … of wartime Veterans”"
+    },
+    {
+      "kind": "relation",
+      "section_id": "VR&E Independent Living Track | Veterans Affairs#1_0::18",
+      "item": "BenefitType -[INCLUDES]-> HomeConsultationsWithSpecialists",
+      "evidence": "services may include : Home consultations with specialists"
+    },
+    {
+      "kind": "relation",
+      "section_id": "VR&E Independent Living Track | Veterans Affairs#1_0::18",
+      "item": "BenefitType -[INCLUDES]-> ReferralToSupportResources",
+      "evidence": "services may include : Referral to support resources"
+    },
+    {
+      "kind": "relation",
+      "section_id": "VR&E Independent Living Track | Veterans Affairs#1_0::18",
+      "item": "BenefitType -[INCLUDES]-> EligibilityGuidanceForAdaptiveHousingPrograms",
+      "evidence": "services may include : Guidance to help you understand if you re eligible for our adaptive - housing programs."
+    }
+  ],
+  "dangling_relations": 0
+}
