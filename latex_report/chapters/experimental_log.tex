@@ -1,0 +1,323 @@
+%!TEX root = ../main.tex
+
+\chapter{Experimental Log and Supplementary Results}\label{ax:log}
+
+This appendix records how the experimental setup evolved before the final protocol
+of Chapters~\ref{ch:llm_baseline} and~\ref{ch:rag}, the preliminary and negative
+results obtained along the way, and supplementary result tables. Unless stated
+otherwise, all runs use the same \gls{llm} deployment (\texttt{gpt-5.4-nano}) on the
+\gls{mdd} validation split.
+
+
+% ===========================================================================
+\section{Evolution of the Retrieval Unit}\label{ax:log:indexing}
+
+The first \gls{rag} experiments (\emph{v1}) indexed each document span
+individually, giving a corpus of 35{,}659 spans. \gls{mdd} documents contain
+heading spans (\texttt{h3}/\texttt{h4} tags) that carry only a heading string and no
+answer content, for example ``How do I pay DIAL-IN Search Account fees?'' or ``How
+will I know my application has been accepted?''. When such spans were retrieved at
+the top rank, the generator received a heading without its answer and replied that
+``the context only shows the heading''; this affected roughly a dozen of the 50 pilot
+examples.
+
+All pipelines were therefore re-run with \emph{section-level} indexing
+(Section~\ref{sec:rag:arch}), which reduced the corpus to 4{,}114 sections and
+improved \ratk{5} by a factor of 10--20 on the 50-example pilot set
+(Table~\ref{tab:log:indexing}). With span-level indexing, hybrid retrieval
+underperformed dense retrieval because the BM25 ranking was dominated by heading
+spans; once BM25 became a competitive ranker over sections, fusion outperformed both
+components.
+
+\begin{table}[ht]
+    \centering
+    \caption{\ratk{5} on the 50-example pilot set (single-domain, see
+             Section~\ref{ax:log:pilot}) under span-level (v1) and section-level
+             (v2) indexing.}
+    \label{tab:log:indexing}
+    \begin{tabular}{lrr}
+        \toprule
+        Retriever & v1: spans & v2: sections \\
+        \midrule
+        BM25   & 2.33\% & 40.00\% \\
+        Dense  & 6.00\% & 42.00\% \\
+        Hybrid & 5.00\% & 46.00\% \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+
+% ===========================================================================
+\section{Preliminary 50-Example Experiments}\label{ax:log:pilot}
+
+Before the dev-500 subset (Section~\ref{sec:dataset:dev500}) was introduced, all
+pipelines were developed on a deterministic set of 50 consecutive user--agent turn
+pairs from the validation split.
+
+\subsection{Initial Prompts and the Single-Domain Pilot (v2)}
+
+The first \gls{llm}-only prompt was a bare instruction (``Answer the following
+question as accurately as possible. Question: \{question\}''). It obtained
+0.00\% \gls{em} and 7.53\% token \fone{}: the model produced multi-paragraph
+explanations, while the references are short agent utterances. It also
+misinterpreted domain-specific questions. Asked ``My insurance ended so what should
+I do'', whose reference is ``You will need to get insurance or we will suspend your
+registration and license'', the model gave general health-insurance advice
+(Healthcare.gov, COBRA, Medicaid), having no way to know that the question concerned
+DMV vehicle registration.
+
+The first \gls{rag} prompt (``You are a helpful assistant. Answer the question using
+only the context provided below. If the context does not contain enough information,
+say so briefly.'') was used for the v2 runs in Table~\ref{tab:log:v2}.
+
+\begin{table}[ht]
+    \centering
+    \caption{v2 pilot results (50 examples, section-level indexing, initial prompts).
+             The set was later found to contain only DMV examples.}
+    \label{tab:log:v2}
+    \begin{tabular}{lrrr}
+        \toprule
+        System & \fone{} & \ratk{1} & \ratk{5} \\
+        \midrule
+        LLM-only            &  7.53\% & ---     & ---     \\
+        RAG BM25            & 20.68\% & 30.00\% & 40.00\% \\
+        RAG Dense           & 19.44\% & 24.00\% & 42.00\% \\
+        RAG Hybrid          & 19.79\% & 32.00\% & 46.00\% \\
+        RAG Hybrid+Rewrite  & 23.59\% & 40.00\% & 68.00\% \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Pipeline Fixes and the Balanced Pilot (v3/v4)}
+
+Analysis of the v2 runs led to five fixes:
+\begin{enumerate}
+    \item \textbf{Balanced domain sampling.} The loader iterated over domains in
+          sorted order and reached the 50-example cap before leaving DMV, so the v2
+          set was entirely DMV. Round-robin sampling across domains fixed this
+          (DMV~13, SSA~13, StudentAid~12, VA~12).
+    \item \textbf{Agent-voice prompt.} About two thirds of v2 \gls{rag} answers
+          contained phrases such as ``the context doesn't say'', bold text, or
+          bullet lists. This motivated the agent-voice few-shot prompt of
+          Section~\ref{sec:rag:generation}, with a fixed abstention phrase; the
+          \gls{llm}-only baseline adopted the same voice without context.
+    \item \textbf{Unanswerable tagging.} Each example is tagged
+          \texttt{is\_unanswerable}; answerable and unanswerable \fone{} and the
+          abstain rate are reported separately.
+    \item \textbf{Domain Recall@$K$.} Introduced after VA, SSA and StudentAid pages
+          were observed among the results for DMV questions.
+    \item \textbf{Evaluation labelling.} The evaluation script had hard-coded the
+          experiment name, mislabelling every output file.
+\end{enumerate}
+
+The v3 run applied these fixes; v4 re-ran the same set after adding the
+document-switch tag and the logging of top retrieval scores
+(Table~\ref{tab:log:v4}). The lower recall compared with v2 reflects the harder
+multi-domain setting: the balanced set contains more decontextualised follow-up
+turns, and cross-domain vocabulary (``benefits'', ``disability'') lets BM25 retrieve
+sections from the wrong domain.
+
+\begin{table}[ht]
+    \centering
+    \small
+    \caption{Balanced 50-example pilot (3 unanswerable, 9 document-switch turns).
+             \fone{} is reported for v3 and v4; all other columns are v4 and match v3
+             up to rounding.}
+    \label{tab:log:v4}
+    \begin{tabular}{lrrrrrrrr}
+        \toprule
+        System & \fone{} v3 & \fone{} v4 & \fone{} ans. & EM & Abstain & \ratk{1} & \ratk{5} & Dom.\ \ratk{5} \\
+        \midrule
+        LLM-only           & 14.09 & 14.20 & 15.04 & 0.0 &  0\% & ---  & ---  & --- \\
+        RAG BM25           & 20.69 & 19.89 & 16.90 & 4.0 & 67\% & 12.0 & 22.0 & 58.0 \\
+        RAG Dense          & 19.24 & 19.19 & 18.21 & 2.0 & 33\% & 20.0 & 38.0 & 66.8 \\
+        RAG Hybrid         & 21.77 & 20.98 & 20.14 & 2.0 & 33\% & 12.0 & 36.0 & 63.6 \\
+        RAG Hybrid+Rewrite & 20.40 & 20.41 & 21.64 & 0.0 &  0\% & 28.0 & 44.0 & 87.2 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+On the nine document-switch turns of this pilot, \ratk{5} was 44.4\% (BM25),
+22.2\% (Dense), 55.6\% (Hybrid) and 22.2\% (Hybrid+Rewrite), against 17.1\%,
+41.5\%, 31.7\% and 56.1\% on same-document turns. This first suggested that the
+rewriter pulls retrieval towards the previous document, a pattern confirmed at
+full scale (Table~\ref{tab:rag:docswitch}).
+
+\subsection{Abstention Detection}
+
+Up to and including the full-split runs of Section~\ref{sec:rag:fullsplit}, an
+answer counted as an abstention only if it matched the abstention phrase exactly.
+From the dev-500 experiments onwards, a single shared function
+(\texttt{is\_abstention}) counts any answer containing ``no relevant information''
+(case-insensitive), which also catches minor rephrasings of the phrase.
+
+
+% ===========================================================================
+\section{Score-Threshold Abstention: A Negative Result}\label{ax:log:threshold}
+
+Since the pilot showed that better retrieval reduced abstention (BM25 abstained on
+67\% of unanswerable turns, Hybrid+Rewrite on none), we tested a retrieval-side
+abstention gate: if the top-1 retrieval score falls below a threshold, the system
+returns the abstention phrase without calling the \gls{llm}. Each retriever exposes
+its own score: raw BM25 (about 0--30 on this corpus), cosine similarity for dense
+retrieval (about 0.5--0.9), and the RRF score for hybrid retrieval (about
+0.016--0.034).
+
+The gate does not work for hybrid retrieval with or without rewriting. On the pilot,
+unanswerable examples obtained RRF scores of 0.0323--0.0328, at or above the
+answerable median (0.0320), so any threshold that catches the unanswerable examples
+also abstains on most answerable ones. Rewriting makes queries specific enough to
+always find plausible-looking context. The gate is more viable for BM25, where an
+unanswerable question sometimes shares no term with any section. We concluded that
+abstention needs a generation-side mechanism, such as an \gls{llm} sufficiency check,
+rather than a retrieval score gate.
+
+
+% ===========================================================================
+\section{Query-Rewriting Examples}\label{ax:log:rewrites}
+
+The following rewrites were produced on the pilot set, where 42 of 50 turns had
+dialogue history:
+
+\begin{center}
+\small
+\begin{tabular}{p{0.32\textwidth}p{0.6\textwidth}}
+    \toprule
+    Original turn & Rewritten query \\
+    \midrule
+    ``yes'' & ``Does the requirement to include a deposit with the application for
+              paying Dial-in search account fees apply?'' \\
+    ``What are the fees for that?'' & ``What are the fees for DMV call center
+              exemptions in New York City?'' \\
+    ``Where can I find more info?'' & ``Where can I find more information about
+              New York DMV vehicle registration insurance requirements?'' \\
+    ``Can I use my union card?'' & ``Can I use my union card as proof of
+              identification for DMV requirements?'' \\
+    \bottomrule
+\end{tabular}
+\end{center}
+
+The remaining retrieval failures after rewriting fell into two groups: turns where
+the dialogue itself is underspecified, so that even the rewritten query stays vague
+(e.g.\ ``how to clear up DMV issues and update address after receiving a letter''),
+and turns whose answer spans several sections that do not all fit in the top five.
+
+
+% ===========================================================================
+\section{Few-Shot Examples of the Agent-Style Prompt (v2)}\label{ax:log:fewshot}
+
+The v2 prompt (Section~\ref{sec:rag:prompt}) uses three (question, answer) pairs from
+the training split, one each from DMV, SSA and VA (seed~42):
+
+\begin{description}
+    \item[DMV] \emph{Q:} What happens if I lost my document?
+               \emph{A:} you must wait for it to arrive before you can create a
+               MyDMV account
+    \item[SSA] \emph{Q:} Is there any chance that I can get benefits for my parents?
+               What is the process of applying for benefits online?
+               \emph{A:} You complete your application online where you are asked to
+               agree to the Terms of Service Agreement. You then either create or log
+               into your personal Social Security account
+    \item[VA]  \emph{Q:} How do I get a claims agent or attorney help me?
+               \emph{A:} You would need to fill out an Appointment of Individual as
+               Claimant's Representative VA Form 21-22a and you can download it.
+\end{description}
+
+
+% ===========================================================================
+\section{Supplementary Full-Split Results}\label{ax:log:fullsplit}
+
+Table~\ref{tab:log:unans} reports the unanswerable subset of the full validation
+split (abstention by exact phrase match, see Section~\ref{ax:log:pilot}).
+Table~\ref{tab:log:docswitch_f1} complements Table~\ref{tab:rag:docswitch} with
+\fone{} by turn type.
+
+\begin{table}[ht]
+    \centering
+    \caption{Unanswerable subset of the full validation split ($n = 225$--$226$).
+             95\% bootstrap CIs in brackets. \fone{} is high whenever the model
+             abstains, because the reference is the abstention phrase.}
+    \label{tab:log:unans}
+    \begin{tabular}{lrr}
+        \toprule
+        System & \fone{}\% [CI] & Abstain\% [CI] \\
+        \midrule
+        LLM-only           & 16.24 [11.43, 21.09] & 15.04 [10.18, 19.91] \\
+        RAG BM25           & 52.39 [45.94, 59.20] & 50.88 [44.25, 57.96] \\
+        RAG Dense          & 68.38 [62.19, 74.38] & 67.70 [61.50, 73.89] \\
+        RAG Hybrid         & 52.98 [46.78, 59.04] & 51.56 [45.33, 57.78] \\
+        RAG Hybrid+Rewrite & 37.48 [30.94, 43.59] & 35.56 [28.89, 41.78] \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{table}[ht]
+    \centering
+    \caption{Token \fone{} by turn type on the full validation split.
+             95\% bootstrap CIs in brackets.}
+    \label{tab:log:docswitch_f1}
+    \begin{tabular}{lrr}
+        \toprule
+        System & Doc-switch \fone{}\% [CI] & Same-doc \fone{}\% [CI] \\
+        \midrule
+        RAG BM25           & 26.43 [25.11, 27.83] & 23.51 [22.71, 24.30] \\
+        RAG Dense          & 27.55 [26.35, 28.80] & 23.82 [23.04, 24.67] \\
+        RAG Hybrid         & 27.40 [26.12, 28.71] & 24.07 [23.29, 24.86] \\
+        RAG Hybrid+Rewrite & 27.53 [26.20, 28.82] & 26.59 [25.87, 27.29] \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+
+% ===========================================================================
+\section{Dev-500: \fone{} by Retrieval Hit and Miss}\label{ax:log:hitmiss}
+
+Table~\ref{tab:log:hitmiss} gives the per-system figures behind the hit--miss
+analysis of Section~\ref{sec:rag:analysis}. A hit is an answerable example whose gold
+section is in the top five; $n$ counts answerable examples with a successful
+generation.
+
+\begin{table}[ht]
+    \centering
+    \caption{Token \fone{} on retrieval hits and misses (dev-500, 95\% bootstrap CI).}
+    \label{tab:log:hitmiss}
+    \begin{tabular}{lrrrr}
+        \toprule
+        System & \fone{}-hit\% [CI] & $n$ & \fone{}-miss\% [CI] & $n$ \\
+        \midrule
+        RAG BM25           & 36.0 [33.3, 38.6] & 193 & 14.2 [12.8, 15.8] & 275 \\
+        RAG Dense          & 35.1 [32.2, 37.8] & 189 & 12.8 [11.3, 14.4] & 278 \\
+        RAG Hybrid         & 35.4 [32.8, 37.9] & 214 & 13.9 [12.3, 15.6] & 255 \\
+        RAG Hybrid+Rewrite & 33.3 [30.9, 35.7] & 286 & 18.3 [16.3, 20.4] & 183 \\
+        Oracle             & 36.7 [34.8, 38.7] & 469 & ---               & --- \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+
+% ===========================================================================
+\section{Compute and Runtime}\label{ax:log:runtime}
+
+\gls{llm} calls run in a thread pool with retry and exponential back-off on
+rate-limit errors, and every response is cached on disk under a hash of its prompt.
+With 12 workers, the first run of the six original pipelines on dev-500 took
+17.1~minutes; subsequent runs are served from the cache in seconds. The four
+pipelines of the prompt-v2 and reranker ablations took 20.3~minutes in total, of
+which cross-encoder scoring of the 25{,}000 (query, section) pairs took
+12.5~minutes on CPU (\texttt{bge-reranker-base}, batch size 256). Reranker scores
+are cached separately, keyed by a SHA-256 hash of the query and section text.
+Building the dense index (4{,}114 sections) takes about 15--30~seconds on Apple MPS
+and is cached on disk.
+
+
+% ===========================================================================
+\section{Planned LLM-Judge Evaluation}\label{ax:log:judge}
+
+The planned judge (Chapter~\ref{ch:conclusions}) would run an open-weight model
+locally (Qwen2.5-14B-Instruct on a single 24\,GB GPU with int4 quantisation, or the
+smaller Llama~3.1~8B~Instruct on 16\,GB). Running it locally keeps evaluation free
+and separates the judge from the system under evaluation, which uses the Azure
+endpoint. Each (question, context, reference, prediction) tuple would receive a
+binary correctness label with a short rationale, or a 0--3 graded score if finer
+discrimination is needed. Judge outputs would be stored separately from the raw
+result files, so that \fone{}-only evaluation stays reproducible without the judge.

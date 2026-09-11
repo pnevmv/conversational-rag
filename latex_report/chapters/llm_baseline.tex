@@ -15,8 +15,9 @@ for the \gls{rag} experiments that follow.
 
 All \gls{llm} calls in this thesis are routed through an Azure~OpenAI endpoint
 using the \texttt{gpt-5.4-nano} model series. The model receives each prompt as a
-single user turn and returns a text completion. Temperature is set to~$0$ to
-maximise reproducibility. The \gls{api} client is implemented in
+single user turn and returns a text completion, using the deployment's default
+sampling parameters; reproducibility of reported results is ensured by the response
+cache described below. The \gls{api} client is implemented in
 \texttt{src/llm/client.py} and is shared across all pipelines; no second inference
 client is introduced at any point.
 
@@ -55,7 +56,8 @@ alone, with the dialogue history available only implicitly through the question 
 
 A preliminary evaluation on a balanced set of 50 examples (drawn before the dev-500
 subset was formalised) was used to validate the evaluation pipeline and the prompt
-design. Results are shown in Table~\ref{tab:llm:initial}.
+design. Results are shown in Table~\ref{tab:llm:initial}; earlier prompt versions and
+their results are documented in Appendix~\ref{ax:log:pilot}.
 
 \begin{table}[ht]
     \centering

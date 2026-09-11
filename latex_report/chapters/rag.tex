@@ -14,6 +14,11 @@ dev-500 subset respectively. Section~\ref{sec:rag:analysis} analyses the finding
 % ===========================================================================
 \section{Pipeline Architecture}\label{sec:rag:arch}
 
+The final protocol described in this chapter was reached through several
+preliminary iterations on a 50-example development set; this history, including
+the move from span-level to section-level indexing, is documented in
+Appendix~\ref{ax:log}.
+
 The \gls{rag} pipeline consists of three sequential stages:
 
 \begin{enumerate}
@@ -71,7 +76,10 @@ questions~\cite{robertson2009bm25}.
 \subsection{Dense Retrieval}
 
 The dense retriever uses \texttt{BAAI/bge-small-en-v1.5} to produce 384-dimensional
-embeddings for all sections and for each query. Retrieval is by cosine similarity.
+embeddings for all sections and for each query. Retrieval is exact cosine similarity
+over L2-normalised embeddings. Following the BGE asymmetric-retrieval convention,
+queries are prefixed with the instruction ``Represent this sentence for searching
+relevant passages:'', while sections are embedded without a prefix.
 The model was pre-trained on a large collection of sentence pairs and fine-tuned for
 general-purpose retrieval, making it competitive with larger models at lower
 computational cost.
@@ -79,8 +87,10 @@ computational cost.
 \subsection{Hybrid Retrieval with RRF}
 
 The hybrid retriever fuses the ranked lists of BM25 and dense retrieval using
-\gls{rrf} with $k_{\mathrm{rrf}} = 60$. It returns the top-$K$ sections
-by fused score. The RRF formula down-weights sections that rank poorly in either
+\gls{rrf} with $k_{\mathrm{rrf}} = 60$~\cite{cormack2009rrf}: each section scores
+$\sum_i 1/(k_{\mathrm{rrf}} + \mathrm{rank}_i)$ over the rankers that retrieved it.
+To give fusion a meaningful candidate pool, each ranker retrieves $3K = 15$
+candidates, and the fused list is truncated to the top-$K$ sections. The RRF formula down-weights sections that rank poorly in either
 list while rewarding those that rank highly in both, producing a fused ranking
 that is more robust than either individual retriever.
 
@@ -109,7 +119,9 @@ that. What kind of violation was it?'' User: ``It was a speeding ticket.''
 
 Only questions in turns with a non-empty dialogue history are submitted to the
 rewriter (434 of 500 dev-500 examples, of which 431 were actually changed);
-first-turn questions are passed to retrieval unchanged.
+first-turn questions are passed to retrieval unchanged. The rewritten query is used
+only for retrieval: the generator still receives the original user question.
+Real rewrites from the development set are listed in Appendix~\ref{ax:log:rewrites}.
 
 
 % ===========================================================================
@@ -170,7 +182,8 @@ properties that the v1 prompt only weakly enforces: explicit second-person addre
 prohibition of markdown formatting, and prohibition of preamble phrases such as
 ``Based on the context\ldots''. Three few-shot examples were drawn from the
 MultiDoc2Dial training split (seed~42, one from each of the DMV, SSA, and VA
-domains) to demonstrate the target style. The abstention phrase is unchanged.
+domains) to demonstrate the target style; they are listed in
+Appendix~\ref{ax:log:fewshot}. The abstention phrase is unchanged.
 
 The v2 prompt preamble reads:
 
@@ -353,7 +366,8 @@ the gold section in the top-5 (retrieval hit), and F1-hit for those examples is
 33.3\%. For the $183$ examples (39\% of answerable ones) where retrieval misses,
 $\fone = 18.3\%$: the model is limited to whatever partial context it retrieves.
 This \emph{hit--miss gap} is large for every retrieval strategy: 21.8~pp for BM25,
-22.3~pp for Dense, 21.5~pp for Hybrid, and 15.0~pp for Hybrid+Rewrite.
+22.3~pp for Dense, 21.5~pp for Hybrid, and 15.0~pp for Hybrid+Rewrite
+(Table~\ref{tab:log:hitmiss}).
 
 These figures allow the oracle gap to be decomposed. If every retrieval miss were
 converted into a hit at the observed F1-hit, \fone{} would rise by approximately
@@ -452,6 +466,8 @@ this to 29.0\% / 4.9\% / 28.1\%, trading some recall for a lower false-abstentio
 rate and higher precision.
 
 Improving abstain recall without increasing false abstentions remains an open
-problem for this pipeline. Approaches such as a retrieval sufficiency check (an
+problem for this pipeline. A retrieval-side gate on the top-1 retrieval score was
+tested during development and does not separate unanswerable from answerable
+questions for hybrid retrieval (Appendix~\ref{ax:log:threshold}). Approaches such as a retrieval sufficiency check (an
 additional \gls{llm} call that judges whether the retrieved context answers the
 question) or training a dedicated classification head are planned for future work.

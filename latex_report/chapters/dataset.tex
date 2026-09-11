@@ -27,7 +27,8 @@ The document corpus covers four United States government-service domains:
     \item \textbf{VA} --- Veterans Affairs healthcare and benefits.
 \end{itemize}
 
-The corpus contains 18 HTML documents, preprocessed into 4{,}114 sections.
+The corpus contains 488 documents (35{,}659 annotated spans), preprocessed into
+4{,}114 sections.
 Each section is a contiguous block of text associated with a section heading; it is
 the unit of retrieval used throughout this work.
 
@@ -108,8 +109,10 @@ For the unanswerable subset ($n = 226$ in the full validation split), we report
 three complementary metrics:
 \begin{itemize}
     \item \textbf{Abstain recall} --- fraction of unanswerable questions on which
-          the model produces the exact abstention phrase
+          the model abstains, i.e.\ produces the abstention phrase
           \emph{``Unfortunately, no relevant information is found.''}
+          (detected as any answer containing ``no relevant information'';
+          see Appendix~\ref{ax:log:pilot} for the earlier exact-match criterion).
     \item \textbf{False-abstention rate} (false abstain, FA) --- fraction of
           answerable questions on which the model incorrectly abstains.
     \item \textbf{Abstain precision} --- fraction of all abstentions that
@@ -150,14 +153,14 @@ number of unanswerable and document-switch examples:
     \centering
     \caption{Composition of the dev-500 diagnostic subset.}
     \label{tab:dataset:dev500}
-    \begin{tabular}{lrrrr}
+    \begin{tabular}{lrrr}
         \toprule
         Domain & Examples & Unanswerable & Doc-switch \\
         \midrule
-        DMV          & 125 & & \\
-        SSA          & 125 & & \\
-        StudentAid   & 125 & & \\
-        VA           & 125 & & \\
+        DMV          & 125 &  4 & 21 \\
+        SSA          & 125 &  9 & 18 \\
+        StudentAid   & 125 & 13 & 31 \\
+        VA           & 125 &  5 & 24 \\
         \midrule
         Total        & 500 & 31 (6.2\%) & 94 (18.8\%) \\
         \bottomrule

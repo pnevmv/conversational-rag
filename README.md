@@ -3,7 +3,7 @@
 **Author:** Danil Smirnov  
 **Degree:** M.Sc. in Computer Engineering, University of Padua  
 **Supervisor:** Prof. Gianmaria Silvello  
-**Reference Document:** [Initial_Research_Plan_Smirnov.pdf](Initial_Research_Plan_Smirnov.pdf)
+**Thesis:** [`latex_report/`](latex_report/)
 
 ---
 
@@ -89,7 +89,7 @@ Key findings:
 - About two thirds of the 8.1 pp gap to the oracle comes from retrieval misses.
 - The reranker raises Recall@5 by 6.2 pp but not F1. It gains 53 gold sections and displaces 23 previously retrieved ones; the generator fully uses the new hits.
 
-See [`experiments_description.txt`](experiments_description.txt) and the thesis chapter `latex_report/chapters/rag.tex` for full analysis.
+See the thesis chapter `latex_report/chapters/rag.tex` for full analysis, and Appendix A (`latex_report/chapters/experimental_log.tex`) for the development history and supplementary results.
 
 ### In Progress
 
@@ -244,8 +244,6 @@ llm_rag/
 │   ├── dev_500_ids.json          # Fixed dev-500 subset ids
 │   └── cache/                    # Dense index cache (git-ignored)
 │
-├── experiments_description.txt   # Detailed experiment analysis and results
-├── Initial_Research_Plan_Smirnov.pdf
 ├── .env.example
 ├── requirements.txt
 └── README.md
