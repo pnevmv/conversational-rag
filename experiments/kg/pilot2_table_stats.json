@@ -1,0 +1,149 @@
+{
+  "n_documents": 6,
+  "n_sections": 6,
+  "n_sections_empty": 0,
+  "n_sections_is_table": 6,
+  "n_entities": 50,
+  "n_relations": 35,
+  "raw_entities": 54,
+  "raw_relations": 35,
+  "cap_hits": [
+    {
+      "section_id": "Restore license after revocation#1_0::241",
+      "is_table": true
+    },
+    {
+      "section_id": "Exchange your out-of-state driver license#1_0::13",
+      "is_table": true
+    }
+  ],
+  "postprocess": {
+    "entity_duplicate": 4,
+    "relation_schema_violation": 5
+  },
+  "entity_types": {
+    "Requirement": 11,
+    "Service": 10,
+    "Organization": 10,
+    "Amount": 7,
+    "Document": 6,
+    "ContactPoint": 4,
+    "TimeLimit": 2
+  },
+  "relation_types": {
+    "REQUIRES": 14,
+    "AVAILABLE_AT": 11,
+    "HAS_TIME_LIMIT": 3,
+    "HAS_AMOUNT": 3,
+    "PROVIDED_BY": 2,
+    "LEADS_TO": 1,
+    "ALTERNATIVE_TO": 1
+  },
+  "kinds": {
+    "Service": {
+      "other": 6,
+      "procedure": 2,
+      "test": 1,
+      "program": 1
+    },
+    "Organization": {
+      "office": 6,
+      "agency": 3,
+      "other": 1
+    },
+    "Amount": {
+      "fee": 5,
+      "limit": 2
+    },
+    "ContactPoint": {
+      "phone": 2,
+      "other": 1,
+      "office": 1
+    }
+  },
+  "value_fill": {
+    "Amount": [
+      7,
+      7
+    ],
+    "TimeLimit": [
+      2,
+      2
+    ],
+    "ContactPoint": [
+      4,
+      4
+    ]
+  },
+  "text_fill": {
+    "Requirement": [
+      11,
+      11
+    ],
+    "Outcome": [
+      0,
+      0
+    ]
+  },
+  "negated": 0,
+  "camel_case_names": 1,
+  "mean_name_words": 4.34,
+  "schema_violations": [
+    {
+      "relation": "HAS_AMOUNT",
+      "source_type": "Requirement",
+      "target_type": "Amount",
+      "count": 2
+    },
+    {
+      "relation": "HAS_TIME_LIMIT",
+      "source_type": "Organization",
+      "target_type": "TimeLimit",
+      "count": 1
+    },
+    {
+      "relation": "REQUIRES",
+      "source_type": "Service",
+      "target_type": "Organization",
+      "count": 1
+    },
+    {
+      "relation": "LEADS_TO",
+      "source_type": "Service",
+      "target_type": "Document",
+      "count": 1
+    }
+  ],
+  "evidence_check": {
+    "entities": {
+      "verbatim": 47,
+      "not_found": 2,
+      "near_verbatim": 1
+    },
+    "relations": {
+      "verbatim": 29,
+      "not_found": 5,
+      "near_verbatim": 1
+    }
+  },
+  "evidence_with_ellipsis": 0,
+  "overlap_exact": {
+    "mentions": 50,
+    "distinct_per_doc": 50,
+    "multi_section_entities": 0,
+    "mentions_in_multi_section_entities": 0,
+    "top_repeated": [],
+    "cross_document_entities": 0,
+    "cross_document_examples": []
+  },
+  "overlap_normalized": {
+    "mentions": 50,
+    "distinct_per_doc": 50,
+    "multi_section_entities": 0,
+    "mentions_in_multi_section_entities": 0,
+    "top_repeated": [],
+    "cross_document_entities": 0,
+    "cross_document_examples": []
+  },
+  "type_conflicts": []
+}

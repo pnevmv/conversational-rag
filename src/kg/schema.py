@@ -1,0 +1,188 @@
+"""Closed KG schema for MultiDoc2Dial (entity types, relation types, extraction JSON schema).
+
+Derived from the pilot open extraction (experiments/kg/schema_proposal.md) and the
+review decisions: Organization and Amount renames, ContactPoint added, ALTERNATIVE_TO
+kept as a symmetric relation, and a cap of MAX_ENTITIES entities per section.
+"""
+from typing import Any, Dict, FrozenSet, List
+
+MAX_ENTITIES = 15
+
+# type -> definition, allowed `kind` values (empty: no kind), whether `value` is used
+ENTITY_TYPES: Dict[str, Dict[str, Any]] = {
+    "Service": {
+        "definition": "something a citizen can apply for, receive or complete: a benefit, program, "
+                      "licence, registration, loan, test, course or procedure",
+        "kinds": ["benefit", "program", "licence", "registration", "loan", "test", "course",
+                  "procedure", "other"],
+        "value": False,
+    },
+    "Organization": {
+        "definition": "an agency, office, school, loan servicer, dealer or other organisation that "
+                      "provides, issues or decides something",
+        "kinds": ["agency", "office", "school", "servicer", "other"],
+        "value": False,
+    },
+    "Document": {
+        "definition": "a form, certificate, proof, card, letter or notice",
+        "kinds": [],
+        "value": False,
+    },
+    "Requirement": {
+        "definition": "a condition or obligation: an eligibility criterion, something that must be "
+                      "presented or done, or a restriction",
+        "kinds": [],
+        "value": False,
+    },
+    "Amount": {
+        "definition": "a monetary value or limit: a fee, tax, premium, benefit amount, or income or "
+                      "earnings limit",
+        "kinds": ["fee", "tax", "premium", "benefit", "limit", "other"],
+        "value": True,
+    },
+    "TimeLimit": {
+        "definition": "a deadline, duration, frequency or waiting period",
+        "kinds": [],
+        "value": True,
+    },
+    "Role": {
+        "definition": "a category of person the content applies to: an applicant group, status, "
+                      "relative or official",
+        "kinds": [],
+        "value": False,
+    },
+    "Outcome": {
+        "definition": "a result or consequence of an action or condition",
+        "kinds": [],
+        "value": False,
+    },
+    "ContactPoint": {
+        "definition": "a phone number, website, online account, office location or information page "
+                      "where the citizen can get the service or more information",
+        "kinds": ["phone", "website", "account", "office", "other"],
+        "value": True,
+    },
+}
+
+# relation -> definition, allowed source types, allowed target types
+RELATION_TYPES: Dict[str, Dict[str, Any]] = {
+    "REQUIRES": {
+        "definition": "the source needs the target (a condition, document or prior service)",
+        "source": ["Service", "Document", "Role"],
+        "target": ["Requirement", "Document", "Service"],
+    },
+    "PROVIDED_BY": {
+        "definition": "the source is offered, issued, set or decided by the target organisation",
+        "source": ["Service", "Document", "Amount"],
+        "target": ["Organization"],
+    },
+    "HAS_AMOUNT": {
+        "definition": "the source costs, pays or is limited by the target amount",
+        "source": ["Service", "Document"],
+        "target": ["Amount"],
+    },
+    "HAS_TIME_LIMIT": {
+        "definition": "the source has the target deadline, duration, frequency or waiting period",
+        "source": ["Service", "Requirement", "Document"],
+        "target": ["TimeLimit"],
+    },
+    "APPLIES_TO": {
+        "definition": "the source is available to, paid to or relevant for the target",
+        "source": ["Service", "Requirement", "Amount", "TimeLimit"],
+        "target": ["Role", "Service"],
+    },
+    "LEADS_TO": {
+        "definition": "the source causes or results in the target",
+        "source": ["Service", "Requirement", "Outcome"],
+        "target": ["Outcome", "Service"],
+    },
+    "EXEMPT_FROM": {
+        "definition": "the source does not need, pay or fall under the target",
+        "source": ["Role", "Service", "Document"],
+        "target": ["Requirement", "Amount", "Service"],
+    },
+    "DETERMINED_BY": {
+        "definition": "the source's value or outcome depends on the target",
+        "source": ["Amount", "Service", "Outcome"],
+        "target": ["Requirement", "Role", "Amount"],
+    },
+    "AVAILABLE_AT": {
+        "definition": "the source can be obtained, done or looked up at the target",
+        "source": ["Service", "Document"],
+        "target": ["ContactPoint", "Organization"],
+    },
+    "PART_OF": {
+        "definition": "the source is a component or sub-case of the target",
+        "source": ["Service", "Document", "Amount"],
+        "target": ["Service", "Document", "Amount"],
+    },
+    "ALTERNATIVE_TO": {
+        "definition": "the source can be used or chosen instead of the target (symmetric)",
+        "source": ["Service", "Document", "Requirement"],
+        "target": ["Service", "Document", "Requirement"],
+    },
+}
+
+# Stored in one canonical direction, queried undirected.
+SYMMETRIC_RELATIONS: FrozenSet[str] = frozenset({"ALTERNATIVE_TO"})
+
+
+def _nullable(type_: str) -> Dict[str, Any]:
+    return {"type": [type_, "null"]}
+
+
+def extraction_json_schema() -> Dict[str, Any]:
+    """Strict JSON schema for one section's extraction output."""
+    entity = {
+        "type": "object",
+        "properties": {
+            "name": {"type": "string"},
+            "type": {"type": "string", "enum": list(ENTITY_TYPES)},
+            "kind": _nullable("string"),
+            "value": _nullable("string"),
+            "text": _nullable("string"),
+            "negated": {"type": "boolean"},
+            "evidence": {"type": "string"},
+        },
+        "required": ["name", "type", "kind", "value", "text", "negated", "evidence"],
+        "additionalProperties": False,
+    }
+    relation = {
+        "type": "object",
+        "properties": {
+            "source": {"type": "string"},
+            "relation": {"type": "string", "enum": list(RELATION_TYPES)},
+            "target": {"type": "string"},
+            "evidence": {"type": "string"},
+        },
+        "required": ["source", "relation", "target", "evidence"],
+        "additionalProperties": False,
+    }
+    return {
+        "type": "object",
+        "properties": {
+            "entities": {"type": "array", "maxItems": MAX_ENTITIES, "items": entity},
+            "relations": {"type": "array", "items": relation},
+        },
+        "required": ["entities", "relations"],
+        "additionalProperties": False,
+    }
+
+
+def schema_prompt_block() -> str:
+    """Human-readable schema description for the extraction prompt."""
+    lines: List[str] = ["Entity types:"]
+    for name, spec in ENTITY_TYPES.items():
+        extra = []
+        if spec["kinds"]:
+            extra.append(f"kind: one of {' | '.join(spec['kinds'])}")
+        if spec["value"]:
+            extra.append("value: required")
+        suffix = f" [{'; '.join(extra)}]" if extra else ""
+        lines.append(f"- {name}: {spec['definition']}{suffix}")
+    lines.append("")
+    lines.append("Relation types (source type -> target type):")
+    for name, spec in RELATION_TYPES.items():
+        lines.append(f"- {name}: {spec['definition']} "
+                     f"({' | '.join(spec['source'])} -> {' | '.join(spec['target'])})")
+    return "\n".join(lines)
