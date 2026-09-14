@@ -126,6 +126,8 @@
     ]
   },
   "negated": 5,
+  "with_alias": 0,
+  "loadable_relations": 324,
   "camel_case_names": 7,
   "mean_name_words": 4.123287671232877,
   "schema_violations": [

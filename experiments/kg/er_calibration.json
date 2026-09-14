@@ -1,0 +1,70 @@
+{
+  "pairs_judged": 555,
+  "pairs_scoring_at_least_cal_min": 455,
+  "low_range_sample": 100,
+  "bins": [
+    {
+      "score_from": 0.65,
+      "score_to": 0.7,
+      "pairs": 66,
+      "llm_same": 0,
+      "llm_same_rate": 0.0
+    },
+    {
+      "score_from": 0.7,
+      "score_to": 0.75,
+      "pairs": 34,
+      "llm_same": 1,
+      "llm_same_rate": 0.029
+    },
+    {
+      "score_from": 0.75,
+      "score_to": 0.8,
+      "pairs": 199,
+      "llm_same": 17,
+      "llm_same_rate": 0.085
+    },
+    {
+      "score_from": 0.8,
+      "score_to": 0.85,
+      "pairs": 117,
+      "llm_same": 12,
+      "llm_same_rate": 0.103
+    },
+    {
+      "score_from": 0.85,
+      "score_to": 0.88,
+      "pairs": 43,
+      "llm_same": 9,
+      "llm_same_rate": 0.209
+    },
+    {
+      "score_from": 0.88,
+      "score_to": 0.9,
+      "pairs": 29,
+      "llm_same": 9,
+      "llm_same_rate": 0.31
+    },
+    {
+      "score_from": 0.9,
+      "score_to": 0.93,
+      "pairs": 27,
+      "llm_same": 9,
+      "llm_same_rate": 0.333
+    },
+    {
+      "score_from": 0.93,
+      "score_to": 0.95,
+      "pairs": 21,
+      "llm_same": 12,
+      "llm_same_rate": 0.571
+    },
+    {
+      "score_from": 0.95,
+      "score_to": 1.0,
+      "pairs": 19,
+      "llm_same": 10,
+      "llm_same_rate": 0.526
+    }
+  ]
+}

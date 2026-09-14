@@ -2,7 +2,10 @@
 
 Derived from the pilot open extraction (experiments/kg/schema_proposal.md) and the
 review decisions: Organization and Amount renames, ContactPoint added, ALTERNATIVE_TO
-kept as a symmetric relation, and a cap of MAX_ENTITIES entities per section.
+kept as a symmetric relation, and a cap of MAX_ENTITIES entities per extraction call.
+After the whole-document pilot: the extra pairs Organization -AVAILABLE_AT-> ContactPoint
+and Requirement -REQUIRES-> Document are allowed, Service has appeal/insurance/online_tool
+kinds, and entities carry an optional `alias` (abbreviation or full form).
 """
 from typing import Any, Dict, FrozenSet, List
 
@@ -14,7 +17,7 @@ ENTITY_TYPES: Dict[str, Dict[str, Any]] = {
         "definition": "something a citizen can apply for, receive or complete: a benefit, program, "
                       "licence, registration, loan, test, course or procedure",
         "kinds": ["benefit", "program", "licence", "registration", "loan", "test", "course",
-                  "procedure", "other"],
+                  "procedure", "appeal", "insurance", "online_tool", "other"],
         "value": False,
     },
     "Organization": {
@@ -70,6 +73,7 @@ RELATION_TYPES: Dict[str, Dict[str, Any]] = {
         "definition": "the source needs the target (a condition, document or prior service)",
         "source": ["Service", "Document", "Role"],
         "target": ["Requirement", "Document", "Service"],
+        "extra_pairs": [("Requirement", "Document")],
     },
     "PROVIDED_BY": {
         "definition": "the source is offered, issued, set or decided by the target organisation",
@@ -110,6 +114,7 @@ RELATION_TYPES: Dict[str, Dict[str, Any]] = {
         "definition": "the source can be obtained, done or looked up at the target",
         "source": ["Service", "Document"],
         "target": ["ContactPoint", "Organization"],
+        "extra_pairs": [("Organization", "ContactPoint")],
     },
     "PART_OF": {
         "definition": "the source is a component or sub-case of the target",
@@ -122,6 +127,18 @@ RELATION_TYPES: Dict[str, Dict[str, Any]] = {
         "target": ["Service", "Document", "Requirement"],
     },
 }
+
+def is_valid_triple(relation: str, source_type: str, target_type: str) -> bool:
+    """Check a relation against its domain -> range rules (symmetric relations either way)."""
+    spec = RELATION_TYPES[relation]
+
+    def _ok(src: str, dst: str) -> bool:
+        return (src in spec["source"] and dst in spec["target"]) or (src, dst) in spec.get("extra_pairs", [])
+
+    if relation in SYMMETRIC_RELATIONS:
+        return _ok(source_type, target_type) or _ok(target_type, source_type)
+    return _ok(source_type, target_type)
+
 
 # Stored in one canonical direction, queried undirected.
 SYMMETRIC_RELATIONS: FrozenSet[str] = frozenset({"ALTERNATIVE_TO"})
@@ -137,6 +154,7 @@ def extraction_json_schema() -> Dict[str, Any]:
         "type": "object",
         "properties": {
             "name": {"type": "string"},
+            "alias": _nullable("string"),
             "type": {"type": "string", "enum": list(ENTITY_TYPES)},
             "kind": _nullable("string"),
             "value": _nullable("string"),
@@ -144,7 +162,7 @@ def extraction_json_schema() -> Dict[str, Any]:
             "negated": {"type": "boolean"},
             "evidence": {"type": "string"},
         },
-        "required": ["name", "type", "kind", "value", "text", "negated", "evidence"],
+        "required": ["name", "alias", "type", "kind", "value", "text", "negated", "evidence"],
         "additionalProperties": False,
     }
     relation = {
@@ -183,6 +201,7 @@ def schema_prompt_block() -> str:
     lines.append("")
     lines.append("Relation types (source type -> target type):")
     for name, spec in RELATION_TYPES.items():
+        extra = "".join(f"; also {s} -> {d}" for s, d in spec.get("extra_pairs", []))
         lines.append(f"- {name}: {spec['definition']} "
-                     f"({' | '.join(spec['source'])} -> {' | '.join(spec['target'])})")
+                     f"({' | '.join(spec['source'])} -> {' | '.join(spec['target'])}{extra})")
     return "\n".join(lines)

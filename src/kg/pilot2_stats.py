@@ -75,7 +75,14 @@ def overlap(records: List[Dict[str, Any]], key_fn) -> Dict[str, Any]:
     }
 
 
+def _raw_counts(r: Dict[str, Any]) -> List[int]:
+    """Raw entity counts per LLM call (pilot 3 stores one count per chunk)."""
+    n = r.get("raw_n_entities", 0)
+    return n if isinstance(n, list) else [n]
+
+
 def aggregate(records: List[Dict[str, Any]]) -> Dict[str, Any]:
+    records = [r for r in records if r.get("status") != "skipped"]
     ents = [e for r in records for e in r["entities"]]
     rels = [x for r in records for x in r["relations"]]
 
@@ -101,7 +108,7 @@ def aggregate(records: List[Dict[str, Any]]) -> Dict[str, Any]:
             evid["relations"][evidence_status(x["evidence"], r["text"])] += 1
     ellipsis = sum(1 for x in ents + rels if "..." in x["evidence"] or "…" in x["evidence"])
 
-    cap_hits = [r for r in records if r.get("raw_n_entities", 0) >= MAX_ENTITIES]
+    cap_hits = [r for r in records if max(_raw_counts(r)) >= MAX_ENTITIES]
 
     # Same surface name extracted with different types within a document.
     type_conflicts = []
@@ -120,7 +127,7 @@ def aggregate(records: List[Dict[str, Any]]) -> Dict[str, Any]:
         "n_sections_is_table": sum(1 for r in records if r["is_table"]),
         "n_entities": len(ents),
         "n_relations": len(rels),
-        "raw_entities": sum(r.get("raw_n_entities", 0) for r in records),
+        "raw_entities": sum(sum(_raw_counts(r)) for r in records),
         "raw_relations": sum(r.get("raw_n_relations", 0) for r in records),
         "cap_hits": [{"section_id": r["section_id"], "is_table": r["is_table"]} for r in cap_hits],
         "postprocess": dict(post),
@@ -130,6 +137,8 @@ def aggregate(records: List[Dict[str, Any]]) -> Dict[str, Any]:
         "value_fill": value_fill,
         "text_fill": text_fill,
         "negated": sum(1 for e in ents if e["negated"]),
+        "with_alias": sum(1 for e in ents if e.get("alias")),
+        "loadable_relations": sum(1 for x in rels if x["schema_valid"]),
         "camel_case_names": sum(1 for e in ents if is_camel_case(e["name"])),
         "mean_name_words": sum(len(e["name"].split()) for e in ents) / max(1, len(ents)),
         "schema_violations": [{"relation": k[0], "source_type": k[1], "target_type": k[2], "count": n}
