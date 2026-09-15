@@ -1,0 +1,27 @@
+{
+  "pilot_name_groups": 423,
+  "scale": 50.698412698412696,
+  "full_name_groups": 21446,
+  "thresholds": {
+    "0.75": {
+      "pair_rate": 0.06619,
+      "pairwise_calls": 66675,
+      "batched_calls": 21321
+    },
+    "0.8": {
+      "pair_rate": 0.0361,
+      "pairwise_calls": 66545,
+      "batched_calls": 21334
+    },
+    "0.85": {
+      "pair_rate": 0.02056,
+      "pairwise_calls": 66011,
+      "batched_calls": 21238
+    },
+    "0.9": {
+      "pair_rate": 0.00969,
+      "pairwise_calls": 63008,
+      "batched_calls": 20422
+    }
+  }
+}

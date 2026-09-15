@@ -1,0 +1,111 @@
+{
+  "sections_compared": 63,
+  "exact_names": {
+    "all_relations": {
+      "entities": {
+        "run1": 509,
+        "run2": 511,
+        "shared": 362,
+        "jaccard": 0.5501519756838906,
+        "run1_in_run2": 0.7111984282907662,
+        "run2_in_run1": 0.7084148727984344
+      },
+      "triples": {
+        "run1": 372,
+        "run2": 377,
+        "shared": 149,
+        "jaccard": 0.24833333333333332,
+        "run1_in_run2": 0.40053763440860213,
+        "run2_in_run1": 0.3952254641909814
+      },
+      "entity_pairs": {
+        "run1": 362,
+        "run2": 376,
+        "shared": 169,
+        "jaccard": 0.29701230228471004,
+        "run1_in_run2": 0.46685082872928174,
+        "run2_in_run1": 0.449468085106383
+      }
+    },
+    "loadable_relations": {
+      "entities": {
+        "run1": 509,
+        "run2": 511,
+        "shared": 362,
+        "jaccard": 0.5501519756838906,
+        "run1_in_run2": 0.7111984282907662,
+        "run2_in_run1": 0.7084148727984344
+      },
+      "triples": {
+        "run1": 316,
+        "run2": 327,
+        "shared": 135,
+        "jaccard": 0.265748031496063,
+        "run1_in_run2": 0.4272151898734177,
+        "run2_in_run1": 0.41284403669724773
+      },
+      "entity_pairs": {
+        "run1": 311,
+        "run2": 326,
+        "shared": 149,
+        "jaccard": 0.305327868852459,
+        "run1_in_run2": 0.4790996784565916,
+        "run2_in_run1": 0.4570552147239264
+      }
+    }
+  },
+  "normalized_names": {
+    "all_relations": {
+      "entities": {
+        "run1": 507,
+        "run2": 509,
+        "shared": 367,
+        "jaccard": 0.5654853620955316,
+        "run1_in_run2": 0.7238658777120316,
+        "run2_in_run1": 0.7210216110019646
+      },
+      "triples": {
+        "run1": 372,
+        "run2": 377,
+        "shared": 154,
+        "jaccard": 0.25882352941176473,
+        "run1_in_run2": 0.41397849462365593,
+        "run2_in_run1": 0.40848806366047746
+      },
+      "entity_pairs": {
+        "run1": 362,
+        "run2": 376,
+        "shared": 174,
+        "jaccard": 0.30851063829787234,
+        "run1_in_run2": 0.48066298342541436,
+        "run2_in_run1": 0.4627659574468085
+      }
+    },
+    "loadable_relations": {
+      "entities": {
+        "run1": 507,
+        "run2": 509,
+        "shared": 367,
+        "jaccard": 0.5654853620955316,
+        "run1_in_run2": 0.7238658777120316,
+        "run2_in_run1": 0.7210216110019646
+      },
+      "triples": {
+        "run1": 316,
+        "run2": 327,
+        "shared": 140,
+        "jaccard": 0.2783300198807157,
+        "run1_in_run2": 0.4430379746835443,
+        "run2_in_run1": 0.42813455657492355
+      },
+      "entity_pairs": {
+        "run1": 311,
+        "run2": 326,
+        "shared": 154,
+        "jaccard": 0.3188405797101449,
+        "run1_in_run2": 0.49517684887459806,
+        "run2_in_run1": 0.4723926380368098
+      }
+    }
+  }
+}

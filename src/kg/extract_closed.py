@@ -10,6 +10,8 @@ sentence boundaries. Raw outputs are cached per (unit chunk, prompt hash).
 Post-processing (per chunk, then merged per unit):
   - normalises names and aliases, drops empty and duplicate entities
   - clears `kind` / `value` where the type does not use them, maps unknown kinds to "other"
+  - a ContactPoint whose evidence contains a phone number, address, email or URL must have
+    a value: if the model left it empty, the detail found in the evidence is used
   - drops relations with an endpoint that is not an extracted entity, and self-loops
   - stores symmetric relations (ALTERNATIVE_TO) in one canonical direction
   - flags relations that violate the domain -> range rules (`schema_valid`); they stay in
@@ -38,6 +40,7 @@ from src.kg.schema import (
     MAX_ENTITIES,
     SYMMETRIC_RELATIONS,
     extraction_json_schema,
+    find_contact_detail,
     is_valid_triple,
     schema_prompt_block,
 )
@@ -46,10 +49,14 @@ from src.llm.client import LLMClient
 
 KG_DIR = PROJECT_ROOT / "experiments" / "kg"
 DEFAULT_OUTPUTS = {
-    "pilot": KG_DIR / "pilot3_closed_extraction.jsonl",
-    "tables": KG_DIR / "pilot3_table_extraction.jsonl",
+    "pilot": KG_DIR / "pilot4_closed_extraction.jsonl",
+    "tables": KG_DIR / "pilot4_table_extraction.jsonl",
     "regression": KG_DIR / "regression_extraction.jsonl",
 }
+# Most deterministic sampling the deployment offers (pilot3_report.md, section 8): it is a
+# reasoning model; temperature is accepted only with reasoning effort "none", and `seed` is
+# not supported. Part of the cache key, so changing it re-runs the extraction.
+CALL_PARAMS: Dict[str, Any] = {"reasoning": {"effort": "none"}, "temperature": 0}
 # Whole-document pilot: documents of moderate length, so that cross-section entity
 # overlap is measurable while the number of LLM calls stays small.
 MIN_DOC_SECTIONS = 5
@@ -81,7 +88,7 @@ Rules:
 - "name": the shortest noun phrase that names the entity, copied from the text in its natural form (e.g. "learner permit", "Supplemental Security Income (SSI)"). Never use CamelCase identifiers or invented labels.
 - "alias": when the text gives both a full name and an abbreviation for the same entity (e.g. "Department of Motor Vehicles (DMV)"), put the full name in "name" and the abbreviation in "alias"; otherwise null.
 - "kind": one of the listed kinds for Service, Organization, Amount and ContactPoint; null for other types.
-- "value": the exact amount, duration or contact detail as written (e.g. "$25.00", "every 12 months", "800-827-1000") for Amount, TimeLimit and ContactPoint; null for other types, or when the text gives no value.
+- "value": the exact amount, duration or contact detail as written (e.g. "$25.00", "every 12 months", "800-827-1000") for Amount, TimeLimit and ContactPoint; null for other types, or when the text gives no value. For a ContactPoint whose evidence contains a phone number, postal address, email or URL, "value" is REQUIRED: copy that detail.
 - "text": for Requirement and Outcome, the full condition or consequence copied from the text; null for other types.
 - "negated": true only when the text states the opposite (e.g. "photocopies are not accepted"); otherwise false.
 - "evidence": ONE contiguous quote copied verbatim from the section text (at most ~25 words). Do not join fragments with "...".
@@ -120,7 +127,8 @@ def extract_chunk(client: Optional[LLMClient], cache: ExtractionCache, unit: Dic
                   max_retries: int = 5) -> Tuple[Dict[str, Any], str]:
     """Return (raw extraction, status) for one chunk; client=None reads the cache only."""
     prompt = build_prompt(unit["representative"], unit["chunks"][index], index, len(unit["chunks"]))
-    prompt_hash = hashlib.sha256(prompt.encode("utf-8")).hexdigest()
+    prompt_hash = hashlib.sha256(
+        f"{prompt}\x00{json.dumps(CALL_PARAMS, sort_keys=True)}".encode("utf-8")).hexdigest()
     key = f"{unit['unit_id']}::chunk{index}"
     raw = cache.get(key, prompt_hash)
     if raw is not None:
@@ -128,7 +136,7 @@ def extract_chunk(client: Optional[LLMClient], cache: ExtractionCache, unit: Dic
     if client is None:
         raise CacheMiss(key)
     raw = _call_llm(client, prompt, max_retries, schema=extraction_json_schema(),
-                    schema_name="kg_closed_extraction")
+                    schema_name="kg_closed_extraction", params=CALL_PARAMS)
     cache.put(key, prompt_hash, raw)
     return json.loads(raw), "success"
 
@@ -158,6 +166,9 @@ def postprocess(raw: Dict[str, Any]) -> Tuple[List[Dict[str, Any]], List[Dict[st
             counts["entity_kind_invalid"] += 1
             kind = "other"
         value = _clean(e["value"]) if spec["value"] else None
+        if e["type"] == "ContactPoint" and value is None and find_contact_detail(e["evidence"]):
+            value = find_contact_detail(e["evidence"])
+            counts["contact_value_from_evidence"] += 1
         if spec["value"] and value is None:
             counts["entity_value_missing"] += 1
         alias = _clean(e.get("alias"))

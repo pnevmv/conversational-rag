@@ -24,9 +24,17 @@ Pipeline:
      two Amount / TimeLimit / ContactPoint groups with different values. This stops
      chains such as A=B, B=C merging A and C when the LLM said A != C.
 
+LLM confirmation is batched by default: one call receives a query name group (name,
+type, evidence) and up to BATCH_SIZE candidate groups and returns which candidates are
+the same entity. Groups with the most pending candidates are queried first, and a pair
+already judged from the other side is not asked again. `--pairwise` reproduces the
+one-pair-per-call judge used for calibration.
+
 Commands:
     python -m src.kg.resolve calibrate   # LLM-judge pairs over a score range, per-bin agreement
-    python -m src.kg.resolve run         # resolve the pilot, export clusters for review
+    python -m src.kg.resolve run         # batched ER on the pilot -> er_pilot_batched_*
+    python -m src.kg.resolve run --pairwise --lower 0.75 --prefix er_pilot   # previous run
+    python -m src.kg.resolve estimate    # simulate full-corpus LLM calls from pilot densities
 """
 import argparse
 import csv
@@ -59,9 +67,12 @@ CROSS_DOMAIN_TYPES = {"Organization", "Document", "ContactPoint", "Amount", "Tim
 # exceeds ~57%, even at score >= 0.95 (contrastive siblings such as Subsidized / Unsubsidized
 # loans embed almost identically). So no score is safe to auto-merge: the upper band is
 # disabled and only the alias, acronym and form-number rules merge without the LLM.
+# The lower threshold was raised from 0.75 to 0.80 after inspecting the pairwise verdicts
+# (pilot3_report.md, section 9): almost all "same" verdicts in 0.75-0.80 were wrong merges.
 UPPER = 1.01
-LOWER = 0.75
+LOWER = 0.80
 TOP_K = 5
+BATCH_SIZE = 5
 SAME_DOC_BONUS = 0.02
 SHARED_NEIGHBOUR_BONUS = 0.03
 MAX_NEIGHBOUR_BONUS = 0.06
@@ -93,6 +104,47 @@ Entity A ({type_a}):
 Entity B ({type_b}):
 {desc_b}
 """
+
+BATCH_PROMPT = """Entity mentions were extracted from U.S. government-service web pages ({domain_note}).
+For EACH candidate below, decide independently whether it refers to the SAME real-world entity
+as the query (the same service, organisation, document, requirement, amount, time limit, role,
+outcome or contact point), not merely a related or similar one.
+
+First write in "difference" what distinguishes the candidate from the query, if anything. Then set
+"same". It is false whenever a qualifier differs (e.g. subsidized vs unsubsidized, medical vs
+non-medical, PLUS vs consolidation, different counties, rooms or phone numbers), when one is a
+general concept and the other a specific variant (e.g. "home loan" vs "VA direct home loan"), or
+when they are different steps or parts of a process. The same entity written differently (word
+order, singular/plural, an extra adjective such as "current" or "digital", or an added organisation
+name) IS the same entity.
+
+Query ({type_q}):
+{desc_q}
+
+Candidates:
+{candidates}
+"""
+
+BATCH_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "decisions": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "candidate": {"type": "integer"},
+                    "difference": {"type": "string"},
+                    "same": {"type": "boolean"},
+                },
+                "required": ["candidate", "difference", "same"],
+                "additionalProperties": False,
+            },
+        },
+    },
+    "required": ["decisions"],
+    "additionalProperties": False,
+}
 
 JUDGE_SCHEMA = {
     "type": "object",
@@ -293,6 +345,65 @@ def judge(pair: Dict[str, Any], groups: Dict[str, Dict[str, Any]], client: LLMCl
     return json.loads(raw)
 
 
+def plan_batches(pairs: List[Dict[str, Any]]) -> List[Tuple[str, List[int]]]:
+    """Group LLM-band pairs into (query gid, up to BATCH_SIZE pair indices) calls.
+
+    Groups with the most pending pairs are queried first; a pair judged from one side is
+    not asked again from the other.
+    """
+    by_group: Dict[str, List[int]] = defaultdict(list)
+    for i, p in enumerate(pairs):
+        by_group[p["a"]].append(i)
+        by_group[p["b"]].append(i)
+    judged: Set[int] = set()
+    batches: List[Tuple[str, List[int]]] = []
+    for gid in sorted(by_group, key=lambda g: (-len(by_group[g]), g)):
+        todo = sorted((i for i in by_group[gid] if i not in judged), key=lambda i: -pairs[i]["score"])
+        for k in range(0, len(todo), BATCH_SIZE):
+            chunk = todo[k:k + BATCH_SIZE]
+            batches.append((gid, chunk))
+            judged.update(chunk)
+    return batches
+
+
+def judge_batch(query: str, candidates: List[str], groups: Dict[str, Dict[str, Any]], client: LLMClient,
+                cache: ExtractionCache) -> Set[str]:
+    q = groups[query]
+    domains = sorted(set().union(q["domains"], *(groups[c]["domains"] for c in candidates)))
+    blocks = [f"[{n}] ({groups[c]['type']})\n{_describe(groups[c])}" for n, c in enumerate(candidates, start=1)]
+    prompt = BATCH_PROMPT.format(domain_note=f"domain: {', '.join(domains)}", type_q=q["type"],
+                                 desc_q=_describe(q), candidates="\n\n".join(blocks))
+    prompt_hash = hashlib.sha256(prompt.encode("utf-8")).hexdigest()
+    key = f"batch::{query}||{'|'.join(candidates)}"
+    raw = cache.get(key, prompt_hash)
+    if raw is None:
+        raw = _call_llm(client, prompt, 5, schema=BATCH_SCHEMA, schema_name="kg_entity_match_batch")
+        cache.put(key, prompt_hash, raw)
+    decisions = json.loads(raw)["decisions"]
+    return {candidates[d["candidate"] - 1] for d in decisions
+            if d["same"] and 1 <= d["candidate"] <= len(candidates)}
+
+
+def judge_batched(pairs: List[Dict[str, Any]], groups: Dict[str, Dict[str, Any]], workers: int = 8) -> int:
+    """Fill llm_same for each pair using batched calls; returns the number of calls."""
+    from concurrent.futures import ThreadPoolExecutor
+
+    client, cache = LLMClient(), ExtractionCache(DEFAULT_CACHE_DIR)
+    batches = plan_batches(pairs)
+
+    def _one(batch):
+        query, idx = batch
+        cands = [pairs[i]["b"] if pairs[i]["a"] == query else pairs[i]["a"] for i in idx]
+        return query, idx, cands, judge_batch(query, cands, groups, client, cache)
+
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        for query, idx, cands, same in pool.map(_one, batches):
+            for i, cand in zip(idx, cands):
+                pairs[i]["llm_same"] = cand in same
+                pairs[i]["llm_reason"] = f"batch query: {groups[query]['names'].most_common(1)[0][0]}"
+    return len(batches)
+
+
 def judge_all(pairs: List[Dict[str, Any]], groups: Dict[str, Dict[str, Any]], workers: int = 8) -> None:
     from concurrent.futures import ThreadPoolExecutor
 
@@ -386,14 +497,20 @@ def calibrate(paths: List[Path], workers: int) -> None:
               f"rate={b['llm_same_rate']}")
 
 
-def run(paths: List[Path], workers: int, upper: float, lower: float, top_k: Optional[int]) -> None:
+def run(paths: List[Path], workers: int, upper: float, lower: float, top_k: Optional[int],
+        batched: bool = True, prefix: Optional[str] = None) -> None:
+    prefix = prefix or ("er_pilot_batched" if batched else "er_pilot")
     mentions, conflicts, groups = _prepare(paths)
     pairs = candidate_pairs(groups, lower, top_k)
     for p in pairs:
         p["value_conflict"] = value_conflict(groups[p["a"]], groups[p["b"]])
         p["band"] = decide(p, upper, lower)
     middle = [p for p in pairs if p["band"] == "llm"]
-    judge_all(middle, groups, workers)
+    if batched:
+        llm_calls = judge_batched(middle, groups, workers)
+    else:
+        judge_all(middle, groups, workers)
+        llm_calls = len(middle)
     accepted = [p for p in pairs if p["band"] in ("auto_rule", "auto_score") or p.get("llm_same")]
     cannot_link = {frozenset((p["a"], p["b"])) for p in pairs
                    if p["band"] == "reject_value" or (p["band"] == "llm" and not p["llm_same"])}
@@ -428,7 +545,7 @@ def run(paths: List[Path], workers: int, upper: float, lower: float, top_k: Opti
 
     # Mention -> resolved entity, for loading the KG layer later.
     entity_of = {mid: c["entity_id"] for c in clusters for mid in c["mention_ids"]}
-    with open(KG_DIR / "er_pilot_mentions.jsonl", "w", encoding="utf-8") as f:
+    with open(KG_DIR / f"{prefix}_mentions.jsonl", "w", encoding="utf-8") as f:
         for m in mentions:
             f.write(json.dumps({"mention_id": m["mention_id"], "section_id": m["section_id"], "name": m["name"],
                                 "extracted_type": m["extracted_type"], "type": m["type"],
@@ -436,7 +553,7 @@ def run(paths: List[Path], workers: int, upper: float, lower: float, top_k: Opti
 
     # Hand-check sheet: clusters that merge differently written names.
     review = [c for c in clusters if len({n.casefold() for n in c["surface_names"]}) > 1]
-    with open(KG_DIR / "er_pilot_clusters.csv", "w", newline="", encoding="utf-8") as f:
+    with open(KG_DIR / f"{prefix}_clusters.csv", "w", newline="", encoding="utf-8") as f:
         w = csv.writer(f)
         w.writerow(["entity_id", "type", "domains", "canonical_name", "surface_names", "n_mentions",
                     "n_sections", "n_documents", "merge_evidence", "label", "note"])
@@ -444,7 +561,7 @@ def run(paths: List[Path], workers: int, upper: float, lower: float, top_k: Opti
             w.writerow([c["entity_id"], c["type"], " ".join(c["domains"]), c["canonical_name"],
                         " | ".join(c["surface_names"]), c["n_mentions"], c["n_sections"], c["n_documents"],
                         "; ".join(f"{k} x{v}" for k, v in c["merge_evidence"].items()), "", ""])
-    with open(KG_DIR / "er_pilot_pairs.csv", "w", newline="", encoding="utf-8") as f:
+    with open(KG_DIR / f"{prefix}_pairs.csv", "w", newline="", encoding="utf-8") as f:
         w = csv.writer(f)
         w.writerow(["block", "name_a", "name_b", "cosine", "bonus", "score", "rule", "band", "llm_same",
                     "llm_reason", "merged"])
@@ -456,6 +573,7 @@ def run(paths: List[Path], workers: int, upper: float, lower: float, top_k: Opti
 
     bands = Counter(p["band"] for p in pairs)
     summary = {
+        "judge": "batched" if batched else "pairwise", "llm_calls": llm_calls,
         "thresholds": {"upper": upper, "lower": lower, "top_k": top_k, "same_doc_bonus": SAME_DOC_BONUS,
                        "shared_neighbour_bonus": SHARED_NEIGHBOUR_BONUS, "max_neighbour_bonus": MAX_NEIGHBOUR_BONUS},
         "mentions": len(mentions), "name_groups": len(groups), "entities": len(clusters),
@@ -470,27 +588,87 @@ def run(paths: List[Path], workers: int, upper: float, lower: float, top_k: Opti
                               "n_name_groups": c["n_name_groups"], "n_mentions": c["n_mentions"]}
                              for c in sorted(clusters, key=lambda c: -c["n_name_groups"])[:10]],
     }
-    (KG_DIR / "er_pilot_summary.json").write_text(json.dumps(summary, indent=2, ensure_ascii=False),
+    (KG_DIR / f"{prefix}_summary.json").write_text(json.dumps(summary, indent=2, ensure_ascii=False),
                                                    encoding="utf-8")
     print(f"{len(mentions)} mentions -> {len(groups)} name groups -> {len(clusters)} entities")
-    print(f"type conflicts resolved: {len(conflicts)}; candidate pairs: {len(pairs)} {dict(bands)}")
+    print(f"type conflicts resolved: {len(conflicts)}; candidate pairs: {len(pairs)} {dict(bands)}; "
+          f"LLM calls: {llm_calls} ({'batched' if batched else 'pairwise'})")
     print(f"LLM confirmed {summary['llm_confirmed']}, rejected {summary['llm_rejected']}; "
           f"blocked by cannot-link: {len(blocked)}; clusters to review: {len(review)}")
 
 
+def estimate(paths: List[Path], scale: float, thresholds: List[float], seed: int = 42) -> Dict[str, Any]:
+    """Estimate full-corpus ER calls by simulation.
+
+    Each pilot block is scaled to `scale` times its number of name groups. Pairs scoring at
+    least T are drawn at random with the pilot's pooled within-block rate p_T (rule and
+    value-conflict pairs excluded), each group keeps its TOP_K highest-scoring partners, and
+    plan_batches() counts the batched calls. A random graph ignores the clustering of real
+    similarity graphs, so the counts are an approximation; `scale` assumes no extra merging
+    of identical names across documents, which makes them an upper bound in that respect.
+    """
+    _, _, groups = _prepare(paths)
+    pairs = candidate_pairs(groups, min(thresholds))
+    eligible = [p for p in pairs if not p["rule"] and not value_conflict(groups[p["a"]], groups[p["b"]])]
+    sizes = Counter(g["block"] for g in groups.values())
+    total_pairs = sum(n * (n - 1) // 2 for n in sizes.values())
+    rng = np.random.default_rng(seed)
+    out: Dict[str, Any] = {"pilot_name_groups": len(groups), "scale": scale,
+                           "full_name_groups": int(sum(round(n * scale) for n in sizes.values())),
+                           "thresholds": {}}
+    for T in thresholds:
+        p_t = sum(1 for p in eligible if p["score"] >= T) / total_pairs
+        n_pairs = n_calls = 0
+        for n0 in sizes.values():
+            n = int(round(n0 * scale))
+            m = rng.binomial(n * (n - 1) // 2, p_t) if n > 1 else 0
+            if m == 0:
+                continue
+            a, b = rng.integers(0, n, size=(2, m))
+            keep = a != b
+            a, b = np.minimum(a[keep], b[keep]), np.maximum(a[keep], b[keep])
+            edges = np.unique(np.stack([a, b], axis=1), axis=0)
+            score = rng.random(len(edges))
+            partners: Dict[int, List[Tuple[float, int]]] = defaultdict(list)
+            for e, ((x, y), s) in enumerate(zip(edges, score)):
+                partners[x].append((s, e))
+                partners[y].append((s, e))
+            kept = {e for lst in partners.values() for _, e in sorted(lst, reverse=True)[:TOP_K]}
+            sim_pairs = [{"a": f"g{edges[e][0]}", "b": f"g{edges[e][1]}", "score": float(score[e])}
+                         for e in sorted(kept)]
+            n_pairs += len(sim_pairs)
+            n_calls += len(plan_batches(sim_pairs))
+        out["thresholds"][str(T)] = {"pair_rate": round(p_t, 5), "pairwise_calls": n_pairs,
+                                     "batched_calls": n_calls}
+    (KG_DIR / "er_full_estimate.json").write_text(json.dumps(out, indent=2), encoding="utf-8")
+    return out
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("command", choices=["calibrate", "run"])
+    parser.add_argument("command", choices=["calibrate", "run", "estimate"])
     parser.add_argument("--input", type=Path, nargs="+", default=[DEFAULT_INPUT])
     parser.add_argument("--workers", type=int, default=8)
     parser.add_argument("--upper", type=float, default=UPPER)
     parser.add_argument("--lower", type=float, default=LOWER)
     parser.add_argument("--top-k", type=int, default=TOP_K, help="0 = all pairs above the lower threshold")
+    parser.add_argument("--pairwise", action="store_true", help="one LLM call per pair (calibration judge)")
+    parser.add_argument("--prefix", default=None, help="output file prefix in experiments/kg/")
+    parser.add_argument("--scale", type=float, default=3194 / 63,
+                        help="estimate: corpus units / pilot units (3,194 / 63)")
     args = parser.parse_args()
     if args.command == "calibrate":
         calibrate(args.input, args.workers)
+    elif args.command == "estimate":
+        out = estimate(args.input, args.scale, [0.75, 0.80, 0.85, 0.90])
+        print(f"name groups: pilot {out['pilot_name_groups']}, full corpus ~{out['full_name_groups']:,} "
+              f"(scale {out['scale']:.1f})")
+        for T, r in out["thresholds"].items():
+            print(f"  T={T}: pair rate {r['pair_rate']:.4f}  pairwise calls ~{r['pairwise_calls']:,}  "
+                  f"batched calls ~{r['batched_calls']:,}")
     else:
-        run(args.input, args.workers, args.upper, args.lower, args.top_k or None)
+        run(args.input, args.workers, args.upper, args.lower, args.top_k or None,
+            batched=not args.pairwise, prefix=args.prefix)
 
 
 if __name__ == "__main__":

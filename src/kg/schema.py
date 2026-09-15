@@ -7,9 +7,32 @@ After the whole-document pilot: the extra pairs Organization -AVAILABLE_AT-> Con
 and Requirement -REQUIRES-> Document are allowed, Service has appeal/insurance/online_tool
 kinds, and entities carry an optional `alias` (abbreviation or full form).
 """
+import re
 from typing import Any, Dict, FrozenSet, List
 
 MAX_ENTITIES = 15
+
+# Contact details that make a ContactPoint's `value` mandatory. MultiDoc2Dial spells phone
+# numbers with spaced hyphens ("800 - 827 - 1000").
+_CONTACT_DETAIL = re.compile(
+    r"\d{3}\s*[-.)]\s*\d{3}\s*-\s*\d{4}"               # phone number
+    r"|\b1\s*-\s*8\d{2}\b|\b8\d{2}\s*-\s*[A-Z]{3,}"     # 1-800..., 888-GIBILL
+    r"|https?://|\bwww\.|\b[\w.-]+\.(?:gov|com|org|net|edu)\b"  # URL / domain
+    r"|[\w.+-]+@[\w-]+\.[\w.]+"                         # email
+    r"|\bP\.?\s*O\.?\s*Box\b|\b[A-Z]{2}\s+\d{5}(?:\s*-\s*\d{4})?\b",  # postal address
+    re.IGNORECASE,
+)
+
+
+def has_contact_detail(text: str) -> bool:
+    """True if the text contains a phone number, URL, email or postal address."""
+    return bool(_CONTACT_DETAIL.search(text or ""))
+
+
+def find_contact_detail(text: str):
+    """The first phone number, URL, email or postal-address fragment in the text, or None."""
+    match = _CONTACT_DETAIL.search(text or "")
+    return match.group(0).strip() if match else None
 
 # type -> definition, allowed `kind` values (empty: no kind), whether `value` is used
 ENTITY_TYPES: Dict[str, Dict[str, Any]] = {

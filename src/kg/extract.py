@@ -148,14 +148,18 @@ def _call_llm(
     max_retries: int,
     schema: Optional[Dict[str, Any]] = None,
     schema_name: str = "kg_extraction",
+    params: Optional[Dict[str, Any]] = None,
 ) -> str:
-    """Call the model at temperature 0 with a strict JSON schema (open schema by default)."""
+    """Call the model with a strict JSON schema (open schema by default).
+
+    `params` are the sampling parameters; the default is temperature 0.
+    """
     for attempt in range(max_retries):
         try:
             response = client.client.responses.create(
                 model=client.default_model,
                 input=prompt,
-                temperature=0,
+                **(params or {"temperature": 0}),
                 text={"format": {
                     "type": "json_schema",
                     "name": schema_name,

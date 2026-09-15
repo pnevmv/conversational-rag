@@ -1,0 +1,727 @@
+{
+  "n_documents": 8,
+  "n_sections": 63,
+  "n_sections_empty": 2,
+  "n_sections_is_table": 0,
+  "n_entities": 509,
+  "n_relations": 372,
+  "raw_entities": 519,
+  "raw_relations": 396,
+  "cap_hits": [
+    {
+      "section_id": "Register a leased vehicle#1_0::25",
+      "is_table": false
+    },
+    {
+      "section_id": "Changes to IRP registration#1_0::40",
+      "is_table": false
+    },
+    {
+      "section_id": "Graduated Plan | Federal Student Aid#1_0::23",
+      "is_table": false
+    },
+    {
+      "section_id": "VA Housing Assistance | Veterans Affairs#1_0::8",
+      "is_table": false
+    }
+  ],
+  "postprocess": {
+    "entity_value_missing": 25,
+    "relation_dangling": 17,
+    "relation_schema_violation": 56,
+    "relation_self_loop": 7,
+    "entity_duplicate": 3,
+    "contact_value_from_evidence": 1
+  },
+  "entity_types": {
+    "Service": 158,
+    "Requirement": 112,
+    "Document": 55,
+    "Organization": 43,
+    "Outcome": 41,
+    "ContactPoint": 35,
+    "TimeLimit": 33,
+    "Role": 18,
+    "Amount": 14
+  },
+  "relation_types": {
+    "REQUIRES": 138,
+    "LEADS_TO": 48,
+    "APPLIES_TO": 43,
+    "AVAILABLE_AT": 35,
+    "HAS_TIME_LIMIT": 35,
+    "PROVIDED_BY": 26,
+    "PART_OF": 15,
+    "HAS_AMOUNT": 14,
+    "EXEMPT_FROM": 11,
+    "ALTERNATIVE_TO": 5,
+    "DETERMINED_BY": 2
+  },
+  "kinds": {
+    "Service": {
+      "procedure": 11,
+      "other": 55,
+      "online_tool": 19,
+      "program": 23,
+      "registration": 2,
+      "appeal": 8,
+      "benefit": 26,
+      "loan": 13,
+      "insurance": 1
+    },
+    "Organization": {
+      "other": 7,
+      "agency": 19,
+      "office": 15,
+      "servicer": 2
+    },
+    "Amount": {
+      "fee": 3,
+      "benefit": 2,
+      "limit": 2,
+      "premium": 3,
+      "other": 4
+    },
+    "ContactPoint": {
+      "office": 10,
+      "website": 3,
+      "phone": 11,
+      "account": 1,
+      "other": 10
+    }
+  },
+  "value_fill": {
+    "Amount": [
+      5,
+      14
+    ],
+    "TimeLimit": [
+      33,
+      33
+    ],
+    "ContactPoint": [
+      20,
+      35
+    ]
+  },
+  "text_fill": {
+    "Requirement": [
+      112,
+      112
+    ],
+    "Outcome": [
+      40,
+      41
+    ]
+  },
+  "negated": 6,
+  "with_alias": 15,
+  "loadable_relations": 316,
+  "camel_case_names": 6,
+  "mean_name_words": 4.163064833005894,
+  "schema_violations": [
+    {
+      "relation": "APPLIES_TO",
+      "source_type": "Service",
+      "target_type": "Requirement",
+      "count": 9
+    },
+    {
+      "relation": "REQUIRES",
+      "source_type": "Requirement",
+      "target_type": "Requirement",
+      "count": 5
+    },
+    {
+      "relation": "REQUIRES",
+      "source_type": "Service",
+      "target_type": "ContactPoint",
+      "count": 3
+    },
+    {
+      "relation": "LEADS_TO",
+      "source_type": "Document",
+      "target_type": "Outcome",
+      "count": 2
+    },
+    {
+      "relation": "PART_OF",
+      "source_type": "Document",
+      "target_type": "Outcome",
+      "count": 2
+    },
+    {
+      "relation": "APPLIES_TO",
+      "source_type": "Service",
+      "target_type": "Outcome",
+      "count": 2
+    },
+    {
+      "relation": "AVAILABLE_AT",
+      "source_type": "Service",
+      "target_type": "Document",
+      "count": 2
+    },
+    {
+      "relation": "REQUIRES",
+      "source_type": "Service",
+      "target_type": "Role",
+      "count": 2
+    },
+    {
+      "relation": "PROVIDED_BY",
+      "source_type": "Organization",
+      "target_type": "Document",
+      "count": 2
+    },
+    {
+      "relation": "LEADS_TO",
+      "source_type": "Organization",
+      "target_type": "Service",
+      "count": 2
+    },
+    {
+      "relation": "PROVIDED_BY",
+      "source_type": "Requirement",
+      "target_type": "Service",
+      "count": 2
+    },
+    {
+      "relation": "REQUIRES",
+      "source_type": "Requirement",
+      "target_type": "ContactPoint",
+      "count": 1
+    },
+    {
+      "relation": "PROVIDED_BY",
+      "source_type": "Organization",
+      "target_type": "Service",
+      "count": 1
+    },
+    {
+      "relation": "APPLIES_TO",
+      "source_type": "Service",
+      "target_type": "Organization",
+      "count": 1
+    },
+    {
+      "relation": "PROVIDED_BY",
+      "source_type": "Requirement",
+      "target_type": "Organization",
+      "count": 1
+    },
+    {
+      "relation": "HAS_TIME_LIMIT",
+      "source_type": "Organization",
+      "target_type": "TimeLimit",
+      "count": 1
+    },
+    {
+      "relation": "AVAILABLE_AT",
+      "source_type": "Document",
+      "target_type": "Document",
+      "count": 1
+    },
+    {
+      "relation": "HAS_TIME_LIMIT",
+      "source_type": "Service",
+      "target_type": "Role",
+      "count": 1
+    },
+    {
+      "relation": "LEADS_TO",
+      "source_type": "Service",
+      "target_type": "Amount",
+      "count": 1
+    },
+    {
+      "relation": "EXEMPT_FROM",
+      "source_type": "Amount",
+      "target_type": "Requirement",
+      "count": 1
+    },
+    {
+      "relation": "EXEMPT_FROM",
+      "source_type": "Outcome",
+      "target_type": "Requirement",
+      "count": 1
+    },
+    {
+      "relation": "HAS_TIME_LIMIT",
+      "source_type": "Service",
+      "target_type": "Requirement",
+      "count": 1
+    },
+    {
+      "relation": "REQUIRES",
+      "source_type": "Document",
+      "target_type": "TimeLimit",
+      "count": 1
+    },
+    {
+      "relation": "LEADS_TO",
+      "source_type": "Document",
+      "target_type": "Document",
+      "count": 1
+    },
+    {
+      "relation": "APPLIES_TO",
+      "source_type": "Outcome",
+      "target_type": "Service",
+      "count": 1
+    },
+    {
+      "relation": "PROVIDED_BY",
+      "source_type": "Organization",
+      "target_type": "Outcome",
+      "count": 1
+    },
+    {
+      "relation": "AVAILABLE_AT",
+      "source_type": "Organization",
+      "target_type": "Outcome",
+      "count": 1
+    },
+    {
+      "relation": "DETERMINED_BY",
+      "source_type": "Requirement",
+      "target_type": "Amount",
+      "count": 1
+    },
+    {
+      "relation": "HAS_AMOUNT",
+      "source_type": "Requirement",
+      "target_type": "Amount",
+      "count": 1
+    },
+    {
+      "relation": "PROVIDED_BY",
+      "source_type": "Service",
+      "target_type": "ContactPoint",
+      "count": 1
+    },
+    {
+      "relation": "PART_OF",
+      "source_type": "Outcome",
+      "target_type": "Outcome",
+      "count": 1
+    },
+    {
+      "relation": "PROVIDED_BY",
+      "source_type": "Service",
+      "target_type": "Role",
+      "count": 1
+    },
+    {
+      "relation": "APPLIES_TO",
+      "source_type": "Organization",
+      "target_type": "Role",
+      "count": 1
+    },
+    {
+      "relation": "REQUIRES",
+      "source_type": "Outcome",
+      "target_type": "Requirement",
+      "count": 1
+    }
+  ],
+  "evidence_check": {
+    "entities": {
+      "verbatim": 487,
+      "not_found": 20,
+      "near_verbatim": 2
+    },
+    "relations": {
+      "verbatim": 359,
+      "not_found": 13
+    }
+  },
+  "evidence_with_ellipsis": 1,
+  "overlap_exact": {
+    "mentions": 509,
+    "distinct_per_doc": 451,
+    "multi_section_entities": 44,
+    "mentions_in_multi_section_entities": 102,
+    "top_repeated": [
+      {
+        "key": "graduated repayment plan",
+        "type": "Service",
+        "sections": 4,
+        "doc_id": "Graduated Plan | Federal Student Aid#1_0",
+        "surface_names": [
+          "Graduated Repayment Plan",
+          "Graduated repayment plan"
+        ]
+      },
+      {
+        "key": "va direct deposit information",
+        "type": "Service",
+        "sections": 4,
+        "doc_id": "Change Your VA Direct Deposit Information | Veterans Affairs#1_0",
+        "surface_names": [
+          "VA direct deposit information"
+        ]
+      },
+      {
+        "key": "ffel consolidation loans",
+        "type": "Service",
+        "sections": 3,
+        "doc_id": "Graduated Plan | Federal Student Aid#1_0",
+        "surface_names": [
+          "FFEL Consolidation Loans"
+        ]
+      },
+      {
+        "key": "every two years",
+        "type": "TimeLimit",
+        "sections": 3,
+        "doc_id": "Graduated Plan | Federal Student Aid#1_0",
+        "surface_names": [
+          "every two years"
+        ]
+      },
+      {
+        "key": "direct consolidation loans",
+        "type": "Service",
+        "sections": 3,
+        "doc_id": "Graduated Plan | Federal Student Aid#1_0",
+        "surface_names": [
+          "Direct Consolidation Loans"
+        ]
+      },
+      {
+        "key": "irp registrations",
+        "type": "Service",
+        "sections": 3,
+        "doc_id": "Changes to IRP registration#1_0",
+        "surface_names": [
+          "IRP registrations"
+        ]
+      },
+      {
+        "key": "irp registration",
+        "type": "Service",
+        "sections": 3,
+        "doc_id": "Changes to IRP registration#1_0",
+        "surface_names": [
+          "IRP registration"
+        ]
+      },
+      {
+        "key": "irb",
+        "type": "Organization",
+        "sections": 3,
+        "doc_id": "Changes to IRP registration#1_0",
+        "surface_names": [
+          "IRB"
+        ]
+      },
+      {
+        "key": "pension benefits",
+        "type": "Service",
+        "sections": 3,
+        "doc_id": "Change Your VA Direct Deposit Information | Veterans Affairs#1_0",
+        "surface_names": [
+          "Pension Benefits",
+          "pension benefits"
+        ]
+      },
+      {
+        "key": "disability compensation",
+        "type": "Service",
+        "sections": 3,
+        "doc_id": "Change Your VA Direct Deposit Information | Veterans Affairs#1_0",
+        "surface_names": [
+          "disability compensation"
+        ]
+      },
+      {
+        "key": "medicare",
+        "type": "Service",
+        "sections": 3,
+        "doc_id": "Benefits Planner: Retirement | Applying for Medicare Only | Social Security Administration#1_0",
+        "surface_names": [
+          "Medicare"
+        ]
+      },
+      {
+        "key": "reconsideration",
+        "type": "Service",
+        "sections": 3,
+        "doc_id": "Appeal A Decision | Social Security Administration#2_0",
+        "surface_names": [
+          "Reconsideration",
+          "reconsideration"
+        ]
+      },
+      {
+        "key": "veterans housing assistance grants",
+        "type": "Service",
+        "sections": 2,
+        "doc_id": "VA Housing Assistance | Veterans Affairs#1_0",
+        "surface_names": [
+          "Veterans Housing Assistance Grants"
+        ]
+      },
+      {
+        "key": "va housing assistance",
+        "type": "Service",
+        "sections": 2,
+        "doc_id": "VA Housing Assistance | Veterans Affairs#1_0",
+        "surface_names": [
+          "VA Housing Assistance",
+          "VA housing assistance"
+        ]
+      },
+      {
+        "key": "specially adapted housing grant",
+        "type": "Service",
+        "sections": 2,
+        "doc_id": "VA Housing Assistance | Veterans Affairs#1_0",
+        "surface_names": [
+          "Specially Adapted Housing Grant",
+          "Specially Adapted Housing grant"
+        ]
+      }
+    ],
+    "cross_document_entities": 6,
+    "cross_document_examples": [
+      "dmv [Organization] (2 docs)",
+      "loan servicer [Organization] (2 docs)",
+      "monday through friday [TimeLimit] (2 docs)",
+      "pension benefits [Service] (2 docs)",
+      "social security administration [Organization] (2 docs)",
+      "vocational rehabilitation and employment (vr&e) [Service] (2 docs)"
+    ]
+  },
+  "overlap_normalized": {
+    "mentions": 507,
+    "distinct_per_doc": 447,
+    "multi_section_entities": 44,
+    "mentions_in_multi_section_entities": 104,
+    "top_repeated": [
+      {
+        "key": "irp registration",
+        "type": "Service",
+        "sections": 6,
+        "doc_id": "Changes to IRP registration#1_0",
+        "surface_names": [
+          "IRP registration",
+          "IRP registrations"
+        ]
+      },
+      {
+        "key": "graduated repayment plan",
+        "type": "Service",
+        "sections": 4,
+        "doc_id": "Graduated Plan | Federal Student Aid#1_0",
+        "surface_names": [
+          "Graduated Repayment Plan",
+          "Graduated repayment plan"
+        ]
+      },
+      {
+        "key": "va direct deposit information",
+        "type": "Service",
+        "sections": 4,
+        "doc_id": "Change Your VA Direct Deposit Information | Veterans Affairs#1_0",
+        "surface_names": [
+          "VA direct deposit information"
+        ]
+      },
+      {
+        "key": "ffel consolidation loan",
+        "type": "Service",
+        "sections": 3,
+        "doc_id": "Graduated Plan | Federal Student Aid#1_0",
+        "surface_names": [
+          "FFEL Consolidation Loan",
+          "FFEL Consolidation Loans"
+        ]
+      },
+      {
+        "key": "every two year",
+        "type": "TimeLimit",
+        "sections": 3,
+        "doc_id": "Graduated Plan | Federal Student Aid#1_0",
+        "surface_names": [
+          "every two years"
+        ]
+      },
+      {
+        "key": "direct consolidation loan",
+        "type": "Service",
+        "sections": 3,
+        "doc_id": "Graduated Plan | Federal Student Aid#1_0",
+        "surface_names": [
+          "Direct Consolidation Loan",
+          "Direct Consolidation Loans"
+        ]
+      },
+      {
+        "key": "irb",
+        "type": "Organization",
+        "sections": 3,
+        "doc_id": "Changes to IRP registration#1_0",
+        "surface_names": [
+          "IRB"
+        ]
+      },
+      {
+        "key": "pension benefit",
+        "type": "Service",
+        "sections": 3,
+        "doc_id": "Change Your VA Direct Deposit Information | Veterans Affairs#1_0",
+        "surface_names": [
+          "Pension Benefits",
+          "pension benefits"
+        ]
+      },
+      {
+        "key": "disability compensation",
+        "type": "Service",
+        "sections": 3,
+        "doc_id": "Change Your VA Direct Deposit Information | Veterans Affairs#1_0",
+        "surface_names": [
+          "disability compensation"
+        ]
+      },
+      {
+        "key": "medicare",
+        "type": "Service",
+        "sections": 3,
+        "doc_id": "Benefits Planner: Retirement | Applying for Medicare Only | Social Security Administration#1_0",
+        "surface_names": [
+          "Medicare"
+        ]
+      },
+      {
+        "key": "reconsideration",
+        "type": "Service",
+        "sections": 3,
+        "doc_id": "Appeal A Decision | Social Security Administration#2_0",
+        "surface_names": [
+          "Reconsideration",
+          "reconsideration"
+        ]
+      },
+      {
+        "key": "veteran housing assistance grant",
+        "type": "Service",
+        "sections": 2,
+        "doc_id": "VA Housing Assistance | Veterans Affairs#1_0",
+        "surface_names": [
+          "Veterans Housing Assistance Grants"
+        ]
+      },
+      {
+        "key": "va housing assistance",
+        "type": "Service",
+        "sections": 2,
+        "doc_id": "VA Housing Assistance | Veterans Affairs#1_0",
+        "surface_names": [
+          "VA Housing Assistance",
+          "VA housing assistance"
+        ]
+      },
+      {
+        "key": "va home loan benefit",
+        "type": "Service",
+        "sections": 2,
+        "doc_id": "VA Housing Assistance | Veterans Affairs#1_0",
+        "surface_names": [
+          "VA Home Loan Benefits",
+          "VA home loan benefit"
+        ]
+      },
+      {
+        "key": "specially adapted housing grant",
+        "type": "Service",
+        "sections": 2,
+        "doc_id": "VA Housing Assistance | Veterans Affairs#1_0",
+        "surface_names": [
+          "Specially Adapted Housing Grant",
+          "Specially Adapted Housing grant"
+        ]
+      }
+    ],
+    "cross_document_entities": 8,
+    "cross_document_examples": [
+      "dmv [Organization] (2 docs)",
+      "loan servicer [Organization] (2 docs)",
+      "monday through friday [TimeLimit] (2 docs)",
+      "pension benefit [Service] (2 docs)",
+      "repayment plan [Service] (2 docs)",
+      "social security administration [Organization] (2 docs)",
+      "veteran affair [Organization] (2 docs)",
+      "vocational rehabilitation and employment [Service] (2 docs)"
+    ]
+  },
+  "type_conflicts": [
+    {
+      "doc_id": "Changes to IRP registration#1_0",
+      "name": "oscar",
+      "types": [
+        "Organization",
+        "Service"
+      ]
+    },
+    {
+      "doc_id": "Changes to IRP registration#1_0",
+      "name": "certified check",
+      "types": [
+        "Document",
+        "Requirement"
+      ]
+    },
+    {
+      "doc_id": "Changes to IRP registration#1_0",
+      "name": "money order",
+      "types": [
+        "Document",
+        "Requirement"
+      ]
+    },
+    {
+      "doc_id": "Changes to IRP registration#1_0",
+      "name": "customer service counter",
+      "types": [
+        "ContactPoint",
+        "Organization",
+        "Service"
+      ]
+    },
+    {
+      "doc_id": "Appeal A Decision | Social Security Administration#2_0",
+      "name": "sign in or create account",
+      "types": [
+        "Document",
+        "Requirement"
+      ]
+    },
+    {
+      "doc_id": "Benefits Planner: Retirement | Applying for Medicare Only | Social Security Administration#1_0",
+      "name": "full retirement age",
+      "types": [
+        "Requirement",
+        "Role"
+      ]
+    },
+    {
+      "doc_id": "Change Your VA Direct Deposit Information | Veterans Affairs#1_0",
+      "name": "va.gov profile",
+      "types": [
+        "ContactPoint",
+        "Service"
+      ]
+    },
+    {
+      "doc_id": "Change Your VA Direct Deposit Information | Veterans Affairs#1_0",
+      "name": "ebenefits",
+      "types": [
+        "Organization",
+        "Service"
+      ]
+    }
+  ]
+}

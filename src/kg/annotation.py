@@ -9,12 +9,19 @@ export: writes, for the annotation documents,
                             (same columns as the sample; relation and types must
                             come from the schema).
 
+stability: writes annotation_stability.csv (triple_id, in_run2): whether each annotated
+triple was also extracted by the second, independent run of the same pilot. It only
+reads annotation_sample.csv.
+
 score: computes precision, recall and F1 per relation type and per entity type
 (a triple counts for both of its endpoint types) from the filled-in CSVs:
   precision = correct / labelled,  recall = correct / (correct + missing).
+If annotation_stability.csv exists, precision is also reported separately for triples
+found by both runs and by run 1 only.
 
 Usage:
     python -m src.kg.annotation export
+    python -m src.kg.annotation stability
     python -m src.kg.annotation score
 """
 import argparse
@@ -26,11 +33,15 @@ from pathlib import Path
 from typing import Dict, Iterable, List, Tuple
 
 from src.kg.extract_closed import loadable_relations
+from src.kg.pilot2_stats import normalized_key
 from src.kg.schema import ENTITY_TYPES, RELATION_TYPES, is_valid_triple
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 KG_DIR = PROJECT_ROOT / "experiments" / "kg"
 DEFAULT_INPUT = KG_DIR / "pilot3_closed_extraction.jsonl"
+# Second run of the annotated pilot: same prompt and settings, separate cache.
+DEFAULT_RUN2 = KG_DIR / "pilot3_closed_extraction_run2.jsonl"
+STABILITY_CSV = KG_DIR / "annotation_stability.csv"
 SAMPLE_CSV = KG_DIR / "annotation_sample.csv"
 SECTIONS_CSV = KG_DIR / "annotation_sections.csv"
 MISSING_CSV = KG_DIR / "annotation_missing.csv"
@@ -81,6 +92,28 @@ def export(input_path: Path) -> None:
     print(f"-> {SAMPLE_CSV}\n-> {SECTIONS_CSV}\n-> {MISSING_CSV} (template, not overwritten)")
 
 
+def _triple_key(section_id: str, source: str, relation: str, target: str) -> Tuple[str, str, str, str]:
+    return section_id, normalized_key(source) or source.casefold(), relation, normalized_key(target) or target.casefold()
+
+
+def stability(run2_path: Path) -> None:
+    """Mark each annotated triple with whether run 2 also extracted it (loadable relations)."""
+    run2 = set()
+    for r in map(json.loads, open(run2_path, encoding="utf-8")):
+        for t in r.get("relations", []):
+            if t["schema_valid"]:
+                run2.add(_triple_key(r["section_id"], t["source"], t["relation"], t["target"]))
+    rows = _read(SAMPLE_CSV)
+    with open(STABILITY_CSV, "w", newline="", encoding="utf-8") as f:
+        w = csv.DictWriter(f, fieldnames=["triple_id", "in_run2"])
+        w.writeheader()
+        for row in rows:
+            key = _triple_key(row["section_id"], row["source"], row["relation"], row["target"])
+            w.writerow({"triple_id": row["triple_id"], "in_run2": str(key in run2).lower()})
+    n_in = sum(_triple_key(r["section_id"], r["source"], r["relation"], r["target"]) in run2 for r in rows)
+    print(f"{n_in} of {len(rows)} annotated triples also found by run 2 -> {STABILITY_CSV}")
+
+
 def _read(path: Path) -> List[Dict[str, str]]:
     with open(path, newline="", encoding="utf-8") as f:
         return [{k: (v or "").strip() for k, v in row.items()} for row in csv.DictReader(f)]
@@ -129,8 +162,22 @@ def score() -> Dict[str, object]:
         for cat in _categories(row):
             counts[cat]["fn"] += 1
 
+    by_stability = None
+    if STABILITY_CSV.exists():
+        in_run2 = {r["triple_id"]: r["in_run2"].lower() == "true" for r in _read(STABILITY_CSV)}
+        split = {"both_runs": {"tp": 0, "fp": 0}, "run1_only": {"tp": 0, "fp": 0}}
+        for row in sample:
+            label = row["label"].lower()
+            if row["triple_id"] not in in_run2 or label not in CORRECT | INCORRECT:
+                continue
+            bucket = split["both_runs" if in_run2[row["triple_id"]] else "run1_only"]
+            bucket["tp" if label in CORRECT else "fp"] += 1
+        by_stability = {k: {**v, "precision": v["tp"] / (v["tp"] + v["fp"]) if v["tp"] + v["fp"] else None}
+                        for k, v in split.items()}
+
     result = {
         "overall": _prf(**total),
+        "precision_by_stability": by_stability,
         "by_relation": {k[1]: _prf(**v) for k, v in sorted(counts.items()) if k[0] == "relation"},
         "by_entity_type": {k[1]: _prf(**v) for k, v in sorted(counts.items()) if k[0] == "entity_type"},
         "unlabelled_triples": unlabelled,
@@ -146,12 +193,16 @@ def _fmt(x) -> str:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("command", choices=["export", "score"])
+    parser.add_argument("command", choices=["export", "stability", "score"])
     parser.add_argument("--input", type=Path, default=DEFAULT_INPUT)
+    parser.add_argument("--run2", type=Path, default=DEFAULT_RUN2)
     args = parser.parse_args()
 
     if args.command == "export":
         export(args.input)
+        return
+    if args.command == "stability":
+        stability(args.run2)
         return
 
     result = score()
@@ -169,6 +220,10 @@ def main() -> None:
     o = result["overall"]
     print(f"\n{'Overall':<16} {o['tp']:>4} {o['fp']:>4} {o['fn']:>4}  "
           f"{_fmt(o['precision'])}  {_fmt(o['recall'])}  {_fmt(o['f1'])}")
+    if result["precision_by_stability"]:
+        print("\nPrecision by run agreement:")
+        for name, m in result["precision_by_stability"].items():
+            print(f"  {name:<10} {m['tp']:>4} correct / {m['tp'] + m['fp']:>4} labelled  P={_fmt(m['precision'])}")
     print(f"Saved -> {SCORES_JSON}")
 
 

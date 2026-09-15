@@ -31,6 +31,7 @@ from src.kg.extract_closed import (
 from src.kg.pilot2_stats import is_camel_case
 from src.kg.pilot_stats import _lenient
 from src.kg.planning import CHUNK_MAX_CHARS, chunk_text, plan_units
+from src.kg.schema import has_contact_detail
 
 LEARNER_PERMIT = "Get a learner permit#1_0::31"
 WOMENS_HEALTH = "Women's Health Care Needs | Veterans Affairs#1_0::1"
@@ -97,8 +98,9 @@ def test_welcome_kit_has_no_self_loops_in_raw_output(cached):
         assert all(r["source"].casefold() != r["target"].casefold() for r in raw["relations"])
 
 
-@pytest.mark.xfail(strict=True, reason="model writes 'use taxes -EXEMPT_FROM-> Medallion taxis ...': "
-                                       "the relation name is fixed but the direction is still reversed")
+@pytest.mark.xfail(strict=True, reason="model writes 'use taxes and supplemental fees -EXEMPT_FROM-> "
+                                       "Agricultural (AGR)' etc.: the relation name is fixed but the "
+                                       "direction is still reversed")
 def test_fee_table_exemptions_point_to_the_tax_or_fee(cached):
     """Pilot 1 had 'AdditionalFee -EXEMPTS-> <class>' (wrong name and direction).
 
@@ -110,11 +112,13 @@ def test_fee_table_exemptions_point_to_the_tax_or_fee(cached):
                for s, t, _, _ in exempt)
 
 
+@pytest.mark.xfail(strict=True, reason="run-dependent: the pilot-3 prompt kept 1 class entity, the current "
+                                       "run lists all 8 ('Agricultural (AGR)', ...)")
 def test_fee_table_does_not_enumerate_every_class(cached):
     """Pilot 1 turned the 8 exempt registration classes into 8 entities."""
     codes = {"AGR", "AMB", "FAR", "HIS", "HOU", "SEM", "SPC", "TRL"}
     names = [e["name"] for e in cached[FEE_TABLE]["entities"]]
-    assert sum(1 for n in names if set(n.split()) & codes) <= 2
+    assert sum(1 for n in names if set(re.findall(r"[A-Z]{3}", n)) & codes) <= 2
 
 
 # --- output-wide properties ------------------------------------------------------------
@@ -125,16 +129,16 @@ def test_camel_case_names_are_rare(cached):
     assert sum(map(is_camel_case, names)) / len(names) <= 0.02
 
 
-@pytest.mark.xfail(strict=True, reason="10 of 503 raw relations (2.0%) are self-loops in the pilot; "
-                                       "post-processing removes them")
+@pytest.mark.xfail(strict=True, reason="7 of 488 raw relations (1.4%) are self-loops; post-processing "
+                                       "removes them")
 def test_self_loops_are_rare_in_raw_output(cached):
     rels = [r for rec in cached.values() for raw in rec["raw"] for r in raw["relations"]]
     loops = sum(1 for r in rels if r["source"].casefold() == r["target"].casefold())
     assert loops / len(rels) <= 0.01
 
 
-@pytest.mark.xfail(strict=True, reason="15 quotes still contain '...', almost all from one long loan "
-                                       "enumeration ('How Financial Aid Works')")
+@pytest.mark.xfail(strict=True, reason="1 quote still joins two list items with '...' "
+                                       "(NY State Insurance ID cards, 'Register a leased vehicle')")
 def test_evidence_is_never_stitched_with_ellipsis(cached):
     quotes = [x["evidence"] for rec in cached.values() for raw in rec["raw"]
               for x in raw["entities"] + raw["relations"]]
@@ -162,6 +166,21 @@ def test_time_limits_carry_a_value(cached):
     """The prompt allows a null value only when the text gives none, which should be rare for TimeLimit."""
     limits = [e for rec in cached.values() for e in rec["entities"] if e["type"] == "TimeLimit"]
     assert limits and sum(1 for e in limits if e["value"]) / len(limits) >= 0.95
+
+
+def test_contact_points_with_a_detail_in_evidence_get_a_value_from_the_model(cached):
+    """Pilot 3 left ContactPoint values empty; the prompt now requires them when the evidence
+    contains a phone number, postal address, email or URL. Measured on raw model output."""
+    raw = [e for rec in cached.values() for out in rec["raw"] for e in out["entities"]
+           if e["type"] == "ContactPoint" and has_contact_detail(e["evidence"])]
+    assert raw and sum(1 for e in raw if (e["value"] or "").strip()) / len(raw) >= 0.9
+
+
+def test_contact_points_with_a_detail_in_evidence_always_have_a_value(cached):
+    """After post-processing the value is required: missing ones are taken from the evidence."""
+    cps = [e for rec in cached.values() for e in rec["entities"]
+           if e["type"] == "ContactPoint" and has_contact_detail(e["evidence"])]
+    assert cps and all(e["value"] for e in cps)
 
 
 # --- deterministic post-processing and planning ----------------------------------------

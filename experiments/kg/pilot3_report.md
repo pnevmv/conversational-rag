@@ -2,7 +2,7 @@
 
 Date: 2026-10-03 · Branch: `kg/closed-schema-extraction` · Model: `gpt-5.4-nano-smirnov`, temperature 0, strict JSON schema
 
-This report covers the changes decided after pilot 2 and the four pre-run checks on the same 8 pilot documents: prompt tests, stability, annotation sheets and entity resolution. Nothing extracted by the LLM has been written to Neo4j. **Waiting on:** your annotation of `annotation_sample.csv` before deciding on the full run.
+This report covers the changes decided after pilot 2 and the four pre-run checks on the same 8 pilot documents: prompt tests, stability, annotation sheets and entity resolution. **§8–§10 (added 2026-10-03)** cover the three follow-up fixes: sampling parameters and stability, batched entity resolution, and the ContactPoint `value` rule. Nothing extracted by the LLM has been written to Neo4j. **Waiting on:** your annotation of `annotation_sample.csv` before deciding on the full run.
 
 ## 1. Changes since pilot 2
 
@@ -140,7 +140,7 @@ Implemented in `src/kg/resolve.py`, as approved:
 1. **Cannot-link constraints.** Two clusters are not merged if any pair across them was rejected by the LLM. This blocked 14 merges.
 2. **Value conflicts.** Amount, TimeLimit or ContactPoint groups whose stated values differ are rejected without an LLM call (57 pairs).
 3. **Abbreviation-only aliases.** An alias counts as merge evidence only if it looks like an abbreviation and is unique in its block. The model sometimes fills `alias` with a category label, e.g. "Sales Tax Form" on three different forms, which wrongly merged them.
-4. **Top-5 candidates per name group.** This loses 1 of 78 merges on the pilot and bounds the full-corpus LLM cost at about 5 calls per name group. At the pilot's rate of about 0.9 judge calls per group, the full corpus would need roughly 15–20k calls.
+4. **Top-5 candidates per name group.** This loses 1 of 78 merges on the pilot and bounds the full-corpus LLM cost at about 5 calls per name group. ~~At the pilot's rate of about 0.9 judge calls per group, the full corpus would need roughly 15–20k calls.~~ **Corrected in §9:** full-corpus blocks are about 50 times denser, so almost every group reaches 5 candidates. That means about 66k pairwise calls, or about 21k batched calls.
 
 **Pilot result** (`python -m src.kg.resolve run`): 508 mentions → 423 name groups → **373 entities**.
 
@@ -163,3 +163,162 @@ Visible remaining errors come from the LLM accepting related-but-different pairs
 3. **Boilerplate threshold:** keep 10 documents (no long text is skipped), or lower it to 5 to skip the VA footers?
 4. **ER judge strictness:** depending on your cluster labels, tighten the judge prompt (it accepts related-but-different services), or require two confirmations for Service merges.
 5. **ContactPoint `value`:** make it mandatory again (regression from 32/34 to 25/37)?
+
+## 8. Stability fix: sampling parameters
+
+**What the deployment honours.** Probed directly on `gpt-5.4-nano-smirnov` (`gpt-5.4-nano-2026-03-17`), which is a reasoning model:
+
+| Parameter | Result |
+|---|---|
+| `seed` | **Not supported** (400 "Unknown parameter") |
+| `reasoning.effort` | none, low, medium, high, xhigh (not "minimal"). The default is effort none: 0 reasoning tokens in every call |
+| `temperature` | Accepted **only with effort "none"**; any higher effort rejects it ("not supported with this model") |
+| `top_p` | Accepted |
+
+**Which setting is most deterministic.** 4 pilot sections, each extracted 5 times per configuration, compared by mean pairwise triple Jaccard between repeats:
+
+| Configuration | Mean triple Jaccard | Identical repeats |
+|---|---:|---:|
+| temperature 0, effort none (previous setting) | **0.34** | 1/40 |
+| temperature 0 + top_p 0 | 0.27 | 0/40 |
+| top_p 0 only | 0.12 | 0/40 |
+| effort low (temperature not allowed) | 0.17 | 0/40 |
+| effort medium (temperature not allowed) | 0.24 | 0/40 |
+
+**No configuration makes the deployment deterministic**; even identical requests at temperature 0 return different outputs. The most deterministic option is the existing one. It is now pinned explicitly (`CALL_PARAMS = {"reasoning": {"effort": "none"}, "temperature": 0}` in `extract_closed.py`), so a change to the deployment's default can't silently change behaviour. The parameters are part of the cache key.
+
+**Re-run** of the pilot twice with the pinned settings, also using the ContactPoint rule of §10 (`pilot4_closed_extraction.jsonl`, `pilot4_closed_extraction_run2.jsonl`, `pilot4_stability.json`):
+
+| Normalised names, loadable triples | Pilot 3 (§4) | Pilot 4 |
+|---|---:|---:|
+| Entity Jaccard | 0.59 | 0.57 |
+| Triple Jaccard | 0.33 | **0.28** |
+| Run 1 triples found by run 2 | 48.2% | **44.3%** |
+| Endpoint-pair Jaccard | 0.35 | 0.32 |
+
+The overlap is unchanged within noise. Run-to-run variation is a property of the deployment, not of our settings. The remaining levers are aggregation over several runs (union for recall, or intersection / majority for precision) or a different model.
+
+**Other pilot 4 figures** (run 1, `pilot4_stats.json`):
+
+| | Pilot 4 |
+|---|---|
+| Entities / relations | 509 / 372 |
+| Loadable relations | 316 (56 type-rule violations, **15.1%**) |
+| Cap hits | 4 |
+| CamelCase names | 6 |
+| Aliases | 15 |
+| Evidence exact | 96.0% |
+| Quotes with "…" | 1 |
+| Self-loops (removed) | 7 |
+
+Dangling endpoints rose to 17 (from 4). These are relations naming an entity that wasn't extracted, and they are dropped in post-processing.
+
+**Annotation split by stability.** `python -m src.kg.annotation stability` wrote `annotation_stability.csv` (`triple_id, in_run2`). It compares each annotated triple, from pilot 3 run 1, with **pilot 3 run 2**: that run used the same prompt and settings, while pilot 4 changed the prompt. **49 of the 140 annotated triples (35%)** were also found by run 2. `python -m src.kg.annotation score` now also prints precision separately for "both runs" and "run 1 only". This was tested on throwaway copies; your sheets were only read.
+
+If both-run triples turn out clearly more precise, extracting twice and keeping the intersection is a precision lever: about 7,100 calls instead of 3,542.
+
+## 9. Cheaper entity resolution: batched confirmation
+
+**Batching.** `python -m src.kg.resolve run` now batches by default. One call receives a query name group (name, type, evidence, pages) and up to 5 candidate groups. It returns one decision per candidate, with a `difference` field the model fills in before setting `same`. Groups with the most pending candidates are queried first, and a pair judged from one side isn't asked again. All safeguards are kept: cannot-link from rejections, value conflicts, abbreviation-only aliases and top-5 candidates. `--pairwise` reproduces the old judge. Your `er_pilot_clusters.csv` (pairwise, threshold 0.75) is untouched; batched outputs go to `er_pilot_batched*_*.csv`.
+
+**Batch prompt design.** All variants were measured on the same 371 pilot pairs against the pairwise verdicts:
+
+| Variant | Calls | "Same" verdicts | Agreement with pairwise |
+|---|---:|---:|---:|
+| Pairwise (reference) | 371 | 67 (18%) | — |
+| Batch v1: returns a list of matching candidates | 162 | 153 (41%) | 0.69 |
+| Batch v2: per-candidate `difference` + `same`, "most candidates are NOT the same" | 162 | 35 (9%) | 0.85 |
+| **Batch v3 (kept):** per-candidate `difference` + `same`, spelling variants ARE the same | 162 | **62 (17%)** | **0.85** |
+
+- **v1** merged the very siblings the pairwise judge rejects, e.g. Subsidized vs Unsubsidized loans and FFEL PLUS vs FFEL Consolidation.
+- **v2** over-corrected and lost true merges such as the NY State Insurance ID card variants.
+- **v3** matches the pairwise acceptance rate.
+
+For reference, the pairwise judge agrees with itself on 98 of 100 pairs re-asked with a fresh cache. **So v3's 15% disagreement is a real behaviour difference, not noise.** The disagreements run both ways and look about equally often right and wrong on inspection:
+- **Batched merges that look wrong:** VA direct home loan ↔ VA home loan; register a leased vehicle ↔ register your vehicle.
+- **Batched merges that look right:** disability compensation ↔ VA disability compensation; Insurance ID Card ↔ NY State Insurance ID cards.
+- **Pairwise-only merges** are similarly mixed.
+
+Your labels on `er_pilot_clusters.csv` can decide which judge to trust, since every decision is listed in `er_pilot_pairs.csv` and `er_pilot_batched075_pairs.csv`.
+
+**Match rate by similarity bin** (all pilot judgments; pairwise from the calibration in §6, batched v3 from the 0.75 run):
+
+| Score | Pairwise: pairs / same / rate | Batched v3: pairs / same / rate |
+|---|---:|---:|
+| 0.75–0.80 | 199 / 17 / 0.09 | 157 / 12 / 0.08 |
+| 0.80–0.85 | 117 / 12 / 0.10 | 91 / 11 / 0.12 |
+| 0.85–0.90 | 72 / 18 / 0.25 | 65 / 15 / 0.23 |
+| 0.90–0.95 | 48 / 21 / 0.44 | 40 / 14 / 0.35 |
+| ≥ 0.95 | 19 / 10 / 0.53 | 18 / 10 / 0.56 |
+
+Effect of the lower threshold on the pairwise judgments:
+
+| Lower threshold | Pairs to judge | "Same" verdicts kept (of 78) |
+|---|---:|---:|
+| 0.75 | 455 | 78 |
+| **0.80** | **256 (−44%)** | **61** |
+| 0.85 | 139 | 49 |
+| 0.90 | 67 | 31 |
+
+**Proposal: lower threshold = 0.80 (now the default).** Reading the 17 "same" verdicts in 0.75–0.80 by hand, only about 2 are real matches: the Schedule A/C IRP-6 variants, and arguably "hearing" ↔ "Hearing by an administrative law judge". The rest are wrong merges, e.g. "mail" ↔ "phone", "housing grant" ↔ "Veterans Housing Assistance", "Room 136" ↔ "Room 1366". In 0.80–0.85 about 4 of 12 look right. Raising the threshold to 0.80 removes about 44% of the judge workload and mostly false merges; 0.85 would start dropping real ones. This hand reading is indicative; your cluster labels will confirm or correct it.
+
+Pilot ER with the new defaults (batched v3, threshold 0.80, `er_pilot_batched_*`):
+- **Result:** 508 mentions → 423 name groups → **382 entities**.
+- **Pairs:** 259 candidates; 3 rule merges, 42 value conflicts, 214 judged in **111 calls**.
+- **Merges:** 52 confirmed, 11 blocked by cannot-link.
+- **Review:** 42 clusters merge differently written names.
+
+The pairwise run at 0.75 needed 371 calls for 373 entities.
+
+**Full-corpus estimate** (`python -m src.kg.resolve estimate`, `er_full_estimate.json`):
+- **Method:** each pilot block is scaled by 3,194/63 ≈ 50.7, giving about 21,400 name groups. Candidate edges are drawn at the pilot's pooled within-block rate of pairs scoring ≥ T, top-5 is applied per group, and the batching plan is counted.
+- **Check:** at scale 1 the simulation gives 348/167 (T = 0.75) and 204/113 (T = 0.80) pairwise/batched calls, against 371/162 and 214/111 measured.
+
+| Lower threshold | Pair rate in pilot | Pairwise calls | **Batched calls** |
+|---|---:|---:|---:|
+| 0.75 | 6.6% | ~66,700 | **~21,300** |
+| 0.80 | 3.6% | ~66,500 | **~21,300** |
+| 0.85 | 2.1% | ~66,000 | **~21,200** |
+| 0.90 | 1.0% | ~63,000 | **~20,400** |
+
+**At corpus scale the threshold hardly changes the cost.** Blocks become so large (e.g. thousands of Service groups per domain) that almost every group has at least 5 candidates above any of these thresholds, so the top-5 cap sets the cost. Batching cuts it by about two thirds, to **roughly one call per name group (~21k)**. The threshold still matters for quality: in dense blocks a group's top 5 will mostly be high-similarity pairs.
+
+Two caveats:
+- The random-graph model ignores the clustering of real similarity graphs.
+- The group count is an upper bound: identical names across documents (DMV, VA, proof of identity) will collapse into fewer groups.
+
+Further reductions would need fewer name groups (e.g. pre-merging exact names across the whole corpus, which the pipeline already does within a block) or top-3 instead of top-5. Neither has been tested.
+
+## 10. ContactPoint `value` rule
+
+- **Prompt:** for a ContactPoint whose evidence contains a phone number, postal address, email or URL, `value` is now **required** (copy that detail). Otherwise it may still be null.
+- **Detector:** `has_contact_detail()` / `find_contact_detail()` in `schema.py`. It covers this corpus's formats (spaced phone numbers such as "800 - 827 - 1000", "888-GIBILL", PO boxes, ZIP codes, URLs and domains, emails). It does not catch short relay numbers like "TTY : 711".
+- **Post-processing fallback:** if the model still leaves the value empty, the detail found in the evidence is used (`contact_value_from_evidence`).
+
+| ContactPoints | Pilot 3 | Pilot 4 run 1 | Pilot 4 run 2 |
+|---|---:|---:|---:|
+| All: value filled | 25/37 | 20/35 | 24/38 |
+| Detail in evidence: filled by the model | 17/18 | 16/17 | 17/18 |
+| Detail in evidence: filled after post-processing | — | **17/17** | **18/18** |
+
+**The earlier "regression" was not about missing contact details.** When the evidence contains one, the model already gave a value about 95% of the time. The one consistent miss is "VA.gov profile", where the domain is the name itself; the fallback fills it. The lower overall fill comes from ContactPoints whose evidence has no detail (e.g. "VA benefits hotline", "Facebook", with the number in another span). That's correct under the rule.
+
+**Regression tests.** Two new cases in `tests/test_kg_extraction.py`:
+- raw model output: at least 90% of detail-bearing ContactPoints have a value;
+- post-processed output: 100%.
+
+The test file now has 17 cases: 13 pass and 4 are strict `xfail` with current numbers.
+- **Fee table direction:** still reversed.
+- **Self-loops:** 7 of 488 raw relations (1.4%).
+- **Stitched quote:** 1 quote with "…".
+- **Fee-table enumeration:** the current run lists all 8 registration classes again.
+
+That last one was previously a false pass: my check split names on spaces, so "Agricultural (AGR)" didn't match the code "AGR". The full suite gives 77 passed and 4 xfailed.
+
+## 11. Updated decisions after annotation
+
+1. **Full extraction run (3,542 calls):** go or no-go on the precision in `annotation_scores.json`.
+2. **Run aggregation:** if "both runs" precision clearly exceeds "run 1 only", extract twice and use the intersection (or union, if recall is the problem). About 7,100 calls.
+3. **ER judge:** pairwise or batched v3, decided by your labels on `er_pilot_clusters.csv`. Batched: ~21k calls for the full corpus. Pairwise: ~66k.
+4. **Lower threshold 0.80** (proposed, now the default) or keep 0.75.
+5. Boilerplate threshold: unchanged question from §7.
