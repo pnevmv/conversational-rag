@@ -72,3 +72,6 @@ memory/
 
 # Research plan (local only)
 Initial_Research_Plan_Smirnov.pdf
+
+# Raw model outputs (large, regenerable from the experiment scripts; kept locally)
+experiments/**/*.jsonl
