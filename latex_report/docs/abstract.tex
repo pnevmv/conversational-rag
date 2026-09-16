@@ -32,9 +32,14 @@ analysis shows that the generator fully exploits the newly retrieved gold sectio
 but that the gain is largely offset by gold sections the reranker displaces from
 the top five.
 
-The thesis concludes with an outline of planned future work, including knowledge
-graph construction and retrieval, graph-\gls{rag} architectures, and agent-based
-orchestration, as well as a recommendation to supplement token \fone{} with an
-open-weight \gls{llm} judge for more reliable generation evaluation.
+Finally, we begin the construction of a knowledge graph from the corpus, following
+a three-layer design of document structure, extracted mentions and resolved
+entities. A closed schema derived from an open-extraction pilot keeps 96\% of
+evidence quotes verbatim, but two identical extraction runs share fewer than half of
+their triples, and embedding similarity alone cannot decide entity merges, since even
+pairs above a cosine of 0.95 are distinct entities about half of the time. The thesis
+concludes with the planned completion of the graph, graph-\gls{rag} architectures,
+agent-based orchestration, and an open-weight \gls{llm} judge for more reliable
+generation evaluation.
 
 \end{abstract}

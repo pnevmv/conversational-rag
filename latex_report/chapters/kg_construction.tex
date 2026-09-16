@@ -1,0 +1,358 @@
+%!TEX root = ../main.tex
+
+\chapter{Knowledge Graph Construction}\label{ch:kg}
+
+This chapter describes the construction of a \gls{kg} from the \gls{mdd} corpus,
+the first stage beyond passage retrieval. The work is in progress: the graph
+design, the extraction pipeline and its quality checks are complete on a set of
+pilot documents, while the extraction over the full corpus is deferred until the
+manual precision annotation described in Section~\ref{sec:kg:status} is
+available. Section~\ref{sec:kg:design} presents the three-layer design.
+Sections~\ref{sec:kg:structure}--\ref{sec:kg:extraction} cover the structural
+layer, the schema and the extraction pipeline. Sections~\ref{sec:kg:quality}
+and~\ref{sec:kg:er} report the quality checks and entity resolution, and
+Section~\ref{sec:kg:status} summarises the state of the work.
+
+
+% ===========================================================================
+\section{Design}\label{sec:kg:design}
+
+The construction follows the methodology of \textcite{negro2026kg} (chapters 5
+and 6), which separates a \gls{kg} into three layers:
+
+\begin{enumerate}
+    \item a \emph{structural layer} that mirrors the documents themselves (domains,
+          documents, sections and spans), built without an \gls{llm};
+    \item a \emph{metagraph} of raw mentions: every entity and relation an
+          \gls{llm} extracts from a section, with a verbatim evidence quote and a link
+          to that section;
+    \item a \emph{\gls{kg} layer} of normalised entities, obtained by resolving
+          mentions that refer to the same real-world entity.
+\end{enumerate}
+
+Keeping raw mentions separate from resolved entities makes every fact traceable
+to its source text and allows entity resolution to be revised without
+re-extracting. The graph is stored in Neo4j~\cite{neo4j} (version~5, Community
+Edition).
+
+
+% ===========================================================================
+\section{Structural Layer}\label{sec:kg:structure}
+
+The structural layer is loaded deterministically from the corpus:
+\begin{center}
+\small\ttfamily
+(:Domain)-[:HAS\_DOCUMENT]->(:Document)-[:HAS\_SECTION]->(:Section)-[:HAS\_SPAN]->(:Span)\\
+(:Section)-[:NEXT]->(:Section)
+\end{center}
+Sections are the retrieval units of Chapter~\ref{ch:rag} and use the same
+identifiers, so a retrieved section maps directly to its graph node; span
+identifiers likewise match the dataset's grounding annotations. All writes use
+\texttt{MERGE} on these identifiers, so the load is idempotent.
+Table~\ref{tab:kg:structure} gives the resulting counts.
+
+\begin{table}[ht]
+    \centering
+    \caption{Structural layer of the \gls{kg}.}
+    \label{tab:kg:structure}
+    \begin{tabular}{lr@{\hspace{3em}}lr}
+        \toprule
+        Node label & Count & Relationship & Count \\
+        \midrule
+        Domain   & 4        & HAS\_DOCUMENT & 488 \\
+        Document & 488      & HAS\_SECTION  & 4{,}114 \\
+        Section  & 4{,}114  & HAS\_SPAN     & 35{,}659 \\
+        Span     & 35{,}659 & NEXT          & 3{,}626 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Two section flags support extraction planning. The corpus HTML contains no
+\texttt{<table>} elements (they were removed when the dataset was built), so
+\texttt{is\_table} is a text heuristic: a section is flagged when one of its spans
+enumerates at least six short comma- or semicolon-separated items, such as state
+codes or vehicle registration classes (37 sections). \texttt{is\_boilerplate}
+flags sections whose text occurs in ten or more documents, such as navigation
+widgets and ``Related PDFs:'' headers (300 sections).
+
+
+% ===========================================================================
+\section{Schema Design}\label{sec:kg:schema}
+
+\subsection{Open Extraction Pilot}
+
+The schema was derived from data rather than fixed in advance. An open-extraction
+pilot asked the \gls{llm} to extract entities and relations with freely chosen
+types from 32 sections (eight per domain, sampled with a fixed seed), each with a
+verbatim evidence quote. It produced 318 entities and 264 relations, but with 139
+distinct entity types and 180 distinct relation types, roughly one new type for
+every two mentions. Open extraction alone therefore yields no usable schema.
+
+The pilot also exposed systematic errors that later became regression tests:
+relations in the wrong direction (e.g.\ ``supervised driving practice
+\textsc{requires} road test''), relation names that encode their target
+(\texttt{REQUIRES\_VISION\_TEST}), self-loops, and entity names written as CamelCase
+identifiers instead of the text's wording (69\% of names). Evidence quotes were
+reliable: 97.4\% matched the section text exactly or up to punctuation, and
+manual inspection of the remaining 15 found no invented content.
+
+\subsection{Closed Schema}
+
+Every open type was mapped by hand onto a candidate schema, merged, or dropped.
+Dropped types were mostly page interface elements, statistics, table rows and
+calculation details. The resulting closed schema has nine entity types
+(Table~\ref{tab:kg:entities}) and eleven relation types with fixed directions
+(Table~\ref{tab:kg:relations}); it covers 78.9\% of the pilot's entity mentions
+and 76.1\% of its relations. Amount, TimeLimit and ContactPoint carry a verbatim
+\texttt{value} (e.g.\ ``\$25.00'', ``every 12 months'', a phone number), because
+the pilot showed that such values otherwise appear only in the evidence and cannot
+answer ``how much'' or ``how long'' questions. Requirement and Outcome keep the
+full condition or consequence as text.
+
+\begin{table}[ht]
+    \centering
+    \small
+    \caption{Entity types of the closed schema.}
+    \label{tab:kg:entities}
+    \begin{tabular}{l>{\raggedright\arraybackslash}p{0.62\textwidth}}
+        \toprule
+        Type & Definition \\
+        \midrule
+        Service      & something a citizen can apply for, receive or complete (benefit, programme, licence, loan, test, appeal, \ldots) \\
+        Organization & an agency, office, school, servicer or other body that provides, issues or decides \\
+        Document     & a form, certificate, proof, card, letter or notice \\
+        Requirement  & a condition or obligation: eligibility criterion, item to present, restriction \\
+        Amount       & a fee, tax, premium, benefit amount or limit, with its value \\
+        TimeLimit    & a deadline, duration, frequency or waiting period, with its value \\
+        Role         & a category of person the content applies to \\
+        Outcome      & a result or consequence of an action or condition \\
+        ContactPoint & a phone number, website, account, office or information page \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{table}[ht]
+    \centering
+    \small
+    \caption{Relation types of the closed schema, with allowed source and target
+             types. ALTERNATIVE\_TO is symmetric and stored in one canonical
+             direction.}
+    \label{tab:kg:relations}
+    \begin{tabular}{l>{\raggedright\arraybackslash}p{0.36\textwidth}>{\raggedright\arraybackslash}p{0.33\textwidth}}
+        \toprule
+        Relation & Source & Target \\
+        \midrule
+        REQUIRES       & Service, Document, Role; Requirement (to Document only) & Requirement, Document, Service \\
+        PROVIDED\_BY   & Service, Document, Amount & Organization \\
+        HAS\_AMOUNT    & Service, Document & Amount \\
+        HAS\_TIME\_LIMIT & Service, Requirement, Document & TimeLimit \\
+        APPLIES\_TO    & Service, Requirement, Amount, TimeLimit & Role, Service \\
+        LEADS\_TO      & Service, Requirement, Outcome & Outcome, Service \\
+        EXEMPT\_FROM   & Role, Service, Document & Requirement, Amount, Service \\
+        DETERMINED\_BY & Amount, Service, Outcome & Requirement, Role, Amount \\
+        AVAILABLE\_AT  & Service, Document; Organization (to ContactPoint only) & ContactPoint, Organization \\
+        PART\_OF       & Service, Document, Amount & Service, Document, Amount \\
+        ALTERNATIVE\_TO & Service, Document, Requirement & Service, Document, Requirement \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+
+% ===========================================================================
+\section{Extraction Pipeline}\label{sec:kg:extraction}
+
+Each extraction call gives the \gls{llm} the domain, document title, section
+heading, section text and the schema with its source and target rules, and
+requests a strict JSON-schema output. The prompt requires names in the text's own
+wording, an optional abbreviation as \texttt{alias} (e.g.\ ``Department of Motor
+Vehicles'' / ``DMV''), one contiguous verbatim evidence quote per item, and at most
+15 entities per call. Post-processing normalises names, removes duplicate entities,
+self-loops and relations whose endpoints were not extracted, stores symmetric
+relations in one direction, and flags relations that violate the source and target
+rules; flagged relations are kept in the raw output but not loaded into the graph.
+
+Extraction is planned in \emph{units} (Table~\ref{tab:kg:plan}). Sections shorter
+than 40 characters and boilerplate sections are skipped; a text repeated in several
+sections is extracted once and attached to every section where it occurs, so each
+section keeps its own mention links; and texts longer than 1{,}500 characters are
+split into chunks at sentence boundaries, each with its own entity cap, while
+evidence is still checked against the whole section.
+
+\begin{table}[ht]
+    \centering
+    \caption{Extraction plan for the full corpus.}
+    \label{tab:kg:plan}
+    \begin{tabular}{lr}
+        \toprule
+        & Sections / calls \\
+        \midrule
+        Sections in the corpus             & 4{,}114 \\
+        \quad skipped as boilerplate       & 300 \\
+        \quad skipped as shorter than 40 characters & 262 \\
+        \quad extracted                    & 3{,}552 \\
+        Distinct texts (extraction units)  & 3{,}194 \\
+        Units split into chunks            & 238 \\
+        \midrule
+        \gls{llm} calls                    & 3{,}542 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+
+% ===========================================================================
+\section{Quality Checks}\label{sec:kg:quality}
+
+The closed-schema pipeline was evaluated on every section of eight whole documents
+(two per domain, 90 sections) before any full-corpus run.
+Table~\ref{tab:kg:pilots} compares the open pilot with two closed-schema runs.
+
+\begin{table}[ht]
+    \centering
+    \small
+    \caption{Extraction quality across pilots. The open pilot used 32 sections; the
+             closed-schema runs used the 90 sections of eight whole documents
+             (pilot 4 with pinned sampling parameters and the ContactPoint value
+             rule).}
+    \label{tab:kg:pilots}
+    \begin{tabular}{lrrr}
+        \toprule
+        & Open pilot & Closed, pilot 2 & Closed, pilot 4 \\
+        \midrule
+        Entities / relations              & 318 / 264 & 511 / 368 & 509 / 372 \\
+        Distinct entity / relation types  & 139 / 180 & 9 / 11 & 9 / 11 \\
+        CamelCase entity names            & 69\%  & 1.4\% & 1.2\% \\
+        Evidence quoted verbatim          & 81.1\% & 96.8\% & 96.0\% \\
+        Relations violating type rules    & ---   & 8.4\% & 15.1\% \\
+        Self-loops (removed)              & 7     & 0 & 7 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Most evidence quotes that fail the verbatim check are caused by the corpus itself,
+which contains run-together words (``areunder'', ``yourbenefits'') that the
+\gls{llm} silently corrects. Relations that violate the type rules are not
+dominated by any single pattern and are dropped at load time. The known errors of
+the open pilot were turned into 17 regression tests that run against cached model
+output; the reversed \textsc{requires} relations and object-specific relation names
+are fixed, while four documented failures remain (an exemption still extracted in
+the reverse direction, a fee-table enumeration, 1.4\% raw self-loops, and one
+stitched quote).
+
+\subsection{Run-to-Run Stability}
+
+Running the same pilot twice revealed that the extraction is far from
+deterministic: only 48\% of the triples of one run reappear in the other (triple
+Jaccard 0.33), and about a quarter of the entities differ, mainly in granularity
+(one entity or two) and in which peripheral facts are extracted. The deployment
+offers no deterministic setting: the \texttt{seed} parameter is not supported, and
+temperature is accepted only when reasoning effort is set to ``none''.
+Table~\ref{tab:kg:determinism} compares the available configurations.
+
+\begin{table}[ht]
+    \centering
+    \caption{Determinism of the extraction under the available sampling
+             configurations (four sections, five repetitions each; mean pairwise
+             Jaccard of the extracted triples).}
+    \label{tab:kg:determinism}
+    \begin{tabular}{lr}
+        \toprule
+        Configuration & Triple Jaccard \\
+        \midrule
+        temperature 0, reasoning effort ``none'' & 0.34 \\
+        temperature 0, top-$p$ 0                 & 0.27 \\
+        reasoning effort ``medium''              & 0.24 \\
+        reasoning effort ``low''                 & 0.17 \\
+        top-$p$ 0                                & 0.12 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+The most stable configuration is the default one, which is now pinned explicitly;
+a repeated pilot with it reproduced 44\% of the triples (Jaccard 0.28), within the
+noise of the earlier measurement. A single extraction pass therefore misses facts
+that a second pass finds, and aggregating several runs (union for recall,
+intersection for precision) is the remaining lever.
+
+
+% ===========================================================================
+\section{Entity Resolution}\label{sec:kg:er}
+
+Entity resolution merges mentions into the entities of the \gls{kg} layer. Mentions
+are first blocked by type: Service, Requirement, Role and Outcome are compared only
+within a domain, while Organization, Document, ContactPoint, Amount and TimeLimit
+may be merged across domains. Mentions extracted with conflicting types are assigned
+the majority type. Candidate pairs come from three sources: deterministic rules
+(abbreviation aliases, acronyms, and shared form numbers such as IRP-6), the cosine
+similarity of name embeddings (\texttt{bge-small-en-v1.5}~\cite{bge2023}), and graph
+signals that raise confidence when two mentions share a document or relation
+neighbours, as in~\textcite[ch.~6.1.4]{negro2026kg}.
+
+\subsection{Threshold Calibration}
+
+The \gls{llm} was asked to judge every candidate pair scoring at least 0.75 and a
+random sample below, to calibrate the similarity thresholds
+(Table~\ref{tab:kg:calibration}).
+
+\begin{table}[ht]
+    \centering
+    \caption{Share of candidate pairs judged to be the same entity, by similarity
+             score (eight pilot documents).}
+    \label{tab:kg:calibration}
+    \begin{tabular}{lrr}
+        \toprule
+        Score & Pairs & Judged same \\
+        \midrule
+        0.65--0.75 (sample) & 100 & 1\% \\
+        0.75--0.80 & 199 & 9\% \\
+        0.80--0.85 & 117 & 10\% \\
+        0.85--0.90 &  72 & 25\% \\
+        0.90--0.95 &  48 & 44\% \\
+        $\geq 0.95$ &  19 & 53\% \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+No similarity score is safe for automatic merging: even above 0.95 about half of the
+pairs are distinct entities whose names differ in a single qualifier, such as
+subsidised and unsubsidised loans or medical and non-medical hearings. Only rule
+matches are therefore merged automatically. Pairs below 0.80 are never merged: a
+manual reading of the 0.75--0.80 band found that almost all positive judgments there
+were wrong merges. Every pair in between is confirmed by the \gls{llm}.
+
+Three safeguards were added after a first run produced chained clusters (A merged
+with B and B with C, although A and C were judged different): two clusters are not
+merged if any pair across them was rejected; Amount, TimeLimit and ContactPoint
+groups with different stated values are never merged; and an alias counts as merge
+evidence only if it looks like an abbreviation and is unique in its block, because
+the \gls{llm} occasionally fills the alias field with a category label.
+
+\subsection{Batched Confirmation and Cost}
+
+Confirming one pair per call does not scale: at corpus size, blocks become dense
+enough that almost every name group has at least five candidates, so even with a
+cap of five candidates per group, pairwise confirmation would need about 66{,}000
+calls. Batched confirmation sends one query entity with up to five candidates per
+call and asks for a separate decision per candidate, preceded by an explicit
+statement of what distinguishes them. On the pilot it reduced the calls from 371 to
+162 at the same acceptance rate (17\% against 18\%), and its decisions agree with
+pairwise confirmation on 85\% of pairs; since the pairwise judge agrees with itself
+on 98\% of re-asked pairs, the remaining difference is a genuine change in behaviour,
+which the manual cluster review will arbitrate. A simulation calibrated on the pilot
+estimates about 21{,}000 batched calls for the full corpus. With the final settings
+(batched confirmation, lower threshold 0.80) the pilot's 508 mentions resolve into
+382 entities.
+
+
+% ===========================================================================
+\section{Status}\label{sec:kg:status}
+
+The structural layer is complete in Neo4j. The extraction pipeline, its schema and
+the entity resolution procedure are implemented and calibrated on eight pilot
+documents. Before the full extraction of 3{,}542 calls, a manual annotation of 140
+extracted triples from three of the pilot documents (one each from DMV, SSA and VA),
+together with the triples the extraction missed, will measure precision and recall
+per relation and entity type. Precision is also reported separately for the triples
+that both independent runs extracted, which indicates whether aggregating runs would
+improve precision. The proposed entity merges are reviewed in the same way. These
+measurements decide whether to run the full extraction as designed, with several
+aggregated runs, or with a revised prompt.

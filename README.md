@@ -93,9 +93,12 @@ See the thesis chapter `latex_report/chapters/rag.tex` for full analysis, and Ap
 
 ### In Progress
 
-**Step 5 — Knowledge Graph Construction** (phase 1 done, schema under review)
+**Step 5 — Knowledge Graph Construction** (pipeline built and checked on 8 pilot documents; manual annotation pending before the full run)
+
+The design follows *Knowledge Graphs and LLMs in Action* (ch. 5–6), with three layers: a structural layer, a metagraph of raw LLM-extracted mentions, and a KG layer of resolved entities. Thesis chapter: `latex_report/chapters/kg_construction.tex`.
+
 - [x] Neo4j 5 Community in Docker, client with env-based config and uniqueness constraints (`src/kg/client.py`).
-- [x] Structural layer, loaded idempotently (`src/kg/structure.py`): Domain → Document → Section → Span, plus `NEXT` between consecutive sections. Section ids match the RAG index (`make_section_id()`), so retrieval results map directly to graph nodes.
+- [x] Structural layer, loaded idempotently (`src/kg/structure.py`): Domain → Document → Section → Span, plus `NEXT` between consecutive sections. Section ids match the RAG index (`make_section_id()`), so retrieval results map directly to graph nodes. Sections carry `is_table` (37) and `is_boilerplate` (300) flags.
 
   | Nodes | Count | Relationships | Count |
   | :--- | ---: | :--- | ---: |
@@ -104,9 +107,27 @@ See the thesis chapter `latex_report/chapters/rag.tex` for full analysis, and Ap
   | Section | 4,114 | HAS_SPAN | 35,659 |
   | Span | 35,659 | NEXT | 3,626 |
 
-- [x] Pilot open extraction on 32 sections (8/domain, seed 42), structured JSON output at temperature 0 (`src/kg/extract.py`). Output: 318 entities, 264 relations; 97.4% of evidence quotes match the section text exactly or up to punctuation.
-- [x] Schema proposal (9 entity types, 10–11 relations) mapped from the pilot's open types: [`experiments/kg/schema_proposal.md`](experiments/kg/schema_proposal.md).
-- [ ] Closed-schema extraction over all 4,114 sections, entity resolution, and loading the KG layer into Neo4j.
+- [x] Open-extraction pilot on 32 sections (`src/kg/extract.py`): 139 entity and 180 relation types, so a closed schema is needed. Schema proposal: [`experiments/kg/schema_proposal.md`](experiments/kg/schema_proposal.md).
+- [x] Closed schema (`src/kg/schema.py`): 9 entity types (Service, Organization, Document, Requirement, Amount, TimeLimit, Role, Outcome, ContactPoint) and 11 relations with fixed source → target types; ALTERNATIVE_TO is symmetric.
+- [x] Closed-schema extractor (`src/kg/extract_closed.py`, `src/kg/planning.py`):
+  - strict JSON output, at most 15 entities per call, optional `alias`;
+  - repeated texts extracted once, long texts chunked at sentence boundaries, short and boilerplate sections skipped;
+  - relations that break the type rules are flagged and not loaded;
+  - full run: **3,542 LLM calls** for 3,552 sections.
+- [x] Quality checks on 8 whole pilot documents (90 sections):
+  - **Names and evidence:** CamelCase names fell from 69% to 1.2%, and 96% of evidence quotes are verbatim.
+  - **Regression tests:** 17 cases against cached model output (`tests/test_kg_extraction.py`), with 4 documented open issues.
+  - **Stability:** extraction is not deterministic. Two identical runs share only 44–48% of their triples, and the deployment offers no deterministic setting (no `seed`; temperature only with reasoning effort "none").
+- [x] Entity resolution (`src/kg/resolve.py`):
+  - blocking by type, with rule matches (alias, acronym, form number);
+  - bge-small similarity plus graph signals, then LLM confirmation in batches of up to 5 candidates;
+  - cannot-link constraints and value conflicts stop chained merges.
+  - **Calibration:** even above a cosine of 0.95 only about half of candidate pairs are the same entity, so only rule matches merge without the LLM; the lower threshold is 0.80.
+  - **Cost:** about 21k batched calls for the full corpus, against about 66k pairwise.
+- [x] Annotation sheets and scorer (`src/kg/annotation.py`): precision, recall and F1 per relation and entity type, and precision split by run agreement.
+- [ ] Manual annotation of 140 pilot triples and the proposed entity merges, then a go/no-go on the full extraction, entity resolution, and loading the KG layer into Neo4j.
+
+Reports: [`pilot2_report.md`](experiments/kg/pilot2_report.md) (closed-schema pilot) and [`pilot3_report.md`](experiments/kg/pilot3_report.md) (pre-run checks, stability, entity resolution).
 
 ---
 
@@ -179,9 +200,12 @@ docker compose up -d neo4j      # browser at http://localhost:7474
 | `python experiments/evaluate_diagnostics.py` | Diagnostic evaluation with bootstrap CIs and paired tests |
 | `python experiments/evaluate_baseline.py --input experiments/results/<file>.jsonl` | Evaluate any result file |
 | `python -m src.kg.structure` | Load the KG structural layer into Neo4j (idempotent) |
-| `python -m src.kg.extract` | Pilot open extraction (32 sections, cached) |
-| `python -m src.kg.pilot_stats` | Aggregate pilot extraction for schema design |
-| `python -m unittest discover tests` | Run all unit tests (64 tests) |
+| `python -m src.kg.extract` | Open-extraction pilot (32 sections, cached) |
+| `python -m src.kg.extract_closed` | Closed-schema extraction of the 8 pilot documents (`--regression`, `--tables` for the other sets) |
+| `python -m src.kg.stability` | Compare two extraction runs (entity and triple overlap) |
+| `python -m src.kg.annotation export \| stability \| score` | Annotation sheets, run-agreement file, precision/recall/F1 |
+| `python -m src.kg.resolve calibrate \| run \| estimate` | Entity resolution: threshold calibration, pilot run, full-corpus cost estimate |
+| `python -m pytest tests` | Run all tests (77 pass, 4 expected failures documenting open extraction issues) |
 
 ### 6. Note on Dense Index
 
@@ -212,8 +236,15 @@ llm_rag/
 │   ├── kg/                       # Knowledge Graph (Step 5)
 │   │   ├── client.py             # Neo4j client (env config, constraints, counts)
 │   │   ├── structure.py          # Structural layer loader
-│   │   ├── extract.py            # Pilot open entity/relation extraction
-│   │   └── pilot_stats.py        # Pilot aggregation and evidence check
+│   │   ├── extract.py            # Open entity/relation extraction (schema-design pilot)
+│   │   ├── pilot_stats.py        # Open-pilot aggregation and evidence check
+│   │   ├── schema.py             # Closed schema: types, relation rules, JSON schema
+│   │   ├── planning.py           # Extraction units: skipping, deduplication, chunking
+│   │   ├── extract_closed.py     # Closed-schema extraction and post-processing
+│   │   ├── pilot2_stats.py       # Closed-pilot quality and overlap statistics
+│   │   ├── stability.py          # Run-to-run comparison
+│   │   ├── annotation.py         # Annotation export and precision/recall scoring
+│   │   └── resolve.py            # Entity resolution
 │   └── agents/                   # Agentic orchestration (planned)
 │
 ├── experiments/
@@ -225,7 +256,7 @@ llm_rag/
 │   ├── evaluate_baseline.py      # Per-file evaluation (EM, F1, recall, abstention)
 │   ├── evaluate_diagnostics.py   # Bootstrap CIs, hit/miss F1, paired tests
 │   ├── results/                  # Result JSONL + evaluation JSON (full split, dev_500/)
-│   └── kg/                       # Pilot extraction output and schema proposal
+│   └── kg/                       # KG pilot outputs, reports, annotation sheets, ER results
 │
 ├── latex_report/                 # Thesis (LuaLaTeX, unipd-thesis-modern)
 ├── docker-compose.yml            # Neo4j 5 Community
@@ -237,7 +268,8 @@ llm_rag/
 │   ├── test_retriever.py
 │   ├── test_dense_retriever.py
 │   ├── test_hybrid_retriever.py
-│   └── test_query_rewriter.py
+│   ├── test_query_rewriter.py
+│   └── test_kg_extraction.py     # Prompt regression tests (read cached model output)
 │
 ├── data/
 │   ├── multidoc2dial/            # Dataset files (git-ignored)

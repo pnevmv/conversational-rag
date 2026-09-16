@@ -101,6 +101,12 @@ The main contributions of this work are:
 
     \item An analysis of abstention calibration, identifying the trade-off between
           unanswerable recall and false abstention rate across retrieval strategies.
+
+    \item A three-layer \gls{kg} construction pipeline for \gls{mdd} (structural
+          layer, metagraph of extracted mentions, resolved entities) with a closed
+          schema derived from an open-extraction pilot, regression tests for known
+          extraction errors, a measurement of run-to-run extraction stability, and an
+          entity resolution procedure calibrated against \gls{llm} judgments.
 \end{itemize}
 
 \section*{Thesis Structure}
@@ -110,7 +116,7 @@ The remainder of the thesis is organised as follows.
 \textbf{Part~\ref{prt:foundations} --- Foundations} provides the background
 knowledge required to situate the experimental work. Chapter~\ref{ch:background}
 reviews \glspl{llm}, \gls{rag}, and conversational \gls{qa}, and briefly introduces
-knowledge graphs as a direction for future work.
+knowledge graphs.
 Chapter~\ref{ch:dataset} describes the \gls{mdd} benchmark, the evaluation metrics
 used throughout, and the construction of the fixed dev-500 diagnostic subset.
 
@@ -118,8 +124,10 @@ used throughout, and the construction of the fixed dev-500 diagnostic subset.
 Chapter~\ref{ch:llm_baseline} establishes the \gls{llm}-only baseline.
 Chapter~\ref{ch:rag} introduces the \gls{rag} pipeline, describes each retrieval and
 reranking strategy, and presents results on both the full validation split and the
-dev-500 subset.
+dev-500 subset. Chapter~\ref{ch:kg} describes the construction of a \gls{kg} from the
+corpus: its design, schema, extraction pipeline, quality checks and entity
+resolution.
 
 The thesis closes with Chapter~\ref{ch:conclusions}, which summarises the findings,
 states the scope limitations, and outlines the planned continuation of the work
-toward knowledge graph and agent-based architectures.
+toward graph-based retrieval and agent-based architectures.
