@@ -1,0 +1,618 @@
+{
+  "summary": {
+    "scope": "pilot",
+    "examples_from": "validation",
+    "documents_in_scope": 8,
+    "examples_in_scope": 36,
+    "gold_section_has_mentions": {
+      "n": 35,
+      "share": 0.9722222222222222
+    },
+    "entity_matched_in_question": {
+      "n": 18,
+      "share": 0.5
+    },
+    "entity_matched_in_answer": {
+      "n": 23,
+      "share": 0.6388888888888888
+    },
+    "entity_matched_in_question_or_answer": {
+      "n": 28,
+      "share": 0.7777777777777778
+    },
+    "by_domain": {
+      "ssa": {
+        "examples": 28,
+        "gold_has_mentions": 27,
+        "entity_in_question_or_answer": 20
+      },
+      "studentaid": {
+        "examples": 8,
+        "gold_has_mentions": 8,
+        "entity_in_question_or_answer": 8
+      }
+    }
+  },
+  "examples": [
+    {
+      "example_id": "9c597124812a3b16f36596b8da2a5bec_6",
+      "domain": "ssa",
+      "gold_sections": [
+        "Appeal A Decision | Social Security Administration#2_0::51"
+      ],
+      "gold_has_mentions": true,
+      "gold_entities": 12,
+      "entity_in_question": [
+        "Appeals Council",
+        "administrative law judge"
+      ],
+      "entity_in_answer": [
+        "Federal Court Review Process"
+      ],
+      "question": "Yes, of course. Now I have a question about requesting an Appeals Council investigation of an administrative law judge's decision or dismissal. What resources can I use to learn more about this procedure?",
+      "reference_answer": "Please read  visit Federal Court Review Process"
+    },
+    {
+      "example_id": "239cfc810cac9b407afa34691b94ca62_5",
+      "domain": "ssa",
+      "gold_sections": [
+        "Appeal A Decision | Social Security Administration#2_0::51"
+      ],
+      "gold_has_mentions": true,
+      "gold_entities": 12,
+      "entity_in_question": [
+        "Appeals Council",
+        "Review by the Appeals Council"
+      ],
+      "entity_in_answer": [
+        "Federal Court Review Process"
+      ],
+      "question": "I'd like to ask you another question regarding with Requesting an Appeals Council review What resources can I use to learn more about this procedure?",
+      "reference_answer": "Please read  visit Federal Court Review Process"
+    },
+    {
+      "example_id": "239cfc810cac9b407afa34691b94ca62_7",
+      "domain": "ssa",
+      "gold_sections": [
+        "Appeal A Decision | Social Security Administration#2_0::33"
+      ],
+      "gold_has_mentions": true,
+      "gold_entities": 6,
+      "entity_in_question": [],
+      "entity_in_answer": [
+        "Request a hearing online",
+        "hearing"
+      ],
+      "question": "What if I disagree with the determination that was made?",
+      "reference_answer": "You may request a hearing online"
+    },
+    {
+      "example_id": "239cfc810cac9b407afa34691b94ca62_9",
+      "domain": "ssa",
+      "gold_sections": [
+        "Appeal A Decision | Social Security Administration#2_0::40"
+      ],
+      "gold_has_mentions": true,
+      "gold_entities": 6,
+      "entity_in_question": [
+        "Request a Hearing for a Non-Medical Determination Online"
+      ],
+      "entity_in_answer": [
+        "Request Non - Medical Hearing",
+        "Request a Hearing for a Non-Medical Determination Online",
+        "income, resources, overpayments, living arrangements"
+      ],
+      "question": "What if I nead to request a hearing for a non medical determination online?",
+      "reference_answer": "For a reason that is not disability related for example : income , resources , overpayments , living arrangements , you can request a non - medical hearing online"
+    },
+    {
+      "example_id": "239cfc810cac9b407afa34691b94ca62_11",
+      "domain": "ssa",
+      "gold_sections": [
+        "Appeal A Decision | Social Security Administration#2_0::44"
+      ],
+      "gold_has_mentions": true,
+      "gold_entities": 5,
+      "entity_in_question": [],
+      "entity_in_answer": [
+        "my Social Security account"
+      ],
+      "question": "How do I check the status of my hearing?",
+      "reference_answer": "A my Social Security account is an easy , convenient , and secure way to do business with us"
+    },
+    {
+      "example_id": "000b31bac18cf133fc483e79c57ffb49_13",
+      "domain": "ssa",
+      "gold_sections": [
+        "Appeal A Decision | Social Security Administration#2_0::51"
+      ],
+      "gold_has_mentions": true,
+      "gold_entities": 12,
+      "entity_in_question": [
+        "Appeals Council"
+      ],
+      "entity_in_answer": [
+        "Appeals Council",
+        "Social Security s Appeals Council online"
+      ],
+      "question": "In addition, I'd like to learn more about the Appeals Council. What if I disagree with the outcome of the hearing?",
+      "reference_answer": "you may request a review by Social Security s Appeals Council online"
+    },
+    {
+      "example_id": "7076645f07f9821dd7dfc2cc6ab6fad9_7",
+      "domain": "ssa",
+      "gold_sections": [
+        "Benefits Planner: Retirement | Applying for Medicare Only | Social Security Administration#1_0::9"
+      ],
+      "gold_has_mentions": true,
+      "gold_entities": 11,
+      "entity_in_question": [],
+      "entity_in_answer": [
+        "age 62",
+        "age 70",
+        "retirement benefit"
+      ],
+      "question": "Can you clarify the Lifetime Benefits We Will Pay On Your Record to me again?",
+      "reference_answer": "You can start your retirement benefit at any point from age 62 up until age 70 ."
+    },
+    {
+      "example_id": "7076645f07f9821dd7dfc2cc6ab6fad9_9",
+      "domain": "ssa",
+      "gold_sections": [
+        "Benefits Planner: Retirement | Applying for Medicare Only | Social Security Administration#1_0::2"
+      ],
+      "gold_has_mentions": true,
+      "gold_entities": 9,
+      "entity_in_question": [
+        "Medicare"
+      ],
+      "entity_in_answer": [
+        "Medicare",
+        "online retirement application",
+        "retirement or spouses benefits"
+      ],
+      "question": "ho do i apply for medicare?",
+      "reference_answer": "you can use our online retirement application to sign up just for Medicare and wait to apply for your retirement or spouses benefits"
+    },
+    {
+      "example_id": "7076645f07f9821dd7dfc2cc6ab6fad9_11",
+      "domain": "ssa",
+      "gold_sections": [
+        "Benefits Planner: Retirement | Applying for Medicare Only | Social Security Administration#1_0::9"
+      ],
+      "gold_has_mentions": true,
+      "gold_entities": 11,
+      "entity_in_question": [],
+      "entity_in_answer": [
+        "age 62",
+        "age 70",
+        "retirement benefit"
+      ],
+      "question": "when can I start a retirement benfit?",
+      "reference_answer": "You can start your retirement benefit at any point from age 62 up until age 70 ."
+    },
+    {
+      "example_id": "7076645f07f9821dd7dfc2cc6ab6fad9_13",
+      "domain": "ssa",
+      "gold_sections": [
+        "Benefits Planner: Retirement | Applying for Medicare Only | Social Security Administration#1_0::9"
+      ],
+      "gold_has_mentions": true,
+      "gold_entities": 11,
+      "entity_in_question": [
+        "full retirement age",
+        "retirement benefit"
+      ],
+      "entity_in_answer": [],
+      "question": "If your full retirement age is 66 and you decideto start your retirement benefits at age 65",
+      "reference_answer": "ok great, anymore questions?"
+    },
+    {
+      "example_id": "403c7181b5f804aeb2d7e52bb64138eb_1",
+      "domain": "ssa",
+      "gold_sections": [
+        "Appeal A Decision | Social Security Administration#2_0::17"
+      ],
+      "gold_has_mentions": true,
+      "gold_entities": 6,
+      "entity_in_question": [
+        "reconsideration"
+      ],
+      "entity_in_answer": [
+        "disability claim",
+        "medical reasons"
+      ],
+      "question": "Can I request a reconsideration online?",
+      "reference_answer": "Was  your disability claim was recently denied for medical reasons?"
+    },
+    {
+      "example_id": "403c7181b5f804aeb2d7e52bb64138eb_3",
+      "domain": "ssa",
+      "gold_sections": [
+        "Appeal A Decision | Social Security Administration#2_0::17"
+      ],
+      "gold_has_mentions": true,
+      "gold_entities": 6,
+      "entity_in_question": [],
+      "entity_in_answer": [],
+      "question": "yes",
+      "reference_answer": "yes you can request an appeal online"
+    },
+    {
+      "example_id": "1fed70f82e9da87bccf34c82d5686aad_1",
+      "domain": "ssa",
+      "gold_sections": [
+        "Appeal A Decision | Social Security Administration#2_0::26"
+      ],
+      "gold_has_mentions": true,
+      "gold_entities": 5,
+      "entity_in_question": [
+        "Check the Status of Your Reconsideration"
+      ],
+      "entity_in_answer": [
+        "disability and SSI Reconsideration",
+        "my Social Security account"
+      ],
+      "question": "How do you Check the Status of Your Reconsideration",
+      "reference_answer": "Sure!  you can check the status of your disability and SSI Reconsideration using your personal my Social Security account"
+    },
+    {
+      "example_id": "1fed70f82e9da87bccf34c82d5686aad_4",
+      "domain": "ssa",
+      "gold_sections": [
+        "Appeal A Decision | Social Security Administration#2_0::26"
+      ],
+      "gold_has_mentions": true,
+      "gold_entities": 5,
+      "entity_in_question": [],
+      "entity_in_answer": [],
+      "question": "yes i do",
+      "reference_answer": "ok great"
+    },
+    {
+      "example_id": "1fed70f82e9da87bccf34c82d5686aad_6",
+      "domain": "ssa",
+      "gold_sections": [
+        "Appeal A Decision | Social Security Administration#2_0::51"
+      ],
+      "gold_has_mentions": true,
+      "gold_entities": 12,
+      "entity_in_question": [
+        "Appeals Council",
+        "Review by the Appeals Council"
+      ],
+      "entity_in_answer": [
+        "Appeals Council",
+        "administrative law judge"
+      ],
+      "question": "Can I reuest an appeals council review?",
+      "reference_answer": "If the Appeals Council decides to review your case , [55] it will either decide your case itself or return it to an administrative law judge for"
+    },
+    {
+      "example_id": "1fed70f82e9da87bccf34c82d5686aad_8",
+      "domain": "ssa",
+      "gold_sections": [
+        "Appeal A Decision | Social Security Administration#2_0::40"
+      ],
+      "gold_has_mentions": true,
+      "gold_entities": 6,
+      "entity_in_question": [
+        "Request a Hearing for a Non-Medical Determination Online"
+      ],
+      "entity_in_answer": [],
+      "question": "How do I Request a Hearing for a Non-Medical Determination Online",
+      "reference_answer": "did you request a hearing?"
+    },
+    {
+      "example_id": "1fed70f82e9da87bccf34c82d5686aad_10",
+      "domain": "ssa",
+      "gold_sections": [
+        "Appeal A Decision | Social Security Administration#2_0::40"
+      ],
+      "gold_has_mentions": true,
+      "gold_entities": 6,
+      "entity_in_question": [],
+      "entity_in_answer": [
+        "Request Non - Medical Hearing",
+        "Request a Hearing for a Non-Medical Determination Online"
+      ],
+      "question": "yes",
+      "reference_answer": "you can request a non - medical hearing online"
+    },
+    {
+      "example_id": "1fed70f82e9da87bccf34c82d5686aad_12",
+      "domain": "ssa",
+      "gold_sections": [
+        "Appeal A Decision | Social Security Administration#2_0::51"
+      ],
+      "gold_has_mentions": true,
+      "gold_entities": 12,
+      "entity_in_question": [
+        "hearing decision"
+      ],
+      "entity_in_answer": [
+        "Appeals Council",
+        "Social Security s Appeals Council online"
+      ],
+      "question": "What if I disagree with the hearing decision?",
+      "reference_answer": "you may request a review by Social Security s Appeals Council online"
+    },
+    {
+      "example_id": "c0cc575770951e2d7311fa36b76ddb89_1",
+      "domain": "ssa",
+      "gold_sections": [
+        "Benefits Planner: Retirement | Applying for Medicare Only | Social Security Administration#1_0::2"
+      ],
+      "gold_has_mentions": true,
+      "gold_entities": 9,
+      "entity_in_question": [],
+      "entity_in_answer": [
+        "Medicare"
+      ],
+      "question": "what is a benefits planner?",
+      "reference_answer": "do you want to apply for medicare?"
+    },
+    {
+      "example_id": "c0cc575770951e2d7311fa36b76ddb89_3",
+      "domain": "ssa",
+      "gold_sections": [
+        "Benefits Planner: Retirement | Applying for Medicare Only | Social Security Administration#1_0::2"
+      ],
+      "gold_has_mentions": true,
+      "gold_entities": 9,
+      "entity_in_question": [],
+      "entity_in_answer": [
+        "age 65",
+        "monthly Social Security benefits",
+        "three months"
+      ],
+      "question": "yeah",
+      "reference_answer": "Are you are within three months of age 65 or older and not ready to start your monthly Social Security benefits yet?"
+    },
+    {
+      "example_id": "c0cc575770951e2d7311fa36b76ddb89_5",
+      "domain": "ssa",
+      "gold_sections": [
+        "Benefits Planner: Retirement | Applying for Medicare Only | Social Security Administration#1_0::2"
+      ],
+      "gold_has_mentions": true,
+      "gold_entities": 9,
+      "entity_in_question": [],
+      "entity_in_answer": [],
+      "question": "thank you",
+      "reference_answer": "ok great! noproblem."
+    },
+    {
+      "example_id": "243f89e1277c4624ea637618c3de3c49_1",
+      "domain": "ssa",
+      "gold_sections": [
+        "Benefits Planner: Retirement | Applying for Medicare Only | Social Security Administration#1_0::2"
+      ],
+      "gold_has_mentions": true,
+      "gold_entities": 9,
+      "entity_in_question": [],
+      "entity_in_answer": [
+        "Medicare"
+      ],
+      "question": "Hi, i've thinking about retirement and heard about planning for that. What can you tell me?",
+      "reference_answer": "Well, for starters, Do you want to apply for medicare only?"
+    },
+    {
+      "example_id": "243f89e1277c4624ea637618c3de3c49_3",
+      "domain": "ssa",
+      "gold_sections": [
+        "Benefits Planner: Retirement | Applying for Medicare Only | Social Security Administration#1_0::9"
+      ],
+      "gold_has_mentions": true,
+      "gold_entities": 11,
+      "entity_in_question": [],
+      "entity_in_answer": [],
+      "question": "No, not only that.",
+      "reference_answer": "So you want to know about lifetime benefits?"
+    },
+    {
+      "example_id": "243f89e1277c4624ea637618c3de3c49_5",
+      "domain": "ssa",
+      "gold_sections": [
+        "Benefits Planner: Retirement | Applying for Medicare Only | Social Security Administration#1_0::27"
+      ],
+      "gold_has_mentions": true,
+      "gold_entities": 6,
+      "entity_in_question": [],
+      "entity_in_answer": [],
+      "question": "No, neither that.",
+      "reference_answer": "OK, well, maybe are you going to get a job?"
+    },
+    {
+      "example_id": "243f89e1277c4624ea637618c3de3c49_7",
+      "domain": "ssa",
+      "gold_sections": [
+        "Benefits Planner: Retirement | Applying for Medicare Only | Social Security Administration#1_0::36"
+      ],
+      "gold_has_mentions": true,
+      "gold_entities": 9,
+      "entity_in_question": [],
+      "entity_in_answer": [],
+      "question": "No, no, none of the options you presented is according what i want.",
+      "reference_answer": "Do you need help with you health insurance coverage"
+    },
+    {
+      "example_id": "243f89e1277c4624ea637618c3de3c49_9",
+      "domain": "ssa",
+      "gold_sections": [
+        "Benefits Planner: Retirement | Applying for Medicare Only | Social Security Administration#1_0::45"
+      ],
+      "gold_has_mentions": true,
+      "gold_entities": 5,
+      "entity_in_question": [],
+      "entity_in_answer": [],
+      "question": "No, i' m not having any issues with that.",
+      "reference_answer": "Well, there's one thing. Do you signed up for medical insurance?"
+    },
+    {
+      "example_id": "243f89e1277c4624ea637618c3de3c49_11",
+      "domain": "ssa",
+      "gold_sections": [
+        "Benefits Planner: Retirement | Applying for Medicare Only | Social Security Administration#1_0::45"
+      ],
+      "gold_has_mentions": true,
+      "gold_entities": 5,
+      "entity_in_question": [],
+      "entity_in_answer": [
+        "Medicare"
+      ],
+      "question": "Yes, that's the one.",
+      "reference_answer": "Then you have signed up for medicare, right?"
+    },
+    {
+      "example_id": "243f89e1277c4624ea637618c3de3c49_13",
+      "domain": "ssa",
+      "gold_sections": [
+        "Benefits Planner: Retirement | Applying for Medicare Only | Social Security Administration#1_0::1"
+      ],
+      "gold_has_mentions": false,
+      "gold_entities": 0,
+      "entity_in_question": [],
+      "entity_in_answer": [],
+      "question": "No, not yet, but i'm looking for info about it.",
+      "reference_answer": "Unfortunately, no relevant information is found."
+    },
+    {
+      "example_id": "b82fe79ae420ea684a48f7fe29212665_1",
+      "domain": "studentaid",
+      "gold_sections": [
+        "Graduated Plan | Federal Student Aid#1_0::1"
+      ],
+      "gold_has_mentions": true,
+      "gold_entities": 8,
+      "entity_in_question": [
+        "Graduated Repayment Plan"
+      ],
+      "entity_in_answer": [
+        "10 and 30 years",
+        "10 years",
+        "consolidation loans"
+      ],
+      "question": "I'm wondering how the Graduated Repayment Plan works?",
+      "reference_answer": "With this plan, payments are made for up to 10 years, and between 10 and 30 years for consolidation loans"
+    },
+    {
+      "example_id": "b82fe79ae420ea684a48f7fe29212665_4",
+      "domain": "studentaid",
+      "gold_sections": [
+        "Graduated Plan | Federal Student Aid#1_0::1"
+      ],
+      "gold_has_mentions": true,
+      "gold_entities": 8,
+      "entity_in_question": [],
+      "entity_in_answer": [
+        "Graduated Repayment Plan"
+      ],
+      "question": "Yes, I am in that category",
+      "reference_answer": "Well in that case, this Graduated Repayment Plan might just be right for you"
+    },
+    {
+      "example_id": "b82fe79ae420ea684a48f7fe29212665_8",
+      "domain": "studentaid",
+      "gold_sections": [
+        "Graduated Plan | Federal Student Aid#1_0::5"
+      ],
+      "gold_has_mentions": true,
+      "gold_entities": 11,
+      "entity_in_question": [
+        "Graduated Repayment Plan"
+      ],
+      "entity_in_answer": [
+        "Federal Family Education Loan FFEL Program"
+      ],
+      "question": "I have questions for Federal Loans,  What are the loans eligible for the Graduated Repayment Plan?",
+      "reference_answer": "Some loans that are part of the William D. For Federal Direct Loan Program and the FFEL Program are eligible for the plan"
+    },
+    {
+      "example_id": "b82fe79ae420ea684a48f7fe29212665_12",
+      "domain": "studentaid",
+      "gold_sections": [
+        "Graduated Plan | Federal Student Aid#1_0::39"
+      ],
+      "gold_has_mentions": true,
+      "gold_entities": 7,
+      "entity_in_question": [
+        "Graduated Repayment Plan",
+        "Loan Simulator"
+      ],
+      "entity_in_answer": [
+        "loan servicer"
+      ],
+      "question": "How do I use the Loan Simulator to figure out if I'm eligible for the Graduated Repayment Plan and how much I'll have to pay?",
+      "reference_answer": "Your loan servicer can help you choose the best loan repayment plan for you"
+    },
+    {
+      "example_id": "94435c62d73d6084744ea887565fe642_11",
+      "domain": "studentaid",
+      "gold_sections": [
+        "Graduated Plan | Federal Student Aid#1_0::23"
+      ],
+      "gold_has_mentions": true,
+      "gold_entities": 15,
+      "entity_in_question": [
+        "Graduated Repayment Plan",
+        "consolidation loans"
+      ],
+      "entity_in_answer": [],
+      "question": "How are monthly consolidation loan payments treated under the Graduated Repayment Plan?",
+      "reference_answer": "null"
+    },
+    {
+      "example_id": "fb53196cfdeb65d1a7901b878fe0cf93_7",
+      "domain": "studentaid",
+      "gold_sections": [
+        "Graduated Plan | Federal Student Aid#1_0::23"
+      ],
+      "gold_has_mentions": true,
+      "gold_entities": 15,
+      "entity_in_question": [
+        "Graduated Repayment Plan",
+        "consolidation loans",
+        "monthly payments"
+      ],
+      "entity_in_answer": [],
+      "question": "Under the Graduated Repayment Plan, how are monthly payments for consolidation loans handled?",
+      "reference_answer": "null"
+    },
+    {
+      "example_id": "c95ba12e58a090f84f40b2178c20aa8b_11",
+      "domain": "studentaid",
+      "gold_sections": [
+        "Graduated Plan | Federal Student Aid#1_0::39"
+      ],
+      "gold_has_mentions": true,
+      "gold_entities": 7,
+      "entity_in_question": [
+        "Graduated Repayment Plan",
+        "Loan Simulator"
+      ],
+      "entity_in_answer": [
+        "loan servicer"
+      ],
+      "question": "Please, give me more information about Graduated Repayment Plan. In what way can I use the Loan Simulator to estimate my eligibility and payment amounts under the Graduated Repayment Plan?",
+      "reference_answer": "Your loan servicer can help you choose the best loan repayment plan for you"
+    },
+    {
+      "example_id": "f328cc4f7d057d4ed813e5c2e3d9cf48_7",
+      "domain": "studentaid",
+      "gold_sections": [
+        "Graduated Plan | Federal Student Aid#1_0::23"
+      ],
+      "gold_has_mentions": true,
+      "gold_entities": 15,
+      "entity_in_question": [
+        "Graduated Repayment Plan",
+        "consolidation loans",
+        "monthly payments"
+      ],
+      "entity_in_answer": [],
+      "question": "I understand, but have another question about the Graduated Repayment Plan.  How would monthly payments for consolidation loans be treated under this plan?",
+      "reference_answer": "null"
+    }
+  ]
+}

@@ -1,0 +1,80 @@
+{
+  "summary": {
+    "scope": "pilot",
+    "examples_from": "dev500",
+    "documents_in_scope": 8,
+    "examples_in_scope": 3,
+    "gold_section_has_mentions": {
+      "n": 3,
+      "share": 1.0
+    },
+    "entity_matched_in_question": {
+      "n": 1,
+      "share": 0.3333333333333333
+    },
+    "entity_matched_in_answer": {
+      "n": 2,
+      "share": 0.6666666666666666
+    },
+    "entity_matched_in_question_or_answer": {
+      "n": 2,
+      "share": 0.6666666666666666
+    },
+    "by_domain": {
+      "ssa": {
+        "examples": 3,
+        "gold_has_mentions": 3,
+        "entity_in_question_or_answer": 2
+      }
+    }
+  },
+  "examples": [
+    {
+      "example_id": "243f89e1277c4624ea637618c3de3c49_1",
+      "domain": "ssa",
+      "gold_sections": [
+        "Benefits Planner: Retirement | Applying for Medicare Only | Social Security Administration#1_0::2"
+      ],
+      "gold_has_mentions": true,
+      "gold_entities": 9,
+      "entity_in_question": [],
+      "entity_in_answer": [
+        "Medicare"
+      ],
+      "question": "Hi, i've thinking about retirement and heard about planning for that. What can you tell me?",
+      "reference_answer": "Well, for starters, Do you want to apply for medicare only?"
+    },
+    {
+      "example_id": "7076645f07f9821dd7dfc2cc6ab6fad9_9",
+      "domain": "ssa",
+      "gold_sections": [
+        "Benefits Planner: Retirement | Applying for Medicare Only | Social Security Administration#1_0::2"
+      ],
+      "gold_has_mentions": true,
+      "gold_entities": 9,
+      "entity_in_question": [
+        "Medicare"
+      ],
+      "entity_in_answer": [
+        "Medicare",
+        "online retirement application",
+        "retirement or spouses benefits"
+      ],
+      "question": "ho do i apply for medicare?",
+      "reference_answer": "you can use our online retirement application to sign up just for Medicare and wait to apply for your retirement or spouses benefits"
+    },
+    {
+      "example_id": "c0cc575770951e2d7311fa36b76ddb89_5",
+      "domain": "ssa",
+      "gold_sections": [
+        "Benefits Planner: Retirement | Applying for Medicare Only | Social Security Administration#1_0::2"
+      ],
+      "gold_has_mentions": true,
+      "gold_entities": 9,
+      "entity_in_question": [],
+      "entity_in_answer": [],
+      "question": "thank you",
+      "reference_answer": "ok great! noproblem."
+    }
+  ]
+}
