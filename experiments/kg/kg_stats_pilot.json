@@ -49,22 +49,22 @@
     },
     "kg": {
       "nodes": {
-        "Entity": 382
+        "Entity": 377
       },
       "entities_by_type": {
         "Amount": 12,
-        "ContactPoint": 28,
-        "Document": 42,
-        "Organization": 25,
+        "ContactPoint": 23,
+        "Document": 43,
+        "Organization": 26,
         "Outcome": 28,
         "Requirement": 93,
         "Role": 28,
-        "Service": 99,
+        "Service": 97,
         "TimeLimit": 27
       },
       "relationships": {
-        "RESOLVES_TO": 508,
-        "entity relations": 313
+        "RESOLVES_TO": 503,
+        "entity relations": 309
       },
       "relations_by_type": {
         "ALTERNATIVE_TO": {
@@ -76,8 +76,8 @@
           "support": 48
         },
         "AVAILABLE_AT": {
-          "edges": 36,
-          "support": 36
+          "edges": 31,
+          "support": 31
         },
         "DETERMINED_BY": {
           "edges": 2,
@@ -104,8 +104,8 @@
           "support": 6
         },
         "PROVIDED_BY": {
-          "edges": 16,
-          "support": 16
+          "edges": 17,
+          "support": 17
         },
         "REQUIRES": {
           "edges": 120,
@@ -130,12 +130,12 @@
       "isolated": 62
     },
     "components": {
-      "count": 99,
+      "count": 98,
       "largest": 69,
-      "largest_share": 0.1806282722513089,
+      "largest_share": 0.1830238726790451,
       "size_distribution": {
         "69": 1,
-        "30": 1,
+        "31": 1,
         "27": 1,
         "22": 1,
         "21": 1,
@@ -145,7 +145,7 @@
         "9": 2,
         "8": 1,
         "7": 1,
-        "6": 2,
+        "6": 1,
         "5": 2,
         "4": 4,
         "3": 6,
@@ -218,6 +218,11 @@
           "n_mentions": 2
         },
         {
+          "name": "NY State Driver License",
+          "degree": 4,
+          "n_mentions": 2
+        },
+        {
           "name": "Certificate of Eligibility (COE)",
           "degree": 3,
           "n_mentions": 1
@@ -251,19 +256,9 @@
           "name": "registration application",
           "degree": 2,
           "n_mentions": 2
-        },
-        {
-          "name": "Statement of Transaction",
-          "degree": 2,
-          "n_mentions": 1
         }
       ],
       "Organization": [
-        {
-          "name": "Veterans Benefits Administration",
-          "degree": 5,
-          "n_mentions": 1
-        },
         {
           "name": "Department of Veterans Affairs",
           "degree": 4,
@@ -308,6 +303,11 @@
           "name": "college financial aid office",
           "degree": 1,
           "n_mentions": 2
+        },
+        {
+          "name": "Commissioner of Motor Vehicles",
+          "degree": 1,
+          "n_mentions": 1
         }
       ],
       "Requirement": [

@@ -2,7 +2,9 @@
 
 Pipeline:
   1. Type conflicts: mentions sharing a normalised name but extracted with different
-     types get the majority type over all mentions (ties: ENTITY_TYPES order).
+     types get the majority type over all mentions. A tie goes to the tied type under
+     which the most of the mentions' relations satisfy the type rules, then to the
+     fixed TYPE_PRIORITY order.
   2. Blocking by type. Service, Requirement, Role and Outcome are compared only within
      the same domain; Organization, Document, ContactPoint, Amount and TimeLimit also
      across domains.
@@ -51,7 +53,7 @@ import numpy as np
 from src.kg.extract import ExtractionCache, _call_llm
 from src.kg.extract_closed import loadable_relations
 from src.kg.pilot2_stats import normalized_key
-from src.kg.schema import ENTITY_TYPES
+from src.kg.schema import is_valid_triple
 from src.llm.client import LLMClient
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
@@ -61,6 +63,9 @@ DEFAULT_CACHE_DIR = PROJECT_ROOT / "experiments" / "cache" / "kg_er"
 EMBED_MODEL = "BAAI/bge-small-en-v1.5"
 
 CROSS_DOMAIN_TYPES = {"Organization", "Document", "ContactPoint", "Amount", "TimeLimit"}
+# Last-resort tie-break for type conflicts (after majority vote and relation fit).
+TYPE_PRIORITY = ["Document", "Organization", "Service", "Requirement", "Role", "Outcome", "Amount",
+                 "TimeLimit", "ContactPoint"]
 
 # Score bands, chosen from the pilot calibration (experiments/kg/er_calibration.json):
 # below 0.75 the LLM judged 1 of 100 sampled pairs the same entity; above it the rate never
@@ -171,6 +176,12 @@ def load_mentions(paths: Iterable[Path]) -> List[Dict[str, Any]]:
             for rel in loadable_relations(r):
                 neighbours[rel["source"].casefold()].add(key_of(rel["target"]))
                 neighbours[rel["target"].casefold()].add(key_of(rel["source"]))
+            # All extracted relations (valid or not), for choosing among tied types:
+            # (relation, this mention is the source?, the other endpoint's extracted type).
+            rel_roles: Dict[str, List[Tuple[str, bool, str]]] = defaultdict(list)
+            for rel in r["relations"]:
+                rel_roles[rel["source"].casefold()].append((rel["relation"], True, rel["target_type"]))
+                rel_roles[rel["target"].casefold()].append((rel["relation"], False, rel["source_type"]))
             for i, e in enumerate(r["entities"]):
                 mentions.append({
                     "mention_id": f"{r['section_id']}#{i}",
@@ -178,13 +189,38 @@ def load_mentions(paths: Iterable[Path]) -> List[Dict[str, Any]]:
                     "title": r["title"], "name": e["name"], "alias": e.get("alias"), "value": e.get("value"),
                     "extracted_type": e["type"], "type": e["type"], "evidence": e["evidence"],
                     "neighbours": sorted(neighbours[e["name"].casefold()]),
+                    "relations": rel_roles[e["name"].casefold()],
                 })
     return mentions
 
 
+def relation_fit(type_: str, mentions: List[Dict[str, Any]]) -> int:
+    """Number of the mentions' relations that satisfy the type rules if they had `type_`."""
+    fit = 0
+    for m in mentions:
+        for relation, is_source, other in m.get("relations", []):
+            src, dst = (type_, other) if is_source else (other, type_)
+            fit += is_valid_triple(relation, src, dst)
+    return fit
+
+
+def choose_type(mentions: List[Dict[str, Any]]) -> Tuple[str, str]:
+    """(type, reason): majority vote; ties -> best relation fit; then TYPE_PRIORITY."""
+    votes = Counter(m["extracted_type"] for m in mentions)
+    top = max(votes.values())
+    tied = [t for t, n in votes.items() if n == top]
+    if len(tied) == 1:
+        return tied[0], "majority"
+    fits = {t: relation_fit(t, mentions) for t in tied}
+    best = max(fits.values())
+    tied = [t for t in tied if fits[t] == best]
+    if len(tied) == 1:
+        return tied[0], "relation_fit"
+    return min(tied, key=TYPE_PRIORITY.index), "priority"
+
+
 def resolve_types(mentions: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    """Majority vote of the type over mentions sharing a normalised name; returns the conflicts."""
-    order = {t: i for i, t in enumerate(ENTITY_TYPES)}
+    """Resolve type conflicts among mentions sharing a normalised name; returns the conflicts."""
     by_key: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
     for m in mentions:
         by_key[key_of(m["name"])].append(m)
@@ -193,10 +229,10 @@ def resolve_types(mentions: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         votes = Counter(m["extracted_type"] for m in ms)
         if len(votes) < 2:
             continue
-        winner = sorted(votes.items(), key=lambda kv: (-kv[1], order[kv[0]]))[0][0]
+        winner, reason = choose_type(ms)
         for m in ms:
             m["type"] = winner
-        conflicts.append({"name": key, "votes": dict(votes), "resolved_type": winner})
+        conflicts.append({"name": key, "votes": dict(votes), "resolved_type": winner, "rule": reason})
     return conflicts
 
 

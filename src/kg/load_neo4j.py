@@ -2,7 +2,7 @@
 
 Metagraph (one node per extracted mention, created, never merged):
     (:Section)-[:MENTIONS]->(:Mention {mention_id, name, name_normalized, type, value, kind,
-                                      alias, evidence, run_id, scope, section_id})
+                                      alias, evidence, is_social, run_id, scope, section_id})
     (:Mention)-[:REL {type, evidence}]->(:Mention)       # loadable relations only
 
 KG layer (from the entity-resolution clusters):
@@ -15,7 +15,9 @@ Entity relations aggregate the mention-level relations between the resolved endp
 come from. ALTERNATIVE_TO is stored once per entity pair. Relations that break the type
 rules are not loaded (counted at mention level, and again at entity level, where the
 resolved majority type can differ from the extracted one); relations whose two
-endpoints resolve to the same entity are dropped and counted.
+endpoints resolve to the same entity are dropped and counted. Social-media ContactPoints
+(`is_social`, see src.kg.schema.is_social_contact) stay in the metagraph but get no
+RESOLVES_TO, entity or entity relation; they are counted per domain.
 
 Idempotent: loading a scope first deletes that scope's Mention and Entity nodes (and
 with them their relationships). The structural layer is never modified.
@@ -35,7 +37,7 @@ from typing import Any, Dict, List, Tuple
 from src.kg.client import KGClient
 from src.kg.extract_closed import loadable_relations
 from src.kg.resolve import key_of
-from src.kg.schema import RELATION_TYPES, SYMMETRIC_RELATIONS, is_valid_triple
+from src.kg.schema import RELATION_TYPES, SYMMETRIC_RELATIONS, is_social_contact, is_valid_triple
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 KG_DIR = PROJECT_ROOT / "experiments" / "kg"
@@ -79,6 +81,7 @@ def build_rows(records: List[Dict[str, Any]], resolution: Dict[str, Dict[str, An
                 "mention_id": mid, "section_id": r["section_id"], "name": e["name"],
                 "name_normalized": key_of(e["name"]), "type": e["type"], "value": e.get("value"),
                 "kind": e.get("kind"), "alias": e.get("alias"), "evidence": e["evidence"],
+                "is_social": is_social_contact(e),
             })
         loadable = loadable_relations(r)
         counts["mention_relations_violating_rules"] += len(r["relations"]) - len(loadable)
@@ -93,7 +96,11 @@ def build_rows(records: List[Dict[str, Any]], resolution: Dict[str, Dict[str, An
     # KG layer: entities aggregated over the mentions resolved to them.
     members: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
     resolves = []
+    social_by_domain: Dict[str, int] = Counter()
     for m in mentions:
+        if m["is_social"]:
+            social_by_domain[domain_of[m["mention_id"]]] += 1
+            continue
         res = resolution.get(m["mention_id"])
         if res is None:
             counts["mentions_unresolved"] += 1
@@ -116,7 +123,11 @@ def build_rows(records: List[Dict[str, Any]], resolution: Dict[str, Dict[str, An
         })
 
     agg: Dict[Tuple[str, str, str], Dict[str, Any]] = {}
+    social = {m["mention_id"] for m in mentions if m["is_social"]}
     for rel in mention_rels:
+        if rel["src"] in social or rel["dst"] in social:
+            counts["entity_relations_social"] += 1
+            continue
         a, b = entity_of.get(rel["src"]), entity_of.get(rel["dst"])
         if a is None or b is None:
             counts["entity_relations_unresolved"] += 1
@@ -140,7 +151,8 @@ def build_rows(records: List[Dict[str, Any]], resolution: Dict[str, Dict[str, An
     for e in entities:
         e["scope"] = scope
     return {"mentions": mentions, "mention_rels": mention_rels, "entities": entities,
-            "resolves": resolves, "entity_rels": entity_rels, "counts": dict(counts)}
+            "resolves": resolves, "entity_rels": entity_rels, "counts": dict(counts),
+            "social_mentions_by_domain": dict(social_by_domain)}
 
 
 def load_inputs(extraction: Path, resolution: Path) -> Tuple[List[Dict[str, Any]], Dict[str, Dict[str, Any]]]:
@@ -179,7 +191,7 @@ def write(client: KGClient, rows: Dict[str, Any], scope: str, run_id: str) -> No
             CREATE (m:Mention {mention_id: row.mention_id, section_id: row.section_id, name: row.name,
                                name_normalized: row.name_normalized, type: row.type, value: row.value,
                                kind: row.kind, alias: row.alias, evidence: row.evidence,
-                               run_id: row.run_id, scope: row.scope})
+                               is_social: row.is_social, run_id: row.run_id, scope: row.scope})
             CREATE (s)-[:MENTIONS]->(m)
             """,
             rows=batch,
@@ -267,6 +279,7 @@ def main() -> None:
         print(f"Rows: {len(rows['mentions'])} mentions, {len(rows['mention_rels'])} mention relations, "
               f"{len(rows['entities'])} entities, {len(rows['entity_rels'])} entity relations")
         print(f"Not loaded: {rows['counts']}")
+        print(f"Social-media ContactPoints kept out of the KG layer, by domain: {rows['social_mentions_by_domain']}")
         print(f"Neo4j: {scope_counts(client, args.scope)}")
 
 

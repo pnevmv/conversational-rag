@@ -29,6 +29,23 @@ def has_contact_detail(text: str) -> bool:
     return bool(_CONTACT_DETAIL.search(text or ""))
 
 
+_SOCIAL = re.compile(
+    r"\b(facebook|fb\.com|twitter|x\.com|youtube|youtu\.be|instagram|linkedin|flickr|tiktok|pinterest"
+    r"|snapchat|threads\.net|tumblr|vimeo|reddit)\b",
+    re.IGNORECASE,
+)
+
+
+def is_social_contact(entity: dict) -> bool:
+    """A ContactPoint whose name, value or evidence is a social-media link (Facebook, X/Twitter, ...).
+
+    Such mentions stay in the raw output and the metagraph but are not loaded into the KG layer.
+    """
+    if entity.get("type") != "ContactPoint":
+        return False
+    return any(_SOCIAL.search(entity.get(f) or "") for f in ("name", "value", "evidence"))
+
+
 def find_contact_detail(text: str):
     """The first phone number, URL, email or postal-address fragment in the text, or None."""
     match = _CONTACT_DETAIL.search(text or "")

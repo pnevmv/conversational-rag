@@ -84,11 +84,22 @@ def test_structural_layer_is_untouched(client, loaded):
         assert after[label] == loaded[label]
 
 
-def test_every_mention_resolves_to_exactly_one_entity(client, loaded):
+def test_every_non_social_mention_resolves_to_exactly_one_entity(client, loaded):
     bad = client.run(
-        "MATCH (m:Mention {scope: $scope}) OPTIONAL MATCH (m)-[r:RESOLVES_TO]->(:Entity) "
+        "MATCH (m:Mention {scope: $scope, is_social: false}) OPTIONAL MATCH (m)-[r:RESOLVES_TO]->(:Entity) "
         "WITH m, count(r) AS n WHERE n <> 1 RETURN count(m) AS n", scope=SCOPE)[0]["n"]
     assert bad == 0
+
+
+def test_social_media_contact_points_stay_out_of_the_kg_layer(client, rows, loaded):
+    """Flagged in the metagraph, but no RESOLVES_TO, entity or entity relation."""
+    social = client.run("MATCH (m:Mention {scope: $scope, is_social: true}) "
+                        "RETURN m.type AS type, count(*) AS n, sum(COUNT { (m)-[:RESOLVES_TO]->() }) AS resolved",
+                        scope=SCOPE)
+    assert social and all(r["type"] == "ContactPoint" and r["resolved"] == 0 for r in social)
+    assert sum(r["n"] for r in social) == sum(rows["social_mentions_by_domain"].values()) > 0
+    names = client.run("MATCH (e:Entity {scope: $scope, type: 'ContactPoint'}) RETURN e.name AS name", scope=SCOPE)
+    assert not any(n["name"].casefold() in {"facebook", "twitter", "youtube", "instagram", "linkedin"} for n in names)
 
 
 def test_no_orphan_resolves_to_or_entities(client, loaded):

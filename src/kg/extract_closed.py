@@ -12,6 +12,8 @@ Post-processing (per chunk, then merged per unit):
   - clears `kind` / `value` where the type does not use them, maps unknown kinds to "other"
   - a ContactPoint whose evidence contains a phone number, address, email or URL must have
     a value: if the model left it empty, the detail found in the evidence is used
+  - ContactPoints that are social-media links are flagged `is_social` (kept here, not
+    loaded into the KG layer)
   - drops relations with an endpoint that is not an extracted entity, and self-loops
   - stores symmetric relations (ALTERNATIVE_TO) in one canonical direction
   - flags relations that violate the domain -> range rules (`schema_valid`); they stay in
@@ -41,6 +43,7 @@ from src.kg.schema import (
     SYMMETRIC_RELATIONS,
     extraction_json_schema,
     find_contact_detail,
+    is_social_contact,
     is_valid_triple,
     schema_prompt_block,
 )
@@ -175,8 +178,10 @@ def postprocess(raw: Dict[str, Any]) -> Tuple[List[Dict[str, Any]], List[Dict[st
         if alias and alias.casefold() == name.casefold():
             alias = None
         text = _clean(e["text"]) if e["type"] in ("Requirement", "Outcome") else None
-        entities.append({"name": name, "alias": alias, "type": e["type"], "kind": kind, "value": value,
-                         "text": text, "negated": bool(e["negated"]), "evidence": e["evidence"]})
+        entity = {"name": name, "alias": alias, "type": e["type"], "kind": kind, "value": value,
+                  "text": text, "negated": bool(e["negated"]), "evidence": e["evidence"]}
+        entity["is_social"] = is_social_contact(entity)
+        entities.append(entity)
         type_of[name.casefold()] = e["type"]
 
     relations: List[Dict[str, Any]] = []

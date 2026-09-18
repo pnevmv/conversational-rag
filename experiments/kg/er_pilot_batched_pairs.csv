@@ -86,7 +86,7 @@ Requirement|dmv,proof of identity,proof of ownership,0.8394,0.05,0.8894,,llm,Fal
 Service|va,disability compensation,VA disability compensation,0.8694,0.02,0.8894,,llm,True,batch query: VA disability compensation,True
 Requirement|dmv,proof of insurance,proof of NY State insurance,0.8891,0.0,0.8891,,llm,False,batch query: proof of insurance,False
 Requirement|dmv,proof of both identity and age,proof of identity,0.8887,0.0,0.8887,,llm,False,batch query: proof of identity,False
-Document,Insurance ID Card,NY State Insurance ID cards,0.8686,0.02,0.8886,,llm,True,batch query: Insurance ID Card,False
+Document,Insurance ID Card,NY State Insurance ID cards,0.8686,0.02,0.8886,,llm,False,batch query: NY State Insurance ID cards,False
 Requirement|va,bank's name,bank's phone number,0.8386,0.05,0.8886,,llm,False,batch query: bank's name,False
 Requirement|dmv,except state holidays,state holidays,0.8669,0.02,0.8869,,llm,True,batch query: except state holidays,True
 Service|studentaid,Direct PLUS Loans,Direct Unsubsidized Loans,0.8362,0.05,0.8862,,llm,False,batch query: Direct Unsubsidized Loans,False
@@ -123,6 +123,7 @@ ContactPoint,1 - 518 - 473 - 5834,518 - 486 - 6579,0.8453,0.02,0.8653,,reject_va
 Requirement|dmv,proof of insurance,proof of ownership,0.8144,0.05,0.8644,,llm,False,batch query: proof of insurance,False
 Service|va,Grants,housing grant,0.8438,0.02,0.8638,,llm,False,batch query: housing grant,False
 Organization,VA Regional Loan Center,VA regional office,0.8628,0.0,0.8628,,llm,False,batch query: VA regional office,False
+Document,NY State driver license,NY State Insurance ID cards,0.842,0.02,0.862,,llm,False,batch query: NY State Insurance ID cards,False
 Service|studentaid,aid offer,Get Your Aid,0.8417,0.02,0.8617,,llm,True,batch query: aid offer,True
 Service|va,education benefits,GI Bill and other education benefits,0.8401,0.02,0.8601,,llm,True,batch query: education benefits,True
 TimeLimit,8:00 a.m. to 9:00 p.m. ET,8:00am to 3:45pm,0.86,0.0,0.86,,reject_value,,,False
@@ -161,6 +162,7 @@ Service|va,Disability Compensation Pay,VA disability compensation,0.8398,0.0,0.8
 Service|ssa,benefits,retirement benefit,0.7867,0.05,0.8367,,llm,False,batch query: retirement benefit,False
 TimeLimit,within 10 days,within 72 hours,0.8161,0.02,0.8361,,reject_value,,,False
 Service|studentaid,repayment period,repayment plan,0.8356,0.0,0.8356,,llm,False,batch query: repayment plan,False
+Document,current NY State Insurance ID card,NY State driver license,0.8154,0.02,0.8354,,llm,False,batch query: current NY State Insurance ID card,False
 Service|va,VA direct or VA - backed home loan,VA Home Loan Benefits,0.8142,0.02,0.8342,,llm,True,batch query: VA Home Loan Benefits,False
 TimeLimit,24 hours a day,7 days a week,0.784,0.05,0.834,,reject_value,,,False
 TimeLimit,each year,the year,0.8135,0.02,0.8335,,reject_value,,,False
@@ -202,6 +204,7 @@ ContactPoint,518 - 486 - 6579,800 - 827 - 1000,0.8185,0.0,0.8185,,reject_value,,
 Role|dmv,Suffolk County,Westchester County,0.7685,0.05,0.8185,,llm,False,batch query: Suffolk County,False
 Document,certified copy of the title certificate,photocopy of the changed title certificate,0.8181,0.0,0.8181,,llm,False,batch query: certified copy of the title certificate,False
 Requirement|va,adopt a child,have a baby,0.7978,0.02,0.8178,,llm,False,batch query: adopt a child,False
+Document,digital electronic NY State Insurance ID Card,NY State driver license,0.7964,0.02,0.8164,,llm,False,batch query: digital electronic NY State Insurance ID Card,False
 Organization,VA.gov,VA regional office,0.7959,0.02,0.8159,,llm,False,batch query: VA.gov,False
 Requirement|dmv,proof of ownership,Proof of sales tax payment,0.7954,0.02,0.8154,,llm,False,batch query: proof of ownership,False
 Service|va,VA home loan,Veterans Housing Assistance,0.7948,0.02,0.8148,,llm,False,batch query: VA home loan,False
