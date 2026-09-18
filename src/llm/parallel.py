@@ -6,8 +6,10 @@ from typing import List, Optional, Tuple
 from src.llm.cache import LLMCache
 from src.llm.client import LLMClient
 
-# Error strings that indicate a retriable rate-limit or transient failure.
-_RATE_LIMIT_SIGNALS = ("rate", "429", "too many", "throttl", "quota")
+# Error strings that indicate a retriable rate-limit or transient failure (including timeouts
+# and dropped connections).
+_RATE_LIMIT_SIGNALS = ("rate", "429", "too many", "throttl", "quota", "timed out", "timeout",
+                       "connection", "502", "503", "504", "temporarily")
 
 
 def _is_retriable(exc: Exception) -> bool:

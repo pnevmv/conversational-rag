@@ -4,6 +4,9 @@ Reports, for the documents in scope:
   - nodes and relationships per type in the structural, metagraph and KG layers;
   - the share of sections with at least one mention (of all sections, and of the
     sections that were not skipped as short or boilerplate);
+  - entities and entity relations per type and per domain (an entity's most frequent
+    domain; a relation counts for its source entity's domain), and the share of
+    mentions resolved to an entity (social-media ContactPoints are not resolved by design);
   - the degree distribution of Entity nodes in the KG layer (median, p90, max);
   - the connected components of the entity graph;
   - the top 10 entities by degree per entity type.
@@ -103,6 +106,38 @@ def section_coverage(client: KGClient, scope: Optional[str], docs: List[str]) ->
     }
 
 
+def domain_breakdown(client: KGClient, scope: Optional[str]) -> Dict[str, Any]:
+    f_e, f_m = _scope_filter("e", scope), _scope_filter("m", scope)
+    ents = client.run(f"MATCH (e:Entity) WHERE true{f_e} RETURN e.domain AS domain, e.type AS type, count(*) AS n",
+                      scope=scope)
+    rels = client.run(f"MATCH (e:Entity)-[r]->(:Entity) WHERE true{f_e} "
+                      "RETURN e.domain AS domain, type(r) AS type, count(*) AS n", scope=scope)
+    cross = client.run(f"MATCH (e:Entity) WHERE true{f_e} AND size(e.domains) > 1 RETURN count(e) AS n",
+                       scope=scope)[0]["n"]
+    mentions = client.run(
+        f"MATCH (m:Mention) WHERE true{f_m} RETURN coalesce(m.is_social, false) AS social, "
+        "COUNT { (m)-[:RESOLVES_TO]->() } > 0 AS resolved, count(*) AS n", scope=scope)
+    table: Dict[str, Dict[str, int]] = defaultdict(dict)
+    for r in ents:
+        table[r["domain"]][r["type"]] = r["n"]
+    rtable: Dict[str, Dict[str, int]] = defaultdict(dict)
+    for r in rels:
+        rtable[r["domain"]][r["type"]] = r["n"]
+    total = sum(r["n"] for r in mentions)
+    non_social = sum(r["n"] for r in mentions if not r["social"])
+    resolved = sum(r["n"] for r in mentions if r["resolved"])
+    return {
+        "entities_by_domain_and_type": dict(table),
+        "entities_by_domain": {d: sum(v.values()) for d, v in table.items()},
+        "relations_by_domain_and_type": dict(rtable),
+        "relations_by_domain": {d: sum(v.values()) for d, v in rtable.items()},
+        "entities_in_several_domains": cross,
+        "mentions": {"total": total, "social": total - non_social, "resolved": resolved,
+                     "share_resolved": resolved / total if total else None,
+                     "share_of_non_social_resolved": resolved / non_social if non_social else None},
+    }
+
+
 def entity_graph(client: KGClient, scope: Optional[str]) -> Dict[str, Any]:
     f_e = _scope_filter("e", scope)
     nodes = client.run(f"MATCH (e:Entity) WHERE true{f_e} RETURN e.entity_id AS id, e.name AS name, "
@@ -133,7 +168,8 @@ def entity_graph(client: KGClient, scope: Optional[str]) -> Dict[str, Any]:
 def collect(client: KGClient, scope: Optional[str]) -> Dict[str, Any]:
     docs = scope_documents(client, scope)
     return {"scope": scope or "*", "documents": len(docs), "layers": layer_counts(client, scope, docs),
-            "section_coverage": section_coverage(client, scope, docs), "entity_graph": entity_graph(client, scope)}
+            "section_coverage": section_coverage(client, scope, docs), "entity_graph": entity_graph(client, scope),
+            "domains": domain_breakdown(client, scope)}
 
 
 def main() -> None:
@@ -163,6 +199,12 @@ def main() -> None:
           f"{g['components']['largest_share']:.1%}); sizes {g['components']['size_distribution']}")
     for t, items in g["top_by_degree"].items():
         print(f"  top {t}: " + "; ".join(f"{i['name']} ({i['degree']})" for i in items[:5]))
+    d = stats["domains"]
+    print(f"Entities by domain: {d['entities_by_domain']} (in several domains: {d['entities_in_several_domains']})")
+    print(f"Entity relations by domain: {d['relations_by_domain']}")
+    m = d["mentions"]
+    print(f"Mentions resolved: {m['resolved']}/{m['total']} ({m['share_resolved']:.1%}); "
+          f"of non-social: {m['share_of_non_social_resolved']:.1%} ({m['social']} social)")
     print(f"Saved -> {output}")
 
 

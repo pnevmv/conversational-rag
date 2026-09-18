@@ -25,6 +25,9 @@ Prompt versions (`--prompt-version`, part of the cache key, so both can be re-ru
         self-relations, places as Role, opening hours as TimeLimit, documents as Service,
         negation) and guidance for ALTERNATIVE_TO, HAS_AMOUNT and PART_OF, with three worked
         examples from documents outside the pilot
+    v2.1 v2 plus contact-point extraction (phone, TTY, offices, online accounts as
+        AVAILABLE_AT ContactPoints) and worked examples for contact points and taxes/fees;
+        its output goes through the deterministic post-filters of src.kg.postfilter
 
 Modes (nothing is written to Neo4j):
     python -m src.kg.extract_closed                      # whole-document pilot (8 docs)
@@ -43,7 +46,9 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 from src.data.loader import load_doc_domain_map, load_documents, load_sections
-from src.kg.extract import DEFAULT_CACHE_DIR, DOMAINS, PROJECT_ROOT, ExtractionCache, _call_llm
+from src.kg import extract as extract_module
+from src.kg.extract import DEFAULT_CACHE_DIR, DOMAINS, PROJECT_ROOT, ContentFilterError, ExtractionCache, _call_llm
+from src.kg import postfilter
 from src.kg.planning import plan_units
 from src.kg.schema import (
     ENTITY_TYPES,
@@ -64,6 +69,7 @@ DEFAULT_OUTPUTS = {
     "tables": KG_DIR / "pilot4_table_extraction.jsonl",
     "regression": KG_DIR / "regression_extraction.jsonl",
     "annotated": KG_DIR / "annotated_extraction.jsonl",
+    "all": KG_DIR / "full_extraction.jsonl",
 }
 # The 3 pilot documents annotated for precision and recall (one per domain: DMV, SSA, VA).
 ANNOTATION_DOCS = [
@@ -75,6 +81,12 @@ ANNOTATION_DOCS = [
 # reasoning model; temperature is accepted only with reasoning effort "none", and `seed` is
 # not supported. Part of the cache key, so changing it re-runs the extraction.
 CALL_PARAMS: Dict[str, Any] = {"reasoning": {"effort": "none"}, "temperature": 0}
+# Bounds a runaway response (e.g. a content-filter refusal repeated until the timeout); the
+# average extraction output is ~1,000 tokens. Not part of the cache key.
+MAX_OUTPUT_TOKENS = 6000
+# Cached marker for chunks the provider's content filter blocks (false positives such as
+# "escort driver certification"): recorded as an empty extraction, never re-requested.
+CONTENT_FILTER_MARKER = {"entities": [], "relations": [], "content_filter": True}
 # Whole-document pilot: documents of moderate length, so that cross-section entity
 # overlap is measurable while the number of LLM calls stays small.
 MIN_DOC_SECTIONS = 5
@@ -274,9 +286,65 @@ FEW_SHOT_V2: List[Dict[str, Any]] = [
 ]
 
 
-def render_few_shot(sections_by_id: Dict[str, Dict[str, Any]]) -> str:
+# v2.1: restores contact points (v2 lost most AVAILABLE_AT facts) and shows taxes/fees.
+CLOSED_PROMPT_V21 = CLOSED_PROMPT_V2.replace(
+    """- TimeLimit is a deadline or a validity period.""",
+    """- Contact points are entities: phone numbers (including TTY), offices and addresses, and named online accounts or portals where the citizen can get the service or help. Extract them as ContactPoint with "value", even though link labels such as "learn more" are not entities.
+- TimeLimit is a deadline or a validity period.""",
+).replace(
+    """- PART_OF: levels, stages or steps of a procedure: each stage PART_OF the procedure.""",
+    """- PART_OF: levels, stages or steps of a procedure: each stage PART_OF the procedure.
+- AVAILABLE_AT: from the service or organization the sentence is about to each ContactPoint where it can be done or asked about.""",
+)
+assert CLOSED_PROMPT_V21 != CLOSED_PROMPT_V2
+
+FEW_SHOT_V21: List[Dict[str, Any]] = FEW_SHOT_V2 + [
+    {
+        "section_id": "Agent Orange Exposure In Vietnam Or Korea | Veterans Affairs#1_0::63",
+        "domain": "va",
+        "entities": [
+            {"name": "help filing a claim", "type": "Service", "kind": "procedure",
+             "evidence": "What if I need help filing my claim? You can get help from us in one of these ways"},
+            {"name": "800 - 827 - 1000", "type": "ContactPoint", "kind": "phone", "value": "800 - 827 - 1000",
+             "evidence": "Call 800 - 827 - 1000 or TTY 800 - 877 - 8339"},
+            {"name": "TTY 800 - 877 - 8339", "type": "ContactPoint", "kind": "phone", "value": "800 - 877 - 8339",
+             "evidence": "Call 800 - 827 - 1000 or TTY 800 - 877 - 8339"},
+            {"name": "nearest VA regional benefit office", "type": "ContactPoint", "kind": "office",
+             "evidence": "Go to your nearest VA regional benefit office"},
+        ],
+        "relations": [
+            ("help filing a claim", "AVAILABLE_AT", "800 - 827 - 1000", "Call 800 - 827 - 1000 or TTY 800 - 877 - 8339"),
+            ("help filing a claim", "AVAILABLE_AT", "TTY 800 - 877 - 8339", "Call 800 - 827 - 1000 or TTY 800 - 877 - 8339"),
+            ("help filing a claim", "AVAILABLE_AT", "nearest VA regional benefit office",
+             "Go to your nearest VA regional benefit office"),
+        ],
+        "note": "Skipped: \"a trained professional trusted to help with VA-related claims\" (a helper, not a Role of the citizen).",
+    },
+    {
+        "section_id": "Passenger vehicle registration fees, use taxes and supplemental fees#3_0::19",
+        "domain": "dmv",
+        "entities": [
+            {"name": "passenger vehicle original registrations and renewals", "type": "Service", "kind": "registration",
+             "evidence": "All passenger vehicle original registrations and renewals"},
+            {"name": "vehicle use tax", "type": "Amount", "kind": "tax", "value": "$30 for two years",
+             "evidence": "Vehicle use tax - $30 for two years $15 per year"},
+            {"name": "Supplemental MCTD fee", "type": "Amount", "kind": "fee", "value": "$50 for two years",
+             "evidence": "Supplemental MCTD fee - $50 for two years $25 per year"},
+        ],
+        "relations": [
+            ("passenger vehicle original registrations and renewals", "HAS_AMOUNT", "vehicle use tax",
+             "Vehicle use tax - $30 for two years $15 per year"),
+            ("passenger vehicle original registrations and renewals", "HAS_AMOUNT", "Supplemental MCTD fee",
+             "Supplemental MCTD fee - $50 for two years $25 per year"),
+        ],
+        "note": "Skipped: the New York City counties in the heading (places, not Roles).",
+    },
+]
+
+
+def render_few_shot(sections_by_id: Dict[str, Dict[str, Any]], examples: Optional[List[Dict[str, Any]]] = None) -> str:
     blocks = []
-    for n, ex in enumerate(FEW_SHOT_V2, start=1):
+    for n, ex in enumerate(examples or FEW_SHOT_V2, start=1):
         sec = sections_by_id[ex["section_id"]]
         ents = "\n".join("  " + json.dumps({k: v for k, v in e.items()}, ensure_ascii=False) for e in ex["entities"])
         rels = "\n".join("  " + json.dumps({"source": a, "relation": r, "target": b, "evidence": ev}, ensure_ascii=False)
@@ -293,14 +361,19 @@ def render_few_shot(sections_by_id: Dict[str, Dict[str, Any]]) -> str:
 _FEW_SHOT_CACHE: Dict[str, str] = {}
 
 
-def few_shot_v2() -> str:
-    if "v2" not in _FEW_SHOT_CACHE:
+def few_shot(version: str = "v2") -> str:
+    if version not in _FEW_SHOT_CACHE:
         sections = {s["section_id"]: s for s in load_sections()}
-        _FEW_SHOT_CACHE["v2"] = render_few_shot(sections)
-    return _FEW_SHOT_CACHE["v2"]
+        _FEW_SHOT_CACHE[version] = render_few_shot(sections, FEW_SHOT_V21 if version == "v2.1" else FEW_SHOT_V2)
+    return _FEW_SHOT_CACHE[version]
 
 
-PROMPT_VERSIONS = ("v1", "v2")
+def few_shot_v2() -> str:
+    return few_shot("v2")
+
+
+PROMPT_VERSIONS = ("v1", "v2", "v2.1")
+POSTFILTER_VERSIONS = {"v2.1"}
 
 
 class CacheMiss(LookupError):
@@ -309,11 +382,12 @@ class CacheMiss(LookupError):
 
 def build_prompt(section: Dict[str, Any], chunk: str, index: int, n_chunks: int, version: str = "v1") -> str:
     label = "Section text" if n_chunks == 1 else f"Section text (part {index + 1} of {n_chunks})"
-    if version == "v2":
-        return CLOSED_PROMPT_V2.format(
+    if version in ("v2", "v2.1"):
+        template = CLOSED_PROMPT_V21 if version == "v2.1" else CLOSED_PROMPT_V2
+        return template.format(
             schema=schema_prompt_block("v2"),
             max_entities=MAX_ENTITIES,
-            examples=few_shot_v2(),
+            examples=few_shot(version),
             domain=section["domain"],
             title=section["title"],
             heading=section["section_title"] or "(none)",
@@ -340,13 +414,30 @@ def extract_chunk(client: Optional[LLMClient], cache: ExtractionCache, unit: Dic
     key = f"{unit['unit_id']}::chunk{index}"
     raw = cache.get(key, prompt_hash)
     if raw is not None:
-        return json.loads(raw), "cached"
+        try:
+            return json.loads(raw), "cached"
+        except json.JSONDecodeError:
+            pass  # an empty or truncated response was cached (e.g. a dropped connection): call again
     if client is None:
         raise CacheMiss(key)
-    raw = _call_llm(client, prompt, max_retries, schema=extraction_json_schema(),
-                    schema_name="kg_closed_extraction", params=CALL_PARAMS)
-    cache.put(key, prompt_hash, raw)
-    return json.loads(raw), "success"
+    json_attempts = 2  # an empty/invalid response is asked again once (each call has its own retries)
+    for attempt in range(json_attempts):
+        try:
+            raw = _call_llm(client, prompt, max_retries, schema=extraction_json_schema(),
+                            schema_name="kg_closed_extraction", params=CALL_PARAMS,
+                            max_output_tokens=MAX_OUTPUT_TOKENS)
+        except ContentFilterError:
+            cache.put(key, prompt_hash, json.dumps(CONTENT_FILTER_MARKER))
+            return dict(CONTENT_FILTER_MARKER), "content_filter"
+        try:
+            parsed = json.loads(raw)
+        except json.JSONDecodeError:
+            if attempt == json_attempts - 1:
+                raise
+            continue
+        cache.put(key, prompt_hash, raw)  # only valid JSON is cached
+        return parsed, "success"
+    raise RuntimeError("unreachable")
 
 
 def _clean(text: Optional[str]) -> Optional[str]:
@@ -534,13 +625,16 @@ def run(targets: List[Dict[str, Any]], all_sections: List[Dict[str, Any]], clien
         else:
             parts = [postprocess(raw) for raw, _ in outs]
             entities, relations, counts = merge_chunks(parts)
+            if version in POSTFILTER_VERSIONS:
+                entities, relations, record["postfilter"] = postfilter.apply(entities, relations)
             record.update({
                 "raw_n_entities": [len(raw["entities"]) for raw, _ in outs],
                 "raw_n_relations": sum(len(raw["relations"]) for raw, _ in outs),
                 "entities": entities,
                 "relations": relations,
                 "postprocess": counts,
-                "status": "cached" if all(st == "cached" for _, st in outs) else "success",
+                "status": ("content_filter" if any(raw.get("content_filter") for raw, _ in outs)
+                           else "cached" if all(st == "cached" for _, st in outs) else "success"),
             })
         records.append(record)
     return records
@@ -552,6 +646,8 @@ def main() -> None:
     mode.add_argument("--tables", action="store_true", help="is_table sections instead of whole documents")
     mode.add_argument("--regression", action="store_true", help="sections behind known pilot-1 errors")
     mode.add_argument("--annotated", action="store_true", help="the 3 annotated pilot documents")
+    mode.add_argument("--all", action="store_true", help="every section of the corpus (full build)")
+    parser.add_argument("--usage-log", type=Path, default=None, help="append per-call token usage (JSONL)")
     parser.add_argument("--prompt-version", choices=PROMPT_VERSIONS, default="v1")
     parser.add_argument("--docs-per-domain", type=int, default=2)
     parser.add_argument("--tables-per-domain", type=int, default=2)
@@ -569,9 +665,12 @@ def main() -> None:
         name, targets = "regression", [s for s in all_sections if s["section_id"] in wanted]
     elif args.annotated:
         name, targets = "annotated", [s for s in all_sections if s["doc_id"] in ANNOTATION_DOCS]
+    elif args.all:
+        name, targets = "all", all_sections
     else:
         name, targets = "pilot", select_pilot_sections(all_sections, args.docs_per_domain, args.seed)
     output = args.output or DEFAULT_OUTPUTS[name]
+    extract_module.USAGE_LOG = args.usage_log
     print(f"{name}: {len(targets)} sections from {len({s['doc_id'] for s in targets})} documents, "
           f"prompt {args.prompt_version}")
 

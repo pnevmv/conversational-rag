@@ -13,6 +13,7 @@ import argparse
 import hashlib
 import json
 import random
+import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -142,6 +143,27 @@ class ExtractionCache:
         )
 
 
+class ContentFilterError(RuntimeError):
+    """The provider's content filter blocked the response (not retried)."""
+
+
+# When set, every API call appends its token usage here (one JSON line per call).
+USAGE_LOG: Optional[Path] = None
+_USAGE_LOCK = threading.Lock()
+
+
+def _log_usage(response: Any, schema_name: str) -> None:
+    if USAGE_LOG is None:
+        return
+    u = getattr(response, "usage", None)
+    details = getattr(u, "output_tokens_details", None)
+    row = {"t": time.time(), "schema": schema_name,
+           "input_tokens": getattr(u, "input_tokens", None), "output_tokens": getattr(u, "output_tokens", None),
+           "reasoning_tokens": getattr(details, "reasoning_tokens", None)}
+    with _USAGE_LOCK, open(USAGE_LOG, "a", encoding="utf-8") as f:
+        f.write(json.dumps(row) + "\n")
+
+
 def _call_llm(
     client: LLMClient,
     prompt: str,
@@ -149,6 +171,7 @@ def _call_llm(
     schema: Optional[Dict[str, Any]] = None,
     schema_name: str = "kg_extraction",
     params: Optional[Dict[str, Any]] = None,
+    max_output_tokens: Optional[int] = None,
 ) -> str:
     """Call the model with a strict JSON schema (open schema by default).
 
@@ -160,6 +183,7 @@ def _call_llm(
                 model=client.default_model,
                 input=prompt,
                 **(params or {"temperature": 0}),
+                **({"max_output_tokens": max_output_tokens} if max_output_tokens else {}),
                 text={"format": {
                     "type": "json_schema",
                     "name": schema_name,
@@ -167,7 +191,13 @@ def _call_llm(
                     "strict": True,
                 }},
             )
+            _log_usage(response, schema_name)
+            details = getattr(response, "incomplete_details", None)
+            if getattr(details, "reason", None) == "content_filter":
+                raise ContentFilterError("content filter blocked the response")
             return response.output_text
+        except ContentFilterError:
+            raise
         except OpenAIError as exc:
             if _is_retriable(exc) and attempt < max_retries - 1:
                 time.sleep(min(2 ** attempt, 60))

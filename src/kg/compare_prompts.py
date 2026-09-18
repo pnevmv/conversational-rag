@@ -19,8 +19,15 @@ therefore also gives a pooled recall (gold set extended with v2's correct triple
 recall without the social-media links that the KG layer drops by design, and the scores of
 the v2 two-run intersection.
 
+`check` scores an unlabelled extraction of the same documents (e.g. prompt v2.1) on its
+labelled subset: labels are carried over from the v1 and v2 annotations to identical triples,
+precision is computed on those, and recall against the pooled gold set (gold triples plus
+v2's correct triples outside it). It also reports relation counts and what the
+deterministic post-filters removed, with the labels the removed triples carry.
+
 Usage:
     python -m src.kg.compare_prompts
+    python -m src.kg.compare_prompts check --input experiments/kg/v21_extraction.jsonl --name v2.1
 """
 import csv
 import json
@@ -201,6 +208,95 @@ def _dci(b: Dict[str, Any], key: str) -> str:
     return "—" if not v else f"[{100 * v['ci'][0]:+.1f}, {100 * v['ci'][1]:+.1f}]"
 
 
+def label_pool() -> Tuple[Dict[tuple, Tuple[str, str]], Dict[str, str]]:
+    """{triple key: (label, pooled gold id)} from v1 + v2 + missed gold; {pooled id: relation}."""
+    pool: Dict[tuple, Tuple[str, str]] = {}
+    pooled_rel: Dict[str, str] = {}
+
+    def add(section_id, source, relation, target, label, pid):
+        for k in [_triple_key(section_id, source, relation, target)] + (
+                [_triple_key(section_id, target, relation, source)] if relation in SYMMETRIC_RELATIONS else []):
+            pool.setdefault(k, (label, pid))
+
+    for g in _read(GOLD_CSV):
+        pooled_rel[g["gold_id"]] = g["relation"]
+        add(g["section_id"], g["source"], g["relation"], g["target"], "correct", g["gold_id"])
+    for r in _read(V1_CSV):
+        ok = r["label"].lower() in CORRECT
+        add(r["section_id"], r["source"], r["relation"], r["target"], r["label"].lower(), r["triple_id"] if ok else "")
+    for r in _read(V2_CSV):
+        ok = r["label"].lower() in CORRECT
+        pid = (r["gold_id"] or r["triple_id"]) if ok else ""
+        if ok and not r["gold_id"]:
+            pooled_rel[r["triple_id"]] = r["relation"]
+        add(r["section_id"], r["source"], r["relation"], r["target"], r["label"].lower(), pid)
+    return pool, pooled_rel
+
+
+def pooled_facts() -> List[Dict[str, str]]:
+    """The pooled gold facts with their triple fields (gold set + v2 correct outside it)."""
+    facts = [{**g, "pid": g["gold_id"]} for g in _read(GOLD_CSV)]
+    facts += [{**r, "pid": r["triple_id"]} for r in _read(V2_CSV) if r["label"].lower() in CORRECT and not r["gold_id"]]
+    return facts
+
+
+def _words(name: str) -> Set[str]:
+    from src.kg.pilot2_stats import normalized_key
+    return set(normalized_key(name).split())
+
+
+def _overlap(a: str, b: str) -> float:
+    wa, wb = _words(a), _words(b)
+    return len(wa & wb) / len(wa | wb) if wa | wb else 0.0
+
+
+def approx_found(triples: List[Tuple[str, Dict[str, Any]]], facts: List[Dict[str, str]], threshold: float = 0.5) -> Set[str]:
+    """Pooled facts expressed by some triple: same section and relation, both endpoints mostly the same words."""
+    found = set()
+    for f in facts:
+        for sid, t in triples:
+            if sid != f["section_id"] or t["relation"] != f["relation"]:
+                continue
+            pairs = [(f["source"], f["target"])] + ([(f["target"], f["source"])] if f["relation"] in SYMMETRIC_RELATIONS else [])
+            if any(_overlap(t["source"], a) >= threshold and _overlap(t["target"], b) >= threshold for a, b in pairs):
+                found.add(f["pid"])
+                break
+    return found
+
+
+def check(path: Path, name: str) -> Dict[str, Any]:
+    pool, pooled_rel = label_pool()
+    records = [r for r in map(json.loads, open(path, encoding="utf-8")) if r["doc_id"] in ANNOTATION_DOCS]
+    triples = [(r["section_id"], t) for r in records for t in loadable_relations(r)]
+    labelled = [(sid, t, pool[k]) for sid, t in triples
+                if (k := _triple_key(sid, t["source"], t["relation"], t["target"])) in pool]
+    correct = [x for x in labelled if x[2][0] in CORRECT]
+    found = {x[2][1] for x in correct if x[2][1]}
+    by_rel = Counter(t["relation"] for _, t in triples)
+    rel_recall = {rel: (len({p for p in found if pooled_rel.get(p) == rel}),
+                        sum(1 for v in pooled_rel.values() if v == rel)) for rel in sorted(set(pooled_rel.values()))}
+    removed = []
+    for r in records:
+        for e in r.get("postfilter", []):
+            if e["action"] in ("drop_relation", "flip_relation"):
+                k = _triple_key(r["section_id"], e["source"], e["relation"], e["target"])
+                removed.append({**e, "section_id": r["section_id"], "known_label": pool.get(k, ("", ""))[0]})
+            else:
+                removed.append({**e, "section_id": r["section_id"], "known_label": ""})
+    facts = pooled_facts()
+    approx = approx_found(triples, facts)
+    approx_by_rel = {rel: (sum(1 for f in facts if f["pid"] in approx and f["relation"] == rel),
+                           sum(1 for f in facts if f["relation"] == rel)) for rel in sorted({f["relation"] for f in facts})}
+    return {
+        "name": name, "loadable_triples": len(triples), "labelled": len(labelled), "correct": len(correct),
+        "precision_labelled": len(correct) / len(labelled) if labelled else None,
+        "pooled_recall": len(found) / len(pooled_rel), "pooled_size": len(pooled_rel),
+        "pooled_recall_approx": len(approx) / len(facts), "approx_recall_by_relation": approx_by_rel,
+        "relations": dict(by_rel), "recall_by_relation": rel_recall,
+        "postfilter": removed,
+    }
+
+
 def main() -> None:
     gold, versions = load_versions()
     boot = bootstrap(gold, versions)
@@ -227,14 +323,14 @@ def main() -> None:
     o1, o2 = result["overall"]["v1"], result["overall"]["v2"]
     lines = ["# Extraction prompt v1 vs v2 (3 annotated pilot documents)", "",
              "Paired section bootstrap, B = 2,000, 95% percentile CIs in brackets. Recall is against the same "
-             "98 gold triples for both versions.", "",
+             f"{len(gold)} gold triples for both versions.", "",
              "| | v1 | v2 | v2 − v1 |", "|---|---|---|---|"]
     for m in ("precision", "recall", "f1"):
         lines.append(f"| {m.capitalize() if m != 'f1' else 'F1'} | {_pct(o1[m])}{_ci(boot, f'overall|v1|{m}')} | "
                      f"{_pct(o2[m])}{_ci(boot, f'overall|v2|{m}')} | "
                      f"{100 * (o2[m] - o1[m]):+.1f} {_dci(boot, f'overall|delta|{m}')} |")
     lines += [f"| Labelled triples (correct) | {o1['labelled']} ({o1['correct']}) | {o2['labelled']} ({o2['correct']}) | |",
-              f"| Gold facts found (of 98) | {o1['gold_found']} | {o2['gold_found']} | |",
+              f"| Gold facts found (of {len(gold)}) | {o1['gold_found']} | {o2['gold_found']} | |",
               f"| Correct triples outside the gold set | 0 | {result['v2_correct_outside_gold']} | |", "",
               "## By relation", "",
               "| Relation | v1 P | v2 P | v1 R | v2 R | v1 F1 | v2 F1 | labelled v1 / v2 | gold |",
@@ -262,10 +358,10 @@ def main() -> None:
     rv = result["recall_variants"]
     pool = rv["_pool_size"]
     lines += ["", "## Recall variants and the two-run intersection", "",
-              "The fixed gold set (98) was built from v1's output plus the facts v1 missed, so it favours v1. "
+              f"The fixed gold set ({len(gold)}) was built from v1's output plus the facts v1 missed, so it favours v1. "
               f"Pooled: gold extended with v2's {result['v2_correct_outside_gold']} correct triples outside it "
               f"({pool} facts). No social: without the 5 social-media links the KG layer drops by design.", "",
-              "| | Precision | Recall (fixed 98) | Recall (fixed, no social) | Recall (pooled) | Recall (pooled, no social) |",
+              f"| | Precision | Recall (fixed {len(gold)}) | Recall (fixed, no social) | Recall (pooled) | Recall (pooled, no social) |",
               "|---|---:|---:|---:|---:|---:|"]
     precs = {"v1": o1["precision"], "v2": o2["precision"], "v2 intersection": rv["v2 intersection"]["precision"]}
     for name in ("v1", "v2", "v2 intersection"):
@@ -278,4 +374,19 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    import sys
+    main_check() if len(sys.argv) > 1 and sys.argv[1] == "check" else main()
+
+
+def main_check() -> None:
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("command", choices=["check"])
+    parser.add_argument("--input", type=Path, required=True)
+    parser.add_argument("--name", required=True)
+    args = parser.parse_args()
+    res = check(args.input, args.name)
+    out = KG_DIR / f"check_{args.name.replace('.', '')}.json"
+    out.write_text(json.dumps(res, indent=2), encoding="utf-8")
+    print(json.dumps({k: v for k, v in res.items() if k != "postfilter"}, indent=1))
+    print(f"post-filter entries: {len(res['postfilter'])}; saved -> {out}")

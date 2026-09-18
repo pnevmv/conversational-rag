@@ -57,7 +57,8 @@ from typing import Any, Dict, Iterable, List, Optional, Set, Tuple
 
 import numpy as np
 
-from src.kg.extract import ExtractionCache, _call_llm
+from src.kg import extract as extract_module
+from src.kg.extract import ContentFilterError, ExtractionCache, _call_llm
 from src.kg.extract_closed import loadable_relations
 from src.kg.pilot2_stats import normalized_key
 from src.kg.schema import is_valid_triple
@@ -340,6 +341,78 @@ def graph_bonus(a: Dict[str, Any], b: Dict[str, Any]) -> float:
     return bonus + min(MAX_NEIGHBOUR_BONUS, SHARED_NEIGHBOUR_BONUS * shared)
 
 
+# Blocks larger than this use the scalable candidate generation (_block_candidates_fast); smaller
+# ones (all pilot blocks) keep the exhaustive pairwise loop, so pilot results are unchanged.
+FAST_BLOCK_SIZE = 500
+MAX_BONUS = SAME_DOC_BONUS + MAX_NEIGHBOUR_BONUS
+NEIGHBOURS_PER_NAME = 4 * TOP_K
+
+
+def _rule_candidate_pairs(gs: List[Dict[str, Any]]) -> Set[Tuple[int, int]]:
+    """Index-based candidates for the alias, acronym and form-number rules (no O(n^2) loop)."""
+    by_key: Dict[str, Set[int]] = defaultdict(set)
+    for i, g in enumerate(gs):
+        by_key[g["key"]].add(i)
+        by_key[g["key"].replace(" ", "")].add(i)
+        for a in g["aliases"]:
+            by_key[a].add(i)
+        acr = _acronym(g["key"])
+        if acr and len(acr) >= 2:
+            by_key[acr].add(i)
+        if g["type"] == "Document":
+            for code in _form_codes(g):
+                by_key[f"form:{code}"].add(i)
+    pairs: Set[Tuple[int, int]] = set()
+    for members in by_key.values():
+        if 1 < len(members) <= 50:  # very common keys carry no identity
+            ms = sorted(members)
+            pairs.update((ms[x], ms[y]) for x in range(len(ms)) for y in range(x + 1, len(ms)))
+    return pairs
+
+
+def _block_candidates_fast(block: str, gs: List[Dict[str, Any]], emb: "np.ndarray", min_score: float
+                           ) -> Dict[Tuple[int, int], Dict[str, Any]]:
+    """Each name's NEIGHBOURS_PER_NAME nearest names above (min_score - MAX_BONUS), plus rule pairs."""
+    n = len(gs)
+    cand: Set[Tuple[int, int]] = set()
+    for start in range(0, n, 1024):
+        sims = emb[start:start + 1024] @ emb.T
+        for row, i in enumerate(range(start, min(start + 1024, n))):
+            sims[row, i] = -1.0
+            k = min(NEIGHBOURS_PER_NAME, n - 1)
+            top = np.argpartition(-sims[row], k)[:k]
+            for j in top:
+                if sims[row, j] >= min_score - MAX_BONUS:
+                    cand.add((min(i, j), max(i, j)))
+    cand |= _rule_candidate_pairs(gs)
+    scored = {}
+    for i, j in cand:
+        a, b = gs[i], gs[j]
+        rule = rule_match(a, b)
+        cos = float(emb[i] @ emb[j])
+        score = min(1.0, cos + graph_bonus(a, b))
+        if rule or score >= min_score:
+            scored[(i, j)] = {"block": block, "a": a["gid"], "b": b["gid"], "cosine": round(cos, 4),
+                              "bonus": round(score - cos, 4), "score": round(score, 4), "rule": rule}
+    return scored
+
+
+def _exhaustive_block(block: str, gs: List[Dict[str, Any]], emb: "np.ndarray", min_score: float
+                      ) -> Dict[Tuple[int, int], Dict[str, Any]]:
+    sims = emb @ emb.T
+    scored = {}
+    for i in range(len(gs)):
+        for j in range(i + 1, len(gs)):
+            a, b = gs[i], gs[j]
+            rule = rule_match(a, b)
+            cos = float(sims[i, j])
+            score = min(1.0, cos + graph_bonus(a, b))
+            if rule or score >= min_score:
+                scored[(i, j)] = {"block": block, "a": a["gid"], "b": b["gid"], "cosine": round(cos, 4),
+                                  "bonus": round(score - cos, 4), "score": round(score, 4), "rule": rule}
+    return scored
+
+
 def candidate_pairs(groups: Dict[str, Dict[str, Any]], min_score: float,
                     top_k: Optional[int] = None) -> List[Dict[str, Any]]:
     """Within-block pairs that match a rule, or score >= min_score (and, if top_k is set,
@@ -356,18 +429,12 @@ def candidate_pairs(groups: Dict[str, Dict[str, Any]], min_score: float,
         if len(gs) < 2:
             continue
         gs.sort(key=lambda g: g["gid"])
-        emb = model.encode([g["names"].most_common(1)[0][0] for g in gs], normalize_embeddings=True)
-        sims = emb @ emb.T
-        scored = {}
-        for i in range(len(gs)):
-            for j in range(i + 1, len(gs)):
-                a, b = gs[i], gs[j]
-                rule = rule_match(a, b)
-                cos = float(sims[i, j])
-                score = min(1.0, cos + graph_bonus(a, b))
-                if rule or score >= min_score:
-                    scored[(i, j)] = {"block": block, "a": a["gid"], "b": b["gid"], "cosine": round(cos, 4),
-                                      "bonus": round(score - cos, 4), "score": round(score, 4), "rule": rule}
+        emb = model.encode([g["names"].most_common(1)[0][0] for g in gs], normalize_embeddings=True,
+                           batch_size=256)
+        if len(gs) > FAST_BLOCK_SIZE:
+            scored = _block_candidates_fast(block, gs, emb, min_score)
+        else:
+            scored = _exhaustive_block(block, gs, emb, min_score)
         if top_k is not None:
             keep = {k for k, p in scored.items() if p["rule"]}
             partners: Dict[int, List[Tuple[float, Tuple[int, int]]]] = defaultdict(list)
@@ -405,7 +472,10 @@ def judge(pair: Dict[str, Any], groups: Dict[str, Dict[str, Any]], client: LLMCl
     key = f"{pair['a']}||{pair['b']}"
     raw = cache.get(key, prompt_hash)
     if raw is None:
-        raw = _call_llm(client, prompt, 5, schema=JUDGE_SCHEMA, schema_name="kg_entity_match")
+        try:
+            raw = _call_llm(client, prompt, 5, schema=JUDGE_SCHEMA, schema_name="kg_entity_match")
+        except ContentFilterError:
+            raw = json.dumps({"same": False, "reason": "content filter blocked the request"})
         cache.put(key, prompt_hash, raw)
     return json.loads(raw)
 
@@ -442,7 +512,11 @@ def judge_batch(query: str, candidates: List[str], groups: Dict[str, Dict[str, A
     key = f"batch::{query}||{'|'.join(candidates)}"
     raw = cache.get(key, prompt_hash)
     if raw is None:
-        raw = _call_llm(client, prompt, 5, schema=BATCH_SCHEMA, schema_name="kg_entity_match_batch")
+        try:
+            raw = _call_llm(client, prompt, 5, schema=BATCH_SCHEMA, schema_name="kg_entity_match_batch")
+        except ContentFilterError:
+            # A content-filter false positive: no decision, so nothing is merged (like a rejection).
+            raw = json.dumps({"decisions": [], "content_filter": True})
         cache.put(key, prompt_hash, raw)
     decisions = json.loads(raw)["decisions"]
     return {candidates[d["candidate"] - 1] for d in decisions
@@ -580,6 +654,8 @@ def run(paths: List[Path], workers: int, upper: float, lower: float, top_k: Opti
         judge_all(middle, groups, workers)
         llm_calls = len(middle)
     accepted = [p for p in pairs if p["band"] in ("auto_rule", "auto_score") or p.get("llm_same")]
+    for p in accepted:
+        p["accepted"] = True
     cannot_link = {frozenset((p["a"], p["b"])) for p in pairs
                    if p["band"] in ("reject_value", "reject_generic") or (p["band"] == "llm" and not p["llm_same"])}
     root, blocked = cluster(groups, accepted, cannot_link)
@@ -637,7 +713,7 @@ def run(paths: List[Path], workers: int, upper: float, lower: float, top_k: Opti
             w.writerow([p["block"], groups[p["a"]]["names"].most_common(1)[0][0],
                         groups[p["b"]]["names"].most_common(1)[0][0], p["cosine"], p["bonus"], p["score"],
                         p["rule"] or "", p["band"], p.get("llm_same", ""), p.get("llm_reason", ""),
-                        p in accepted and not p.get("blocked")])
+                        bool(p.get("accepted")) and not p.get("blocked")])
 
     bands = Counter(p["band"] for p in pairs)
     summary = {
@@ -722,9 +798,11 @@ def main() -> None:
     parser.add_argument("--top-k", type=int, default=TOP_K, help="0 = all pairs above the lower threshold")
     parser.add_argument("--pairwise", action="store_true", help="one LLM call per pair (calibration judge)")
     parser.add_argument("--prefix", default=None, help="output file prefix in experiments/kg/")
+    parser.add_argument("--usage-log", type=Path, default=None, help="append per-call token usage (JSONL)")
     parser.add_argument("--scale", type=float, default=3194 / 63,
                         help="estimate: corpus units / pilot units (3,194 / 63)")
     args = parser.parse_args()
+    extract_module.USAGE_LOG = args.usage_log
     if args.command == "calibrate":
         calibrate(args.input, args.workers)
     elif args.command == "estimate":

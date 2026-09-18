@@ -1,6 +1,6 @@
 {
   "judge": "batched",
-  "llm_calls": 111,
+  "llm_calls": 103,
   "thresholds": {
     "upper": 1.01,
     "lower": 0.8,
@@ -11,7 +11,7 @@
   },
   "mentions": 508,
   "name_groups": 423,
-  "entities": 382,
+  "entities": 385,
   "type_conflicts": [
     {
       "name": "ny state driver license",
@@ -154,17 +154,18 @@
   "candidate_pairs": 262,
   "bands": {
     "reject_value": 42,
-    "llm": 217,
+    "llm": 190,
+    "reject_generic": 27,
     "auto_rule": 3
   },
   "rules": {
     "form_number": 3
   },
-  "llm_confirmed": 51,
-  "llm_rejected": 166,
-  "merged_pairs": 44,
-  "blocked_by_cannot_link": 10,
-  "clusters_for_review": 42,
+  "llm_confirmed": 44,
+  "llm_rejected": 146,
+  "merged_pairs": 39,
+  "blocked_by_cannot_link": 8,
+  "clusters_for_review": 43,
   "largest_clusters": [
     {
       "canonical_name": "Schedule A & C pdf",
@@ -173,28 +174,10 @@
       "n_mentions": 6
     },
     {
-      "canonical_name": "disability compensation",
-      "type": "Service",
-      "n_name_groups": 4,
-      "n_mentions": 9
-    },
-    {
       "canonical_name": "Veterans Housing Assistance",
       "type": "Service",
       "n_name_groups": 4,
       "n_mentions": 4
-    },
-    {
-      "canonical_name": "Graduated Repayment Plan",
-      "type": "Service",
-      "n_name_groups": 3,
-      "n_mentions": 6
-    },
-    {
-      "canonical_name": "VA direct or VA - backed home loan",
-      "type": "Service",
-      "n_name_groups": 3,
-      "n_mentions": 3
     },
     {
       "canonical_name": "higher monthly Part B premium",
@@ -225,6 +208,24 @@
       "type": "Document",
       "n_name_groups": 2,
       "n_mentions": 3
+    },
+    {
+      "canonical_name": "Manufacturer's Certificate of Origin (MCO)",
+      "type": "Document",
+      "n_name_groups": 2,
+      "n_mentions": 2
+    },
+    {
+      "canonical_name": "college financial aid office",
+      "type": "Organization",
+      "n_name_groups": 2,
+      "n_mentions": 2
+    },
+    {
+      "canonical_name": "VA.gov",
+      "type": "Organization",
+      "n_name_groups": 2,
+      "n_mentions": 4
     }
   ]
 }

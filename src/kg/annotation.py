@@ -41,6 +41,12 @@ Usage:
     python -m src.kg.annotation score
     python -m src.kg.annotation score-er
     python -m src.kg.annotation carry --input experiments/kg/v2_extraction.jsonl --prefix annotation_v2
+    python -m src.kg.annotation gold        # rewrite gold_v1.csv after a label correction
+    python -m src.kg.annotation control --input experiments/kg/full_v21_extraction.jsonl
+
+control: a control sample for the full build: CONTROL_SIZE random sections (seed 42) that
+have at least one loadable triple and lie outside all 8 pilot documents, one random triple
+per section, in the same format as the v2 labelling sheet (annotation_control.csv).
 """
 import argparse
 import csv
@@ -133,6 +139,10 @@ def stability(run2_path: Path) -> None:
 
 
 GOLD_CSV = KG_DIR / "gold_v1.csv"
+CONTROL_CSV = KG_DIR / "annotation_control.csv"
+CONTROL_SIZE = 30
+NEW_COLUMNS = ["triple_id"] + TRIPLE_COLUMNS + [
+    "label", "gold_id", "suggested_gold_id", "note", "similar_labelled", "section_heading", "section_text"]
 
 
 def gold_triples() -> List[Dict[str, str]]:
@@ -142,6 +152,43 @@ def gold_triples() -> List[Dict[str, str]]:
     for i, r in enumerate(_read(MISSING_CSV), start=1):
         rel = RELATION_ALIASES.get(r["relation"], r["relation"])
         gold.append({**{k: r[k] for k in TRIPLE_COLUMNS}, "relation": rel, "gold_id": f"m{i:02d}", "origin": "v1_missed"})
+    return gold
+
+
+def control_sample(input_path: Path, size: int = CONTROL_SIZE, seed: int = 42) -> List[Dict[str, str]]:
+    import random
+
+    from src.data.loader import load_sections
+    from src.kg.extract_closed import _with_domain, select_pilot_sections
+
+    pilot_docs = {s["doc_id"] for s in select_pilot_sections(_with_domain(load_sections()), 2, 42)}
+    records = [r for r in map(json.loads, open(input_path, encoding="utf-8"))
+               if r["doc_id"] not in pilot_docs and r["status"] not in ("skipped",) and not r["status"].startswith("error")
+               and loadable_relations(r)]
+    records.sort(key=lambda r: r["section_id"])
+    rng = random.Random(seed)
+    rows = []
+    for n, r in enumerate(rng.sample(records, min(size, len(records))), start=1):
+        t = rng.choice(loadable_relations(r))
+        rows.append({"triple_id": f"control_{n:03d}", "section_id": r["section_id"], "source": t["source"],
+                     "source_type": t["source_type"], "relation": t["relation"], "target": t["target"],
+                     "target_type": t["target_type"], "evidence": t["evidence"], "label": "", "gold_id": "",
+                     "suggested_gold_id": "", "note": "", "similar_labelled": "",
+                     "section_heading": r["heading"], "section_text": r["text"]})
+    with open(CONTROL_CSV, "w", newline="", encoding="utf-8") as f:
+        w = csv.DictWriter(f, fieldnames=NEW_COLUMNS)
+        w.writeheader()
+        w.writerows(rows)
+    return rows
+
+
+def write_gold() -> List[Dict[str, str]]:
+    """(Re)write gold_v1.csv from the current v1 labels and missed triples."""
+    gold = gold_triples()
+    with open(GOLD_CSV, "w", newline="", encoding="utf-8") as f:
+        w = csv.DictWriter(f, fieldnames=["gold_id", "origin"] + TRIPLE_COLUMNS)
+        w.writeheader()
+        w.writerows({k: g[k] for k in ["gold_id", "origin"] + TRIPLE_COLUMNS} for g in gold)
     return gold
 
 
@@ -178,10 +225,7 @@ def carry(input_path: Path, prefix: str) -> None:
             rows.append(row)
 
     columns = ["triple_id"] + TRIPLE_COLUMNS + ["label", "gold_id", "label_source", "note"]
-    with open(GOLD_CSV, "w", newline="", encoding="utf-8") as f:
-        w = csv.DictWriter(f, fieldnames=["gold_id", "origin"] + TRIPLE_COLUMNS)
-        w.writeheader()
-        w.writerows({k: g[k] for k in ["gold_id", "origin"] + TRIPLE_COLUMNS} for g in gold)
+    write_gold()
     with open(KG_DIR / f"{prefix}.csv", "w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=columns)
         w.writeheader()
@@ -340,7 +384,7 @@ def _fmt(x) -> str:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("command", choices=["export", "stability", "score", "score-er", "carry"])
+    parser.add_argument("command", choices=["export", "stability", "score", "score-er", "carry", "gold", "control"])
     parser.add_argument("--input", type=Path, default=DEFAULT_INPUT)
     parser.add_argument("--prefix", default="annotation_v2", help="carry: output file prefix")
     parser.add_argument("--run2", type=Path, default=DEFAULT_RUN2)
@@ -354,6 +398,14 @@ def main() -> None:
         return
     if args.command == "carry":
         carry(args.input, args.prefix)
+        return
+    if args.command == "control":
+        rows = control_sample(args.input)
+        print(f"{len(rows)} control triples -> {CONTROL_CSV}")
+        return
+    if args.command == "gold":
+        gold = write_gold()
+        print(f"{len(gold)} gold triples -> {GOLD_CSV}")
         return
     if args.command == "score-er":
         res = score_er()

@@ -36,9 +36,12 @@ class LLMClient:
             or DEFAULT_MODEL
         )
 
+        # A finite timeout so a dropped connection fails (and is retried) instead of hanging
+        # for the SDK default of 10 minutes.
         self.client = OpenAI(
             base_url=self.base_url,
             api_key=self.api_key,
+            timeout=float(os.getenv("LLM_TIMEOUT", "120")),
         )
 
     def generate(self, prompt: str, model: Optional[str] = None) -> str:

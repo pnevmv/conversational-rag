@@ -1,0 +1,7639 @@
+{
+  "judge": "batched",
+  "llm_calls": 9411,
+  "thresholds": {
+    "upper": 1.01,
+    "lower": 0.8,
+    "top_k": 5,
+    "same_doc_bonus": 0.02,
+    "shared_neighbour_bonus": 0.03,
+    "max_neighbour_bonus": 0.06
+  },
+  "mentions": 28782,
+  "name_groups": 17765,
+  "entities": 14454,
+  "type_conflicts": [
+    {
+      "name": "social security credit",
+      "votes": {
+        "Requirement": 5,
+        "Service": 2
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "four credit each year",
+      "votes": {
+        "Amount": 2,
+        "Requirement": 2
+      },
+      "resolved_type": "Requirement",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "one credit for each 1 360 of wage or self employment income",
+      "votes": {
+        "Amount": 1,
+        "Requirement": 2
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "40 credit",
+      "votes": {
+        "Amount": 7,
+        "Requirement": 4
+      },
+      "resolved_type": "Amount",
+      "rule": "majority"
+    },
+    {
+      "name": "10 year of work",
+      "votes": {
+        "Requirement": 3,
+        "TimeLimit": 2
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "survivor benefit",
+      "votes": {
+        "Service": 18,
+        "Outcome": 2
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "benefit at any age",
+      "votes": {
+        "Service": 2,
+        "Outcome": 2
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "full retirement age or older",
+      "votes": {
+        "TimeLimit": 2,
+        "Requirement": 2
+      },
+      "resolved_type": "Requirement",
+      "rule": "priority"
+    },
+    {
+      "name": "social security benefit",
+      "votes": {
+        "Service": 14,
+        "Outcome": 2,
+        "Requirement": 2
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "special lump sum death payment",
+      "votes": {
+        "Outcome": 2,
+        "Service": 6
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "age 50 if disabled",
+      "votes": {
+        "TimeLimit": 4,
+        "Requirement": 2
+      },
+      "resolved_type": "TimeLimit",
+      "rule": "majority"
+    },
+    {
+      "name": "age 62",
+      "votes": {
+        "TimeLimit": 7,
+        "Requirement": 9,
+        "Role": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "full retirement age",
+      "votes": {
+        "TimeLimit": 5,
+        "Requirement": 29,
+        "Service": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "pension based on work not covered by social security",
+      "votes": {
+        "Requirement": 4,
+        "Service": 5
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "call our toll free telephone number",
+      "votes": {
+        "ContactPoint": 1,
+        "Service": 1
+      },
+      "resolved_type": "ContactPoint",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "local social security office",
+      "votes": {
+        "ContactPoint": 38,
+        "Organization": 3
+      },
+      "resolved_type": "ContactPoint",
+      "rule": "majority"
+    },
+    {
+      "name": "social security number",
+      "votes": {
+        "Requirement": 17,
+        "Document": 14,
+        "Service": 9
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "proof of age",
+      "votes": {
+        "Requirement": 2,
+        "Document": 3
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "medical record",
+      "votes": {
+        "Requirement": 2,
+        "Document": 16,
+        "Service": 1
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "federal tax return",
+      "votes": {
+        "Document": 2,
+        "Service": 1
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "date of prior marriage",
+      "votes": {
+        "Document": 3,
+        "Requirement": 1
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "online application",
+      "votes": {
+        "Service": 20,
+        "Document": 2
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "english",
+      "votes": {
+        "Requirement": 5,
+        "Outcome": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "application for benefit",
+      "votes": {
+        "Service": 2,
+        "Document": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "review application",
+      "votes": {
+        "Service": 5,
+        "Outcome": 2
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "tty number",
+      "votes": {
+        "ContactPoint": 10,
+        "Requirement": 2
+      },
+      "resolved_type": "ContactPoint",
+      "rule": "majority"
+    },
+    {
+      "name": "social security disability benefit",
+      "votes": {
+        "Service": 11,
+        "Document": 2
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "supplemental security income",
+      "votes": {
+        "Service": 7,
+        "Role": 4,
+        "Requirement": 1,
+        "Organization": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "social security office",
+      "votes": {
+        "Organization": 5,
+        "ContactPoint": 14,
+        "Requirement": 2
+      },
+      "resolved_type": "ContactPoint",
+      "rule": "majority"
+    },
+    {
+      "name": "tell social security",
+      "votes": {
+        "Requirement": 10,
+        "Service": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "photocopie",
+      "votes": {
+        "Requirement": 13,
+        "Document": 14
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "notarized copie",
+      "votes": {
+        "Requirement": 11,
+        "Document": 13
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "receipt showing applied for document",
+      "votes": {
+        "Requirement": 14,
+        "Document": 14
+      },
+      "resolved_type": "Requirement",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "social security",
+      "votes": {
+        "Organization": 42,
+        "Service": 2
+      },
+      "resolved_type": "Organization",
+      "rule": "majority"
+    },
+    {
+      "name": "proof of u s citizenship",
+      "votes": {
+        "Requirement": 22,
+        "Document": 2
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "identity document in prior name",
+      "votes": {
+        "Requirement": 5,
+        "Document": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "replacement for one of these specific document within 10 day",
+      "votes": {
+        "TimeLimit": 2,
+        "Requirement": 16
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "other document",
+      "votes": {
+        "Document": 16,
+        "Requirement": 2
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "current u s immigration document",
+      "votes": {
+        "Requirement": 5,
+        "Document": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "social security card",
+      "votes": {
+        "Service": 7,
+        "Document": 7
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "i 94 arrival departure record or admission stamp in unexpired foreign passport",
+      "votes": {
+        "Document": 5,
+        "Requirement": 1
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "proof of identity",
+      "votes": {
+        "Requirement": 53,
+        "Document": 3
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "original document",
+      "votes": {
+        "Document": 13,
+        "Requirement": 6
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "i 766 employment authorization document ead work permit from dhs",
+      "votes": {
+        "Document": 9,
+        "Requirement": 5
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "evidence of that employment",
+      "votes": {
+        "Document": 4,
+        "Requirement": 5
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "identity document in child s prior name as shown in our record",
+      "votes": {
+        "Requirement": 4,
+        "Document": 2
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "original social security number",
+      "votes": {
+        "Requirement": 1,
+        "Service": 4
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "current dhs document",
+      "votes": {
+        "Requirement": 3,
+        "Document": 2
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "birth certificate",
+      "votes": {
+        "Requirement": 2,
+        "Document": 12
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "document",
+      "votes": {
+        "Requirement": 1,
+        "Document": 6
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "10 during lifetime",
+      "votes": {
+        "Requirement": 4,
+        "Amount": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "age 18 or older",
+      "votes": {
+        "Role": 1,
+        "Requirement": 6
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "my social security account",
+      "votes": {
+        "ContactPoint": 24,
+        "Service": 10,
+        "Document": 2
+      },
+      "resolved_type": "ContactPoint",
+      "rule": "majority"
+    },
+    {
+      "name": "three replacement card in year",
+      "votes": {
+        "Amount": 1,
+        "Requirement": 2
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "schedule appointment to apply for benefit in preferred language",
+      "votes": {
+        "Service": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "priority"
+    },
+    {
+      "name": "application",
+      "votes": {
+        "Service": 11,
+        "Document": 24
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "account number",
+      "votes": {
+        "Document": 3,
+        "Requirement": 8
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "process application",
+      "votes": {
+        "Outcome": 2,
+        "Service": 1
+      },
+      "resolved_type": "Outcome",
+      "rule": "majority"
+    },
+    {
+      "name": "benefit amount",
+      "votes": {
+        "Amount": 5,
+        "Outcome": 4,
+        "Requirement": 1
+      },
+      "resolved_type": "Amount",
+      "rule": "majority"
+    },
+    {
+      "name": "age 65",
+      "votes": {
+        "Requirement": 8,
+        "TimeLimit": 2
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "retirement earning test",
+      "votes": {
+        "Requirement": 2,
+        "Service": 2
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "disability planner",
+      "votes": {
+        "Document": 2,
+        "Service": 2
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "monthly benefit",
+      "votes": {
+        "Service": 4,
+        "Outcome": 5,
+        "Amount": 2
+      },
+      "resolved_type": "Outcome",
+      "rule": "majority"
+    },
+    {
+      "name": "retirement benefit",
+      "votes": {
+        "Service": 30,
+        "Requirement": 2,
+        "Outcome": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "benefit on record",
+      "votes": {
+        "Service": 4,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "under age 18",
+      "votes": {
+        "Requirement": 2,
+        "Role": 6
+      },
+      "resolved_type": "Role",
+      "rule": "majority"
+    },
+    {
+      "name": "benefit",
+      "votes": {
+        "Service": 7,
+        "Outcome": 2
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "work credit",
+      "votes": {
+        "Requirement": 2,
+        "Service": 2
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "government pension offset",
+      "votes": {
+        "Service": 2,
+        "Document": 2,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "social security benefit on spouse s record",
+      "votes": {
+        "Service": 2,
+        "Outcome": 2
+      },
+      "resolved_type": "Service",
+      "rule": "priority"
+    },
+    {
+      "name": "medicare",
+      "votes": {
+        "Service": 16,
+        "Document": 3,
+        "Organization": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "option to take only one benefit at full retirement age",
+      "votes": {
+        "Service": 2,
+        "Requirement": 2
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "all retirement or spousal benefit",
+      "votes": {
+        "Outcome": 2,
+        "Service": 2
+      },
+      "resolved_type": "Service",
+      "rule": "priority"
+    },
+    {
+      "name": "age 66",
+      "votes": {
+        "Requirement": 2,
+        "TimeLimit": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "age 67",
+      "votes": {
+        "Requirement": 2,
+        "TimeLimit": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "age 70",
+      "votes": {
+        "Requirement": 4,
+        "TimeLimit": 6
+      },
+      "resolved_type": "TimeLimit",
+      "rule": "majority"
+    },
+    {
+      "name": "delayed retirement credit",
+      "votes": {
+        "Outcome": 8,
+        "Service": 2
+      },
+      "resolved_type": "Outcome",
+      "rule": "majority"
+    },
+    {
+      "name": "confirmation number",
+      "votes": {
+        "Requirement": 2,
+        "Document": 3
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "more information",
+      "votes": {
+        "Requirement": 11,
+        "ContactPoint": 2,
+        "Outcome": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "recalculate benefit amount",
+      "votes": {
+        "Service": 2,
+        "Outcome": 2
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "full benefit amount",
+      "votes": {
+        "Amount": 2,
+        "Outcome": 1
+      },
+      "resolved_type": "Amount",
+      "rule": "majority"
+    },
+    {
+      "name": "military service",
+      "votes": {
+        "Requirement": 3,
+        "Service": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "application is approved",
+      "votes": {
+        "Requirement": 2,
+        "Outcome": 4
+      },
+      "resolved_type": "Outcome",
+      "rule": "majority"
+    },
+    {
+      "name": "windfall elimination provision",
+      "votes": {
+        "Document": 2,
+        "Requirement": 1
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "income taxe and social security benefit",
+      "votes": {
+        "Document": 2,
+        "Requirement": 1
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "medical insurance",
+      "votes": {
+        "Service": 2,
+        "Document": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "monthly premium",
+      "votes": {
+        "Amount": 8,
+        "Service": 1
+      },
+      "resolved_type": "Amount",
+      "rule": "majority"
+    },
+    {
+      "name": "username and password",
+      "votes": {
+        "Requirement": 3,
+        "Document": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "email address",
+      "votes": {
+        "Requirement": 10,
+        "ContactPoint": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "my social security",
+      "votes": {
+        "Service": 2,
+        "ContactPoint": 4
+      },
+      "resolved_type": "ContactPoint",
+      "rule": "majority"
+    },
+    {
+      "name": "online account",
+      "votes": {
+        "Service": 4,
+        "ContactPoint": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "password",
+      "votes": {
+        "Requirement": 3,
+        "Document": 2,
+        "Outcome": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "official website",
+      "votes": {
+        "Document": 2,
+        "ContactPoint": 1
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "disability",
+      "votes": {
+        "Outcome": 2,
+        "Requirement": 1
+      },
+      "resolved_type": "Outcome",
+      "rule": "majority"
+    },
+    {
+      "name": "attorney",
+      "votes": {
+        "Role": 6,
+        "Organization": 1
+      },
+      "resolved_type": "Role",
+      "rule": "majority"
+    },
+    {
+      "name": "bank account",
+      "votes": {
+        "Requirement": 6,
+        "ContactPoint": 2
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "my profile tab",
+      "votes": {
+        "Requirement": 2,
+        "Document": 2,
+        "ContactPoint": 2
+      },
+      "resolved_type": "ContactPoint",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "one time security code",
+      "votes": {
+        "Document": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Document",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "overpayment",
+      "votes": {
+        "Outcome": 2,
+        "Requirement": 3,
+        "Document": 2
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "date of birth",
+      "votes": {
+        "Requirement": 16,
+        "Document": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "retroactive benefit",
+      "votes": {
+        "Requirement": 2,
+        "Service": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "social security disability insurance",
+      "votes": {
+        "Service": 3,
+        "Organization": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "administrative law judge",
+      "votes": {
+        "Role": 2,
+        "Organization": 5
+      },
+      "resolved_type": "Organization",
+      "rule": "majority"
+    },
+    {
+      "name": "income",
+      "votes": {
+        "Requirement": 7,
+        "Document": 2
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "resource",
+      "votes": {
+        "Requirement": 2,
+        "Document": 2
+      },
+      "resolved_type": "Document",
+      "rule": "priority"
+    },
+    {
+      "name": "living arrangement",
+      "votes": {
+        "Requirement": 2,
+        "Document": 2
+      },
+      "resolved_type": "Document",
+      "rule": "priority"
+    },
+    {
+      "name": "stepparent",
+      "votes": {
+        "Role": 3,
+        "Requirement": 1
+      },
+      "resolved_type": "Role",
+      "rule": "majority"
+    },
+    {
+      "name": "step 3",
+      "votes": {
+        "Outcome": 2,
+        "Service": 1
+      },
+      "resolved_type": "Outcome",
+      "rule": "majority"
+    },
+    {
+      "name": "qualifying disability",
+      "votes": {
+        "Outcome": 2,
+        "Requirement": 3
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "social security benefit verification letter",
+      "votes": {
+        "Service": 4,
+        "Document": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "replacement document",
+      "votes": {
+        "ContactPoint": 2,
+        "Document": 5
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "benefit verification letter",
+      "votes": {
+        "Service": 2,
+        "Document": 2
+      },
+      "resolved_type": "Document",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "free my social security account",
+      "votes": {
+        "Amount": 5,
+        "ContactPoint": 2,
+        "Service": 1
+      },
+      "resolved_type": "Amount",
+      "rule": "majority"
+    },
+    {
+      "name": "documentation",
+      "votes": {
+        "Requirement": 2,
+        "Document": 2
+      },
+      "resolved_type": "Document",
+      "rule": "priority"
+    },
+    {
+      "name": "mailing address",
+      "votes": {
+        "Requirement": 4,
+        "ContactPoint": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "premium for part b coverage",
+      "votes": {
+        "Amount": 2,
+        "Requirement": 2
+      },
+      "resolved_type": "Requirement",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "special enrollment period",
+      "votes": {
+        "TimeLimit": 2,
+        "Requirement": 4,
+        "Service": 4
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "update contact information",
+      "votes": {
+        "Document": 2,
+        "Service": 1
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "financial need",
+      "votes": {
+        "Requirement": 10,
+        "Outcome": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "social security taxe",
+      "votes": {
+        "Requirement": 2,
+        "Document": 2
+      },
+      "resolved_type": "Document",
+      "rule": "priority"
+    },
+    {
+      "name": "health insurance coverage",
+      "votes": {
+        "Outcome": 2,
+        "Requirement": 1
+      },
+      "resolved_type": "Outcome",
+      "rule": "majority"
+    },
+    {
+      "name": "personnel office",
+      "votes": {
+        "ContactPoint": 2,
+        "Organization": 1
+      },
+      "resolved_type": "ContactPoint",
+      "rule": "majority"
+    },
+    {
+      "name": "account",
+      "votes": {
+        "Requirement": 2,
+        "ContactPoint": 2
+      },
+      "resolved_type": "Requirement",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "changing name",
+      "votes": {
+        "Requirement": 1,
+        "Service": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "start receiving retirement benefit",
+      "votes": {
+        "Service": 1,
+        "Outcome": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "wage",
+      "votes": {
+        "Requirement": 1,
+        "Amount": 1
+      },
+      "resolved_type": "Amount",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "federal income taxe",
+      "votes": {
+        "Outcome": 1,
+        "Service": 1
+      },
+      "resolved_type": "Service",
+      "rule": "priority"
+    },
+    {
+      "name": "adjustment to monthly medicare part b medical insurance and medicare prescription drug coverage premium",
+      "votes": {
+        "Requirement": 1,
+        "Service": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "monthly medicare part b medical insurance and medicare prescription drug coverage premium",
+      "votes": {
+        "Service": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "priority"
+    },
+    {
+      "name": "income related monthly adjustment amount",
+      "votes": {
+        "Amount": 4,
+        "Outcome": 2,
+        "Service": 2,
+        "Requirement": 2
+      },
+      "resolved_type": "Amount",
+      "rule": "majority"
+    },
+    {
+      "name": "request appeal in writing",
+      "votes": {
+        "Service": 2,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "additional document",
+      "votes": {
+        "Document": 7,
+        "Requirement": 1
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "gi bill comparison tool",
+      "votes": {
+        "Service": 11,
+        "ContactPoint": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "new evidence",
+      "votes": {
+        "Requirement": 9,
+        "Service": 1,
+        "Document": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "hearing",
+      "votes": {
+        "Service": 8,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "judge",
+      "votes": {
+        "Role": 6,
+        "Organization": 3
+      },
+      "resolved_type": "Role",
+      "rule": "majority"
+    },
+    {
+      "name": "few question",
+      "votes": {
+        "Requirement": 1,
+        "Outcome": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "new and relevant evidence",
+      "votes": {
+        "Service": 2,
+        "Requirement": 9
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "hearing will be transcribed and added to appeal file",
+      "votes": {
+        "Outcome": 3,
+        "Service": 1
+      },
+      "resolved_type": "Outcome",
+      "rule": "majority"
+    },
+    {
+      "name": "regional benefit office",
+      "votes": {
+        "ContactPoint": 2,
+        "Organization": 2
+      },
+      "resolved_type": "Organization",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "supporting document",
+      "votes": {
+        "Document": 9,
+        "Requirement": 1
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "board decision",
+      "votes": {
+        "Outcome": 5,
+        "Service": 1
+      },
+      "resolved_type": "Outcome",
+      "rule": "majority"
+    },
+    {
+      "name": "hire attorney",
+      "votes": {
+        "Role": 1,
+        "Service": 3
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "va schedule exam for",
+      "votes": {
+        "Service": 4,
+        "Requirement": 3
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "faq",
+      "votes": {
+        "Document": 6,
+        "ContactPoint": 1
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "va disability rating",
+      "votes": {
+        "Service": 1,
+        "Outcome": 2,
+        "Requirement": 1
+      },
+      "resolved_type": "Outcome",
+      "rule": "majority"
+    },
+    {
+      "name": "disability rating",
+      "votes": {
+        "Service": 3,
+        "Outcome": 3,
+        "Requirement": 5
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "certificate of eligibility",
+      "votes": {
+        "Document": 5,
+        "Service": 2
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "coe",
+      "votes": {
+        "Service": 5,
+        "Document": 2
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "va regional loan center",
+      "votes": {
+        "ContactPoint": 2,
+        "Organization": 2
+      },
+      "resolved_type": "Organization",
+      "rule": "priority"
+    },
+    {
+      "name": "milconnect",
+      "votes": {
+        "Organization": 3,
+        "ContactPoint": 5
+      },
+      "resolved_type": "ContactPoint",
+      "rule": "majority"
+    },
+    {
+      "name": "premium ds logon account",
+      "votes": {
+        "Requirement": 4,
+        "Organization": 2
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "my healthevet credential",
+      "votes": {
+        "Document": 2,
+        "Requirement": 1
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "id me credential",
+      "votes": {
+        "Document": 2,
+        "Requirement": 1
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "priority group",
+      "votes": {
+        "Requirement": 5,
+        "Service": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "va health care benefit",
+      "votes": {
+        "Service": 11,
+        "Requirement": 1,
+        "Outcome": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "assisted living and home health care",
+      "votes": {
+        "Service": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "va medical center",
+      "votes": {
+        "Organization": 10,
+        "ContactPoint": 7,
+        "Service": 1
+      },
+      "resolved_type": "Organization",
+      "rule": "majority"
+    },
+    {
+      "name": "dental care",
+      "votes": {
+        "Service": 4,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "va health care enrollment",
+      "votes": {
+        "Service": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "va copay",
+      "votes": {
+        "Service": 1,
+        "Requirement": 1,
+        "Amount": 2
+      },
+      "resolved_type": "Amount",
+      "rule": "majority"
+    },
+    {
+      "name": "va health care program",
+      "votes": {
+        "Service": 10,
+        "Organization": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "copay",
+      "votes": {
+        "Requirement": 2,
+        "Amount": 2
+      },
+      "resolved_type": "Requirement",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "disability compensation",
+      "votes": {
+        "Service": 22,
+        "Outcome": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "education benefit",
+      "votes": {
+        "Service": 8,
+        "Outcome": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "va gov profile",
+      "votes": {
+        "Document": 3,
+        "ContactPoint": 3
+      },
+      "resolved_type": "ContactPoint",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "ebenefit",
+      "votes": {
+        "Organization": 6,
+        "ContactPoint": 10,
+        "Service": 1
+      },
+      "resolved_type": "ContactPoint",
+      "rule": "majority"
+    },
+    {
+      "name": "veteran health identification card",
+      "votes": {
+        "Document": 4,
+        "Service": 2
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "evidence",
+      "votes": {
+        "Requirement": 2,
+        "Document": 3
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "medical test",
+      "votes": {
+        "Document": 1,
+        "Service": 1
+      },
+      "resolved_type": "Document",
+      "rule": "priority"
+    },
+    {
+      "name": "military service record",
+      "votes": {
+        "Document": 2,
+        "Requirement": 1
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "veteran crisi line",
+      "votes": {
+        "Service": 14,
+        "Organization": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "veteran crisi line responder",
+      "votes": {
+        "Organization": 1,
+        "Role": 7
+      },
+      "resolved_type": "Role",
+      "rule": "majority"
+    },
+    {
+      "name": "call 911",
+      "votes": {
+        "Service": 1,
+        "ContactPoint": 6
+      },
+      "resolved_type": "ContactPoint",
+      "rule": "majority"
+    },
+    {
+      "name": "verified id me account",
+      "votes": {
+        "Organization": 2,
+        "Requirement": 1
+      },
+      "resolved_type": "Organization",
+      "rule": "majority"
+    },
+    {
+      "name": "secure website",
+      "votes": {
+        "Service": 3,
+        "Requirement": 1,
+        "ContactPoint": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "personal health information",
+      "votes": {
+        "Requirement": 1,
+        "Outcome": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "priority"
+    },
+    {
+      "name": "my healthevet help desk",
+      "votes": {
+        "Organization": 2,
+        "ContactPoint": 1
+      },
+      "resolved_type": "Organization",
+      "rule": "majority"
+    },
+    {
+      "name": "posttraumatic stress disorder",
+      "votes": {
+        "Outcome": 1,
+        "Service": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "depression",
+      "votes": {
+        "Outcome": 1,
+        "Service": 1,
+        "Requirement": 3
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "substance use problem",
+      "votes": {
+        "Outcome": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Outcome",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "va primary care provider",
+      "votes": {
+        "Organization": 2,
+        "Role": 2
+      },
+      "resolved_type": "Role",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "mst coordinator",
+      "votes": {
+        "Role": 1,
+        "Organization": 1
+      },
+      "resolved_type": "Organization",
+      "rule": "priority"
+    },
+    {
+      "name": "300 community vet center",
+      "votes": {
+        "Amount": 1,
+        "Organization": 4
+      },
+      "resolved_type": "Organization",
+      "rule": "majority"
+    },
+    {
+      "name": "vet center",
+      "votes": {
+        "Organization": 5,
+        "ContactPoint": 5,
+        "Service": 1
+      },
+      "resolved_type": "Organization",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "national call center for homeless veteran",
+      "votes": {
+        "Organization": 11,
+        "Service": 1
+      },
+      "resolved_type": "Organization",
+      "rule": "majority"
+    },
+    {
+      "name": "health care",
+      "votes": {
+        "Service": 16,
+        "Outcome": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "ptsd",
+      "votes": {
+        "Service": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "make connection",
+      "votes": {
+        "Organization": 1,
+        "ContactPoint": 1
+      },
+      "resolved_type": "Organization",
+      "rule": "priority"
+    },
+    {
+      "name": "yearly payment",
+      "votes": {
+        "Service": 1,
+        "Outcome": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "disability compensation or benefit",
+      "votes": {
+        "Outcome": 1,
+        "Service": 8
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "fiduciary claim",
+      "votes": {
+        "Requirement": 2,
+        "Service": 2
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "multiple party claim",
+      "votes": {
+        "Requirement": 1,
+        "Service": 1
+      },
+      "resolved_type": "Service",
+      "rule": "priority"
+    },
+    {
+      "name": "senior reviewer",
+      "votes": {
+        "Role": 2,
+        "Organization": 3
+      },
+      "resolved_type": "Organization",
+      "rule": "majority"
+    },
+    {
+      "name": "initial claim",
+      "votes": {
+        "Service": 8,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "va regional claim processing office",
+      "votes": {
+        "ContactPoint": 1,
+        "Organization": 1
+      },
+      "resolved_type": "Organization",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "va regional benefit office",
+      "votes": {
+        "ContactPoint": 4,
+        "Organization": 3
+      },
+      "resolved_type": "ContactPoint",
+      "rule": "majority"
+    },
+    {
+      "name": "school s certifying official",
+      "votes": {
+        "Role": 3,
+        "ContactPoint": 1,
+        "Organization": 1
+      },
+      "resolved_type": "Role",
+      "rule": "majority"
+    },
+    {
+      "name": "accredited representative",
+      "votes": {
+        "Organization": 3,
+        "Service": 1
+      },
+      "resolved_type": "Organization",
+      "rule": "majority"
+    },
+    {
+      "name": "find va regional benefit office near",
+      "votes": {
+        "ContactPoint": 1,
+        "Service": 1
+      },
+      "resolved_type": "ContactPoint",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "women veteran",
+      "votes": {
+        "Role": 5,
+        "Document": 1
+      },
+      "resolved_type": "Role",
+      "rule": "majority"
+    },
+    {
+      "name": "local va community resource and referral center",
+      "votes": {
+        "Organization": 1,
+        "ContactPoint": 3
+      },
+      "resolved_type": "ContactPoint",
+      "rule": "majority"
+    },
+    {
+      "name": "federal facility",
+      "votes": {
+        "Organization": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Organization",
+      "rule": "priority"
+    },
+    {
+      "name": "income information",
+      "votes": {
+        "Document": 1,
+        "Requirement": 2
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "more question",
+      "votes": {
+        "Service": 2,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "waiver of premium",
+      "votes": {
+        "Service": 1,
+        "Requirement": 2
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "civilian health and medical program of department of veteran affair",
+      "votes": {
+        "Service": 2,
+        "Organization": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "medicaid",
+      "votes": {
+        "Service": 2,
+        "Document": 1,
+        "Organization": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "military onesource",
+      "votes": {
+        "Organization": 1,
+        "Service": 1
+      },
+      "resolved_type": "Organization",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "caregiver support line",
+      "votes": {
+        "Service": 1,
+        "ContactPoint": 2
+      },
+      "resolved_type": "ContactPoint",
+      "rule": "majority"
+    },
+    {
+      "name": "free help",
+      "votes": {
+        "Amount": 1,
+        "Service": 1
+      },
+      "resolved_type": "Service",
+      "rule": "priority"
+    },
+    {
+      "name": "gi bill benefit",
+      "votes": {
+        "Service": 5,
+        "Outcome": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "certificate of eligibility for va direct or va backed home loan",
+      "votes": {
+        "Document": 2,
+        "Service": 1
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "accredited attorney",
+      "votes": {
+        "Role": 1,
+        "Organization": 1
+      },
+      "resolved_type": "Organization",
+      "rule": "priority"
+    },
+    {
+      "name": "claim agent",
+      "votes": {
+        "Role": 2,
+        "Organization": 2
+      },
+      "resolved_type": "Organization",
+      "rule": "priority"
+    },
+    {
+      "name": "veteran service officer",
+      "votes": {
+        "Role": 1,
+        "Organization": 1
+      },
+      "resolved_type": "Organization",
+      "rule": "priority"
+    },
+    {
+      "name": "va direct or va backed loan",
+      "votes": {
+        "Requirement": 1,
+        "Service": 1
+      },
+      "resolved_type": "Service",
+      "rule": "priority"
+    },
+    {
+      "name": "avoid foreclosure",
+      "votes": {
+        "Service": 1,
+        "Outcome": 2
+      },
+      "resolved_type": "Outcome",
+      "rule": "majority"
+    },
+    {
+      "name": "repayment plan",
+      "votes": {
+        "Service": 12,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "decision",
+      "votes": {
+        "Outcome": 4,
+        "Document": 4,
+        "Requirement": 1
+      },
+      "resolved_type": "Outcome",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "dependent",
+      "votes": {
+        "Requirement": 2,
+        "Role": 2,
+        "Service": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "va educational assistance",
+      "votes": {
+        "Service": 2,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "tutor",
+      "votes": {
+        "Outcome": 1,
+        "Role": 1
+      },
+      "resolved_type": "Outcome",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "va home loan certificate of eligibility",
+      "votes": {
+        "Document": 2,
+        "Service": 2
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "specially adapted housing grant",
+      "votes": {
+        "Service": 2,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "sec 1631 of national defense authorization act pl 110 181",
+      "votes": {
+        "Requirement": 1,
+        "Document": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "vrc",
+      "votes": {
+        "Organization": 2,
+        "Role": 2
+      },
+      "resolved_type": "Organization",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "x ray",
+      "votes": {
+        "Document": 1,
+        "Service": 1
+      },
+      "resolved_type": "Document",
+      "rule": "priority"
+    },
+    {
+      "name": "law enforcement officer",
+      "votes": {
+        "Role": 1,
+        "Service": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "coverage",
+      "votes": {
+        "Amount": 1,
+        "Outcome": 1
+      },
+      "resolved_type": "Amount",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "premium",
+      "votes": {
+        "Amount": 2,
+        "Requirement": 1
+      },
+      "resolved_type": "Amount",
+      "rule": "majority"
+    },
+    {
+      "name": "mortgage protection insurance",
+      "votes": {
+        "Outcome": 1,
+        "Service": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "tricare",
+      "votes": {
+        "Service": 5,
+        "Document": 1,
+        "Organization": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "family member caring for veteran with disabilitie",
+      "votes": {
+        "Role": 3,
+        "Requirement": 1
+      },
+      "resolved_type": "Role",
+      "rule": "majority"
+    },
+    {
+      "name": "champva",
+      "votes": {
+        "Organization": 3,
+        "Service": 1
+      },
+      "resolved_type": "Organization",
+      "rule": "majority"
+    },
+    {
+      "name": "presumption of contact",
+      "votes": {
+        "Outcome": 2,
+        "Requirement": 1
+      },
+      "resolved_type": "Outcome",
+      "rule": "majority"
+    },
+    {
+      "name": "agent orange related illness",
+      "votes": {
+        "Document": 2,
+        "Requirement": 1
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "military record",
+      "votes": {
+        "Document": 9,
+        "Requirement": 1
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "monthly payment",
+      "votes": {
+        "Outcome": 3,
+        "Amount": 2,
+        "Service": 2,
+        "Requirement": 1
+      },
+      "resolved_type": "Outcome",
+      "rule": "majority"
+    },
+    {
+      "name": "printed veteran id card",
+      "votes": {
+        "Service": 1,
+        "Document": 1
+      },
+      "resolved_type": "Document",
+      "rule": "priority"
+    },
+    {
+      "name": "va benefit letter",
+      "votes": {
+        "Service": 1,
+        "Document": 1
+      },
+      "resolved_type": "Document",
+      "rule": "priority"
+    },
+    {
+      "name": "va mission act",
+      "votes": {
+        "Service": 1,
+        "Organization": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "agent orange exposure",
+      "votes": {
+        "Service": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "priority"
+    },
+    {
+      "name": "evidence supporting document",
+      "votes": {
+        "Document": 2,
+        "Requirement": 4
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "contact with agent orange",
+      "votes": {
+        "Service": 1,
+        "Requirement": 2,
+        "Outcome": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "between january 9 1962 and may 7 1975",
+      "votes": {
+        "Requirement": 1,
+        "TimeLimit": 2
+      },
+      "resolved_type": "TimeLimit",
+      "rule": "majority"
+    },
+    {
+      "name": "priority processing",
+      "votes": {
+        "Service": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "sgli coverage",
+      "votes": {
+        "Service": 2,
+        "Requirement": 2
+      },
+      "resolved_type": "Service",
+      "rule": "priority"
+    },
+    {
+      "name": "active duty service member",
+      "votes": {
+        "Role": 6,
+        "Requirement": 1
+      },
+      "resolved_type": "Role",
+      "rule": "majority"
+    },
+    {
+      "name": "service member or veteran with service connected disability",
+      "votes": {
+        "Requirement": 2,
+        "Role": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "personal health record",
+      "votes": {
+        "Document": 1,
+        "Service": 2
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "veteran health information exchange",
+      "votes": {
+        "Service": 1,
+        "Organization": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "find address for nearest va medical center",
+      "votes": {
+        "Requirement": 1,
+        "ContactPoint": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "priority"
+    },
+    {
+      "name": "va welcome kit",
+      "votes": {
+        "Service": 1,
+        "Document": 1
+      },
+      "resolved_type": "Document",
+      "rule": "priority"
+    },
+    {
+      "name": "va dental care benefit",
+      "votes": {
+        "Requirement": 1,
+        "Service": 3
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "one time dental care",
+      "votes": {
+        "Outcome": 1,
+        "Service": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "qualified veteran",
+      "votes": {
+        "Requirement": 1,
+        "Role": 2
+      },
+      "resolved_type": "Role",
+      "rule": "majority"
+    },
+    {
+      "name": "higher priority group",
+      "votes": {
+        "Outcome": 1,
+        "Service": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "priority"
+    },
+    {
+      "name": "medal of honor",
+      "votes": {
+        "Requirement": 2,
+        "Service": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "servicemember group life insurance",
+      "votes": {
+        "Document": 1,
+        "Service": 2
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "beneficiarie",
+      "votes": {
+        "Requirement": 1,
+        "Role": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "financial information",
+      "votes": {
+        "Requirement": 1,
+        "Document": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "enrollment",
+      "votes": {
+        "Outcome": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "priority"
+    },
+    {
+      "name": "beneficiary travel pay",
+      "votes": {
+        "Outcome": 1,
+        "Service": 1
+      },
+      "resolved_type": "Service",
+      "rule": "priority"
+    },
+    {
+      "name": "help paying for school or job training",
+      "votes": {
+        "Requirement": 1,
+        "Outcome": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "priority"
+    },
+    {
+      "name": "tuition and fee",
+      "votes": {
+        "Service": 2,
+        "Amount": 4,
+        "Requirement": 1
+      },
+      "resolved_type": "Amount",
+      "rule": "majority"
+    },
+    {
+      "name": "reserve educational assistance program",
+      "votes": {
+        "Organization": 1,
+        "Service": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "36 month of benefit",
+      "votes": {
+        "TimeLimit": 1,
+        "Amount": 1
+      },
+      "resolved_type": "Amount",
+      "rule": "priority"
+    },
+    {
+      "name": "maximum benefit",
+      "votes": {
+        "Amount": 1,
+        "Outcome": 1
+      },
+      "resolved_type": "Amount",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "36 month",
+      "votes": {
+        "Amount": 1,
+        "TimeLimit": 2
+      },
+      "resolved_type": "TimeLimit",
+      "rule": "majority"
+    },
+    {
+      "name": "va health care provider",
+      "votes": {
+        "Organization": 2,
+        "Role": 1
+      },
+      "resolved_type": "Organization",
+      "rule": "majority"
+    },
+    {
+      "name": "non service connected care",
+      "votes": {
+        "Service": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "priority"
+    },
+    {
+      "name": "active duty",
+      "votes": {
+        "Role": 2,
+        "Requirement": 1
+      },
+      "resolved_type": "Role",
+      "rule": "majority"
+    },
+    {
+      "name": "full time sgli",
+      "votes": {
+        "Service": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "priority"
+    },
+    {
+      "name": "benefit life insurance soe sgli online enrollment system",
+      "votes": {
+        "ContactPoint": 2,
+        "Document": 1
+      },
+      "resolved_type": "ContactPoint",
+      "rule": "majority"
+    },
+    {
+      "name": "cac",
+      "votes": {
+        "Document": 1,
+        "Requirement": 1,
+        "Role": 1
+      },
+      "resolved_type": "Document",
+      "rule": "priority"
+    },
+    {
+      "name": "ds logon",
+      "votes": {
+        "Document": 1,
+        "Requirement": 1,
+        "Role": 1
+      },
+      "resolved_type": "Document",
+      "rule": "priority"
+    },
+    {
+      "name": "unit s personnel officer",
+      "votes": {
+        "Organization": 1,
+        "ContactPoint": 1
+      },
+      "resolved_type": "Organization",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "premium payment",
+      "votes": {
+        "Service": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "priority"
+    },
+    {
+      "name": "child is 18 year old",
+      "votes": {
+        "TimeLimit": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "TimeLimit",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "pass background check",
+      "votes": {
+        "Service": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "priority"
+    },
+    {
+      "name": "vso",
+      "votes": {
+        "Organization": 1,
+        "Service": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "100 disability rating",
+      "votes": {
+        "Requirement": 2,
+        "Amount": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "claim",
+      "votes": {
+        "Requirement": 1,
+        "Service": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "presumptive disease",
+      "votes": {
+        "Document": 1,
+        "Outcome": 2
+      },
+      "resolved_type": "Outcome",
+      "rule": "majority"
+    },
+    {
+      "name": "financial aid",
+      "votes": {
+        "ContactPoint": 1,
+        "Outcome": 2,
+        "Service": 8
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "room and board",
+      "votes": {
+        "Requirement": 3,
+        "Amount": 2
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "study abroad",
+      "votes": {
+        "Requirement": 1,
+        "Service": 1
+      },
+      "resolved_type": "Service",
+      "rule": "priority"
+    },
+    {
+      "name": "refund",
+      "votes": {
+        "Outcome": 3,
+        "Service": 3
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "enhanced eligibility period",
+      "votes": {
+        "Outcome": 1,
+        "TimeLimit": 1
+      },
+      "resolved_type": "Outcome",
+      "rule": "priority"
+    },
+    {
+      "name": "short term financial support",
+      "votes": {
+        "Outcome": 1,
+        "Service": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "sgli",
+      "votes": {
+        "Organization": 3,
+        "Service": 2
+      },
+      "resolved_type": "Organization",
+      "rule": "majority"
+    },
+    {
+      "name": "pay copay",
+      "votes": {
+        "Requirement": 1,
+        "Outcome": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "program",
+      "votes": {
+        "Service": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "priority"
+    },
+    {
+      "name": "employer",
+      "votes": {
+        "Organization": 1,
+        "Role": 2
+      },
+      "resolved_type": "Role",
+      "rule": "majority"
+    },
+    {
+      "name": "certain counseling service training and education benefit",
+      "votes": {
+        "Requirement": 1,
+        "Outcome": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "disability payment",
+      "votes": {
+        "Service": 2,
+        "Outcome": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "va decision",
+      "votes": {
+        "Document": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Document",
+      "rule": "priority"
+    },
+    {
+      "name": "school s financial aid office",
+      "votes": {
+        "Organization": 4,
+        "ContactPoint": 4
+      },
+      "resolved_type": "Organization",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "first payment",
+      "votes": {
+        "Outcome": 1,
+        "Service": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "12 month",
+      "votes": {
+        "TimeLimit": 3,
+        "Requirement": 1
+      },
+      "resolved_type": "TimeLimit",
+      "rule": "majority"
+    },
+    {
+      "name": "1 200 lump sum contribution",
+      "votes": {
+        "Requirement": 1,
+        "Amount": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "priority"
+    },
+    {
+      "name": "approved program",
+      "votes": {
+        "Service": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "veteran help line",
+      "votes": {
+        "Organization": 1,
+        "ContactPoint": 1
+      },
+      "resolved_type": "Organization",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "notice in mail",
+      "votes": {
+        "Document": 1,
+        "Outcome": 1
+      },
+      "resolved_type": "Outcome",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "test result",
+      "votes": {
+        "Document": 1,
+        "Outcome": 1
+      },
+      "resolved_type": "Document",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "contact vrc for more information",
+      "votes": {
+        "Requirement": 1,
+        "ContactPoint": 1
+      },
+      "resolved_type": "ContactPoint",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "request another type of photo id card",
+      "votes": {
+        "Service": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "credit card",
+      "votes": {
+        "Service": 2,
+        "Requirement": 1,
+        "Amount": 2,
+        "Document": 1,
+        "ContactPoint": 1
+      },
+      "resolved_type": "Service",
+      "rule": "priority"
+    },
+    {
+      "name": "insurance card",
+      "votes": {
+        "Service": 1,
+        "Document": 2
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "selected reserve",
+      "votes": {
+        "Role": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Role",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "up to 36 month of benefit",
+      "votes": {
+        "TimeLimit": 1,
+        "Service": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "tuition",
+      "votes": {
+        "Outcome": 1,
+        "Document": 1,
+        "Requirement": 2,
+        "Amount": 3
+      },
+      "resolved_type": "Amount",
+      "rule": "majority"
+    },
+    {
+      "name": "housing",
+      "votes": {
+        "Outcome": 1,
+        "Document": 1
+      },
+      "resolved_type": "Outcome",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "book and supplie",
+      "votes": {
+        "Outcome": 1,
+        "Document": 1,
+        "Service": 1
+      },
+      "resolved_type": "Service",
+      "rule": "priority"
+    },
+    {
+      "name": "monthly housing allowance",
+      "votes": {
+        "Service": 1,
+        "Outcome": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "temporary 100 disability rating",
+      "votes": {
+        "Requirement": 2,
+        "Service": 2
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "sign up for va health care",
+      "votes": {
+        "Service": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "priority"
+    },
+    {
+      "name": "mobile vet center",
+      "votes": {
+        "Service": 1,
+        "ContactPoint": 1
+      },
+      "resolved_type": "ContactPoint",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "travel expense",
+      "votes": {
+        "Service": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "priority"
+    },
+    {
+      "name": "pre need determination of eligibility",
+      "votes": {
+        "Outcome": 1,
+        "Service": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "va national cemetery",
+      "votes": {
+        "Service": 1,
+        "Document": 1
+      },
+      "resolved_type": "Document",
+      "rule": "priority"
+    },
+    {
+      "name": "additional information",
+      "votes": {
+        "Requirement": 4,
+        "Service": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "pre need eligibility determination",
+      "votes": {
+        "Requirement": 1,
+        "Service": 1,
+        "Outcome": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "approval process",
+      "votes": {
+        "Service": 1,
+        "Outcome": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "compensation",
+      "votes": {
+        "Outcome": 1,
+        "Service": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "priority"
+    },
+    {
+      "name": "veteran id card",
+      "votes": {
+        "Service": 5,
+        "Document": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "sponsor",
+      "votes": {
+        "Requirement": 1,
+        "Organization": 2
+      },
+      "resolved_type": "Organization",
+      "rule": "majority"
+    },
+    {
+      "name": "verify eligibility",
+      "votes": {
+        "Outcome": 1,
+        "Service": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "veteran designation",
+      "votes": {
+        "Service": 1,
+        "Outcome": 1
+      },
+      "resolved_type": "Service",
+      "rule": "priority"
+    },
+    {
+      "name": "completed form",
+      "votes": {
+        "Document": 3,
+        "Requirement": 2
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "payment amount",
+      "votes": {
+        "Amount": 1,
+        "Outcome": 1
+      },
+      "resolved_type": "Outcome",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "project 112",
+      "votes": {
+        "Service": 1,
+        "Organization": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "women veteran call center",
+      "votes": {
+        "ContactPoint": 2,
+        "Organization": 1
+      },
+      "resolved_type": "ContactPoint",
+      "rule": "majority"
+    },
+    {
+      "name": "application for dic death pension and or accrued benefit",
+      "votes": {
+        "Service": 1,
+        "Document": 1
+      },
+      "resolved_type": "Document",
+      "rule": "priority"
+    },
+    {
+      "name": "find pmc",
+      "votes": {
+        "ContactPoint": 1,
+        "Service": 1
+      },
+      "resolved_type": "ContactPoint",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "application for health benefit",
+      "votes": {
+        "Document": 1,
+        "Service": 1
+      },
+      "resolved_type": "Document",
+      "rule": "priority"
+    },
+    {
+      "name": "power of attorney",
+      "votes": {
+        "Role": 2,
+        "Document": 2
+      },
+      "resolved_type": "Document",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "state s department of veteran affair",
+      "votes": {
+        "Organization": 1,
+        "ContactPoint": 1
+      },
+      "resolved_type": "Organization",
+      "rule": "priority"
+    },
+    {
+      "name": "other federal facility",
+      "votes": {
+        "Organization": 1,
+        "ContactPoint": 1
+      },
+      "resolved_type": "Organization",
+      "rule": "priority"
+    },
+    {
+      "name": "lender",
+      "votes": {
+        "Organization": 6,
+        "Role": 1
+      },
+      "resolved_type": "Organization",
+      "rule": "majority"
+    },
+    {
+      "name": "payment",
+      "votes": {
+        "Outcome": 3,
+        "Requirement": 2,
+        "Document": 2,
+        "Service": 3,
+        "Role": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "visa",
+      "votes": {
+        "Document": 2,
+        "Amount": 3
+      },
+      "resolved_type": "Amount",
+      "rule": "majority"
+    },
+    {
+      "name": "national call to service program",
+      "votes": {
+        "Service": 3,
+        "Organization": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "check",
+      "votes": {
+        "Service": 1,
+        "Requirement": 1,
+        "Document": 3
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "vic application",
+      "votes": {
+        "Document": 1,
+        "Service": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "dmv office",
+      "votes": {
+        "ContactPoint": 75,
+        "Organization": 25
+      },
+      "resolved_type": "ContactPoint",
+      "rule": "majority"
+    },
+    {
+      "name": "registration",
+      "votes": {
+        "Service": 3,
+        "Document": 6
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "suspension",
+      "votes": {
+        "Service": 1,
+        "Outcome": 5
+      },
+      "resolved_type": "Outcome",
+      "rule": "majority"
+    },
+    {
+      "name": "proof",
+      "votes": {
+        "Document": 6,
+        "Requirement": 1
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "deceased owner",
+      "votes": {
+        "Service": 1,
+        "Document": 1
+      },
+      "resolved_type": "Document",
+      "rule": "priority"
+    },
+    {
+      "name": "imported vehicle",
+      "votes": {
+        "Service": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "priority"
+    },
+    {
+      "name": "parking violation",
+      "votes": {
+        "Service": 4,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "parking ticket",
+      "votes": {
+        "Service": 1,
+        "Requirement": 1,
+        "Outcome": 2
+      },
+      "resolved_type": "Outcome",
+      "rule": "majority"
+    },
+    {
+      "name": "dmv",
+      "votes": {
+        "Organization": 149,
+        "ContactPoint": 1
+      },
+      "resolved_type": "Organization",
+      "rule": "majority"
+    },
+    {
+      "name": "vehicle registration",
+      "votes": {
+        "Service": 8,
+        "Document": 8
+      },
+      "resolved_type": "Document",
+      "rule": "priority"
+    },
+    {
+      "name": "registration fee",
+      "votes": {
+        "Amount": 6,
+        "Service": 1
+      },
+      "resolved_type": "Amount",
+      "rule": "majority"
+    },
+    {
+      "name": "registration renewal",
+      "votes": {
+        "Service": 3,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "refund amount",
+      "votes": {
+        "Outcome": 1,
+        "Amount": 1
+      },
+      "resolved_type": "Outcome",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "transfer registration to another vehicle",
+      "votes": {
+        "Outcome": 1,
+        "Service": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "unused registration sticker and stub",
+      "votes": {
+        "Document": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Document",
+      "rule": "priority"
+    },
+    {
+      "name": "surrender vehicle plate at dmv office",
+      "votes": {
+        "Service": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "priority"
+    },
+    {
+      "name": "traffic violation bureau",
+      "votes": {
+        "Organization": 7,
+        "Requirement": 1
+      },
+      "resolved_type": "Organization",
+      "rule": "majority"
+    },
+    {
+      "name": "3 digit appeal access number",
+      "votes": {
+        "Document": 1,
+        "Requirement": 2
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "dmv id number client id number",
+      "votes": {
+        "Requirement": 1,
+        "Document": 1
+      },
+      "resolved_type": "Document",
+      "rule": "priority"
+    },
+    {
+      "name": "learner permit",
+      "votes": {
+        "Document": 19,
+        "Service": 1
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "change of address",
+      "votes": {
+        "Requirement": 1,
+        "Service": 3
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "dmv id number",
+      "votes": {
+        "Requirement": 8,
+        "Document": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "client id number",
+      "votes": {
+        "Requirement": 6,
+        "Document": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "insurance lapse",
+      "votes": {
+        "Outcome": 1,
+        "Service": 3,
+        "Requirement": 3
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "driver responsibility assessment",
+      "votes": {
+        "Service": 11,
+        "Outcome": 1,
+        "Amount": 2
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "address change",
+      "votes": {
+        "Service": 4,
+        "Document": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "mydmv",
+      "votes": {
+        "ContactPoint": 8,
+        "Service": 2,
+        "Organization": 3
+      },
+      "resolved_type": "ContactPoint",
+      "rule": "majority"
+    },
+    {
+      "name": "renewal fee",
+      "votes": {
+        "Amount": 4,
+        "Service": 1
+      },
+      "resolved_type": "Amount",
+      "rule": "majority"
+    },
+    {
+      "name": "check or money order",
+      "votes": {
+        "Requirement": 1,
+        "Document": 6
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "civil penalty",
+      "votes": {
+        "Amount": 6,
+        "Outcome": 4
+      },
+      "resolved_type": "Amount",
+      "rule": "majority"
+    },
+    {
+      "name": "surrender plate",
+      "votes": {
+        "Service": 3,
+        "Requirement": 2
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "register vehicle in another state",
+      "votes": {
+        "Requirement": 1,
+        "Service": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "liability insurance",
+      "votes": {
+        "Requirement": 2,
+        "Document": 1,
+        "Service": 2
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "surrender registration",
+      "votes": {
+        "Requirement": 1,
+        "Service": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "motorcycle plate",
+      "votes": {
+        "Document": 1,
+        "Requirement": 1,
+        "Service": 1
+      },
+      "resolved_type": "Document",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "trailer",
+      "votes": {
+        "Requirement": 4,
+        "Service": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "insurance",
+      "votes": {
+        "Role": 1,
+        "Service": 1,
+        "Requirement": 2
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "nys department of motor vehicle",
+      "votes": {
+        "Organization": 9,
+        "Document": 1
+      },
+      "resolved_type": "Organization",
+      "rule": "majority"
+    },
+    {
+      "name": "search account",
+      "votes": {
+        "Service": 1,
+        "Document": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "accident report",
+      "votes": {
+        "Document": 2,
+        "Service": 1
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "driving instruction",
+      "votes": {
+        "Service": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "priority"
+    },
+    {
+      "name": "road test appointment",
+      "votes": {
+        "Requirement": 1,
+        "TimeLimit": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "road test",
+      "votes": {
+        "TimeLimit": 1,
+        "Service": 21
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "acceleration",
+      "votes": {
+        "Service": 1,
+        "Outcome": 2
+      },
+      "resolved_type": "Outcome",
+      "rule": "majority"
+    },
+    {
+      "name": "county use tax",
+      "votes": {
+        "Service": 1,
+        "Amount": 2
+      },
+      "resolved_type": "Amount",
+      "rule": "majority"
+    },
+    {
+      "name": "additional fee",
+      "votes": {
+        "Requirement": 1,
+        "Amount": 7
+      },
+      "resolved_type": "Amount",
+      "rule": "majority"
+    },
+    {
+      "name": "commercial vehicle",
+      "votes": {
+        "Service": 1,
+        "Requirement": 5
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "vehicle use tax",
+      "votes": {
+        "Service": 2,
+        "Amount": 5
+      },
+      "resolved_type": "Amount",
+      "rule": "majority"
+    },
+    {
+      "name": "local dmv office",
+      "votes": {
+        "ContactPoint": 21,
+        "Organization": 6
+      },
+      "resolved_type": "ContactPoint",
+      "rule": "majority"
+    },
+    {
+      "name": "dmv call center",
+      "votes": {
+        "ContactPoint": 14,
+        "Organization": 1
+      },
+      "resolved_type": "ContactPoint",
+      "rule": "majority"
+    },
+    {
+      "name": "reduced fee or no fee id",
+      "votes": {
+        "Outcome": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "priority"
+    },
+    {
+      "name": "enhanced or real id",
+      "votes": {
+        "Document": 12,
+        "Service": 10,
+        "Requirement": 2
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "standard",
+      "votes": {
+        "Service": 5,
+        "Document": 3,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "standard online",
+      "votes": {
+        "Service": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "priority"
+    },
+    {
+      "name": "not for federal purpose",
+      "votes": {
+        "Outcome": 5,
+        "Requirement": 2,
+        "Document": 2
+      },
+      "resolved_type": "Outcome",
+      "rule": "majority"
+    },
+    {
+      "name": "fee",
+      "votes": {
+        "Amount": 23,
+        "Service": 4,
+        "Requirement": 2,
+        "Document": 2
+      },
+      "resolved_type": "Amount",
+      "rule": "majority"
+    },
+    {
+      "name": "no fee renewal",
+      "votes": {
+        "Service": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "priority"
+    },
+    {
+      "name": "under 21",
+      "votes": {
+        "Document": 1,
+        "Outcome": 1
+      },
+      "resolved_type": "Outcome",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "new non driver id card",
+      "votes": {
+        "Outcome": 1,
+        "Service": 1
+      },
+      "resolved_type": "Service",
+      "rule": "priority"
+    },
+    {
+      "name": "october 30 2017",
+      "votes": {
+        "TimeLimit": 5,
+        "Requirement": 1
+      },
+      "resolved_type": "TimeLimit",
+      "rule": "majority"
+    },
+    {
+      "name": "auto liability insurance",
+      "votes": {
+        "Service": 1,
+        "Document": 1,
+        "Requirement": 3
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "proof of insurance",
+      "votes": {
+        "Document": 5,
+        "Requirement": 10,
+        "Service": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "replacement title",
+      "votes": {
+        "Service": 2,
+        "Document": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "title certificate",
+      "votes": {
+        "Document": 29,
+        "Service": 1
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "secure facility in albany",
+      "votes": {
+        "ContactPoint": 1,
+        "Organization": 1
+      },
+      "resolved_type": "Organization",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "personal check or money order",
+      "votes": {
+        "Document": 2,
+        "Requirement": 1
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "duplicate title certificate",
+      "votes": {
+        "Service": 2,
+        "Document": 2
+      },
+      "resolved_type": "Document",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "replace lost title certificate",
+      "votes": {
+        "Service": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "automotive facilitie inspector",
+      "votes": {
+        "Organization": 4,
+        "Role": 1
+      },
+      "resolved_type": "Organization",
+      "rule": "majority"
+    },
+    {
+      "name": "hearing waiver",
+      "votes": {
+        "Service": 2,
+        "Document": 2
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "letter from dmv shortly after hearing",
+      "votes": {
+        "Outcome": 1,
+        "Document": 1
+      },
+      "resolved_type": "Outcome",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "fine or penalty",
+      "votes": {
+        "Requirement": 1,
+        "Amount": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "revoked",
+      "votes": {
+        "Outcome": 1,
+        "Requirement": 2
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "facility license registration or certification",
+      "votes": {
+        "Document": 1,
+        "Service": 3
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "proof of identity and age",
+      "votes": {
+        "Requirement": 2,
+        "Document": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "proof of sale tax payment or exemption",
+      "votes": {
+        "Requirement": 1,
+        "Document": 1
+      },
+      "resolved_type": "Document",
+      "rule": "priority"
+    },
+    {
+      "name": "graduated license law",
+      "votes": {
+        "Document": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Document",
+      "rule": "priority"
+    },
+    {
+      "name": "driving record",
+      "votes": {
+        "Document": 1,
+        "Requirement": 2,
+        "Service": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "course completion",
+      "votes": {
+        "Requirement": 1,
+        "Outcome": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "driver age 21 or older",
+      "votes": {
+        "Requirement": 1,
+        "Role": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "vehicle",
+      "votes": {
+        "Service": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "restriction for junior driver",
+      "votes": {
+        "Requirement": 1,
+        "Outcome": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "expiration date",
+      "votes": {
+        "TimeLimit": 1,
+        "Outcome": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "priority"
+    },
+    {
+      "name": "american express card",
+      "votes": {
+        "Document": 3,
+        "ContactPoint": 2
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "discover card novu",
+      "votes": {
+        "Document": 1,
+        "Amount": 2,
+        "Requirement": 1
+      },
+      "resolved_type": "Amount",
+      "rule": "majority"
+    },
+    {
+      "name": "mastercard",
+      "votes": {
+        "Document": 2,
+        "ContactPoint": 1,
+        "Amount": 2,
+        "Requirement": 1
+      },
+      "resolved_type": "Document",
+      "rule": "priority"
+    },
+    {
+      "name": "visa card",
+      "votes": {
+        "Document": 3,
+        "ContactPoint": 2
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "usdot medical examiner certificate",
+      "votes": {
+        "Document": 1,
+        "Service": 1
+      },
+      "resolved_type": "Document",
+      "rule": "priority"
+    },
+    {
+      "name": "excepted operation",
+      "votes": {
+        "Requirement": 2,
+        "Service": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "national registry of certified medical examiner search",
+      "votes": {
+        "ContactPoint": 2,
+        "Service": 1
+      },
+      "resolved_type": "ContactPoint",
+      "rule": "majority"
+    },
+    {
+      "name": "medical variance",
+      "votes": {
+        "Document": 2,
+        "Service": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "cdl",
+      "votes": {
+        "Service": 2,
+        "Document": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "tvb",
+      "votes": {
+        "Service": 1,
+        "Organization": 3
+      },
+      "resolved_type": "Organization",
+      "rule": "majority"
+    },
+    {
+      "name": "fine",
+      "votes": {
+        "Amount": 5,
+        "Outcome": 2
+      },
+      "resolved_type": "Amount",
+      "rule": "majority"
+    },
+    {
+      "name": "check or money order payable to commissioner of motor vehicle",
+      "votes": {
+        "Document": 2,
+        "Requirement": 3
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "traffic ticket",
+      "votes": {
+        "Service": 3,
+        "Outcome": 7,
+        "Document": 1
+      },
+      "resolved_type": "Outcome",
+      "rule": "majority"
+    },
+    {
+      "name": "violation point",
+      "votes": {
+        "Outcome": 1,
+        "Service": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "motor vehicle office",
+      "votes": {
+        "ContactPoint": 8,
+        "Requirement": 1,
+        "Organization": 1
+      },
+      "resolved_type": "ContactPoint",
+      "rule": "majority"
+    },
+    {
+      "name": "mark j f schroeder",
+      "votes": {
+        "Organization": 2,
+        "Role": 1
+      },
+      "resolved_type": "Organization",
+      "rule": "majority"
+    },
+    {
+      "name": "mctd fee",
+      "votes": {
+        "Amount": 1,
+        "Service": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "sale tax information",
+      "votes": {
+        "Document": 1,
+        "ContactPoint": 2,
+        "Service": 1
+      },
+      "resolved_type": "ContactPoint",
+      "rule": "majority"
+    },
+    {
+      "name": "passenger vehicle",
+      "votes": {
+        "Requirement": 3,
+        "Service": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "custom plate",
+      "votes": {
+        "Service": 2,
+        "Document": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "receipt",
+      "votes": {
+        "Document": 5,
+        "Requirement": 1
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "american express",
+      "votes": {
+        "Amount": 3,
+        "Requirement": 2
+      },
+      "resolved_type": "Amount",
+      "rule": "majority"
+    },
+    {
+      "name": "domestic flight starting in october 2020",
+      "votes": {
+        "Requirement": 1,
+        "TimeLimit": 1
+      },
+      "resolved_type": "TimeLimit",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "credit debit card",
+      "votes": {
+        "ContactPoint": 2,
+        "Requirement": 1
+      },
+      "resolved_type": "ContactPoint",
+      "rule": "majority"
+    },
+    {
+      "name": "check or money order made out to commissioner of motor vehicle",
+      "votes": {
+        "Document": 1,
+        "ContactPoint": 1
+      },
+      "resolved_type": "Document",
+      "rule": "priority"
+    },
+    {
+      "name": "apply at dmv office",
+      "votes": {
+        "Requirement": 1,
+        "Service": 2
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "discover card",
+      "votes": {
+        "ContactPoint": 1,
+        "Document": 1
+      },
+      "resolved_type": "Document",
+      "rule": "priority"
+    },
+    {
+      "name": "id number",
+      "votes": {
+        "Outcome": 1,
+        "Requirement": 2
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "ny state driver license",
+      "votes": {
+        "Document": 16,
+        "Service": 2
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "new license",
+      "votes": {
+        "Outcome": 2,
+        "Document": 2,
+        "Service": 2
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "insurance premium reduction",
+      "votes": {
+        "Service": 1,
+        "Outcome": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "insurance company or agent",
+      "votes": {
+        "Organization": 2,
+        "ContactPoint": 1
+      },
+      "resolved_type": "Organization",
+      "rule": "majority"
+    },
+    {
+      "name": "class e driver license",
+      "votes": {
+        "Document": 2,
+        "Service": 1
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "class d license",
+      "votes": {
+        "Document": 2,
+        "Service": 1
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "proof that lien was satisfied",
+      "votes": {
+        "Document": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Document",
+      "rule": "priority"
+    },
+    {
+      "name": "original title certificate",
+      "votes": {
+        "Document": 3,
+        "Service": 1
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "notice of non compliance and license downgrade",
+      "votes": {
+        "Service": 1,
+        "Document": 2
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "new york state registration",
+      "votes": {
+        "Service": 2,
+        "Document": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "1 or 2 year registration fee",
+      "votes": {
+        "TimeLimit": 1,
+        "Amount": 1
+      },
+      "resolved_type": "Amount",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "cash",
+      "votes": {
+        "Amount": 3,
+        "Requirement": 2
+      },
+      "resolved_type": "Amount",
+      "rule": "majority"
+    },
+    {
+      "name": "personal check",
+      "votes": {
+        "Amount": 3,
+        "Document": 2
+      },
+      "resolved_type": "Amount",
+      "rule": "majority"
+    },
+    {
+      "name": "california emission standard",
+      "votes": {
+        "Requirement": 2,
+        "Service": 4
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "dealer",
+      "votes": {
+        "Role": 3,
+        "Organization": 2
+      },
+      "resolved_type": "Role",
+      "rule": "majority"
+    },
+    {
+      "name": "police",
+      "votes": {
+        "Organization": 2,
+        "Role": 1
+      },
+      "resolved_type": "Organization",
+      "rule": "majority"
+    },
+    {
+      "name": "transfer ownership to insurance company",
+      "votes": {
+        "Service": 1,
+        "Outcome": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "cancel liability insurance",
+      "votes": {
+        "Service": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "personalized plate",
+      "votes": {
+        "Document": 1,
+        "Service": 3
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "problem driver restriction",
+      "votes": {
+        "Requirement": 4,
+        "Service": 2
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "restriction",
+      "votes": {
+        "Service": 1,
+        "Outcome": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "ignition interlock device",
+      "votes": {
+        "Document": 3,
+        "Service": 2
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "leandra s law",
+      "votes": {
+        "Document": 1,
+        "Service": 2
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "atv registration",
+      "votes": {
+        "Service": 3,
+        "Requirement": 1,
+        "Document": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "proof of ownership",
+      "votes": {
+        "Document": 5,
+        "Service": 1,
+        "Requirement": 8
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "proof of sale tax payment",
+      "votes": {
+        "Service": 2,
+        "Document": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "local motor vehicle office",
+      "votes": {
+        "ContactPoint": 3,
+        "Organization": 1
+      },
+      "resolved_type": "ContactPoint",
+      "rule": "majority"
+    },
+    {
+      "name": "parkway",
+      "votes": {
+        "Requirement": 1,
+        "Service": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "valid driver license",
+      "votes": {
+        "Document": 3,
+        "Requirement": 3
+      },
+      "resolved_type": "Document",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "new york state driver license",
+      "votes": {
+        "Document": 9,
+        "Service": 5
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "driver license from another state",
+      "votes": {
+        "Document": 1,
+        "Service": 2
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "fine and penaltie",
+      "votes": {
+        "Amount": 1,
+        "Requirement": 2
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "tvb traffic ticket",
+      "votes": {
+        "Service": 2,
+        "Document": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "vehicle inspection",
+      "votes": {
+        "Document": 1,
+        "Requirement": 1,
+        "Service": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "dmv record",
+      "votes": {
+        "Service": 1,
+        "Organization": 2,
+        "Document": 1
+      },
+      "resolved_type": "Organization",
+      "rule": "majority"
+    },
+    {
+      "name": "submit request",
+      "votes": {
+        "Service": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "photocopy of driver license or other government issued photo id card",
+      "votes": {
+        "Document": 2,
+        "Requirement": 1
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "record access officer",
+      "votes": {
+        "Organization": 1,
+        "Role": 1
+      },
+      "resolved_type": "Organization",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "request",
+      "votes": {
+        "Requirement": 1,
+        "Document": 1
+      },
+      "resolved_type": "Document",
+      "rule": "priority"
+    },
+    {
+      "name": "record requested",
+      "votes": {
+        "Outcome": 1,
+        "Service": 1
+      },
+      "resolved_type": "Service",
+      "rule": "priority"
+    },
+    {
+      "name": "point",
+      "votes": {
+        "Service": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "document number",
+      "votes": {
+        "Requirement": 4,
+        "Document": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "motorcycle learner permit",
+      "votes": {
+        "Service": 1,
+        "Document": 1
+      },
+      "resolved_type": "Document",
+      "rule": "priority"
+    },
+    {
+      "name": "motorcycle permit",
+      "votes": {
+        "Document": 1,
+        "Service": 1
+      },
+      "resolved_type": "Document",
+      "rule": "priority"
+    },
+    {
+      "name": "original title or other proof of ownership",
+      "votes": {
+        "Requirement": 1,
+        "Document": 1
+      },
+      "resolved_type": "Document",
+      "rule": "priority"
+    },
+    {
+      "name": "new title certificate",
+      "votes": {
+        "Document": 2,
+        "Service": 1
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "one copy or form of insurance id card",
+      "votes": {
+        "Requirement": 2,
+        "Document": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "insurance agent or broker",
+      "votes": {
+        "Organization": 1,
+        "Role": 2
+      },
+      "resolved_type": "Role",
+      "rule": "majority"
+    },
+    {
+      "name": "ny state transferable registration",
+      "votes": {
+        "Document": 8,
+        "Requirement": 1
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "electronic notice of insurance coverage to dmv",
+      "votes": {
+        "Document": 2,
+        "Requirement": 1
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "sale tax payment",
+      "votes": {
+        "Service": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "non resident exemption from ny state sale tax",
+      "votes": {
+        "Outcome": 1,
+        "Service": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "irp registration",
+      "votes": {
+        "Document": 2,
+        "Service": 2
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "dmv local office",
+      "votes": {
+        "ContactPoint": 2,
+        "Organization": 1
+      },
+      "resolved_type": "ContactPoint",
+      "rule": "majority"
+    },
+    {
+      "name": "proof of worker compensation insurance",
+      "votes": {
+        "Document": 3,
+        "Requirement": 1
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "reservation",
+      "votes": {
+        "Service": 3,
+        "Requirement": 3
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "supervised driving practice",
+      "votes": {
+        "Service": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "priority"
+    },
+    {
+      "name": "commercial learner permit",
+      "votes": {
+        "Service": 2,
+        "Document": 2
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "enhanced permit",
+      "votes": {
+        "Service": 1,
+        "Document": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "sale tax id number",
+      "votes": {
+        "Requirement": 1,
+        "Document": 3
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "fein",
+      "votes": {
+        "Requirement": 1,
+        "Document": 1
+      },
+      "resolved_type": "Document",
+      "rule": "priority"
+    },
+    {
+      "name": "worker compensation insurance",
+      "votes": {
+        "Requirement": 2,
+        "Document": 1,
+        "Service": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "county clerk",
+      "votes": {
+        "Organization": 1,
+        "ContactPoint": 2
+      },
+      "resolved_type": "ContactPoint",
+      "rule": "majority"
+    },
+    {
+      "name": "on site investigation",
+      "votes": {
+        "Service": 4,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "regional office",
+      "votes": {
+        "Organization": 1,
+        "ContactPoint": 1
+      },
+      "resolved_type": "Organization",
+      "rule": "priority"
+    },
+    {
+      "name": "license",
+      "votes": {
+        "Document": 2,
+        "Service": 1
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "certified inspector",
+      "votes": {
+        "Role": 1,
+        "Organization": 1
+      },
+      "resolved_type": "Organization",
+      "rule": "priority"
+    },
+    {
+      "name": "completed application",
+      "votes": {
+        "Document": 1,
+        "Service": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "odometer reading",
+      "votes": {
+        "Document": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Document",
+      "rule": "priority"
+    },
+    {
+      "name": "vs 35 complaint report",
+      "votes": {
+        "Document": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Document",
+      "rule": "priority"
+    },
+    {
+      "name": "repair shop act",
+      "votes": {
+        "Document": 1,
+        "Service": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "restitution",
+      "votes": {
+        "Service": 1,
+        "Amount": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "certified check",
+      "votes": {
+        "Document": 3,
+        "Requirement": 1
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "money order",
+      "votes": {
+        "Document": 5,
+        "Requirement": 1,
+        "Amount": 1
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "payment by mail",
+      "votes": {
+        "Requirement": 1,
+        "Service": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "credit or debit card",
+      "votes": {
+        "Requirement": 2,
+        "Document": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "mydmv account",
+      "votes": {
+        "ContactPoint": 6,
+        "Service": 8
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "ny state department of tax and finance dtf 802",
+      "votes": {
+        "Organization": 4,
+        "Document": 1
+      },
+      "resolved_type": "Organization",
+      "rule": "majority"
+    },
+    {
+      "name": "ny state sale tax",
+      "votes": {
+        "Requirement": 1,
+        "Amount": 2
+      },
+      "resolved_type": "Amount",
+      "rule": "majority"
+    },
+    {
+      "name": "reduce amount of ny state sale tax",
+      "votes": {
+        "Outcome": 1,
+        "Service": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "temporary password",
+      "votes": {
+        "Requirement": 1,
+        "Document": 2
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "lifetime driving record",
+      "votes": {
+        "Service": 3,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "most recently issued document",
+      "votes": {
+        "Document": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Document",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "insurance coverage",
+      "votes": {
+        "Outcome": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "surrender vehicle registration and plate",
+      "votes": {
+        "Service": 4,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "restore driver license",
+      "votes": {
+        "Service": 1,
+        "Outcome": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "new registration",
+      "votes": {
+        "Service": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "lapse period",
+      "votes": {
+        "Outcome": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "suspension termination fee",
+      "votes": {
+        "Amount": 13,
+        "Service": 3
+      },
+      "resolved_type": "Amount",
+      "rule": "majority"
+    },
+    {
+      "name": "proof of zoning",
+      "votes": {
+        "Document": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Document",
+      "rule": "priority"
+    },
+    {
+      "name": "submit application with dmv",
+      "votes": {
+        "Service": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "priority"
+    },
+    {
+      "name": "len",
+      "votes": {
+        "Organization": 2,
+        "Service": 1
+      },
+      "resolved_type": "Organization",
+      "rule": "majority"
+    },
+    {
+      "name": "background check",
+      "votes": {
+        "Service": 8,
+        "Requirement": 2
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "hazmat endorsement",
+      "votes": {
+        "Service": 7,
+        "Document": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "appointment only",
+      "votes": {
+        "TimeLimit": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "priority"
+    },
+    {
+      "name": "result of background check",
+      "votes": {
+        "Document": 1,
+        "Outcome": 1
+      },
+      "resolved_type": "Outcome",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "cdl that doe not have hazmat endorsement",
+      "votes": {
+        "Outcome": 2,
+        "Service": 1
+      },
+      "resolved_type": "Outcome",
+      "rule": "majority"
+    },
+    {
+      "name": "new york state",
+      "votes": {
+        "Organization": 6,
+        "Requirement": 1
+      },
+      "resolved_type": "Organization",
+      "rule": "majority"
+    },
+    {
+      "name": "fingerprint based background check",
+      "votes": {
+        "Requirement": 1,
+        "Service": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "fingerprint",
+      "votes": {
+        "Requirement": 1,
+        "Document": 2
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "inspection station",
+      "votes": {
+        "Organization": 1,
+        "Service": 1
+      },
+      "resolved_type": "Organization",
+      "rule": "priority"
+    },
+    {
+      "name": "dmv regulated automotive business",
+      "votes": {
+        "Organization": 1,
+        "Requirement": 1,
+        "Service": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "hearing must be held",
+      "votes": {
+        "Requirement": 1,
+        "Outcome": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "priority"
+    },
+    {
+      "name": "escrow account",
+      "votes": {
+        "Service": 2,
+        "Outcome": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "letterhead",
+      "votes": {
+        "Document": 1,
+        "Requirement": 2
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "credit",
+      "votes": {
+        "Outcome": 1,
+        "Service": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "dmv website",
+      "votes": {
+        "ContactPoint": 1,
+        "Organization": 1
+      },
+      "resolved_type": "Organization",
+      "rule": "priority"
+    },
+    {
+      "name": "graduated driver license gdl law",
+      "votes": {
+        "Requirement": 1,
+        "Service": 1
+      },
+      "resolved_type": "Service",
+      "rule": "priority"
+    },
+    {
+      "name": "all terrain vehicle",
+      "votes": {
+        "Requirement": 1,
+        "Service": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "temporary registration",
+      "votes": {
+        "Service": 1,
+        "Document": 2
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "utica processing center",
+      "votes": {
+        "Organization": 1,
+        "ContactPoint": 1
+      },
+      "resolved_type": "Organization",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "driving record abstract",
+      "votes": {
+        "Service": 2,
+        "Document": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "insurance coverage ended",
+      "votes": {
+        "Outcome": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Outcome",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "hazardou material endorsement",
+      "votes": {
+        "Service": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "temporary visitor",
+      "votes": {
+        "Requirement": 2,
+        "Role": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "expiration date from dhs document",
+      "votes": {
+        "Requirement": 3,
+        "TimeLimit": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "temporary visitor expiration date",
+      "votes": {
+        "TimeLimit": 2,
+        "Outcome": 1
+      },
+      "resolved_type": "TimeLimit",
+      "rule": "majority"
+    },
+    {
+      "name": "us citizen",
+      "votes": {
+        "Requirement": 2,
+        "Role": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "student from other state or from other nation who attend school in new york state",
+      "votes": {
+        "Role": 2,
+        "Requirement": 1
+      },
+      "resolved_type": "Role",
+      "rule": "majority"
+    },
+    {
+      "name": "official dealer sign",
+      "votes": {
+        "Service": 1,
+        "Document": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "proof of change",
+      "votes": {
+        "Document": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Document",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "update photo",
+      "votes": {
+        "Service": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "change name",
+      "votes": {
+        "Service": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "in transit permit",
+      "votes": {
+        "Document": 1,
+        "Service": 4
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "issue date",
+      "votes": {
+        "Outcome": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "priority"
+    },
+    {
+      "name": "certified copie",
+      "votes": {
+        "Outcome": 1,
+        "Document": 1
+      },
+      "resolved_type": "Document",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "commercial driver license",
+      "votes": {
+        "Requirement": 2,
+        "Document": 2,
+        "Service": 2
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "metropolitan commuter transportation district mctd fee",
+      "votes": {
+        "Amount": 2,
+        "Service": 1
+      },
+      "resolved_type": "Amount",
+      "rule": "majority"
+    },
+    {
+      "name": "destroy foreign driver license after 60 day",
+      "votes": {
+        "TimeLimit": 1,
+        "Outcome": 2
+      },
+      "resolved_type": "Outcome",
+      "rule": "majority"
+    },
+    {
+      "name": "universal symbol of access",
+      "votes": {
+        "Requirement": 2,
+        "Document": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "pay driver civil penalty",
+      "votes": {
+        "Service": 4,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "driver civil penalty",
+      "votes": {
+        "Service": 2,
+        "Amount": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "suspension period end",
+      "votes": {
+        "TimeLimit": 2,
+        "Requirement": 2
+      },
+      "resolved_type": "Requirement",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "driver improvement unit",
+      "votes": {
+        "Organization": 6,
+        "ContactPoint": 1
+      },
+      "resolved_type": "Organization",
+      "rule": "majority"
+    },
+    {
+      "name": "discover card novu mastercard",
+      "votes": {
+        "Document": 1,
+        "ContactPoint": 1
+      },
+      "resolved_type": "Document",
+      "rule": "priority"
+    },
+    {
+      "name": "mastercard debit card without personal identification number pin",
+      "votes": {
+        "Document": 1,
+        "ContactPoint": 1
+      },
+      "resolved_type": "Document",
+      "rule": "priority"
+    },
+    {
+      "name": "visa debit card without personal identification number pin",
+      "votes": {
+        "Document": 1,
+        "ContactPoint": 1
+      },
+      "resolved_type": "Document",
+      "rule": "priority"
+    },
+    {
+      "name": "junior learner permit",
+      "votes": {
+        "Document": 2,
+        "Service": 1
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "junior driver license",
+      "votes": {
+        "Document": 5,
+        "Service": 1
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "tnc",
+      "votes": {
+        "Service": 1,
+        "Organization": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "yes",
+      "votes": {
+        "Outcome": 1,
+        "Requirement": 2
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "new york state resident",
+      "votes": {
+        "Requirement": 3,
+        "Role": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "new york state department of motor vehicle attestation",
+      "votes": {
+        "Requirement": 1,
+        "Document": 1
+      },
+      "resolved_type": "Document",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "voter registration application",
+      "votes": {
+        "Document": 2,
+        "Service": 1
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "processing",
+      "votes": {
+        "Service": 1,
+        "Outcome": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "review",
+      "votes": {
+        "Service": 2,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "digital signature",
+      "votes": {
+        "Document": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Document",
+      "rule": "priority"
+    },
+    {
+      "name": "private organization",
+      "votes": {
+        "Requirement": 1,
+        "Organization": 1
+      },
+      "resolved_type": "Organization",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "resident of new york state",
+      "votes": {
+        "Outcome": 1,
+        "Requirement": 2
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "duplicate",
+      "votes": {
+        "Document": 1,
+        "Requirement": 1,
+        "Outcome": 1
+      },
+      "resolved_type": "Document",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "empire gold plate",
+      "votes": {
+        "Document": 5,
+        "Service": 2
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "helmet",
+      "votes": {
+        "Requirement": 1,
+        "Document": 1
+      },
+      "resolved_type": "Document",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "nyssa voucher",
+      "votes": {
+        "Document": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Document",
+      "rule": "priority"
+    },
+    {
+      "name": "diesel emission inspection",
+      "votes": {
+        "Service": 4,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "proof of supplemental security income",
+      "votes": {
+        "Document": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Document",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "email notification",
+      "votes": {
+        "Outcome": 1,
+        "Service": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "user id",
+      "votes": {
+        "Document": 1,
+        "Outcome": 1
+      },
+      "resolved_type": "Outcome",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "real id",
+      "votes": {
+        "Requirement": 2,
+        "Service": 3
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "proof of honorable discharge",
+      "votes": {
+        "Requirement": 1,
+        "Document": 2
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "lienholder",
+      "votes": {
+        "Outcome": 1,
+        "Organization": 1
+      },
+      "resolved_type": "Organization",
+      "rule": "priority"
+    },
+    {
+      "name": "manufactured home",
+      "votes": {
+        "Requirement": 1,
+        "Service": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "new york state certificate of title",
+      "votes": {
+        "Service": 1,
+        "Document": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "lien",
+      "votes": {
+        "Service": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "new york state title certificate",
+      "votes": {
+        "Service": 1,
+        "Document": 1
+      },
+      "resolved_type": "Document",
+      "rule": "priority"
+    },
+    {
+      "name": "paid loan in full",
+      "votes": {
+        "Requirement": 1,
+        "Outcome": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "new license plate",
+      "votes": {
+        "Requirement": 1,
+        "Document": 1
+      },
+      "resolved_type": "Document",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "rebuilt salvage",
+      "votes": {
+        "Outcome": 1,
+        "Document": 1
+      },
+      "resolved_type": "Outcome",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "vehicle can be registered or titled",
+      "votes": {
+        "Outcome": 2,
+        "Requirement": 1
+      },
+      "resolved_type": "Outcome",
+      "rule": "majority"
+    },
+    {
+      "name": "driving school instructor certificate",
+      "votes": {
+        "Document": 1,
+        "Service": 1
+      },
+      "resolved_type": "Document",
+      "rule": "priority"
+    },
+    {
+      "name": "definite suspension",
+      "votes": {
+        "Service": 2,
+        "Outcome": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "indefinite suspension",
+      "votes": {
+        "Service": 2,
+        "Outcome": 1,
+        "Requirement": 2
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "driving privilege",
+      "votes": {
+        "Requirement": 1,
+        "Service": 1
+      },
+      "resolved_type": "Service",
+      "rule": "priority"
+    },
+    {
+      "name": "personal check or money order payable to commissioner of motor vehicle",
+      "votes": {
+        "Document": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Document",
+      "rule": "priority"
+    },
+    {
+      "name": "enhanced driver license",
+      "votes": {
+        "Service": 1,
+        "Document": 1
+      },
+      "resolved_type": "Document",
+      "rule": "priority"
+    },
+    {
+      "name": "out of state insurance",
+      "votes": {
+        "Service": 1,
+        "Document": 1
+      },
+      "resolved_type": "Document",
+      "rule": "priority"
+    },
+    {
+      "name": "small big game",
+      "votes": {
+        "Service": 1,
+        "Role": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "bow hunting",
+      "votes": {
+        "Service": 1,
+        "Role": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "muzzle loading",
+      "votes": {
+        "Service": 1,
+        "Role": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "trapping",
+      "votes": {
+        "Service": 1,
+        "Role": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "lifetime empire passport",
+      "votes": {
+        "Requirement": 1,
+        "Service": 1
+      },
+      "resolved_type": "Service",
+      "rule": "priority"
+    },
+    {
+      "name": "dmv online vision registry",
+      "votes": {
+        "ContactPoint": 1,
+        "Organization": 3
+      },
+      "resolved_type": "Organization",
+      "rule": "majority"
+    },
+    {
+      "name": "vision test report",
+      "votes": {
+        "Requirement": 1,
+        "Document": 1
+      },
+      "resolved_type": "Document",
+      "rule": "priority"
+    },
+    {
+      "name": "pass vision test without corrective lense",
+      "votes": {
+        "Requirement": 1,
+        "Outcome": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "legend non domiciled",
+      "votes": {
+        "Document": 2,
+        "Requirement": 1
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "temporary cdl",
+      "votes": {
+        "Service": 1,
+        "Document": 1
+      },
+      "resolved_type": "Document",
+      "rule": "priority"
+    },
+    {
+      "name": "acceptable proof of ownership",
+      "votes": {
+        "Requirement": 17,
+        "Document": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "instruction on suspension order",
+      "votes": {
+        "Document": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Document",
+      "rule": "priority"
+    },
+    {
+      "name": "certified copy of driving record",
+      "votes": {
+        "Requirement": 1,
+        "Document": 3
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "dmv issuing office",
+      "votes": {
+        "ContactPoint": 1,
+        "Organization": 1
+      },
+      "resolved_type": "Organization",
+      "rule": "priority"
+    },
+    {
+      "name": "driving school instructor",
+      "votes": {
+        "Role": 2,
+        "Service": 4
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "vehicle registration title application mv 82",
+      "votes": {
+        "Document": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Document",
+      "rule": "priority"
+    },
+    {
+      "name": "license plate",
+      "votes": {
+        "Document": 1,
+        "Service": 1
+      },
+      "resolved_type": "Document",
+      "rule": "priority"
+    },
+    {
+      "name": "reserved parking space",
+      "votes": {
+        "Service": 2,
+        "Outcome": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "proof of disability",
+      "votes": {
+        "Requirement": 1,
+        "Service": 1,
+        "Document": 3
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "parking permit",
+      "votes": {
+        "Service": 2,
+        "Document": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "local issuing agent",
+      "votes": {
+        "ContactPoint": 1,
+        "Organization": 1
+      },
+      "resolved_type": "Organization",
+      "rule": "priority"
+    },
+    {
+      "name": "false certification",
+      "votes": {
+        "Outcome": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "priority"
+    },
+    {
+      "name": "locality that issued permit",
+      "votes": {
+        "ContactPoint": 1,
+        "Organization": 1
+      },
+      "resolved_type": "Organization",
+      "rule": "priority"
+    },
+    {
+      "name": "transfer section",
+      "votes": {
+        "Requirement": 2,
+        "Document": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "insurance companie",
+      "votes": {
+        "Role": 1,
+        "Organization": 1
+      },
+      "resolved_type": "Role",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "additional user ids",
+      "votes": {
+        "Document": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Document",
+      "rule": "priority"
+    },
+    {
+      "name": "clp",
+      "votes": {
+        "Document": 1,
+        "Service": 1
+      },
+      "resolved_type": "Document",
+      "rule": "priority"
+    },
+    {
+      "name": "ignition interlock restriction",
+      "votes": {
+        "Document": 1,
+        "Outcome": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Outcome",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "lower monthly payment",
+      "votes": {
+        "Requirement": 2,
+        "Outcome": 3,
+        "Service": 1
+      },
+      "resolved_type": "Outcome",
+      "rule": "majority"
+    },
+    {
+      "name": "income driven repayment plan",
+      "votes": {
+        "Service": 32,
+        "Outcome": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "free application for federal student aid form",
+      "votes": {
+        "Document": 4,
+        "Service": 1
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "fsa id username and password",
+      "votes": {
+        "Requirement": 5,
+        "Document": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "fsa id",
+      "votes": {
+        "Service": 3,
+        "Document": 5,
+        "Requirement": 2
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "making payment",
+      "votes": {
+        "Requirement": 2,
+        "Outcome": 1,
+        "Service": 3
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "monthly loan payment",
+      "votes": {
+        "Service": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "priority"
+    },
+    {
+      "name": "loan forgiveness",
+      "votes": {
+        "Outcome": 3,
+        "Service": 4
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "public service loan forgiveness pslf",
+      "votes": {
+        "Service": 1,
+        "Outcome": 1
+      },
+      "resolved_type": "Service",
+      "rule": "priority"
+    },
+    {
+      "name": "deferment",
+      "votes": {
+        "Service": 12,
+        "Outcome": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "direct plu loan",
+      "votes": {
+        "Service": 28,
+        "Document": 2
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "loan servicer",
+      "votes": {
+        "Organization": 66,
+        "Service": 2
+      },
+      "resolved_type": "Organization",
+      "rule": "majority"
+    },
+    {
+      "name": "direct plu loan request",
+      "votes": {
+        "Document": 1,
+        "Service": 3
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "direct loan",
+      "votes": {
+        "Service": 17,
+        "Document": 7,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "ffel program loan",
+      "votes": {
+        "Service": 8,
+        "Document": 2
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "default",
+      "votes": {
+        "Outcome": 2,
+        "Service": 1
+      },
+      "resolved_type": "Outcome",
+      "rule": "majority"
+    },
+    {
+      "name": "federal work study program",
+      "votes": {
+        "Service": 3,
+        "Organization": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "plu loan",
+      "votes": {
+        "Service": 5,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "biological or adoptive parent",
+      "votes": {
+        "Role": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "grandparent",
+      "votes": {
+        "Role": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "priority"
+    },
+    {
+      "name": "legal guardian",
+      "votes": {
+        "Role": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "priority"
+    },
+    {
+      "name": "fixed interest rate for life of loan",
+      "votes": {
+        "Outcome": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "priority"
+    },
+    {
+      "name": "cost of attendance",
+      "votes": {
+        "Requirement": 5,
+        "Service": 2,
+        "Amount": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "first payment is due",
+      "votes": {
+        "Outcome": 2,
+        "Requirement": 3
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "credit check",
+      "votes": {
+        "Service": 1,
+        "Requirement": 2
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "fafsa form",
+      "votes": {
+        "Document": 44,
+        "Service": 5
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "financial aid office",
+      "votes": {
+        "Organization": 27,
+        "ContactPoint": 2
+      },
+      "resolved_type": "Organization",
+      "rule": "majority"
+    },
+    {
+      "name": "parent plu loan fund",
+      "votes": {
+        "Amount": 1,
+        "Document": 1
+      },
+      "resolved_type": "Document",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "direct consolidation loan",
+      "votes": {
+        "Service": 28,
+        "Document": 2
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "contact loan servicer immediately",
+      "votes": {
+        "Requirement": 2,
+        "Service": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "change repayment plan",
+      "votes": {
+        "Service": 6,
+        "Outcome": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "public service loan forgiveness",
+      "votes": {
+        "Service": 8,
+        "Outcome": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "contact information for loan servicer",
+      "votes": {
+        "ContactPoint": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "priority"
+    },
+    {
+      "name": "federal student aid",
+      "votes": {
+        "Organization": 12,
+        "Service": 30,
+        "Outcome": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "it standard library",
+      "votes": {
+        "Service": 1,
+        "Document": 1
+      },
+      "resolved_type": "Document",
+      "rule": "priority"
+    },
+    {
+      "name": "mystudentaid mobile app",
+      "votes": {
+        "ContactPoint": 5,
+        "Document": 1,
+        "Service": 1
+      },
+      "resolved_type": "ContactPoint",
+      "rule": "majority"
+    },
+    {
+      "name": "fafsa gov",
+      "votes": {
+        "ContactPoint": 11,
+        "Organization": 2
+      },
+      "resolved_type": "ContactPoint",
+      "rule": "majority"
+    },
+    {
+      "name": "federal student aid information center",
+      "votes": {
+        "Organization": 5,
+        "ContactPoint": 1
+      },
+      "resolved_type": "Organization",
+      "rule": "majority"
+    },
+    {
+      "name": "financial aid office at school",
+      "votes": {
+        "Organization": 1,
+        "ContactPoint": 3
+      },
+      "resolved_type": "ContactPoint",
+      "rule": "majority"
+    },
+    {
+      "name": "sar",
+      "votes": {
+        "Service": 3,
+        "Document": 3
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "internal revenue service data retrieval tool",
+      "votes": {
+        "Service": 1,
+        "Organization": 2
+      },
+      "resolved_type": "Organization",
+      "rule": "majority"
+    },
+    {
+      "name": "college or career school",
+      "votes": {
+        "Organization": 7,
+        "Requirement": 1
+      },
+      "resolved_type": "Organization",
+      "rule": "majority"
+    },
+    {
+      "name": "verification",
+      "votes": {
+        "Service": 1,
+        "Requirement": 2
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "aid offer",
+      "votes": {
+        "Outcome": 1,
+        "Document": 2,
+        "Service": 1
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "loan",
+      "votes": {
+        "Service": 8,
+        "Outcome": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "eligible student",
+      "votes": {
+        "Requirement": 1,
+        "Role": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "priority"
+    },
+    {
+      "name": "grace period",
+      "votes": {
+        "TimeLimit": 1,
+        "Requirement": 1,
+        "Service": 3
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "federal family education loan ffel program",
+      "votes": {
+        "Organization": 4,
+        "Service": 2
+      },
+      "resolved_type": "Organization",
+      "rule": "majority"
+    },
+    {
+      "name": "loan amount",
+      "votes": {
+        "Requirement": 1,
+        "Amount": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "priority"
+    },
+    {
+      "name": "obligation to repay loan",
+      "votes": {
+        "Requirement": 4,
+        "Outcome": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "loan fund",
+      "votes": {
+        "Requirement": 1,
+        "Service": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "forbearance",
+      "votes": {
+        "Service": 15,
+        "Outcome": 3,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "student loan",
+      "votes": {
+        "Service": 5,
+        "Document": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "identity theft",
+      "votes": {
+        "Outcome": 1,
+        "Service": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "financial aid office at college",
+      "votes": {
+        "ContactPoint": 2,
+        "Organization": 1
+      },
+      "resolved_type": "ContactPoint",
+      "rule": "majority"
+    },
+    {
+      "name": "free assistance",
+      "votes": {
+        "Amount": 1,
+        "Service": 1
+      },
+      "resolved_type": "Service",
+      "rule": "priority"
+    },
+    {
+      "name": "financial aid offer",
+      "votes": {
+        "Outcome": 3,
+        "Document": 1
+      },
+      "resolved_type": "Outcome",
+      "rule": "majority"
+    },
+    {
+      "name": "college",
+      "votes": {
+        "Organization": 1,
+        "ContactPoint": 1
+      },
+      "resolved_type": "Organization",
+      "rule": "priority"
+    },
+    {
+      "name": "fsa id password",
+      "votes": {
+        "Service": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "ed s office of inspector general fraud hotline",
+      "votes": {
+        "ContactPoint": 1,
+        "Organization": 1
+      },
+      "resolved_type": "Organization",
+      "rule": "priority"
+    },
+    {
+      "name": "administrative forbearance",
+      "votes": {
+        "Service": 4,
+        "Outcome": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "federal family education loan ffel program loan",
+      "votes": {
+        "Service": 2,
+        "Document": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "federal perkin loan",
+      "votes": {
+        "Service": 11,
+        "Document": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "medical or dental internship residency",
+      "votes": {
+        "Requirement": 1,
+        "Service": 1
+      },
+      "resolved_type": "Service",
+      "rule": "priority"
+    },
+    {
+      "name": "national guard duty",
+      "votes": {
+        "Requirement": 1,
+        "Service": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "get out of default",
+      "votes": {
+        "Service": 2,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "loan holder",
+      "votes": {
+        "Organization": 9,
+        "Role": 1
+      },
+      "resolved_type": "Organization",
+      "rule": "majority"
+    },
+    {
+      "name": "loan holder s contact information",
+      "votes": {
+        "Outcome": 1,
+        "Document": 1
+      },
+      "resolved_type": "Document",
+      "rule": "priority"
+    },
+    {
+      "name": "documentation of income",
+      "votes": {
+        "Requirement": 1,
+        "Document": 1
+      },
+      "resolved_type": "Document",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "loan rehabilitation agreement",
+      "votes": {
+        "Service": 1,
+        "Document": 1
+      },
+      "resolved_type": "Document",
+      "rule": "priority"
+    },
+    {
+      "name": "treasury offset",
+      "votes": {
+        "Service": 1,
+        "Outcome": 2
+      },
+      "resolved_type": "Outcome",
+      "rule": "majority"
+    },
+    {
+      "name": "required monthly payment amount",
+      "votes": {
+        "Requirement": 1,
+        "Outcome": 1
+      },
+      "resolved_type": "Outcome",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "defaulted federal student loan",
+      "votes": {
+        "Service": 3,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "income driven plan",
+      "votes": {
+        "Requirement": 2,
+        "Service": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "studentaid gov",
+      "votes": {
+        "Organization": 4,
+        "ContactPoint": 1
+      },
+      "resolved_type": "Organization",
+      "rule": "majority"
+    },
+    {
+      "name": "loan information",
+      "votes": {
+        "Outcome": 1,
+        "Document": 1
+      },
+      "resolved_type": "Document",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "dependency statu",
+      "votes": {
+        "Requirement": 2,
+        "Outcome": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "parent information",
+      "votes": {
+        "Document": 1,
+        "Requirement": 4
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "college or career school plan to attend",
+      "votes": {
+        "Requirement": 1,
+        "ContactPoint": 1
+      },
+      "resolved_type": "ContactPoint",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "william d ford federal direct loan program",
+      "votes": {
+        "Organization": 9,
+        "Service": 3
+      },
+      "resolved_type": "Organization",
+      "rule": "majority"
+    },
+    {
+      "name": "limited eligibility for federal student aid",
+      "votes": {
+        "Service": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "regain eligibility early",
+      "votes": {
+        "Outcome": 1,
+        "Service": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "grant",
+      "votes": {
+        "Service": 6,
+        "Outcome": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "work study job",
+      "votes": {
+        "Service": 2,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "repay loan",
+      "votes": {
+        "Requirement": 3,
+        "Service": 2
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "repayment option",
+      "votes": {
+        "Outcome": 1,
+        "Service": 2
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "right to appeal existence and amount of any liabilitie identified",
+      "votes": {
+        "Outcome": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "priority"
+    },
+    {
+      "name": "fprd",
+      "votes": {
+        "Service": 1,
+        "Document": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "aidan",
+      "votes": {
+        "Service": 3,
+        "Organization": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "income driven repayment plan request",
+      "votes": {
+        "Service": 1,
+        "Document": 2
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "direct consolidation loan application",
+      "votes": {
+        "Service": 1,
+        "Document": 2
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "eligibility for federal student aid",
+      "votes": {
+        "Requirement": 1,
+        "Service": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "fafsa question",
+      "votes": {
+        "Document": 1,
+        "Service": 1
+      },
+      "resolved_type": "Document",
+      "rule": "priority"
+    },
+    {
+      "name": "paper sar",
+      "votes": {
+        "Service": 1,
+        "Document": 2
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "expected family contribution efc",
+      "votes": {
+        "Outcome": 2,
+        "Document": 1
+      },
+      "resolved_type": "Outcome",
+      "rule": "majority"
+    },
+    {
+      "name": "proof of extenuating circumstance",
+      "votes": {
+        "Document": 1,
+        "Service": 6
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "six month of voluntary consecutive on time full monthly payment have been made",
+      "votes": {
+        "Requirement": 2,
+        "TimeLimit": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "short sale has been approved and completed",
+      "votes": {
+        "Service": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "priority"
+    },
+    {
+      "name": "repayment period",
+      "votes": {
+        "TimeLimit": 1,
+        "Outcome": 1,
+        "Requirement": 2
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "enrollment subscription or maintenance fee",
+      "votes": {
+        "Amount": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Amount",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "william d ford federal direct loan direct loan program",
+      "votes": {
+        "Service": 1,
+        "Organization": 4
+      },
+      "resolved_type": "Organization",
+      "rule": "majority"
+    },
+    {
+      "name": "lower payment",
+      "votes": {
+        "Outcome": 1,
+        "Amount": 1
+      },
+      "resolved_type": "Outcome",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "expected family contribution",
+      "votes": {
+        "Requirement": 2,
+        "Service": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "financial aid office at college or career school",
+      "votes": {
+        "Organization": 2,
+        "Service": 1
+      },
+      "resolved_type": "Organization",
+      "rule": "majority"
+    },
+    {
+      "name": "federal plu loan",
+      "votes": {
+        "Service": 1,
+        "Document": 1
+      },
+      "resolved_type": "Document",
+      "rule": "priority"
+    },
+    {
+      "name": "consolidation loan",
+      "votes": {
+        "Service": 2,
+        "Amount": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "length of repayment period",
+      "votes": {
+        "Requirement": 1,
+        "Outcome": 1
+      },
+      "resolved_type": "Outcome",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "total education loan indebtedness",
+      "votes": {
+        "Amount": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Amount",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "other student loan debt",
+      "votes": {
+        "Amount": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Amount",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "estimated monthly payment amount",
+      "votes": {
+        "Outcome": 3,
+        "Amount": 1
+      },
+      "resolved_type": "Outcome",
+      "rule": "majority"
+    },
+    {
+      "name": "federal student loan payment",
+      "votes": {
+        "Requirement": 2,
+        "Service": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "william d ford federal direct loan direct loan program loan",
+      "votes": {
+        "Document": 1,
+        "Service": 1
+      },
+      "resolved_type": "Document",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "qualifying monthly payment",
+      "votes": {
+        "Requirement": 1,
+        "Service": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "defaulted loan",
+      "votes": {
+        "Service": 2,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "oct 1 2007",
+      "votes": {
+        "TimeLimit": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "priority"
+    },
+    {
+      "name": "recertify income and family size",
+      "votes": {
+        "Requirement": 2,
+        "Service": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "direct loan program",
+      "votes": {
+        "Organization": 3,
+        "Service": 3
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "application deadline",
+      "votes": {
+        "Requirement": 3,
+        "TimeLimit": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "repay student loan",
+      "votes": {
+        "Service": 2,
+        "Outcome": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "five complete and consecutive academic year",
+      "votes": {
+        "TimeLimit": 2,
+        "Requirement": 1
+      },
+      "resolved_type": "TimeLimit",
+      "rule": "majority"
+    },
+    {
+      "name": "special education teacher",
+      "votes": {
+        "Role": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "school serving low income student",
+      "votes": {
+        "Outcome": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "non u s citizen",
+      "votes": {
+        "Role": 2,
+        "Requirement": 1
+      },
+      "resolved_type": "Role",
+      "rule": "majority"
+    },
+    {
+      "name": "student with intellectual disabilitie",
+      "votes": {
+        "Role": 3,
+        "Requirement": 1
+      },
+      "resolved_type": "Role",
+      "rule": "majority"
+    },
+    {
+      "name": "student with criminal conviction",
+      "votes": {
+        "Role": 2,
+        "Requirement": 1
+      },
+      "resolved_type": "Role",
+      "rule": "majority"
+    },
+    {
+      "name": "educational cost",
+      "votes": {
+        "Requirement": 1,
+        "Outcome": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "priority"
+    },
+    {
+      "name": "eligible undergraduate student",
+      "votes": {
+        "Role": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "priority"
+    },
+    {
+      "name": "federal school code",
+      "votes": {
+        "Document": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Document",
+      "rule": "priority"
+    },
+    {
+      "name": "online fafsa form",
+      "votes": {
+        "Document": 2,
+        "Service": 1
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "save key",
+      "votes": {
+        "Requirement": 1,
+        "Document": 1
+      },
+      "resolved_type": "Document",
+      "rule": "priority"
+    },
+    {
+      "name": "third party servicer",
+      "votes": {
+        "Organization": 1,
+        "Role": 1
+      },
+      "resolved_type": "Role",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "student with financial need",
+      "votes": {
+        "Requirement": 1,
+        "Role": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "priority"
+    },
+    {
+      "name": "teach grant service obligation",
+      "votes": {
+        "Requirement": 3,
+        "Service": 3
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "college s financial aid office",
+      "votes": {
+        "Organization": 1,
+        "ContactPoint": 1
+      },
+      "resolved_type": "Organization",
+      "rule": "priority"
+    },
+    {
+      "name": "federal family education loan",
+      "votes": {
+        "Document": 1,
+        "Service": 1
+      },
+      "resolved_type": "Document",
+      "rule": "priority"
+    },
+    {
+      "name": "international school",
+      "votes": {
+        "Organization": 3,
+        "Requirement": 1
+      },
+      "resolved_type": "Organization",
+      "rule": "majority"
+    },
+    {
+      "name": "regaining eligibility",
+      "votes": {
+        "Service": 2,
+        "Outcome": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "one monthly payment",
+      "votes": {
+        "Outcome": 1,
+        "Amount": 1
+      },
+      "resolved_type": "Outcome",
+      "rule": "priority"
+    },
+    {
+      "name": "federal family education loan program",
+      "votes": {
+        "Organization": 3,
+        "Service": 1
+      },
+      "resolved_type": "Organization",
+      "rule": "majority"
+    },
+    {
+      "name": "0 interest period",
+      "votes": {
+        "TimeLimit": 1,
+        "Service": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "avoid default",
+      "votes": {
+        "Service": 2,
+        "Outcome": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "federal perkin loan program",
+      "votes": {
+        "Organization": 1,
+        "Service": 2
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "repayment arrangement",
+      "votes": {
+        "Service": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "priority"
+    },
+    {
+      "name": "contact loan servicer",
+      "votes": {
+        "Service": 3,
+        "Requirement": 1
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "loan has been placed in default by mistake",
+      "votes": {
+        "Requirement": 1,
+        "Outcome": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "qualifying repayment plan",
+      "votes": {
+        "Requirement": 2,
+        "Service": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "pslf application",
+      "votes": {
+        "Service": 1,
+        "Document": 2
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "120 qualifying payment",
+      "votes": {
+        "Requirement": 1,
+        "Amount": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "priority"
+    },
+    {
+      "name": "qualifying employer",
+      "votes": {
+        "Organization": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "qualifying payment",
+      "votes": {
+        "Requirement": 1,
+        "Outcome": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "priority"
+    },
+    {
+      "name": "pslf form",
+      "votes": {
+        "Document": 1,
+        "Service": 1
+      },
+      "resolved_type": "Document",
+      "rule": "priority"
+    },
+    {
+      "name": "credit balance",
+      "votes": {
+        "Requirement": 1,
+        "Outcome": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "submit fafsa form",
+      "votes": {
+        "Requirement": 1,
+        "Service": 2
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "money for college or career school",
+      "votes": {
+        "Outcome": 1,
+        "Service": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "fixed amount of at least 50 each month",
+      "votes": {
+        "Amount": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "priority"
+    },
+    {
+      "name": "other federal payment",
+      "votes": {
+        "Amount": 1,
+        "Document": 1
+      },
+      "resolved_type": "Amount",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "up to 10 school",
+      "votes": {
+        "Requirement": 1,
+        "Amount": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "priority"
+    },
+    {
+      "name": "mystudentaid app",
+      "votes": {
+        "ContactPoint": 6,
+        "Service": 1
+      },
+      "resolved_type": "ContactPoint",
+      "rule": "majority"
+    },
+    {
+      "name": "eligible in state college",
+      "votes": {
+        "Document": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Document",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "manriquez v devo",
+      "votes": {
+        "Organization": 2,
+        "Service": 1
+      },
+      "resolved_type": "Organization",
+      "rule": "majority"
+    },
+    {
+      "name": "loan payment",
+      "votes": {
+        "Requirement": 2,
+        "Service": 1
+      },
+      "resolved_type": "Requirement",
+      "rule": "majority"
+    },
+    {
+      "name": "mobile app",
+      "votes": {
+        "Service": 1,
+        "ContactPoint": 2
+      },
+      "resolved_type": "ContactPoint",
+      "rule": "majority"
+    },
+    {
+      "name": "irs drt",
+      "votes": {
+        "Organization": 1,
+        "Service": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    },
+    {
+      "name": "tpd discharge application",
+      "votes": {
+        "Document": 4,
+        "Service": 2
+      },
+      "resolved_type": "Document",
+      "rule": "majority"
+    },
+    {
+      "name": "tpd discharge request",
+      "votes": {
+        "Outcome": 1,
+        "Service": 2
+      },
+      "resolved_type": "Service",
+      "rule": "majority"
+    },
+    {
+      "name": "repaying loan",
+      "votes": {
+        "Service": 1,
+        "Outcome": 1
+      },
+      "resolved_type": "Service",
+      "rule": "relation_fit"
+    }
+  ],
+  "candidate_pairs": 32502,
+  "bands": {
+    "llm": 25372,
+    "reject_value": 3653,
+    "reject_generic": 2949,
+    "auto_rule": 528
+  },
+  "rules": {
+    "acronym": 50,
+    "form_number": 438,
+    "alias": 40
+  },
+  "llm_confirmed": 4876,
+  "llm_rejected": 20496,
+  "merged_pairs": 4194,
+  "blocked_by_cannot_link": 1210,
+  "clusters_for_review": 2525,
+  "largest_clusters": [
+    {
+      "canonical_name": "DD214",
+      "type": "Document",
+      "n_name_groups": 15,
+      "n_mentions": 20
+    },
+    {
+      "canonical_name": "bill of sale",
+      "type": "Document",
+      "n_name_groups": 13,
+      "n_mentions": 37
+    },
+    {
+      "canonical_name": "MV-82",
+      "type": "Document",
+      "n_name_groups": 13,
+      "n_mentions": 24
+    },
+    {
+      "canonical_name": "non - driver photo ID card",
+      "type": "Document",
+      "n_name_groups": 11,
+      "n_mentions": 20
+    },
+    {
+      "canonical_name": "Traffic Ticket Pleas, Hearings and Payments online transaction",
+      "type": "Service",
+      "n_name_groups": 10,
+      "n_mentions": 13
+    },
+    {
+      "canonical_name": "MV-44",
+      "type": "Document",
+      "n_name_groups": 9,
+      "n_mentions": 29
+    },
+    {
+      "canonical_name": "change your repayment plan",
+      "type": "Service",
+      "n_name_groups": 9,
+      "n_mentions": 16
+    },
+    {
+      "canonical_name": "disability benefits",
+      "type": "Service",
+      "n_name_groups": 9,
+      "n_mentions": 48
+    },
+    {
+      "canonical_name": "Mental health services",
+      "type": "Service",
+      "n_name_groups": 9,
+      "n_mentions": 15
+    },
+    {
+      "canonical_name": "VA disability compensation",
+      "type": "Service",
+      "n_name_groups": 9,
+      "n_mentions": 19
+    }
+  ]
+}
