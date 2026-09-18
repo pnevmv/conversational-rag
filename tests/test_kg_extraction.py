@@ -225,3 +225,23 @@ def test_chunk_text_splits_long_text_at_sentence_boundaries():
     assert all(len(c) <= CHUNK_MAX_CHARS for c in chunks)
     assert all(re.search(r"\.$", c) for c in chunks)
     assert " ".join(chunks) == " ".join(text.split())
+
+
+# --- prompt v2 worked examples ------------------------------------------------------------
+
+def test_v2_examples_quote_their_sections_and_come_from_outside_the_pilot():
+    from src.kg.extract_closed import ANNOTATION_DOCS, FEW_SHOT_V2
+    from src.kg.schema import is_valid_triple
+
+    sections = {s["section_id"]: s for s in _with_domain(load_sections())}
+    pilot_docs = {s["doc_id"] for s in select_pilot_sections(list(sections.values()), 2, 42)}
+    norm = lambda t: " ".join(t.split())  # noqa: E731
+    for ex in FEW_SHOT_V2:
+        sec = sections[ex["section_id"]]
+        assert sec["doc_id"] not in pilot_docs and sec["doc_id"] not in ANNOTATION_DOCS
+        types = {e["name"]: e["type"] for e in ex["entities"]}
+        for e in ex["entities"]:
+            assert norm(e["evidence"]) in norm(sec["text"]), e["evidence"]
+        for src, rel, dst, evidence in ex["relations"]:
+            assert norm(evidence) in norm(sec["text"]), evidence
+            assert is_valid_triple(rel, types[src], types[dst]), (src, rel, dst)

@@ -227,17 +227,38 @@ def extraction_json_schema() -> Dict[str, Any]:
     }
 
 
-def schema_prompt_block() -> str:
-    """Human-readable schema description for the extraction prompt."""
+# Prompt v2 sharpens three type definitions after the v1 pilot annotation (identity documents
+# typed as Service, places as Role, opening hours as TimeLimit). The schema itself is unchanged.
+V2_DEFINITIONS: Dict[str, str] = {
+    "Service": "something a citizen can apply for, receive or do: a benefit, program, registration, loan, "
+               "test, course, appeal or procedure. Forms, cards, licences, permits and IDs are NOT services",
+    "Document": "a form, certificate, proof, card, licence, permit, ID, letter or notice: any physical or "
+                "electronic document, including the licence or card a service issues",
+    "Role": "a kind of person the content applies to (veteran, applicant, lessee, surviving spouse, "
+            "student). Places (counties, cities, states, countries) are never a Role",
+    "TimeLimit": "a deadline (e.g. within 30 days) or a validity period (e.g. valid for 2 years). Opening "
+                 "hours, processing times and delivery times are NOT TimeLimits",
+}
+
+
+# Kinds not shown in the v2 prompt ("licence" contradicts "licences are Documents").
+V2_HIDDEN_KINDS: Dict[str, FrozenSet[str]] = {"Service": frozenset({"licence"})}
+
+
+def schema_prompt_block(version: str = "v1") -> str:
+    """Human-readable schema description for the extraction prompt (per prompt version)."""
+    definitions = V2_DEFINITIONS if version == "v2" else {}
     lines: List[str] = ["Entity types:"]
     for name, spec in ENTITY_TYPES.items():
         extra = []
-        if spec["kinds"]:
-            extra.append(f"kind: one of {' | '.join(spec['kinds'])}")
+        kinds = [k for k in spec["kinds"]
+                 if version != "v2" or k not in V2_HIDDEN_KINDS.get(name, frozenset())]
+        if kinds:
+            extra.append(f"kind: one of {' | '.join(kinds)}")
         if spec["value"]:
             extra.append("value: required")
         suffix = f" [{'; '.join(extra)}]" if extra else ""
-        lines.append(f"- {name}: {spec['definition']}{suffix}")
+        lines.append(f"- {name}: {definitions.get(name, spec['definition'])}{suffix}")
     lines.append("")
     lines.append("Relation types (source type -> target type):")
     for name, spec in RELATION_TYPES.items():

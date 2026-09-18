@@ -24,23 +24,35 @@ score-er: precision of the entity-resolution clusters labelled in er_pilot_clust
 merge evidence: name normalisation only (case, plural, articles), a rule match (alias,
 acronym, form number), or LLM confirmation.
 
+carry: for a new extraction of the annotated documents (e.g. prompt v2), carries the
+existing labels over to identical triples (same section, normalised source, relation,
+normalised target; ALTERNATIVE_TO in either direction): v1-labelled triples keep their
+label, triples that match a missed gold triple are correct. It writes
+  - gold_v1.csv              the 98 gold triples (v1 correct triples t####, missed m##);
+  - <prefix>.csv             every loadable triple of the new run, with the carried labels;
+  - <prefix>_new.csv         the unlabelled triples, with section text and the most similar
+                             labelled triples as context, and a suggested gold triple
+                             (same section and relation, similar endpoints) to confirm in
+                             `gold_id` or clear; fill `label` (correct / incorrect).
+
 Usage:
     python -m src.kg.annotation export
     python -m src.kg.annotation stability
     python -m src.kg.annotation score
     python -m src.kg.annotation score-er
+    python -m src.kg.annotation carry --input experiments/kg/v2_extraction.jsonl --prefix annotation_v2
 """
 import argparse
 import csv
 import json
 import sys
-from collections import defaultdict
+from collections import Counter, defaultdict
 from pathlib import Path
-from typing import Dict, Iterable, List, Tuple
+from typing import Dict, Iterable, List, Set, Tuple
 
-from src.kg.extract_closed import loadable_relations
+from src.kg.extract_closed import ANNOTATION_DOCS, loadable_relations
 from src.kg.pilot2_stats import normalized_key
-from src.kg.schema import ENTITY_TYPES, RELATION_TYPES, is_valid_triple
+from src.kg.schema import ENTITY_TYPES, RELATION_TYPES, SYMMETRIC_RELATIONS, is_valid_triple
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 KG_DIR = PROJECT_ROOT / "experiments" / "kg"
@@ -56,12 +68,6 @@ ER_CLUSTERS_CSV = KG_DIR / "er_pilot_clusters.csv"
 ER_SCORES_JSON = KG_DIR / "er_annotation_scores.json"
 RULE_EVIDENCE = ("alias", "acronym", "form_number")
 
-# One document per domain (DMV, SSA, VA) from the 8 pilot documents, ~140 triples.
-ANNOTATION_DOCS = [
-    "Register a leased vehicle#1_0",
-    "Appeal A Decision | Social Security Administration#2_0",
-    "VA Housing Assistance | Veterans Affairs#1_0",
-]
 
 TRIPLE_COLUMNS = ["section_id", "source", "source_type", "relation", "target", "target_type", "evidence"]
 SAMPLE_COLUMNS = ["triple_id"] + TRIPLE_COLUMNS + ["label", "note"]
@@ -124,6 +130,105 @@ def stability(run2_path: Path) -> None:
             w.writerow({"triple_id": row["triple_id"], "in_run2": str(key in run2).lower()})
     n_in = sum(_triple_key(r["section_id"], r["source"], r["relation"], r["target"]) in run2 for r in rows)
     print(f"{n_in} of {len(rows)} annotated triples also found by run 2 -> {STABILITY_CSV}")
+
+
+GOLD_CSV = KG_DIR / "gold_v1.csv"
+
+
+def gold_triples() -> List[Dict[str, str]]:
+    """The gold set: correct v1 triples (their triple_id) plus missed triples (m01, m02, ...)."""
+    gold = [{**{k: r[k] for k in TRIPLE_COLUMNS}, "gold_id": r["triple_id"], "origin": "v1_correct"}
+            for r in _read(SAMPLE_CSV) if r["label"].lower() in CORRECT]
+    for i, r in enumerate(_read(MISSING_CSV), start=1):
+        rel = RELATION_ALIASES.get(r["relation"], r["relation"])
+        gold.append({**{k: r[k] for k in TRIPLE_COLUMNS}, "relation": rel, "gold_id": f"m{i:02d}", "origin": "v1_missed"})
+    return gold
+
+
+def carry(input_path: Path, prefix: str) -> None:
+    sample = _read(SAMPLE_CSV)
+    v1_by_key = {_triple_key(r["section_id"], r["source"], r["relation"], r["target"]): r for r in sample}
+    gold = gold_triples()
+    gold_by_key = {_triple_key(g["section_id"], g["source"], g["relation"], g["target"]): g for g in gold}
+
+    def keys(section_id: str, source: str, relation: str, target: str):
+        k = _triple_key(section_id, source, relation, target)
+        if relation in SYMMETRIC_RELATIONS:
+            return [k, _triple_key(section_id, target, relation, source)]
+        return [k]
+
+    records = [r for r in map(json.loads, open(input_path, encoding="utf-8")) if r["doc_id"] in ANNOTATION_DOCS]
+    texts = {r["section_id"]: (r["heading"], r["text"]) for r in records}
+    rows, n = [], 0
+    for r in sorted(records, key=lambda r: (ANNOTATION_DOCS.index(r["doc_id"]), r["section_id"])):
+        for t in loadable_relations(r):
+            n += 1
+            row = {"triple_id": f"{prefix}_{n:04d}", "section_id": r["section_id"], "source": t["source"],
+                   "source_type": t["source_type"], "relation": t["relation"], "target": t["target"],
+                   "target_type": t["target_type"], "evidence": t["evidence"], "label": "", "gold_id": "",
+                   "label_source": "", "note": ""}
+            ks = keys(r["section_id"], t["source"], t["relation"], t["target"])
+            v1 = next((v1_by_key[k] for k in ks if k in v1_by_key), None)
+            g = next((gold_by_key[k] for k in ks if k in gold_by_key), None)
+            if v1 is not None and v1["label"]:
+                row.update(label=v1["label"].lower(), label_source="v1_triple", note=v1["note"],
+                           gold_id=v1["triple_id"] if v1["label"].lower() in CORRECT else "")
+            elif g is not None:
+                row.update(label="correct", label_source="v1_missed_gold", gold_id=g["gold_id"])
+            rows.append(row)
+
+    columns = ["triple_id"] + TRIPLE_COLUMNS + ["label", "gold_id", "label_source", "note"]
+    with open(GOLD_CSV, "w", newline="", encoding="utf-8") as f:
+        w = csv.DictWriter(f, fieldnames=["gold_id", "origin"] + TRIPLE_COLUMNS)
+        w.writeheader()
+        w.writerows({k: g[k] for k in ["gold_id", "origin"] + TRIPLE_COLUMNS} for g in gold)
+    with open(KG_DIR / f"{prefix}.csv", "w", newline="", encoding="utf-8") as f:
+        w = csv.DictWriter(f, fieldnames=columns)
+        w.writeheader()
+        w.writerows(rows)
+
+    # Context for labelling: labelled v1 triples and gold triples of the same section that
+    # share the relation or an endpoint with the new triple.
+    labelled = [{**r, "kind": f"v1 {r['label']}", "id": r["triple_id"]} for r in sample] + \
+               [{**g, "kind": "gold", "id": g["gold_id"]} for g in gold if g["origin"] == "v1_missed"]
+    new = [r for r in rows if not r["label"]]
+    gold_ids = {g["gold_id"] for g in gold}
+
+    def words(name: str) -> Set[str]:
+        return set(normalized_key(name).split())
+
+    def overlap(a: str, b: str) -> float:
+        wa, wb = words(a), words(b)
+        return len(wa & wb) / len(wa | wb) if wa | wb else 0.0
+
+    def similarity(r: Dict[str, str], x: Dict[str, str]) -> float:
+        direct = (overlap(r["source"], x["source"]) + overlap(r["target"], x["target"])) / 2
+        flipped = (overlap(r["source"], x["target"]) + overlap(r["target"], x["source"])) / 2
+        return max(direct, flipped if r["relation"] in SYMMETRIC_RELATIONS else 0.0) + 0.25 * (x["relation"] == r["relation"])
+
+    def both_similar(r: Dict[str, str], x: Dict[str, str], threshold: float = 0.5) -> bool:
+        """Each endpoint overlaps its counterpart (either direction for symmetric relations)."""
+        pairs = [(x["source"], x["target"])] + ([(x["target"], x["source"])] if r["relation"] in SYMMETRIC_RELATIONS else [])
+        return any(overlap(r["source"], s) >= threshold and overlap(r["target"], t) >= threshold for s, t in pairs)
+
+    with open(KG_DIR / f"{prefix}_new.csv", "w", newline="", encoding="utf-8") as f:
+        w = csv.DictWriter(f, fieldnames=["triple_id"] + TRIPLE_COLUMNS + [
+            "label", "gold_id", "suggested_gold_id", "note", "similar_labelled", "section_heading", "section_text"])
+        w.writeheader()
+        for r in new:
+            same_section = sorted((x for x in labelled if x["section_id"] == r["section_id"]),
+                                  key=lambda x: -similarity(r, x))
+            sim = [f"[{x['id']} {x['kind']}] {x['source']} -{x['relation']}-> {x['target']}"
+                   for x in same_section if similarity(r, x) > 0][:5]
+            best = next((x for x in same_section if x["id"] in gold_ids and x["relation"] == r["relation"]
+                         and both_similar(r, x)), None)
+            heading, text = texts[r["section_id"]]
+            w.writerow({**{k: r[k] for k in ["triple_id"] + TRIPLE_COLUMNS}, "label": "", "gold_id": "",
+                        "suggested_gold_id": best["id"] if best else "", "note": "",
+                        "similar_labelled": " || ".join(sim), "section_heading": heading, "section_text": text})
+    carried = Counter(r["label_source"] for r in rows if r["label"])
+    print(f"{len(rows)} loadable triples; labels carried: {dict(carried)}; to label: {len(new)}")
+    print(f"-> {GOLD_CSV}\n-> {KG_DIR / f'{prefix}.csv'}\n-> {KG_DIR / f'{prefix}_new.csv'}")
 
 
 def _read(path: Path) -> List[Dict[str, str]]:
@@ -235,8 +340,9 @@ def _fmt(x) -> str:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("command", choices=["export", "stability", "score", "score-er"])
+    parser.add_argument("command", choices=["export", "stability", "score", "score-er", "carry"])
     parser.add_argument("--input", type=Path, default=DEFAULT_INPUT)
+    parser.add_argument("--prefix", default="annotation_v2", help="carry: output file prefix")
     parser.add_argument("--run2", type=Path, default=DEFAULT_RUN2)
     args = parser.parse_args()
 
@@ -245,6 +351,9 @@ def main() -> None:
         return
     if args.command == "stability":
         stability(args.run2)
+        return
+    if args.command == "carry":
+        carry(args.input, args.prefix)
         return
     if args.command == "score-er":
         res = score_er()

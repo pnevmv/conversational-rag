@@ -1,0 +1,1116 @@
+{
+  "overall": {
+    "v1": {
+      "labelled": 140,
+      "correct": 65,
+      "gold": 98,
+      "gold_found": 65,
+      "precision": 0.4642857142857143,
+      "recall": 0.6632653061224489,
+      "f1": 0.546218487394958
+    },
+    "v2": {
+      "labelled": 123,
+      "correct": 66,
+      "gold": 98,
+      "gold_found": 41,
+      "precision": 0.5365853658536586,
+      "recall": 0.41836734693877553,
+      "f1": 0.4701589783685171
+    }
+  },
+  "by_relation": {
+    "ALTERNATIVE_TO": {
+      "v1": {
+        "labelled": 2,
+        "correct": 0,
+        "gold": 3,
+        "gold_found": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0
+      },
+      "v2": {
+        "labelled": 8,
+        "correct": 6,
+        "gold": 3,
+        "gold_found": 2,
+        "precision": 0.75,
+        "recall": 0.6666666666666666,
+        "f1": 0.7058823529411765
+      }
+    },
+    "APPLIES_TO": {
+      "v1": {
+        "labelled": 26,
+        "correct": 15,
+        "gold": 18,
+        "gold_found": 15,
+        "precision": 0.5769230769230769,
+        "recall": 0.8333333333333334,
+        "f1": 0.6818181818181818
+      },
+      "v2": {
+        "labelled": 15,
+        "correct": 10,
+        "gold": 18,
+        "gold_found": 8,
+        "precision": 0.6666666666666666,
+        "recall": 0.4444444444444444,
+        "f1": 0.5333333333333333
+      }
+    },
+    "AVAILABLE_AT": {
+      "v1": {
+        "labelled": 19,
+        "correct": 11,
+        "gold": 16,
+        "gold_found": 11,
+        "precision": 0.5789473684210527,
+        "recall": 0.6875,
+        "f1": 0.6285714285714286
+      },
+      "v2": {
+        "labelled": 7,
+        "correct": 2,
+        "gold": 16,
+        "gold_found": 1,
+        "precision": 0.2857142857142857,
+        "recall": 0.0625,
+        "f1": 0.10256410256410256
+      }
+    },
+    "EXEMPT_FROM": {
+      "v1": {
+        "labelled": 0,
+        "correct": 0,
+        "gold": 0,
+        "gold_found": 0,
+        "precision": null,
+        "recall": null,
+        "f1": null
+      },
+      "v2": {
+        "labelled": 1,
+        "correct": 0,
+        "gold": 0,
+        "gold_found": 0,
+        "precision": 0.0,
+        "recall": null,
+        "f1": null
+      }
+    },
+    "HAS_AMOUNT": {
+      "v1": {
+        "labelled": 0,
+        "correct": 0,
+        "gold": 2,
+        "gold_found": 0,
+        "precision": null,
+        "recall": 0.0,
+        "f1": null
+      },
+      "v2": {
+        "labelled": 0,
+        "correct": 0,
+        "gold": 2,
+        "gold_found": 0,
+        "precision": null,
+        "recall": 0.0,
+        "f1": null
+      }
+    },
+    "HAS_TIME_LIMIT": {
+      "v1": {
+        "labelled": 9,
+        "correct": 2,
+        "gold": 2,
+        "gold_found": 2,
+        "precision": 0.2222222222222222,
+        "recall": 1.0,
+        "f1": 0.3636363636363636
+      },
+      "v2": {
+        "labelled": 5,
+        "correct": 1,
+        "gold": 2,
+        "gold_found": 1,
+        "precision": 0.2,
+        "recall": 0.5,
+        "f1": 0.28571428571428575
+      }
+    },
+    "LEADS_TO": {
+      "v1": {
+        "labelled": 14,
+        "correct": 4,
+        "gold": 7,
+        "gold_found": 4,
+        "precision": 0.2857142857142857,
+        "recall": 0.5714285714285714,
+        "f1": 0.38095238095238093
+      },
+      "v2": {
+        "labelled": 11,
+        "correct": 4,
+        "gold": 7,
+        "gold_found": 3,
+        "precision": 0.36363636363636365,
+        "recall": 0.42857142857142855,
+        "f1": 0.3934426229508197
+      }
+    },
+    "PART_OF": {
+      "v1": {
+        "labelled": 7,
+        "correct": 0,
+        "gold": 4,
+        "gold_found": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0
+      },
+      "v2": {
+        "labelled": 7,
+        "correct": 2,
+        "gold": 4,
+        "gold_found": 0,
+        "precision": 0.2857142857142857,
+        "recall": 0.0,
+        "f1": 0.0
+      }
+    },
+    "PROVIDED_BY": {
+      "v1": {
+        "labelled": 8,
+        "correct": 7,
+        "gold": 11,
+        "gold_found": 7,
+        "precision": 0.875,
+        "recall": 0.6363636363636364,
+        "f1": 0.7368421052631579
+      },
+      "v2": {
+        "labelled": 11,
+        "correct": 9,
+        "gold": 11,
+        "gold_found": 5,
+        "precision": 0.8181818181818182,
+        "recall": 0.45454545454545453,
+        "f1": 0.5844155844155845
+      }
+    },
+    "REQUIRES": {
+      "v1": {
+        "labelled": 55,
+        "correct": 26,
+        "gold": 35,
+        "gold_found": 26,
+        "precision": 0.4727272727272727,
+        "recall": 0.7428571428571429,
+        "f1": 0.5777777777777778
+      },
+      "v2": {
+        "labelled": 58,
+        "correct": 32,
+        "gold": 35,
+        "gold_found": 21,
+        "precision": 0.5517241379310345,
+        "recall": 0.6,
+        "f1": 0.5748502994011977
+      }
+    }
+  },
+  "by_document": {
+    "DMV leased vehicle": {
+      "v1": {
+        "labelled": 48,
+        "correct": 19,
+        "gold": 34,
+        "gold_found": 19,
+        "precision": 0.3958333333333333,
+        "recall": 0.5588235294117647,
+        "f1": 0.4634146341463415
+      },
+      "v2": {
+        "labelled": 49,
+        "correct": 36,
+        "gold": 34,
+        "gold_found": 22,
+        "precision": 0.7346938775510204,
+        "recall": 0.6470588235294118,
+        "f1": 0.6880973066898349
+      }
+    },
+    "SSA appeal": {
+      "v1": {
+        "labelled": 39,
+        "correct": 12,
+        "gold": 20,
+        "gold_found": 12,
+        "precision": 0.3076923076923077,
+        "recall": 0.6,
+        "f1": 0.4067796610169492
+      },
+      "v2": {
+        "labelled": 35,
+        "correct": 9,
+        "gold": 20,
+        "gold_found": 4,
+        "precision": 0.2571428571428571,
+        "recall": 0.2,
+        "f1": 0.225
+      }
+    },
+    "VA housing": {
+      "v1": {
+        "labelled": 53,
+        "correct": 34,
+        "gold": 44,
+        "gold_found": 34,
+        "precision": 0.6415094339622641,
+        "recall": 0.7727272727272727,
+        "f1": 0.7010309278350515
+      },
+      "v2": {
+        "labelled": 39,
+        "correct": 21,
+        "gold": 44,
+        "gold_found": 15,
+        "precision": 0.5384615384615384,
+        "recall": 0.3409090909090909,
+        "f1": 0.4174950298210735
+      }
+    }
+  },
+  "v2_correct_outside_gold": 23,
+  "v2_run_agreement": {
+    "both_runs": {
+      "correct": 44,
+      "labelled": 61,
+      "precision": 0.7213114754098361,
+      "ci": [
+        0.5982833136872678,
+        0.8181160348790846
+      ]
+    },
+    "run1_only": {
+      "correct": 22,
+      "labelled": 62,
+      "precision": 0.3548387096774194,
+      "ci": [
+        0.2474256057638604,
+        0.4791910013659786
+      ]
+    }
+  },
+  "recall_variants": {
+    "v1": {
+      "fixed": 0.6632653061224489,
+      "fixed_no_social": 0.6451612903225806,
+      "pooled": 0.5371900826446281,
+      "pooled_no_social": 0.5172413793103449
+    },
+    "v2": {
+      "fixed": 0.41836734693877553,
+      "fixed_no_social": 0.44086021505376344,
+      "pooled": 0.5289256198347108,
+      "pooled_no_social": 0.5517241379310345
+    },
+    "v2 intersection": {
+      "fixed": 0.3163265306122449,
+      "fixed_no_social": 0.3333333333333333,
+      "pooled": 0.34710743801652894,
+      "pooled_no_social": 0.3620689655172414,
+      "precision": 0.7213114754098361,
+      "labelled": 61
+    },
+    "_pool_size": 121
+  },
+  "bootstrap": {
+    "overall|v1|precision": {
+      "ci": [
+        0.3504273504273504,
+        0.5873015873015873
+      ],
+      "n": 2000
+    },
+    "overall|v1|recall": {
+      "ci": [
+        0.5468394886363637,
+        0.7956989247311828
+      ],
+      "n": 2000
+    },
+    "overall|v1|f1": {
+      "ci": [
+        0.4494321937150754,
+        0.6433646812957157
+      ],
+      "n": 2000
+    },
+    "overall|v2|precision": {
+      "ci": [
+        0.37927203065134096,
+        0.6991554163167751
+      ],
+      "n": 2000
+    },
+    "overall|v2|recall": {
+      "ci": [
+        0.2386228354978355,
+        0.5747979525862064
+      ],
+      "n": 2000
+    },
+    "overall|v2|f1": {
+      "ci": [
+        0.2972212714171398,
+        0.6126918962263461
+      ],
+      "n": 2000
+    },
+    "overall|delta|precision": {
+      "ci": [
+        -0.10850845601741525,
+        0.2616210623827316
+      ],
+      "n": 2000
+    },
+    "overall|delta|recall": {
+      "ci": [
+        -0.46429473304473307,
+        -0.03916987355689962
+      ],
+      "n": 2000
+    },
+    "overall|delta|f1": {
+      "ci": [
+        -0.26415401849390674,
+        0.09526212549646369
+      ],
+      "n": 2000
+    },
+    "rel:ALTERNATIVE_TO|v1|precision": {
+      "ci": [
+        0.0,
+        0.0
+      ],
+      "n": 1724
+    },
+    "rel:ALTERNATIVE_TO|v1|recall": {
+      "ci": [
+        0.0,
+        0.0
+      ],
+      "n": 1742
+    },
+    "rel:ALTERNATIVE_TO|v1|f1": {
+      "ci": [
+        0.0,
+        0.0
+      ],
+      "n": 1565
+    },
+    "rel:ALTERNATIVE_TO|v2|recall": {
+      "ci": [
+        0.0,
+        1.0
+      ],
+      "n": 1742
+    },
+    "rel:ALTERNATIVE_TO|delta|recall": {
+      "ci": [
+        0.0,
+        1.0
+      ],
+      "n": 1742
+    },
+    "rel:APPLIES_TO|v1|precision": {
+      "ci": [
+        0.21424772036474163,
+        0.9444444444444444
+      ],
+      "n": 2000
+    },
+    "rel:APPLIES_TO|v1|recall": {
+      "ci": [
+        0.5,
+        1.0
+      ],
+      "n": 1999
+    },
+    "rel:APPLIES_TO|v1|f1": {
+      "ci": [
+        0.3225806451612903,
+        0.9189189189189189
+      ],
+      "n": 1999
+    },
+    "rel:APPLIES_TO|v2|precision": {
+      "ci": [
+        0.2188888888888889,
+        1.0
+      ],
+      "n": 1995
+    },
+    "rel:APPLIES_TO|v2|recall": {
+      "ci": [
+        0.1111111111111111,
+        0.8571428571428571
+      ],
+      "n": 1999
+    },
+    "rel:APPLIES_TO|v2|f1": {
+      "ci": [
+        0.1610967741935484,
+        0.8677173913043476
+      ],
+      "n": 1995
+    },
+    "rel:APPLIES_TO|delta|precision": {
+      "ci": [
+        -0.42208333333333337,
+        0.6211858974358968
+      ],
+      "n": 1995
+    },
+    "rel:APPLIES_TO|delta|recall": {
+      "ci": [
+        -0.6363636363636364,
+        0.0
+      ],
+      "n": 1999
+    },
+    "rel:APPLIES_TO|delta|f1": {
+      "ci": [
+        -0.4764516590389016,
+        0.3046005867262311
+      ],
+      "n": 1995
+    },
+    "rel:AVAILABLE_AT|v1|precision": {
+      "ci": [
+        0.23076923076923078,
+        0.8
+      ],
+      "n": 2000
+    },
+    "rel:AVAILABLE_AT|v1|recall": {
+      "ci": [
+        0.25,
+        1.0
+      ],
+      "n": 2000
+    },
+    "rel:AVAILABLE_AT|v1|f1": {
+      "ci": [
+        0.2608695652173913,
+        0.8525761124121773
+      ],
+      "n": 2000
+    },
+    "rel:AVAILABLE_AT|v2|precision": {
+      "ci": [
+        0.0,
+        1.0
+      ],
+      "n": 1981
+    },
+    "rel:AVAILABLE_AT|v2|recall": {
+      "ci": [
+        0.0,
+        0.3
+      ],
+      "n": 2000
+    },
+    "rel:AVAILABLE_AT|v2|f1": {
+      "ci": [
+        0.0,
+        0.39212994738046214
+      ],
+      "n": 1981
+    },
+    "rel:AVAILABLE_AT|delta|precision": {
+      "ci": [
+        -0.6485294117647059,
+        0.5833333333333333
+      ],
+      "n": 1981
+    },
+    "rel:AVAILABLE_AT|delta|recall": {
+      "ci": [
+        -1.0,
+        -0.18181818181818177
+      ],
+      "n": 2000
+    },
+    "rel:AVAILABLE_AT|delta|f1": {
+      "ci": [
+        -0.8073549257759784,
+        -0.09093701996927803
+      ],
+      "n": 1981
+    },
+    "rel:HAS_TIME_LIMIT|v1|precision": {
+      "ci": [
+        0.0,
+        0.6
+      ],
+      "n": 1995
+    },
+    "rel:HAS_TIME_LIMIT|v2|precision": {
+      "ci": [
+        0.0,
+        0.75
+      ],
+      "n": 1977
+    },
+    "rel:HAS_TIME_LIMIT|delta|precision": {
+      "ci": [
+        -0.5,
+        0.5
+      ],
+      "n": 1977
+    },
+    "rel:LEADS_TO|v1|precision": {
+      "ci": [
+        0.0,
+        0.6666666666666666
+      ],
+      "n": 2000
+    },
+    "rel:LEADS_TO|v1|recall": {
+      "ci": [
+        0.0,
+        1.0
+      ],
+      "n": 1994
+    },
+    "rel:LEADS_TO|v1|f1": {
+      "ci": [
+        0.0,
+        0.7058823529411765
+      ],
+      "n": 1994
+    },
+    "rel:LEADS_TO|v2|precision": {
+      "ci": [
+        0.0,
+        0.5833333333333334
+      ],
+      "n": 2000
+    },
+    "rel:LEADS_TO|v2|recall": {
+      "ci": [
+        0.0,
+        0.75
+      ],
+      "n": 1994
+    },
+    "rel:LEADS_TO|v2|f1": {
+      "ci": [
+        0.0,
+        0.6
+      ],
+      "n": 1994
+    },
+    "rel:LEADS_TO|delta|precision": {
+      "ci": [
+        -0.18131868131868129,
+        0.3179861111111109
+      ],
+      "n": 2000
+    },
+    "rel:LEADS_TO|delta|recall": {
+      "ci": [
+        -0.2857142857142857,
+        0.0
+      ],
+      "n": 1994
+    },
+    "rel:LEADS_TO|delta|f1": {
+      "ci": [
+        -0.19047619047619047,
+        0.2336764705882352
+      ],
+      "n": 1994
+    },
+    "rel:PART_OF|v1|precision": {
+      "ci": [
+        0.0,
+        0.0
+      ],
+      "n": 1994
+    },
+    "rel:PART_OF|v2|precision": {
+      "ci": [
+        0.0,
+        1.0
+      ],
+      "n": 1930
+    },
+    "rel:PART_OF|delta|precision": {
+      "ci": [
+        0.0,
+        1.0
+      ],
+      "n": 1925
+    },
+    "rel:PROVIDED_BY|v1|precision": {
+      "ci": [
+        0.7692307692307693,
+        1.0
+      ],
+      "n": 1974
+    },
+    "rel:PROVIDED_BY|v1|recall": {
+      "ci": [
+        0.5,
+        1.0
+      ],
+      "n": 1974
+    },
+    "rel:PROVIDED_BY|v1|f1": {
+      "ci": [
+        0.6666666666666665,
+        1.0
+      ],
+      "n": 1974
+    },
+    "rel:PROVIDED_BY|v2|precision": {
+      "ci": [
+        0.6,
+        1.0
+      ],
+      "n": 2000
+    },
+    "rel:PROVIDED_BY|v2|recall": {
+      "ci": [
+        0.0,
+        0.5882352941176471
+      ],
+      "n": 1974
+    },
+    "rel:PROVIDED_BY|v2|f1": {
+      "ci": [
+        0.0,
+        0.7017543859649122
+      ],
+      "n": 1974
+    },
+    "rel:PROVIDED_BY|delta|precision": {
+      "ci": [
+        -0.37677010489510493,
+        0.1071428571428571
+      ],
+      "n": 1974
+    },
+    "rel:PROVIDED_BY|delta|recall": {
+      "ci": [
+        -1.0,
+        0.0
+      ],
+      "n": 1974
+    },
+    "rel:PROVIDED_BY|delta|f1": {
+      "ci": [
+        -1.0,
+        0.03508771929824561
+      ],
+      "n": 1974
+    },
+    "rel:REQUIRES|v1|precision": {
+      "ci": [
+        0.3076923076923077,
+        0.6153846153846154
+      ],
+      "n": 2000
+    },
+    "rel:REQUIRES|v1|recall": {
+      "ci": [
+        0.5517241379310345,
+        1.0
+      ],
+      "n": 2000
+    },
+    "rel:REQUIRES|v1|f1": {
+      "ci": [
+        0.4444444444444444,
+        0.6857589285714284
+      ],
+      "n": 2000
+    },
+    "rel:REQUIRES|v2|precision": {
+      "ci": [
+        0.31664473684210526,
+        0.8250271739130433
+      ],
+      "n": 2000
+    },
+    "rel:REQUIRES|v2|recall": {
+      "ci": [
+        0.2857142857142857,
+        0.9
+      ],
+      "n": 2000
+    },
+    "rel:REQUIRES|v2|f1": {
+      "ci": [
+        0.31050025817817334,
+        0.8297899758719017
+      ],
+      "n": 2000
+    },
+    "rel:REQUIRES|delta|precision": {
+      "ci": [
+        -0.16623448581560285,
+        0.3646510216835243
+      ],
+      "n": 2000
+    },
+    "rel:REQUIRES|delta|recall": {
+      "ci": [
+        -0.6363636363636364,
+        0.2777777777777777
+      ],
+      "n": 2000
+    },
+    "rel:REQUIRES|delta|f1": {
+      "ci": [
+        -0.2973742033363971,
+        0.3129588756531116
+      ],
+      "n": 2000
+    },
+    "doc:Register a leased vehicle#1_0|v1|precision": {
+      "ci": [
+        0.09090909090909091,
+        1.0
+      ],
+      "n": 1977
+    },
+    "doc:Register a leased vehicle#1_0|v1|recall": {
+      "ci": [
+        0.36363636363636365,
+        1.0
+      ],
+      "n": 1977
+    },
+    "doc:Register a leased vehicle#1_0|v1|f1": {
+      "ci": [
+        0.16666666666666669,
+        0.6153846153846154
+      ],
+      "n": 1977
+    },
+    "doc:Register a leased vehicle#1_0|v2|precision": {
+      "ci": [
+        0.5185185185185185,
+        1.0
+      ],
+      "n": 1977
+    },
+    "doc:Register a leased vehicle#1_0|v2|recall": {
+      "ci": [
+        0.0,
+        0.8181818181818182
+      ],
+      "n": 1977
+    },
+    "doc:Register a leased vehicle#1_0|v2|f1": {
+      "ci": [
+        0.0,
+        0.9
+      ],
+      "n": 1977
+    },
+    "doc:Register a leased vehicle#1_0|delta|precision": {
+      "ci": [
+        0.0,
+        0.9090909090909091
+      ],
+      "n": 1977
+    },
+    "doc:Register a leased vehicle#1_0|delta|recall": {
+      "ci": [
+        -1.0,
+        0.4545454545454546
+      ],
+      "n": 1977
+    },
+    "doc:Register a leased vehicle#1_0|delta|f1": {
+      "ci": [
+        -0.16666666666666669,
+        0.4867724867724867
+      ],
+      "n": 1977
+    },
+    "doc:Appeal A Decision | Social Security Administration#2_0|v1|precision": {
+      "ci": [
+        0.14814814814814814,
+        0.4426684881602912
+      ],
+      "n": 2000
+    },
+    "doc:Appeal A Decision | Social Security Administration#2_0|v1|recall": {
+      "ci": [
+        0.45454545454545453,
+        1.0
+      ],
+      "n": 2000
+    },
+    "doc:Appeal A Decision | Social Security Administration#2_0|v1|f1": {
+      "ci": [
+        0.2455712451861361,
+        0.5001315789473678
+      ],
+      "n": 2000
+    },
+    "doc:Appeal A Decision | Social Security Administration#2_0|v2|precision": {
+      "ci": [
+        0.09090909090909091,
+        0.4193972835314089
+      ],
+      "n": 2000
+    },
+    "doc:Appeal A Decision | Social Security Administration#2_0|v2|recall": {
+      "ci": [
+        0.0,
+        0.6923076923076923
+      ],
+      "n": 2000
+    },
+    "doc:Appeal A Decision | Social Security Administration#2_0|v2|f1": {
+      "ci": [
+        0.0,
+        0.5128205128205129
+      ],
+      "n": 2000
+    },
+    "doc:Appeal A Decision | Social Security Administration#2_0|delta|precision": {
+      "ci": [
+        -0.31833834586466164,
+        0.25004032258064496
+      ],
+      "n": 2000
+    },
+    "doc:Appeal A Decision | Social Security Administration#2_0|delta|recall": {
+      "ci": [
+        -0.58375,
+        -0.1428571428571429
+      ],
+      "n": 2000
+    },
+    "doc:Appeal A Decision | Social Security Administration#2_0|delta|f1": {
+      "ci": [
+        -0.3990752032520325,
+        0.17672475893509482
+      ],
+      "n": 2000
+    },
+    "doc:VA Housing Assistance | Veterans Affairs#1_0|v1|precision": {
+      "ci": [
+        0.4583035714285714,
+        0.875
+      ],
+      "n": 2000
+    },
+    "doc:VA Housing Assistance | Veterans Affairs#1_0|v1|recall": {
+      "ci": [
+        0.5453246753246753,
+        0.9269163763066202
+      ],
+      "n": 1999
+    },
+    "doc:VA Housing Assistance | Veterans Affairs#1_0|v1|f1": {
+      "ci": [
+        0.5302939028842644,
+        0.8518518518518519
+      ],
+      "n": 1999
+    },
+    "doc:VA Housing Assistance | Veterans Affairs#1_0|v2|precision": {
+      "ci": [
+        0.3170731707317073,
+        0.8846153846153846
+      ],
+      "n": 1997
+    },
+    "doc:VA Housing Assistance | Veterans Affairs#1_0|v2|recall": {
+      "ci": [
+        0.12121212121212122,
+        0.568767507002801
+      ],
+      "n": 1999
+    },
+    "doc:VA Housing Assistance | Veterans Affairs#1_0|v2|f1": {
+      "ci": [
+        0.1844944575075579,
+        0.6532927971064538
+      ],
+      "n": 1997
+    },
+    "doc:VA Housing Assistance | Veterans Affairs#1_0|delta|precision": {
+      "ci": [
+        -0.3297348484848485,
+        0.15295059412132578
+      ],
+      "n": 1997
+    },
+    "doc:VA Housing Assistance | Veterans Affairs#1_0|delta|recall": {
+      "ci": [
+        -0.6666666666666666,
+        -0.18518518518518523
+      ],
+      "n": 1999
+    },
+    "doc:VA Housing Assistance | Veterans Affairs#1_0|delta|f1": {
+      "ci": [
+        -0.4794171220400729,
+        -0.07026483320600979
+      ],
+      "n": 1997
+    },
+    "rel:ALTERNATIVE_TO|v2|precision": {
+      "ci": [
+        0.0,
+        0.8571428571428571
+      ],
+      "n": 1744
+    },
+    "rel:ALTERNATIVE_TO|v2|f1": {
+      "ci": [
+        0.0,
+        0.923076923076923
+      ],
+      "n": 1579
+    },
+    "rel:ALTERNATIVE_TO|delta|precision": {
+      "ci": [
+        0.0,
+        0.8571428571428571
+      ],
+      "n": 1561
+    },
+    "rel:ALTERNATIVE_TO|delta|f1": {
+      "ci": [
+        0.0,
+        0.923076923076923
+      ],
+      "n": 1459
+    },
+    "rel:EXEMPT_FROM|v2|precision": {
+      "ci": [
+        0.0,
+        0.0
+      ],
+      "n": 1289
+    },
+    "rel:HAS_AMOUNT|v1|recall": {
+      "ci": [
+        0.0,
+        0.0
+      ],
+      "n": 1768
+    },
+    "rel:HAS_AMOUNT|v2|recall": {
+      "ci": [
+        0.0,
+        0.0
+      ],
+      "n": 1768
+    },
+    "rel:HAS_AMOUNT|delta|recall": {
+      "ci": [
+        0.0,
+        0.0
+      ],
+      "n": 1768
+    },
+    "rel:HAS_TIME_LIMIT|v1|recall": {
+      "ci": [
+        1.0,
+        1.0
+      ],
+      "n": 1757
+    },
+    "rel:HAS_TIME_LIMIT|v1|f1": {
+      "ci": [
+        0.16666666666666669,
+        0.751923076923075
+      ],
+      "n": 1757
+    },
+    "rel:HAS_TIME_LIMIT|v2|recall": {
+      "ci": [
+        0.0,
+        1.0
+      ],
+      "n": 1757
+    },
+    "rel:HAS_TIME_LIMIT|v2|f1": {
+      "ci": [
+        0.0,
+        0.8
+      ],
+      "n": 1739
+    },
+    "rel:HAS_TIME_LIMIT|delta|recall": {
+      "ci": [
+        -1.0,
+        0.0
+      ],
+      "n": 1757
+    },
+    "rel:HAS_TIME_LIMIT|delta|f1": {
+      "ci": [
+        -0.7272727272727273,
+        0.39705882352941163
+      ],
+      "n": 1739
+    },
+    "rel:PART_OF|v1|recall": {
+      "ci": [
+        0.0,
+        0.0
+      ],
+      "n": 1306
+    },
+    "rel:PART_OF|v1|f1": {
+      "ci": [
+        0.0,
+        0.0
+      ],
+      "n": 1306
+    },
+    "rel:PART_OF|v2|recall": {
+      "ci": [
+        0.0,
+        0.0
+      ],
+      "n": 1306
+    },
+    "rel:PART_OF|v2|f1": {
+      "ci": [
+        0.0,
+        0.0
+      ],
+      "n": 1306
+    },
+    "rel:PART_OF|delta|recall": {
+      "ci": [
+        0.0,
+        0.0
+      ],
+      "n": 1306
+    },
+    "rel:PART_OF|delta|f1": {
+      "ci": [
+        0.0,
+        0.0
+      ],
+      "n": 1306
+    }
+  }
+}

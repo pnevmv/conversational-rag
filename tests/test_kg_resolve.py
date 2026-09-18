@@ -1,7 +1,8 @@
 """Tests for type-conflict resolution in entity resolution (src/kg/resolve.py)."""
 import pytest
 
-from src.kg.resolve import DEFAULT_INPUT, choose_type, load_mentions, resolve_types
+from src.kg.resolve import (DEFAULT_INPUT, choose_type, generic_specific_conflict, key_of, load_mentions,
+                            resolve_types)
 
 
 def _mention(type_, relations=()):
@@ -35,3 +36,29 @@ def test_ny_state_driver_license_becomes_a_document():
     conflicts = {c["name"]: c for c in resolve_types(mentions)}
     assert conflicts["ny state driver license"]["resolved_type"] == "Document"
     assert all(m["type"] == "Document" for m in mentions if m["name"].casefold() == "ny state driver license")
+
+
+# --- generic vs specific -------------------------------------------------------------------
+
+def _g(name):
+    return {"key": key_of(name)}
+
+
+@pytest.mark.parametrize("a, b", [
+    ("proof of identity", "NY State driver license"),                      # category vs instance
+    ("mail", "phone"),
+    ("disability compensation", "disability compensation and pension benefits"),
+    ("surviving spouses", "surviving spouse or child"),
+])
+def test_generic_and_specific_names_never_merge(a, b):
+    assert generic_specific_conflict(_g(a), _g(b)) is not None
+
+
+@pytest.mark.parametrize("a, b", [
+    ("insurance ID card", "NY State Insurance ID card"),
+    ("current NY State Insurance ID card", "digital electronic NY State Insurance ID Card"),
+    ("loans", "student loans"),                                            # labelled correct in v1
+    ("DMV office", "local DMV office"),
+])
+def test_qualified_names_may_still_merge(a, b):
+    assert generic_specific_conflict(_g(a), _g(b)) is None

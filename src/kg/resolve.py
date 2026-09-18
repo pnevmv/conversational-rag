@@ -21,6 +21,13 @@ Pipeline:
      between an LLM confirms (temperature 0, strict JSON, cached). Only each name
      group's TOP_K nearest neighbours enter the LLM band, so the number of LLM calls
      grows linearly with the corpus rather than quadratically.
+  5b. Generic vs specific: two names never merge (without a rule match) when they share no
+     content word ("proof of identity" / "NY State driver license": a category and one of its
+     instances), or when one name is a coordination of the other with something else
+     ("disability compensation" / "disability compensation and pension benefits"). These
+     pairs are rejected without an LLM call. A broader rule (any name whose words are a
+     subset of another's) was rejected: on the labelled pilot clusters it split 15 of 33
+     correct merges ("loans" / "student loans", "DMV office" / "local DMV office").
   6. Constrained clustering: accepted pairs are merged (rules first, then by score)
      unless the two clusters contain a cannot-link pair, i.e. a pair the LLM rejected or
      two Amount / TimeLimit / ContactPoint groups with different values. This stops
@@ -92,6 +99,11 @@ _ACRONYM_STOP = {"of", "and", "the", "for", "on", "in", "to", "a", "an", "&"}
 # the model sometimes fills `alias` with a category label ("Sales Tax Form").
 _ABBREVIATION = re.compile(r"^[A-Z][A-Za-z0-9&./\-]{1,9}$")
 VALUE_TYPES = {"Amount", "TimeLimit", "ContactPoint"}
+# Generic-vs-specific rule: words that carry no identity of their own.
+_GENERIC_STOP = {"of", "the", "a", "an", "and", "or", "for", "to", "in", "on", "by", "with", "your", "you",
+                 "my", "our", "their", "his", "her", "this", "that", "these", "those", "another", "other",
+                 "any", "some", "all", "each", "s"}
+_COORDINATORS = {"and", "or"}
 _PAREN = re.compile(r"\(([^)]+)\)")
 _FORM_CODES = [
     re.compile(r"\b([A-Z]{1,5})[ -]?(\d{1,4}[A-Z]?)\b"),        # IRP-6, MV-232, DTF-803, DD214
@@ -279,6 +291,23 @@ def value_conflict(a: Dict[str, Any], b: Dict[str, Any]) -> bool:
     return a["type"] in VALUE_TYPES and bool(a["values"]) and bool(b["values"]) and not (a["values"] & b["values"])
 
 
+def _content_words(key: str) -> Set[str]:
+    return {w for w in key.split() if w not in _GENERIC_STOP}
+
+
+def generic_specific_conflict(a: Dict[str, Any], b: Dict[str, Any]) -> Optional[str]:
+    """'disjoint' or 'coordination' if the two name groups must not merge, else None."""
+    wa, wb = _content_words(a["key"]), _content_words(b["key"])
+    if not wa or not wb:
+        return None
+    if not wa & wb:
+        return "disjoint"
+    for (small, _), (big, big_key) in (((wa, a), (wb, b["key"])), ((wb, b), (wa, a["key"]))):
+        if small < big and _COORDINATORS & set(big_key.split()):
+            return "coordination"
+    return None
+
+
 def _acronym(key: str) -> Optional[str]:
     words = [w for w in key.split() if w not in _ACRONYM_STOP]
     return "".join(w[0] for w in words) if len(words) >= 2 else None
@@ -457,6 +486,8 @@ def decide(pair: Dict[str, Any], upper: float, lower: float) -> str:
         return "auto_rule"
     if pair.get("value_conflict"):
         return "reject_value"
+    if pair.get("generic_conflict"):
+        return "reject_generic"
     if pair["score"] >= upper:
         return "auto_score"
     if pair["score"] < lower:
@@ -540,6 +571,7 @@ def run(paths: List[Path], workers: int, upper: float, lower: float, top_k: Opti
     pairs = candidate_pairs(groups, lower, top_k)
     for p in pairs:
         p["value_conflict"] = value_conflict(groups[p["a"]], groups[p["b"]])
+        p["generic_conflict"] = generic_specific_conflict(groups[p["a"]], groups[p["b"]])
         p["band"] = decide(p, upper, lower)
     middle = [p for p in pairs if p["band"] == "llm"]
     if batched:
@@ -549,7 +581,7 @@ def run(paths: List[Path], workers: int, upper: float, lower: float, top_k: Opti
         llm_calls = len(middle)
     accepted = [p for p in pairs if p["band"] in ("auto_rule", "auto_score") or p.get("llm_same")]
     cannot_link = {frozenset((p["a"], p["b"])) for p in pairs
-                   if p["band"] == "reject_value" or (p["band"] == "llm" and not p["llm_same"])}
+                   if p["band"] in ("reject_value", "reject_generic") or (p["band"] == "llm" and not p["llm_same"])}
     root, blocked = cluster(groups, accepted, cannot_link)
     for p in blocked:
         p["blocked"] = True
