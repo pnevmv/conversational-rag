@@ -19,10 +19,16 @@ score: computes precision, recall and F1 per relation type and per entity type
 If annotation_stability.csv exists, precision is also reported separately for triples
 found by both runs and by run 1 only.
 
+score-er: precision of the entity-resolution clusters labelled in er_pilot_clusters.csv
+(clusters that merge differently written names), overall, per entity type, and by
+merge evidence: name normalisation only (case, plural, articles), a rule match (alias,
+acronym, form number), or LLM confirmation.
+
 Usage:
     python -m src.kg.annotation export
     python -m src.kg.annotation stability
     python -m src.kg.annotation score
+    python -m src.kg.annotation score-er
 """
 import argparse
 import csv
@@ -46,6 +52,9 @@ SAMPLE_CSV = KG_DIR / "annotation_sample.csv"
 SECTIONS_CSV = KG_DIR / "annotation_sections.csv"
 MISSING_CSV = KG_DIR / "annotation_missing.csv"
 SCORES_JSON = KG_DIR / "annotation_scores.json"
+ER_CLUSTERS_CSV = KG_DIR / "er_pilot_clusters.csv"
+ER_SCORES_JSON = KG_DIR / "er_annotation_scores.json"
+RULE_EVIDENCE = ("alias", "acronym", "form_number")
 
 # One document per domain (DMV, SSA, VA) from the 8 pilot documents, ~140 triples.
 ANNOTATION_DOCS = [
@@ -57,6 +66,9 @@ ANNOTATION_DOCS = [
 TRIPLE_COLUMNS = ["section_id", "source", "source_type", "relation", "target", "target_type", "evidence"]
 SAMPLE_COLUMNS = ["triple_id"] + TRIPLE_COLUMNS + ["label", "note"]
 MISSING_COLUMNS = TRIPLE_COLUMNS + ["note"]
+# Relation names of the candidate schema that were renamed in the final one; accepted in
+# annotation_missing.csv so hand-written rows using the old name still count.
+RELATION_ALIASES = {"HAS_FEE": "HAS_AMOUNT", "HAS_DEADLINE": "HAS_TIME_LIMIT"}
 CORRECT = {"correct", "c", "1", "yes", "y", "true"}
 INCORRECT = {"incorrect", "i", "0", "no", "n", "false"}
 
@@ -125,9 +137,11 @@ def _categories(row: Dict[str, str]) -> Iterable[Tuple[str, str]]:
         yield "entity_type", t
 
 
-def _prf(tp: int, fp: int, fn: int) -> Dict[str, float]:
+def _prf(tp: int, fp: int, fn: int, recall_annotated: bool = True) -> Dict[str, float]:
+    """Precision, recall and F1. Without missing-triple annotation, recall and F1 are None
+    (otherwise every recall would trivially be 1.0)."""
     p = tp / (tp + fp) if tp + fp else None
-    r = tp / (tp + fn) if tp + fn else None
+    r = tp / (tp + fn) if (tp + fn and recall_annotated) else None
     f1 = 2 * p * r / (p + r) if p and r else (0.0 if p is not None and r is not None else None)
     return {"tp": tp, "fp": fp, "fn": fn, "precision": p, "recall": r, "f1": f1}
 
@@ -152,6 +166,7 @@ def score() -> Dict[str, object]:
             counts[cat][key] += 1
 
     for i, row in enumerate(missing, start=2):  # row 1 is the header
+        row = {**row, "relation": RELATION_ALIASES.get(row["relation"], row["relation"])}
         ok = (row["relation"] in RELATION_TYPES and row["source_type"] in ENTITY_TYPES
               and row["target_type"] in ENTITY_TYPES
               and is_valid_triple(row["relation"], row["source_type"], row["target_type"]))
@@ -175,15 +190,42 @@ def score() -> Dict[str, object]:
         by_stability = {k: {**v, "precision": v["tp"] / (v["tp"] + v["fp"]) if v["tp"] + v["fp"] else None}
                         for k, v in split.items()}
 
+    recall_annotated = bool(missing)
     result = {
-        "overall": _prf(**total),
+        "recall_annotated": recall_annotated,
+        "overall": _prf(**total, recall_annotated=recall_annotated),
         "precision_by_stability": by_stability,
-        "by_relation": {k[1]: _prf(**v) for k, v in sorted(counts.items()) if k[0] == "relation"},
-        "by_entity_type": {k[1]: _prf(**v) for k, v in sorted(counts.items()) if k[0] == "entity_type"},
+        "by_relation": {k[1]: _prf(**v, recall_annotated=recall_annotated)
+                        for k, v in sorted(counts.items()) if k[0] == "relation"},
+        "by_entity_type": {k[1]: _prf(**v, recall_annotated=recall_annotated)
+                           for k, v in sorted(counts.items()) if k[0] == "entity_type"},
         "unlabelled_triples": unlabelled,
         "invalid_missing_rows": invalid_missing,
     }
     SCORES_JSON.write_text(json.dumps(result, indent=2), encoding="utf-8")
+    return result
+
+
+def score_er() -> Dict[str, object]:
+    rows = [r for r in _read(ER_CLUSTERS_CSV) if r["label"].lower() in CORRECT | INCORRECT]
+
+    def _p(rs: List[Dict[str, str]]) -> Dict[str, object]:
+        ok = sum(1 for r in rs if r["label"].lower() in CORRECT)
+        return {"correct": ok, "labelled": len(rs), "precision": ok / len(rs) if rs else None}
+
+    by_type: Dict[str, List[Dict[str, str]]] = defaultdict(list)
+    for r in rows:
+        by_type[r["type"]].append(r)
+    norm_only = [r for r in rows if not r["merge_evidence"].strip()]
+    with_rule = [r for r in rows if any(e in r["merge_evidence"] for e in RULE_EVIDENCE)]
+    with_llm = [r for r in rows if r["merge_evidence"].strip() and r not in with_rule]
+    result = {
+        "overall": _p(rows),
+        "by_type": {t: _p(rs) for t, rs in sorted(by_type.items())},
+        "by_evidence": {"normalisation_only": _p(norm_only), "rule": _p(with_rule), "llm": _p(with_llm)},
+        "unlabelled": sum(1 for r in _read(ER_CLUSTERS_CSV) if r["label"].lower() not in CORRECT | INCORRECT),
+    }
+    ER_SCORES_JSON.write_text(json.dumps(result, indent=2), encoding="utf-8")
     return result
 
 
@@ -193,7 +235,7 @@ def _fmt(x) -> str:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("command", choices=["export", "stability", "score"])
+    parser.add_argument("command", choices=["export", "stability", "score", "score-er"])
     parser.add_argument("--input", type=Path, default=DEFAULT_INPUT)
     parser.add_argument("--run2", type=Path, default=DEFAULT_RUN2)
     args = parser.parse_args()
@@ -204,11 +246,21 @@ def main() -> None:
     if args.command == "stability":
         stability(args.run2)
         return
+    if args.command == "score-er":
+        res = score_er()
+        print(f"{'':16} {'correct':>8} {'labelled':>9}  {'P':>5}")
+        for name, m in [("Overall", res["overall"])] + list(res["by_type"].items()) + \
+                       [(f"via {k}", v) for k, v in res["by_evidence"].items()]:
+            print(f"{name:16} {m['correct']:>8} {m['labelled']:>9}  {_fmt(m['precision'])}")
+        print(f"Saved -> {ER_SCORES_JSON}")
+        return
 
     result = score()
     if result["unlabelled_triples"]:
         print(f"Warning: {len(result['unlabelled_triples'])} triples have no valid label and are excluded",
               file=sys.stderr)
+    if not result["recall_annotated"]:
+        print(f"Note: {MISSING_CSV.name} has no rows, so recall and F1 are not reported", file=sys.stderr)
     if result["invalid_missing_rows"]:
         print(f"Warning: rows {result['invalid_missing_rows']} of {MISSING_CSV.name} use an unknown relation or "
               f"type, or a pair the schema does not allow; they are excluded", file=sys.stderr)

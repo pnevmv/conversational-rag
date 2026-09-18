@@ -1,1 +1,34 @@
 section_id,source,source_type,relation,target,target_type,evidence,note
+Register a leased vehicle#1_0::11,register a leased vehicle,Service,REQUIRES,certified copy of the title certificate,Document,a certified copy of the title certificate,
+Register a leased vehicle#1_0::11,register a leased vehicle,Service,REQUIRES,Manufacturers Statement of Origin (MSO),Document,original Manufacturers Statement of Origin MSO,
+Register a leased vehicle#1_0::11,Manufacturers Statement of Origin (MSO),Document,ALTERNATIVE_TO,Manufacturer's Certificate of Origin (MCO),Document,Manufacturers Statement of Origin MSO or Manufacturer's Certificate of Origin MCO,
+Register a leased vehicle#1_0::11,register a leased vehicle,Service,REQUIRES,NY State Insurance ID card,Document,current NY State Insurance ID card auto liability insurance,
+Register a leased vehicle#1_0::11,register a leased vehicle,Service,REQUIRES,proof of identity,Requirement,"NY State driver license , permit , non - driver ID , or other proof of identity",
+Register a leased vehicle#1_0::11,register a leased vehicle,Service,REQUIRES,authorization from the leasing company to register the vehicle in New York,Requirement,authorization from the leasing company to register the vehicle in New York,
+Register a leased vehicle#1_0::11,register a leased vehicle,Service,REQUIRES,"proof of sales tax payment, sales tax exemption, or purchase price",Requirement,"proof of sales tax payment, sales tax exemption, or purchase price",
+Register a leased vehicle#1_0::2,register a leased vehicle,Service,PROVIDED_BY,dealer,Organization,the dealer normally registers the vehicle for you,dealer usually does it on your behalf
+Register a leased vehicle#1_0::25,register your vehicle,Service,HAS_FEE,NY State sales tax,Amount,You must pay NY State sales tax at the DMV office on any lease payments,Amount kind=tax; use the schema relation name for Amount
+Register a leased vehicle#1_0::25,NY State Insurance ID cards,Document,PROVIDED_BY,insurance company,Organization,Your insurance company will: 1) give you 2 barcoded original NY State Insurance ID cards,
+Register a leased vehicle#1_0::25,electronic notice of insurance coverage,Document,PROVIDED_BY,insurance company,Organization,send an electronic notice of insurance coverage to the DMV,
+Register a leased vehicle#1_0::25,register your vehicle,Service,REQUIRES,NY State Insurance ID card,Document,Bring one copy or form of your Insurance ID Card with you.,
+Register a leased vehicle#1_0::25,register your vehicle,Service,REQUIRES,electronic notice of insurance coverage,Document,Your NY State Insurance ID cards and the electronic notice together verify your coverage. We need both.,"replaces the wrong ""both"" entity"
+Register a leased vehicle#1_0::25,NY State Driver License,Document,ALTERNATIVE_TO,Learner Permit,Document,"You can use a NY State Driver License, Learner Permit, or Non - Driver ID card",
+Register a leased vehicle#1_0::25,NY State Driver License,Document,ALTERNATIVE_TO,Non - Driver ID card,Document,"You can use a NY State Driver License, Learner Permit, or Non - Driver ID card",
+Appeal A Decision | Social Security Administration#2_0::1,appeal,Service,APPLIES_TO,people recently denied Social Security benefits or SSI,Role,"If you were recently denied Social Security benefits or Supplemental Security Income SSI , you may request an appeal.",
+Appeal A Decision | Social Security Administration#2_0::1,Reconsideration,Service,PART_OF,appeal,Service,There are four levels of appeal : Reconsideration,levels of appeal
+Appeal A Decision | Social Security Administration#2_0::1,Hearing by an administrative law judge,Service,PART_OF,appeal,Service,"There are four levels of appeal : Reconsideration , Hearing by an administrative law judge",
+Appeal A Decision | Social Security Administration#2_0::1,Review by the Appeals Council,Service,PART_OF,appeal,Service,Review by the Appeals Council,
+Appeal A Decision | Social Security Administration#2_0::1,Federal Court review,Service,PART_OF,appeal,Service,and Federal Court review,
+Appeal A Decision | Social Security Administration#2_0::44,Check the Status of Your Hearing,Service,AVAILABLE_AT,my Social Security account,ContactPoint,you can check the status of your disability and SSI hearing using your personal my Social Security account,
+Appeal A Decision | Social Security Administration#2_0::51,civil suit in a federal district court,Service,PROVIDED_BY,federal district court,Organization,you can file a civil suit in a federal district court,
+Appeal A Decision | Social Security Administration#2_0::51,Review by the Appeals Council,Service,LEADS_TO,case decided by the Appeals Council or returned to an administrative law judge,Outcome,it will either decide your case itself or return it to an administrative law judge for further review,
+VA Housing Assistance | Veterans Affairs#1_0::24,VA home loan,Service,HAS_FEE,VA Loan Funding Fee,Amount,Find out if you'll need to pay this fee when using your home loan benefits.,Amount kind=fee
+VA Housing Assistance | Veterans Affairs#1_0::39,Specially Adapted Housing Grant,Service,LEADS_TO,financial help to make changes to your home,Outcome,Get financial help to make changes to your home to help you live more independently,
+VA Housing Assistance | Veterans Affairs#1_0::43,Disability Compensation Pay,Service,REQUIRES,conditions related to your military service,Requirement,file a claim for compensation for conditions related to your military service,
+VA Housing Assistance | Veterans Affairs#1_0::43,Vocational Rehabilitation and Employment (VR&E),Service,LEADS_TO,help exploring employment options and more training,Outcome,VR&E benefits and services like help exploring employment options and getting more training,
+VA Housing Assistance | Veterans Affairs#1_0::53,VA benefits hotline,Organization,AVAILABLE_AT,800 - 827 - 1000,ContactPoint,VA benefits hotline:800 - 827 - 1000,
+VA Housing Assistance | Veterans Affairs#1_0::53,eBenefits technical support,Organization,AVAILABLE_AT,800 - 983 - 0937,ContactPoint,eBenefits technical support:800 - 983 - 0937,
+VA Housing Assistance | Veterans Affairs#1_0::53,MyVA311,Organization,AVAILABLE_AT,844 - 698 - 2311,ContactPoint,Call MyVA311 for help:844 - 698 - 2311,
+VA Housing Assistance | Veterans Affairs#1_0::53,VA,Organization,AVAILABLE_AT,TTY : 711,ContactPoint,"If you have hearing loss , call TTY : 711.",
+VA Housing Assistance | Veterans Affairs#1_0::8,Veterans Crisis Line,Service,APPLIES_TO,Veteran in crisis,Role,If you're a Veteran in crisis or concerned about one,
+VA Housing Assistance | Veterans Affairs#1_0::8,National Call Center for Homeless Veterans,Service,APPLIES_TO,Veterans who are homeless or at risk of becoming homeless,Role,How do I get help if I'm homeless or at risk of becoming homeless?,

@@ -37,7 +37,10 @@ a three-layer design of document structure, extracted mentions and resolved
 entities. A closed schema derived from an open-extraction pilot keeps 96\% of
 evidence quotes verbatim, but two identical extraction runs share fewer than half of
 their triples, and embedding similarity alone cannot decide entity merges, since even
-pairs above a cosine of 0.95 are distinct entities about half of the time. The thesis
+pairs above a cosine of 0.95 are distinct entities about half of the time. A pilot
+annotation of three documents, drafted by an \gls{llm} and reviewed by the author, puts
+the precision of a single extraction run at 46\% (recall 66\%), and at 67\% for the
+triples that two runs agree on. The thesis
 concludes with the planned completion of the graph, graph-\gls{rag} architectures,
 agent-based orchestration, and an open-weight \gls{llm} judge for more reliable
 generation evaluation.

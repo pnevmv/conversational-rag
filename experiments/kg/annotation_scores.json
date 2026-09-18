@@ -1,0 +1,173 @@
+{
+  "recall_annotated": true,
+  "overall": {
+    "tp": 65,
+    "fp": 75,
+    "fn": 33,
+    "precision": 0.4642857142857143,
+    "recall": 0.6632653061224489,
+    "f1": 0.546218487394958
+  },
+  "precision_by_stability": {
+    "both_runs": {
+      "tp": 33,
+      "fp": 16,
+      "precision": 0.673469387755102
+    },
+    "run1_only": {
+      "tp": 32,
+      "fp": 59,
+      "precision": 0.3516483516483517
+    }
+  },
+  "by_relation": {
+    "ALTERNATIVE_TO": {
+      "tp": 0,
+      "fp": 2,
+      "fn": 3,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0
+    },
+    "APPLIES_TO": {
+      "tp": 15,
+      "fp": 11,
+      "fn": 3,
+      "precision": 0.5769230769230769,
+      "recall": 0.8333333333333334,
+      "f1": 0.6818181818181818
+    },
+    "AVAILABLE_AT": {
+      "tp": 11,
+      "fp": 8,
+      "fn": 5,
+      "precision": 0.5789473684210527,
+      "recall": 0.6875,
+      "f1": 0.6285714285714286
+    },
+    "HAS_AMOUNT": {
+      "tp": 0,
+      "fp": 0,
+      "fn": 2,
+      "precision": null,
+      "recall": 0.0,
+      "f1": null
+    },
+    "HAS_TIME_LIMIT": {
+      "tp": 2,
+      "fp": 7,
+      "fn": 0,
+      "precision": 0.2222222222222222,
+      "recall": 1.0,
+      "f1": 0.3636363636363636
+    },
+    "LEADS_TO": {
+      "tp": 4,
+      "fp": 10,
+      "fn": 3,
+      "precision": 0.2857142857142857,
+      "recall": 0.5714285714285714,
+      "f1": 0.38095238095238093
+    },
+    "PART_OF": {
+      "tp": 0,
+      "fp": 7,
+      "fn": 4,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0
+    },
+    "PROVIDED_BY": {
+      "tp": 7,
+      "fp": 1,
+      "fn": 4,
+      "precision": 0.875,
+      "recall": 0.6363636363636364,
+      "f1": 0.7368421052631579
+    },
+    "REQUIRES": {
+      "tp": 26,
+      "fp": 29,
+      "fn": 9,
+      "precision": 0.4727272727272727,
+      "recall": 0.7428571428571429,
+      "f1": 0.5777777777777778
+    }
+  },
+  "by_entity_type": {
+    "Amount": {
+      "tp": 0,
+      "fp": 0,
+      "fn": 2,
+      "precision": null,
+      "recall": 0.0,
+      "f1": null
+    },
+    "ContactPoint": {
+      "tp": 11,
+      "fp": 4,
+      "fn": 5,
+      "precision": 0.7333333333333333,
+      "recall": 0.6875,
+      "f1": 0.7096774193548386
+    },
+    "Document": {
+      "tp": 17,
+      "fp": 9,
+      "fn": 10,
+      "precision": 0.6538461538461539,
+      "recall": 0.6296296296296297,
+      "f1": 0.6415094339622641
+    },
+    "Organization": {
+      "tp": 14,
+      "fp": 6,
+      "fn": 8,
+      "precision": 0.7,
+      "recall": 0.6363636363636364,
+      "f1": 0.6666666666666666
+    },
+    "Outcome": {
+      "tp": 4,
+      "fp": 7,
+      "fn": 3,
+      "precision": 0.36363636363636365,
+      "recall": 0.5714285714285714,
+      "f1": 0.4444444444444444
+    },
+    "Requirement": {
+      "tp": 20,
+      "fp": 25,
+      "fn": 4,
+      "precision": 0.4444444444444444,
+      "recall": 0.8333333333333334,
+      "f1": 0.5797101449275363
+    },
+    "Role": {
+      "tp": 15,
+      "fp": 9,
+      "fn": 3,
+      "precision": 0.625,
+      "recall": 0.8333333333333334,
+      "f1": 0.7142857142857143
+    },
+    "Service": {
+      "tp": 47,
+      "fp": 67,
+      "fn": 24,
+      "precision": 0.41228070175438597,
+      "recall": 0.6619718309859155,
+      "f1": 0.5081081081081081
+    },
+    "TimeLimit": {
+      "tp": 2,
+      "fp": 7,
+      "fn": 0,
+      "precision": 0.2222222222222222,
+      "recall": 1.0,
+      "f1": 0.3636363636363636
+    }
+  },
+  "unlabelled_triples": [],
+  "invalid_missing_rows": []
+}

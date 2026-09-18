@@ -4,14 +4,17 @@
 
 This chapter describes the construction of a \gls{kg} from the \gls{mdd} corpus,
 the first stage beyond passage retrieval. The work is in progress: the graph
-design, the extraction pipeline and its quality checks are complete on a set of
-pilot documents, while the extraction over the full corpus is deferred until the
-manual precision annotation described in Section~\ref{sec:kg:status} is
-available. Section~\ref{sec:kg:design} presents the three-layer design.
+design, the extraction pipeline, entity resolution and the graph build are
+complete and have been evaluated on a set of pilot documents, including a first
+reviewed precision and recall annotation, while the extraction over the full corpus is
+still pending.
+Section~\ref{sec:kg:design} presents the three-layer design.
 Sections~\ref{sec:kg:structure}--\ref{sec:kg:extraction} cover the structural
 layer, the schema and the extraction pipeline. Sections~\ref{sec:kg:quality}
-and~\ref{sec:kg:er} report the quality checks and entity resolution, and
-Section~\ref{sec:kg:status} summarises the state of the work.
+and~\ref{sec:kg:er} report the automatic quality checks and entity resolution,
+Section~\ref{sec:kg:build} the graph built from the pilot, and
+Section~\ref{sec:kg:eval} its pilot evaluation. Section~\ref{sec:kg:status}
+summarises the state of the work.
 
 
 % ===========================================================================
@@ -94,7 +97,7 @@ relations in the wrong direction (e.g.\ ``supervised driving practice
 (\texttt{REQUIRES\_VISION\_TEST}), self-loops, and entity names written as CamelCase
 identifiers instead of the text's wording (69\% of names). Evidence quotes were
 reliable: 97.4\% matched the section text exactly or up to punctuation, and
-manual inspection of the remaining 15 found no invented content.
+inspection of the remaining 15 found no invented content.
 
 \subsection{Closed Schema}
 
@@ -280,8 +283,11 @@ intersection for precision) is the remaining lever.
 Entity resolution merges mentions into the entities of the \gls{kg} layer. Mentions
 are first blocked by type: Service, Requirement, Role and Outcome are compared only
 within a domain, while Organization, Document, ContactPoint, Amount and TimeLimit
-may be merged across domains. Mentions extracted with conflicting types are assigned
-the majority type. Candidate pairs come from three sources: deterministic rules
+may be merged across domains. Mentions of the same name extracted with conflicting
+types are assigned the majority type; a tie goes to the type under which most of
+their relations satisfy the type rules, and a remaining tie to a fixed priority
+(Document before Organization, Service, Requirement, Role, Outcome, Amount,
+TimeLimit and ContactPoint). Candidate pairs come from three sources: deterministic rules
 (abbreviation aliases, acronyms, and shared form numbers such as IRP-6), the cosine
 similarity of name embeddings (\texttt{bge-small-en-v1.5}~\cite{bge2023}), and graph
 signals that raise confidence when two mentions share a document or relation
@@ -316,7 +322,7 @@ No similarity score is safe for automatic merging: even above 0.95 about half of
 pairs are distinct entities whose names differ in a single qualifier, such as
 subsidised and unsubsidised loans or medical and non-medical hearings. Only rule
 matches are therefore merged automatically. Pairs below 0.80 are never merged: a
-manual reading of the 0.75--0.80 band found that almost all positive judgments there
+reading of the 0.75--0.80 band found that almost all positive judgments there
 were wrong merges. Every pair in between is confirmed by the \gls{llm}.
 
 Three safeguards were added after a first run produced chained clusters (A merged
@@ -344,15 +350,172 @@ estimates about 21{,}000 batched calls for the full corpus. With the final setti
 
 
 % ===========================================================================
+\section{Graph Build}\label{sec:kg:build}
+
+The extracted mentions and the entity resolution output are loaded into Neo4j as the
+two upper layers of the graph:
+\begin{center}
+\small\ttfamily
+(:Section)-[:MENTIONS]->(:Mention)-[:REL]->(:Mention)\\
+(:Mention)-[:RESOLVES\_TO]->(:Entity)-[:REQUIRES|PROVIDED\_BY|\ldots]->(:Entity)
+\end{center}
+Each mention keeps its name, type, value, alias and evidence quote, so every fact in
+the graph can be traced back to the sentence it was extracted from. An entity
+relation aggregates the mention-level relations between its two resolved endpoints;
+its \texttt{support} property counts them, and \texttt{section\_ids} lists the
+sections they come from. Relations that break the type rules, including those that
+become invalid once the endpoints receive their resolved types, are not loaded, and
+neither are relations whose two endpoints resolve to the same entity. Social-media
+links (Facebook, X, YouTube and similar) extracted as ContactPoints remain flagged in
+the metagraph but are kept out of the entity layer. The loaders rebuild only the
+metagraph and entity layer of a given scope and leave the structural layer untouched.
+
+Table~\ref{tab:kg:build} gives the size of the graph built from the eight pilot
+documents. 96.8\% of the sections that were extracted have at least one mention.
+The entity graph is sparse and fragmented, as expected from eight unrelated
+documents: the median entity degree is 1 (90th percentile 3, maximum 21), 16\% of
+the entities are isolated, and the largest of 98 connected components contains
+18\% of the entities. The hubs are the main services of each document, such as
+``IRP registration'' or ``VA direct deposit information''.
+
+\begin{table}[ht]
+    \centering
+    \caption{Graph built from the eight pilot documents.}
+    \label{tab:kg:build}
+    \begin{tabular}{lrl}
+        \toprule
+        Layer & Nodes & Relationships \\
+        \midrule
+        Structural & 90 sections, 484 spans & 82 \textsc{next} \\
+        Metagraph  & 508 mentions & 508 \textsc{mentions}, 336 mention relations \\
+        Entity layer & 377 entities & 503 \textsc{resolves\_to}, 309 entity relations \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+To check that the graph covers what users ask about, every validation example whose
+gold section lies in a pilot document was matched against the graph (36 examples;
+the dev-500 subset contains only three such examples). The gold section has at least
+one mention in 35 of them (97\%), and in 28 (78\%) an entity extracted from the gold
+section is named in the user question or the reference answer. Most of the
+remaining turns are conversational (``yes'', ``thank you''), which a graph-based
+retriever will have to resolve through the dialogue history rather than by string
+matching.
+
+
+% ===========================================================================
+\section{Pilot Evaluation (v1)}\label{sec:kg:eval}
+
+All 140 loadable triples extracted from three pilot documents, one per domain for
+DMV, SSA and VA, were labelled as correct or incorrect against their source sections,
+together with the 47 entity clusters that merge differently written names. The triples
+that the sections state but the extraction missed were listed as well (33), which
+gives recall. The gold labels and the list of missed triples were first drafted by an
+\gls{llm} and then reviewed and corrected by the author; they are therefore not a fully
+independent human annotation.
+
+These are \emph{pilot v1} numbers: they describe the first version of the extraction
+prompt and entity resolution on three documents, and are meant to guide the revisions
+that precede the full-corpus run. They are not an estimate of the quality of the final
+\gls{kg}. With samples of this size, the confidence intervals are wide; the values
+below are 95\% Wilson intervals.
+
+\subsection{Triple Precision and Recall}
+
+Overall precision is 46.4\% (65 of 140; 95\% CI $[38.4, 54.7]$) and recall 66.3\%
+(65 of 98 correct triples; CI $[56.5, 74.9]$), for an \fone{} of 54.6\%. The
+extraction therefore finds two thirds of the facts the sections state, but more than
+half of what it extracts is wrong. Table~\ref{tab:kg:precision} breaks the scores
+down by relation type. PROVIDED\_BY is precise, APPLIES\_TO and REQUIRES find most of
+their facts, and temporal, causal and part--whole relations are mostly wrong. The
+extraction found none of the alternatives the sections state (e.g.\ a Manufacturer's
+Statement of Origin \emph{or} Certificate of Origin) and none of the fees or taxes a
+service carries. By entity type (a triple counts for both of its endpoint types),
+precision ranges from 22\% for TimeLimit and 36\% for Outcome to 65--73\% for
+Document, Organization and ContactPoint. Across the three documents, precision
+ranges from 31\% to 64\% and recall from 56\% to 77\%. None of the missed triples lies
+in a section that was skipped as short or boilerplate.
+
+\begin{table}[ht]
+    \centering
+    \caption{Precision and recall of extracted triples by relation type (three pilot
+             documents). Missed: correct triples listed by the annotator that the
+             extraction did not produce.}
+    \label{tab:kg:precision}
+    \begin{tabular}{lrrrrr}
+        \toprule
+        Relation & Correct & Labelled & Missed & Precision & Recall \\
+        \midrule
+        REQUIRES        & 26 & 55 & 9 & 47.3\% & 74.3\% \\
+        APPLIES\_TO     & 15 & 26 & 3 & 57.7\% & 83.3\% \\
+        AVAILABLE\_AT   & 11 & 19 & 5 & 57.9\% & 68.8\% \\
+        LEADS\_TO       &  4 & 14 & 3 & 28.6\% & 57.1\% \\
+        HAS\_TIME\_LIMIT &  2 &  9 & 0 & 22.2\% & 100.0\% \\
+        PROVIDED\_BY    &  7 &  8 & 4 & 87.5\% & 63.6\% \\
+        PART\_OF        &  0 &  7 & 4 &  0.0\% &  0.0\% \\
+        ALTERNATIVE\_TO &  0 &  2 & 3 &  0.0\% &  0.0\% \\
+        HAS\_AMOUNT     &  0 &  0 & 2 &  ---  &  0.0\% \\
+        \midrule
+        All             & 65 & 140 & 33 & 46.4\% & 66.3\% \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+The annotation notes point to a few recurring error types:
+\begin{itemize}
+    \item \textbf{Wrong entity type with consequences.} Identity documents (driver
+          licence, learner permit, non-driver ID card) were typed as services, which
+          produced reversed \textsc{requires} relations (``driver licence requires
+          proof of identity'', where the licence \emph{is} the proof) and validity
+          periods attached to services.
+    \item \textbf{Non-requirements as \textsc{requires} targets:} conditional
+          clauses, vague instructions (``bring the correct documents''), link texts
+          and helper tools.
+    \item \textbf{Locations as roles.} The list of places where an online
+          reservation is needed (New York City and six counties) became seven
+          \textsc{applies\_to} relations to ``Role'' entities.
+    \item \textbf{Relations between two names for the same thing} (a service
+          \textsc{leads\_to} or is \textsc{alternative\_to} itself under another
+          name), and part--whole relations that do not hold (an appeal as part of the
+          benefits it concerns).
+\end{itemize}
+Conversely, several triples judged correct express alternatives (``a, b \emph{or}
+c is required''), which the schema cannot represent and records as separate
+\textsc{requires} relations.
+
+\subsection{Precision and Run Agreement}
+
+Precision depends strongly on whether a triple is reproduced by an independent second
+extraction run (Section~\ref{sec:kg:quality}). Triples found by both runs are correct
+in 67.3\% of cases (33 of 49; CI $[53.4, 78.8]$), those found by one run only in
+35.2\% (32 of 91; CI $[26.1, 45.4]$); the intervals do not overlap. Run agreement is
+therefore a useful confidence signal: keeping only the triples that two runs agree on
+would roughly double the extraction cost and discard about two thirds of the triples,
+but raise precision by about 20 percentage points.
+
+\subsection{Entity Resolution}
+
+Of the 47 clusters that merge differently written names, 33 are correct (70.2\%;
+CI $[56.0, 81.3]$). These clusters come from the pairwise confirmation judge with a
+lower threshold of 0.75. All merges made by name normalisation (nine clusters, e.g.\
+singular and plural) and by the form-number rule (one cluster) are correct; merges
+confirmed by the \gls{llm} are correct in 23 of 37 cases (62.2\%). The wrong merges
+are of two kinds: generic terms merged with a specific one (``benefits'' with
+``retirement benefit'', ``another repayment plan'' with ``Graduated Repayment Plan'')
+and siblings that differ in one qualifier (two different counties, ``VA direct'' and
+``VA-backed'' home loans, original and new evidence).
+
+
+% ===========================================================================
 \section{Status}\label{sec:kg:status}
 
-The structural layer is complete in Neo4j. The extraction pipeline, its schema and
-the entity resolution procedure are implemented and calibrated on eight pilot
-documents. Before the full extraction of 3{,}542 calls, a manual annotation of 140
-extracted triples from three of the pilot documents (one each from DMV, SSA and VA),
-together with the triples the extraction missed, will measure precision and recall
-per relation and entity type. Precision is also reported separately for the triples
-that both independent runs extracted, which indicates whether aggregating runs would
-improve precision. The proposed entity merges are reviewed in the same way. These
-measurements decide whether to run the full extraction as designed, with several
-aggregated runs, or with a revised prompt.
+The structural layer is complete in Neo4j, and the extraction, entity resolution and
+graph build are implemented and evaluated on eight pilot documents. The pilot (v1)
+evaluation shows that a single extraction run finds two thirds of the stated facts but
+is correct for fewer than half of its triples, that triples agreed on by two runs are
+markedly more precise, and that the remaining errors concentrate in a few patterns:
+entity typing, the interpretation of \textsc{requires}, locations treated as roles,
+and missed alternatives and fees. Before the full extraction of
+3{,}542 calls, three decisions remain: whether to aggregate two runs, how to revise
+the prompt and the definition of \textsc{requires} for these error patterns, and
+which entity-resolution judge to use.
