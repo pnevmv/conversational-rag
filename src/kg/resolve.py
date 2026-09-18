@@ -7,7 +7,11 @@ Pipeline:
      fixed TYPE_PRIORITY order.
   2. Blocking by type. Service, Requirement, Role and Outcome are compared only within
      the same domain; Organization, Document, ContactPoint, Amount and TimeLimit also
-     across domains.
+     across domains, except Amounts and TimeLimits without a stated value.
+     Hub guard: a name made only of generic words ("application", "other documents",
+     "requirements listed below", "fee", "benefits") is not resolved at all: it stays an
+     entity of its own section. In the first full build such names became hubs that
+     connected unrelated services across documents and domains.
   3. Mentions with the same normalised name in a block form one name group (merged).
   4. Candidate pairs of name groups:
        - rules, merged automatically: alias (an alias or parenthetical abbreviation of
@@ -249,8 +253,24 @@ def resolve_types(mentions: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     return conflicts
 
 
+# Words that do not identify anything on their own (after normalisation, so singular forms).
+GENERIC_WORDS = {
+    "application", "form", "document", "paperwork", "information", "info", "detail", "item", "material",
+    "requirement", "condition", "listed", "below", "above", "following", "more", "other", "additional",
+    "required", "necessary", "certain", "fee", "amount", "payment", "cost", "charge", "service", "program",
+    "benefit", "option", "step", "instruction", "proof", "record", "thing", "case", "request", "process",
+}
+
+
+def is_generic_name(name: str) -> bool:
+    """True if the name has no content word outside GENERIC_WORDS (e.g. 'other documents')."""
+    words = _content_words(key_of(name))
+    return not words or words <= GENERIC_WORDS
+
+
 def block_of(m: Dict[str, Any]) -> str:
-    return m["type"] if m["type"] in CROSS_DOMAIN_TYPES else f"{m['type']}|{m['domain']}"
+    cross = m["type"] in CROSS_DOMAIN_TYPES and not (m["type"] in ("Amount", "TimeLimit") and not m.get("value"))
+    return m["type"] if cross else f"{m['type']}|{m['domain']}"
 
 
 # --- name groups ------------------------------------------------------------------------
@@ -258,9 +278,11 @@ def block_of(m: Dict[str, Any]) -> str:
 def build_groups(mentions: List[Dict[str, Any]]) -> Dict[str, Dict[str, Any]]:
     groups: Dict[str, Dict[str, Any]] = {}
     for m in mentions:
-        gid = f"{block_of(m)}::{key_of(m['name'])}"
+        generic = is_generic_name(m["name"])
+        # Generic names stay section-local: their own group per section, never a merge candidate.
+        gid = f"{block_of(m)}::{key_of(m['name'])}" + (f"::@{m['section_id']}" if generic else "")
         g = groups.setdefault(gid, {
-            "gid": gid, "block": block_of(m), "type": m["type"], "key": key_of(m["name"]),
+            "gid": gid, "block": block_of(m), "type": m["type"], "key": key_of(m["name"]), "generic": generic,
             "names": Counter(), "aliases": set(), "mention_ids": [], "sections": set(), "docs": set(),
             "domains": set(), "titles": set(), "neighbours": set(), "evidence": [], "values": set(),
         })
@@ -422,7 +444,8 @@ def candidate_pairs(groups: Dict[str, Dict[str, Any]], min_score: float,
     model = SentenceTransformer(EMBED_MODEL)
     by_block: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
     for g in groups.values():
-        by_block[g["block"]].append(g)
+        if not g.get("generic"):
+            by_block[g["block"]].append(g)
 
     pairs = []
     for block, gs in sorted(by_block.items()):

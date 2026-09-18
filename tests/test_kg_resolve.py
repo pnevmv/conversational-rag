@@ -1,8 +1,8 @@
 """Tests for type-conflict resolution in entity resolution (src/kg/resolve.py)."""
 import pytest
 
-from src.kg.resolve import (DEFAULT_INPUT, choose_type, generic_specific_conflict, key_of, load_mentions,
-                            resolve_types)
+from src.kg.resolve import (DEFAULT_INPUT, block_of, build_groups, choose_type, generic_specific_conflict,
+                            is_generic_name, key_of, load_mentions, resolve_types)
 
 
 def _mention(type_, relations=()):
@@ -62,3 +62,35 @@ def test_generic_and_specific_names_never_merge(a, b):
 ])
 def test_qualified_names_may_still_merge(a, b):
     assert generic_specific_conflict(_g(a), _g(b)) is None
+
+
+# --- hub guard ------------------------------------------------------------------------------
+
+@pytest.mark.parametrize("name", ["application", "other documents", "requirements listed below", "fee",
+                                  "benefits", "additional information"])
+def test_generic_names_are_detected(name):
+    assert is_generic_name(name)
+
+
+@pytest.mark.parametrize("name", ["proof of identity", "Application for Permit", "title certificate fee",
+                                  "VA health care", "bill of sale"])
+def test_specific_names_are_not_generic(name):
+    assert not is_generic_name(name)
+
+
+def _m(name, section, type_="Document", domain="dmv", value=None):
+    return {"mention_id": f"{section}#0", "section_id": section, "doc_id": section.split("::")[0],
+            "domain": domain, "title": "t", "name": name, "alias": None, "value": value,
+            "extracted_type": type_, "type": type_, "evidence": name, "neighbours": []}
+
+
+def test_generic_names_stay_section_local():
+    groups = build_groups([_m("other documents", "A::1"), _m("other documents", "B::1"),
+                           _m("bill of sale", "A::2"), _m("bill of sale", "B::2")])
+    assert sum(1 for g in groups.values() if g["key"] == key_of("other documents")) == 2
+    assert sum(1 for g in groups.values() if g["key"] == key_of("bill of sale")) == 1
+
+
+def test_valueless_amounts_are_blocked_per_domain():
+    assert block_of(_m("title certificate fee", "A::1", "Amount", "dmv")) == "Amount|dmv"
+    assert block_of(_m("title certificate fee", "A::1", "Amount", "dmv", value="$50")) == "Amount"

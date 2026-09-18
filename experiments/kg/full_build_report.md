@@ -2,6 +2,8 @@
 
 Date: 2026-10-03 · Branch: `kg/build` · Model: `gpt-5.4-nano-smirnov` (Azure), reasoning effort none, temperature 0 · Neo4j scope `full`, run id `full_v21`
 
+**Revision:** §10 reports the labelled control sample, and §11 a hub fix in entity resolution. The graph now in Neo4j is the one after the hub fix (§11): **14,731 entities and 13,277 entity relations**. §3–§6 describe the first build.
+
 The whole corpus was extracted with prompt v2.1 in a single run. Entity resolution used the batched judge, the generic-vs-specific rule and a lower threshold of 0.80. Both layers were then loaded into Neo4j. The pilot scope `pilot` is still in the database alongside `full`.
 
 ## 1. Before the build
@@ -201,3 +203,62 @@ python -m src.kg.annotation control --input experiments/kg/full_v21_extraction.j
 ```
 
 All LLM outputs are cached (`experiments/cache/`, not versioned), so a rerun on this machine makes no API calls.
+
+## 10. Control sample results
+
+All 30 control triples are labelled (`annotation_control.csv`, labels copied from `annotation_control_draft.csv`; scores in `control_scores.json`). Six labels carry a note starting with "borderline", all on triples labelled correct.
+
+| | Correct / 30 | Precision (Wilson 95% CI) |
+|---|---:|---|
+| **Strict** (borderline = incorrect) | 10 | **33.3%** [19.2, 51.2] |
+| **Lenient** (borderline = correct; equals the labels as given) | 16 | **53.3%** [36.1, 69.8] |
+
+The lenient figure matches v2 on the annotated pilot (53.7%), so the pilot estimate carries over to unseen documents. Both are below the 65–70% target.
+
+| Relation | Correct / labelled (lenient) |
+|---|---:|
+| REQUIRES | 8 / 12 |
+| APPLIES_TO | 2 / 5 |
+| PROVIDED_BY | 2 / 4 |
+| HAS_TIME_LIMIT | 2 / 4 |
+| LEADS_TO | 1 / 3 |
+| DETERMINED_BY | 1 / 1 |
+| EXEMPT_FROM | 0 / 1 |
+
+The 14 errors, from the annotation notes:
+
+| Error type | About | Examples |
+|---|---:|---|
+| Junk endpoints | 6 | headings, form-filling instructions, fragments: "VA cover", "order", "At a DMV office", "restore" |
+| Wrong types | 4 | a law as Organization, a service used as a Role, a target that should be an Amount |
+| Wrong relation or direction | 3 | reversed beneficiaries (Camp Lejeune), APPLIES_TO where REQUIRES was meant, a waiting time as a deadline |
+| Self-relation under another name | 1 | "TNC PROVIDED_BY rideshare company" |
+
+## 11. Hub fix in entity resolution
+
+Two rules were added to `src/kg/resolve.py` (tests in `tests/test_kg_resolve.py`), and entity resolution was re-run from the cache (412 new judge calls, 86 s), then the graph reloaded:
+- **Hub guard:** a name made only of generic words ("application", "other documents", "requirements listed below", "fee", "benefits", …) is not resolved. It stays an entity of its own section.
+- **Value-less amounts stay in their domain:** Amounts and TimeLimits without a stated value are no longer merged across domains.
+
+| | Before | After |
+|---|---:|---:|
+| Name groups | 17,765 | 18,017 |
+| **Entities** | 14,453 | **14,731** |
+| **Entity relations** | 13,219 | **13,277** |
+| Judge calls (batched) | 9,411 | 9,230 |
+| Isolated entities | 3,238 | 3,344 |
+| Connected components | 3,983 | 4,130 |
+| Largest component | 8,798 (60.9%) | 8,807 (59.8%) |
+| Degree median / p90 / max | 1 / 4 / 100 | 1 / 4 / 99 |
+| dev-500: gold section has an entity | 96.6% | 96.6% |
+| dev-500: entity named in question or answer | 70.0% | 70.0% |
+
+**Generic hubs.** Before: application (31), other documents (31), requirements listed below (27), fee (26). After: none of them in the per-type top-10 lists.
+
+Top entities after the fix:
+
+| Type | Entities (degree) |
+|---|---|
+| Document | FAFSA form (65); bill of sale (36); title certificate (25); child's U.S. passport (21); New York State driver license (21) |
+| Amount | sales tax (9); fees (8, section-local); no fee (6); $1,000 (5); annual fee (5) |
+| Requirement | acceptable proof of ownership (47); service-connected disability (23); proof of identity (22); Social Security number (15) |

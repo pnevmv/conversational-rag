@@ -1,6 +1,6 @@
 {
   "judge": "batched",
-  "llm_calls": 9411,
+  "llm_calls": 9230,
   "thresholds": {
     "upper": 1.01,
     "lower": 0.8,
@@ -10,8 +10,8 @@
     "max_neighbour_bonus": 0.06
   },
   "mentions": 28782,
-  "name_groups": 17765,
-  "entities": 14454,
+  "name_groups": 18017,
+  "entities": 14732,
   "type_conflicts": [
     {
       "name": "social security credit",
@@ -7557,23 +7557,23 @@
       "rule": "relation_fit"
     }
   ],
-  "candidate_pairs": 32502,
+  "candidate_pairs": 31874,
   "bands": {
-    "llm": 25372,
-    "reject_value": 3653,
-    "reject_generic": 2949,
-    "auto_rule": 528
+    "llm": 24772,
+    "reject_value": 3676,
+    "auto_rule": 528,
+    "reject_generic": 2898
   },
   "rules": {
     "acronym": 50,
     "form_number": 438,
     "alias": 40
   },
-  "llm_confirmed": 4876,
-  "llm_rejected": 20496,
-  "merged_pairs": 4194,
-  "blocked_by_cannot_link": 1210,
-  "clusters_for_review": 2525,
+  "llm_confirmed": 4849,
+  "llm_rejected": 19923,
+  "merged_pairs": 4169,
+  "blocked_by_cannot_link": 1208,
+  "clusters_for_review": 2501,
   "largest_clusters": [
     {
       "canonical_name": "DD214",

@@ -9,12 +9,12 @@
       "share": 0.966
     },
     "entity_matched_in_question": {
-      "n": 142,
-      "share": 0.284
+      "n": 140,
+      "share": 0.28
     },
     "entity_matched_in_answer": {
-      "n": 315,
-      "share": 0.63
+      "n": 314,
+      "share": 0.628
     },
     "entity_matched_in_question_or_answer": {
       "n": 350,
@@ -24,12 +24,12 @@
       "dmv": {
         "examples": 125,
         "gold_has_mentions": 122,
-        "entity_in_question_or_answer": 95
+        "entity_in_question_or_answer": 96
       },
       "ssa": {
         "examples": 125,
         "gold_has_mentions": 119,
-        "entity_in_question_or_answer": 88
+        "entity_in_question_or_answer": 87
       },
       "studentaid": {
         "examples": 125,
@@ -209,7 +209,9 @@
       ],
       "gold_has_mentions": true,
       "gold_entities": 9,
-      "entity_in_question": [],
+      "entity_in_question": [
+        "vehicle use tax"
+      ],
       "entity_in_answer": [],
       "question": "Can you please tell me about the county use taxes and the supplemental fees?",
       "reference_answer": "these are taxes that all residents of the New York City and several counties in New York have to pay when they register or renew a commercial vehicle."
@@ -1294,7 +1296,7 @@
         "Perkins Loan Cancellation and Discharge | Federal Student Aid#1_0::1"
       ],
       "gold_has_mentions": true,
-      "gold_entities": 7,
+      "gold_entities": 8,
       "entity_in_question": [
         "Federal Perkins Loans",
         "Perkins Loans"
@@ -1585,8 +1587,8 @@
       "gold_entities": 4,
       "entity_in_question": [],
       "entity_in_answer": [
-        "Benefit Calculators",
-        "my Social Security account"
+        "my Social Security account",
+        "other benefit Calculators"
       ],
       "question": "I don't already have an estimate",
       "reference_answer": "you can get your online with your personal my Social Security account or use our Benefit Calculators to determine"
@@ -1687,11 +1689,12 @@
       "gold_has_mentions": true,
       "gold_entities": 24,
       "entity_in_question": [
-        "insurance"
+        "insurance",
+        "insurance coverage"
       ],
       "entity_in_answer": [
-        "immediately replace your insurance coverage",
         "insurance",
+        "insurance coverage",
         "plates"
       ],
       "question": "What if I can't immediately replace my insurance coverage?",
@@ -1956,6 +1959,7 @@
         "DMV",
         "insurance",
         "insurance company",
+        "insurance coverage",
         "insurance coverage ended"
       ],
       "question": "Hold on. My wife just showed me another letter, in it they write that my license is suspended. What should I do now?",
@@ -2196,13 +2200,9 @@
         "Learn what documents you will need to get a Social Security Card | Social Security Administration#18_0::14"
       ],
       "gold_has_mentions": true,
-      "gold_entities": 20,
-      "entity_in_question": [
-        "other documents"
-      ],
-      "entity_in_answer": [
-        "other documents"
-      ],
+      "gold_entities": 21,
+      "entity_in_question": [],
+      "entity_in_answer": [],
       "question": "Hello I need information about What original documents do I need to get a Social Security Card?",
       "reference_answer": "Among the documents you will need are those of your citizenship"
     },
@@ -2213,7 +2213,7 @@
         "Learn what documents you will need to get a Social Security Card | Social Security Administration#14_0::21"
       ],
       "gold_has_mentions": true,
-      "gold_entities": 32,
+      "gold_entities": 33,
       "entity_in_question": [],
       "entity_in_answer": [],
       "question": "Will you need proof of my identity?",
@@ -3056,10 +3056,10 @@
       "gold_entities": 4,
       "entity_in_question": [],
       "entity_in_answer": [
-        "Benefit Calculators",
         "lifetime average earnings covered by Social Security",
         "monthly disability benefit",
-        "my Social Security account"
+        "my Social Security account",
+        "other benefit Calculators"
       ],
       "question": "can you tell me how much I will be getting per month?",
       "reference_answer": "The amount of your monthly disability benefit is based on your lifetime average earnings covered by Social Security . You can get an idea by logging into your personal my Social Security account or use our Benefit Calculators to find out how much you would be receiving."
@@ -4553,12 +4553,10 @@
       ],
       "gold_has_mentions": true,
       "gold_entities": 26,
-      "entity_in_question": [
-        "other documents"
-      ],
+      "entity_in_question": [],
       "entity_in_answer": [
         "birth certificate",
-        "other documents",
+        "child's U.S. passport",
         "proof of identity",
         "valid license"
       ],
@@ -4647,6 +4645,7 @@
         "DMV",
         "insurance",
         "insurance company",
+        "insurance coverage",
         "insurance coverage ended"
       ],
       "question": "My driver's license has just been suspended, I was notified by a letter, should I go to a DMV office?",
@@ -6739,8 +6738,8 @@
       "gold_entities": 7,
       "entity_in_question": [],
       "entity_in_answer": [
-        "Benefit Calculators",
         "benefits",
+        "other benefit Calculators",
         "which members of your family may get benefits based on your earnings record"
       ],
       "question": "Are there any tools that I could use to prepare for coming out of the workforce?",
@@ -7368,7 +7367,7 @@
       ],
       "entity_in_answer": [
         "150 to 180 percent of the worker's full retirement benefit",
-        "one - half of your spouse's full retirement amount"
+        "your spouse's benefit amount"
       ],
       "question": "I'd also like to know about Maximum Family Benefits. Is there a limit on how much a family can receive in benefits?",
       "reference_answer": "Yes, and the total depends on your spouse's benefits amount and the number of family members who would qualify on the same record; but generally the total amount the your spouse and family members can receive is about 150 to 180 percent of the worker's full retirement benefit."
@@ -7741,13 +7740,11 @@
         "Learn what documents you will need to get a Social Security Card | Social Security Administration#20_0::14"
       ],
       "gold_has_mentions": true,
-      "gold_entities": 25,
-      "entity_in_question": [
-        "other documents"
-      ],
+      "gold_entities": 26,
+      "entity_in_question": [],
       "entity_in_answer": [
         "U.S. passport",
-        "other documents"
+        "child's U.S. passport"
       ],
       "question": "Oh, oh, another question please. Could you tell me with what purposes you use a document?",
       "reference_answer": "Well, that would depend on the document presented, but for example we could use your U.S passport as proof of both citizenship and identity."
