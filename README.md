@@ -93,7 +93,7 @@ See the thesis chapter `latex_report/chapters/rag.tex` for full analysis, and Ap
 
 ### In Progress
 
-**Step 5 — Knowledge Graph Construction** (pipeline, entity resolution and graph build done on 8 pilot documents; precision and recall annotated; full run pending)
+**Step 5 — Knowledge Graph Construction** (pipeline, entity resolution and graph build done on 8 pilot documents; prompt v1 and v2 annotated on 3 documents; full run pending)
 
 The design follows *Knowledge Graphs and LLMs in Action* (ch. 5–6), with three layers: a structural layer, a metagraph of raw LLM-extracted mentions, and a KG layer of resolved entities. Thesis chapter: `latex_report/chapters/kg_construction.tex`.
 
@@ -121,6 +121,7 @@ The design follows *Knowledge Graphs and LLMs in Action* (ch. 5–6), with three
 - [x] Entity resolution (`src/kg/resolve.py`):
   - blocking by type, with rule matches (alias, acronym, form number);
   - type conflicts: majority vote, then the type that fits the relations, then a fixed priority (Document first);
+  - generic vs specific: names with no shared content word, or a coordination and one of its parts, never merge (splits 7 of 14 wrong v1 clusters, 2 of 33 correct);
   - bge-small similarity plus graph signals, then LLM confirmation in batches of up to 5 candidates;
   - cannot-link constraints and value conflicts stop chained merges.
   - **Calibration:** even above a cosine of 0.95 only about half of candidate pairs are the same entity, so only rule matches merge without the LLM; the lower threshold is 0.80.
@@ -142,7 +143,19 @@ The design follows *Knowledge Graphs and LLMs in Action* (ch. 5–6), with three
   | Entity-cluster precision | 70.2% [56.0, 81.3] (rule/normalisation merges 10/10, LLM-confirmed 23/37) |
 
   The main error patterns are documents typed as services (which reverses REQUIRES), non-requirements as REQUIRES targets, locations typed as roles, and missed alternatives (none of 3 found) and fees (none of 2 found).
-- [ ] Decide on aggregating two runs, prompt / REQUIRES revisions and the ER judge; then the full extraction, entity resolution, and the full KG build.
+- [x] Extraction prompt v2 (`--prompt-version v2`; v1 unchanged), with rules for the v1 error patterns, guidance for alternatives, fees and procedure stages, and three worked examples from documents outside the pilot. Evaluated on the same 3 documents ([`v1_v2_comparison.md`](experiments/kg/v1_v2_comparison.md), paired section bootstrap):
+
+  | | Precision | Recall (98 gold) | Recall (pooled, 121) |
+  | :--- | ---: | ---: | ---: |
+  | v1, single run | 46.4 | 66.3 | 53.7 |
+  | v2, single run | 53.7 | 41.8 | 52.9 |
+  | v2, triples both runs agree on | **72.1** | 31.6 | 34.7 |
+
+  - **Precision:** up 7 points (not significant), still short of the 65–70% target for a single run.
+  - **Recall:** the drop against the 98 gold facts is mostly an artefact of building the gold set from v1's output; pooled recall is unchanged.
+  - **Relations:** alternatives are now found (ALTERNATIVE_TO P 75%, R 67%), but contact points are mostly lost and fees are still missing.
+  - **Run agreement:** v2 triples found by one run only are 35.5% precise, so intersection would be the rule's choice, at the cost of a third of the facts.
+- [ ] Decide between v2 with two-run intersection and a further prompt revision, and how to treat places ("outside of the United States"); then the full extraction, entity resolution, and the full KG build.
 
 Reports: [`pilot2_report.md`](experiments/kg/pilot2_report.md) (closed-schema pilot), [`pilot3_report.md`](experiments/kg/pilot3_report.md) (pre-run checks, stability, entity resolution) and [`build_pilot_report.md`](experiments/kg/build_pilot_report.md) (graph build, statistics, coverage, example queries).
 
@@ -220,12 +233,14 @@ docker compose up -d neo4j      # browser at http://localhost:7474
 | `python -m src.kg.extract` | Open-extraction pilot (32 sections, cached) |
 | `python -m src.kg.extract_closed` | Closed-schema extraction of the 8 pilot documents (`--regression`, `--tables` for the other sets) |
 | `python -m src.kg.stability` | Compare two extraction runs (entity and triple overlap) |
-| `python -m src.kg.annotation export \| stability \| score \| score-er` | Annotation sheets, run-agreement file, triple precision/recall/F1, entity-cluster precision |
+| `python -m src.kg.annotation export \| stability \| score \| score-er \| carry` | Annotation sheets, run-agreement file, triple precision/recall/F1, entity-cluster precision, label carry-over to a new extraction |
+| `python -m src.kg.extract_closed --annotated --prompt-version v2` | Extract the 3 annotated documents with prompt v2 |
+| `python -m src.kg.compare_prompts` | v1 vs v2: precision, recall (fixed and pooled), F1 per relation and document, bootstrap CIs, run agreement |
 | `python -m src.kg.resolve calibrate \| run \| estimate` | Entity resolution: threshold calibration, pilot run, full-corpus cost estimate |
 | `python -m src.kg.load_neo4j` | Load the pilot metagraph and KG layer into Neo4j (idempotent per scope) |
 | `python -m src.kg.stats --scope pilot` | Per-layer counts, degree distribution, components, top entities |
 | `python -m src.kg.coverage --scope pilot [--examples validation]` | Coverage of QA gold sections by the graph |
-| `python -m pytest tests` | Run all tests (92 pass, 4 expected failures documenting open extraction issues) |
+| `python -m pytest tests` | Run all tests (101 pass, 4 expected failures documenting open extraction issues) |
 
 ### 6. Note on Dense Index
 
@@ -263,7 +278,8 @@ llm_rag/
 │   │   ├── extract_closed.py     # Closed-schema extraction and post-processing
 │   │   ├── pilot2_stats.py       # Closed-pilot quality and overlap statistics
 │   │   ├── stability.py          # Run-to-run comparison
-│   │   ├── annotation.py         # Annotation export and precision/recall scoring
+│   │   ├── annotation.py         # Annotation export, label carry-over, precision/recall scoring
+│   │   ├── compare_prompts.py    # Prompt v1 vs v2 evaluation
 │   │   ├── resolve.py            # Entity resolution
 │   │   ├── load_neo4j.py         # Metagraph and KG-layer loader
 │   │   ├── stats.py              # Graph statistics per scope

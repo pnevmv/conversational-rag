@@ -12,8 +12,9 @@ Section~\ref{sec:kg:design} presents the three-layer design.
 Sections~\ref{sec:kg:structure}--\ref{sec:kg:extraction} cover the structural
 layer, the schema and the extraction pipeline. Sections~\ref{sec:kg:quality}
 and~\ref{sec:kg:er} report the automatic quality checks and entity resolution,
-Section~\ref{sec:kg:build} the graph built from the pilot, and
-Section~\ref{sec:kg:eval} its pilot evaluation. Section~\ref{sec:kg:status}
+Section~\ref{sec:kg:build} the graph built from the pilot,
+Section~\ref{sec:kg:eval} its pilot evaluation, and Section~\ref{sec:kg:v2} a revised
+extraction prompt evaluated on the same documents. Section~\ref{sec:kg:status}
 summarises the state of the work.
 
 
@@ -330,7 +331,12 @@ with B and B with C, although A and C were judged different): two clusters are n
 merged if any pair across them was rejected; Amount, TimeLimit and ContactPoint
 groups with different stated values are never merged; and an alias counts as merge
 evidence only if it looks like an abbreviation and is unique in its block, because
-the \gls{llm} occasionally fills the alias field with a category label.
+the \gls{llm} occasionally fills the alias field with a category label. A fourth rule,
+added after the pilot evaluation (Section~\ref{sec:kg:v2}), keeps generic and specific
+names apart: two names that share no content word (``proof of identity'' and ``NY State
+driver licence'', a category and one of its instances), or a name and a coordination
+containing it (``disability compensation'' and ``disability compensation and pension
+benefits''), are never merged without a rule match.
 
 \subsection{Batched Confirmation and Cost}
 
@@ -507,6 +513,82 @@ and siblings that differ in one qualifier (two different counties, ``VA direct''
 
 
 % ===========================================================================
+\section{Prompt Revision (v2)}\label{sec:kg:v2}
+
+A second version of the extraction prompt targets the error patterns of the pilot
+evaluation. It forbids navigation and link text as entities, restricts
+\textsc{requires} to stated preconditions (``must'', ``need'', ``bring'') and excludes
+negated statements, forbids relations between two names of the same thing, and
+sharpens three type definitions: forms, cards and licences are always documents, roles
+are kinds of person and never places, and a TimeLimit is a deadline or validity
+period, not opening hours. It also gives explicit guidance for the relations the first
+version never or rarely produced (alternatives in ``X or Y'' lists, fees and taxes,
+stages of a procedure), with three worked examples taken from documents outside the
+pilot so that the evaluation is not contaminated. The first version is kept unchanged
+and both can be re-run.
+
+The three annotated documents were extracted twice with the new prompt. Labels were
+carried over to triples identical to already labelled ones, and the remaining 88 were
+labelled with the same procedure as the first version (an \gls{llm} draft reviewed by
+the author), including which gold fact each correct triple expresses.
+Table~\ref{tab:kg:v2} compares both versions; confidence intervals come from a paired
+bootstrap over sections (2{,}000 resamples), which accounts for triples from the same
+section not being independent.
+
+\begin{table}[ht]
+    \centering
+    \small
+    \caption{Extraction prompt v1 and v2 on the three annotated pilot documents.
+             Recall against the 98 gold facts, and pooled recall against the 121 facts
+             obtained by adding the correct v2 triples outside that set. 95\% CIs from a
+             paired section bootstrap.}
+    \label{tab:kg:v2}
+    \begin{tabular}{lrrrr}
+        \toprule
+        & Precision & Recall (98 gold) & Recall (pooled) & \fone{} (98 gold) \\
+        \midrule
+        v1, single run           & 46.4 $[35.0, 58.7]$ & 66.3 $[54.7, 79.6]$ & 53.7 & 54.6 \\
+        v2, single run           & 53.7 $[37.9, 69.9]$ & 41.8 $[23.9, 57.5]$ & 52.9 & 47.0 \\
+        v2, both runs agree      & 72.1                & 31.6                & 34.7 & --- \\
+        \midrule
+        v2 $-$ v1 (single run)   & $+7.2$ $[-10.9, 26.2]$ & $-24.5$ $[-46.4, -3.9]$ & $-0.8$ & $-7.6$ \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Precision rises by seven points, which is not significant on three documents, and the
+target of 65--70\% is not reached by a single run. The recall against the fixed gold
+set falls by a quarter, but this comparison favours the first version: the gold set
+was built from its own output plus the facts it missed, while 23 correct triples of
+the second version lie outside it. Against the pooled set, recall is unchanged (52.9\%
+against 53.7\%; 55.2\% against 51.7\% when the social-media links, which the entity
+layer drops by design, are excluded). The relation-level picture is mixed:
+alternatives are now found (ALTERNATIVE\_TO precision 75\%, recall 67\%, from none),
+and \textsc{requires} precision rises from 47\% to 55\%, but contact points are largely
+lost (AVAILABLE\_AT recall from 69\% to 6\%) and fees are still never extracted. The
+DMV document improves on every measure (precision from 40\% to 74\%, recall from 56\%
+to 65\%), while the SSA and VA documents lose recall, partly in a long section that is
+split into two chunks. The new rule against places as roles also removes three facts
+that the first evaluation counted as correct (services available to people
+``outside of the United States''), and some errors persist, such as opening hours
+extracted as time limits.
+
+Run agreement remains the strongest precision signal. Triples produced by both runs of
+the second version are correct in 72.1\% of cases (44 of 61; Wilson CI
+$[59.8, 81.8]$), those produced by one run only in 35.5\% (22 of 62; CI
+$[24.7, 47.9]$). Keeping only the triples both runs agree on would meet the precision
+target, but at the cost of about a third of the facts (pooled recall 34.7\%) and twice
+the extraction calls.
+
+The generic-versus-specific rule for entity resolution was evaluated by re-running the
+pairwise judge, with all its decisions cached, on the clusters labelled in
+Section~\ref{sec:kg:eval}. It splits 7 of the 14 wrong clusters and 2 of the 33 correct
+ones, and saves 61 of 374 \gls{llm} confirmations. A broader rule that also separated a
+name from any longer name containing its words (``loans'' and ``student loans'') would
+have split 15 of the 33 correct clusters and was rejected.
+
+
+% ===========================================================================
 \section{Status}\label{sec:kg:status}
 
 The structural layer is complete in Neo4j, and the extraction, entity resolution and
@@ -515,7 +597,10 @@ evaluation shows that a single extraction run finds two thirds of the stated fac
 is correct for fewer than half of its triples, that triples agreed on by two runs are
 markedly more precise, and that the remaining errors concentrate in a few patterns:
 entity typing, the interpretation of \textsc{requires}, locations treated as roles,
-and missed alternatives and fees. Before the full extraction of
-3{,}542 calls, three decisions remain: whether to aggregate two runs, how to revise
-the prompt and the definition of \textsc{requires} for these error patterns, and
-which entity-resolution judge to use.
+and missed alternatives and fees. A revised prompt fixes some of these patterns, finding
+alternatives and raising precision moderately at unchanged pooled recall, but loses
+contact points and does not reach the precision target on its own; agreement between
+two runs does, at a large recall cost. Before the full extraction of 3{,}542 calls,
+three decisions remain: whether to aggregate two runs or revise the prompt again, how
+to treat places such as ``outside of the United States'', and which
+entity-resolution judge to use.

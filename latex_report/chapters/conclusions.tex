@@ -67,7 +67,10 @@ pairs are distinct entities that differ in one qualifier, so merges require rule
 \gls{llm} confirmation, protected against chained merges. A pilot annotation of 140
 triples, drafted by an \gls{llm} and reviewed by the author, puts single-run precision at 46\% and recall at 66\%; precision rises to
 67\% for the triples that two independent runs agree on; entity merges are correct in 70\% of the reviewed
-clusters, and in all those made by rules.
+clusters, and in all those made by rules. A revised prompt raises precision to 54\%
+at unchanged pooled recall and finds the alternatives the first version missed, but
+only agreement between two runs reaches about 70\% precision, at the cost of a third
+of the facts.
 
 
 % ===========================================================================
