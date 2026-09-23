@@ -93,7 +93,7 @@ See the thesis chapter `latex_report/chapters/rag.tex` for full analysis, and Ap
 
 ### In Progress
 
-**Step 5 — Knowledge Graph Construction** (pipeline, entity resolution and graph build done on 8 pilot documents; prompt v1 and v2 annotated on 3 documents; full run pending)
+**Step 5 — Knowledge Graph Construction** (full-corpus graph built with prompt v2.1: 14,731 entities, 13,277 relations; next: QA over the KG)
 
 The design follows *Knowledge Graphs and LLMs in Action* (ch. 5–6), with three layers: a structural layer, a metagraph of raw LLM-extracted mentions, and a KG layer of resolved entities. Thesis chapter: `latex_report/chapters/kg_construction.tex`.
 
@@ -123,41 +123,57 @@ The design follows *Knowledge Graphs and LLMs in Action* (ch. 5–6), with three
   - type conflicts: majority vote, then the type that fits the relations, then a fixed priority (Document first);
   - generic vs specific: names with no shared content word, or a coordination and one of its parts, never merge (splits 7 of 14 wrong v1 clusters, 2 of 33 correct);
   - bge-small similarity plus graph signals, then LLM confirmation in batches of up to 5 candidates;
-  - cannot-link constraints and value conflicts stop chained merges.
+  - cannot-link constraints and value conflicts stop chained merges;
+  - hub guard: names made only of generic words ("application", "other documents", "fee") stay section-local, and value-less amounts are not merged across domains.
   - **Calibration:** even above a cosine of 0.95 only about half of candidate pairs are the same entity, so only rule matches merge without the LLM; the lower threshold is 0.80.
-  - **Cost:** about 21k batched calls for the full corpus, against about 66k pairwise.
+  - **Cost:** the simulation estimated about 21k batched calls; the full build needed 9,230.
 - [x] Graph build (`src/kg/load_neo4j.py`), idempotent per scope:
   - metagraph: `Section -MENTIONS-> Mention -REL-> Mention`;
   - KG layer: `Mention -RESOLVES_TO-> Entity -<RELATION>-> Entity`, with `support` and `section_ids`;
   - social-media ContactPoints are flagged and kept out of the KG layer.
   - **Pilot graph:** 508 mentions, 377 entities, 309 entity relations.
   - **Coverage:** 97% of in-scope validation gold sections have mentions, and in 78% an entity from the gold section is named in the question or answer (`src/kg/stats.py`, `src/kg/coverage.py`).
-- [x] Pilot annotation v1 (`src/kg/annotation.py`) of 140 extracted and 33 missed triples from 3 pilot documents, and of 47 entity clusters. Labels and missing triples were drafted by an LLM and reviewed by the author. These are pilot numbers that guide the revisions, not the quality of the final KG:
+- [x] Pilot annotation v1 (`src/kg/annotation.py`) of 140 extracted and 33 missed triples from 3 pilot documents, and of 47 entity clusters. Labels and missing triples were drafted by an LLM and reviewed by the author; one label rule was later corrected (places such as "outside of the United States" are not a Role, so 95 gold facts). These are pilot numbers that guide the revisions, not the quality of the final KG:
 
   | | Score (95% CI) |
   | :--- | :--- |
-  | Triple precision, single run | **46.4%** [38.4, 54.7] |
-  | Triple recall, single run | **66.3%** [56.5, 74.9] (F1 54.6%) |
+  | Triple precision, single run | **44.3%** [36.3, 52.6] |
+  | Triple recall, single run | **65.3%** [55.3, 74.1] (F1 52.8%) |
   | Precision of triples found by both of two runs | **67.3%** [53.4, 78.8] |
-  | Precision of triples found by one run only | 35.2% [26.1, 45.4] |
+  | Precision of triples found by one run only | 31.9% [23.2, 42.0] |
   | Entity-cluster precision | 70.2% [56.0, 81.3] (rule/normalisation merges 10/10, LLM-confirmed 23/37) |
 
   The main error patterns are documents typed as services (which reverses REQUIRES), non-requirements as REQUIRES targets, locations typed as roles, and missed alternatives (none of 3 found) and fees (none of 2 found).
 - [x] Extraction prompt v2 (`--prompt-version v2`; v1 unchanged), with rules for the v1 error patterns, guidance for alternatives, fees and procedure stages, and three worked examples from documents outside the pilot. Evaluated on the same 3 documents ([`v1_v2_comparison.md`](experiments/kg/v1_v2_comparison.md), paired section bootstrap):
 
-  | | Precision | Recall (98 gold) | Recall (pooled, 121) |
+  | | Precision | Recall (95 gold) | Recall (pooled, 118) |
   | :--- | ---: | ---: | ---: |
-  | v1, single run | 46.4 | 66.3 | 53.7 |
-  | v2, single run | 53.7 | 41.8 | 52.9 |
-  | v2, triples both runs agree on | **72.1** | 31.6 | 34.7 |
+  | v1, single run | 44.3 | 65.3 | 52.5 |
+  | v2, single run | 53.7 | 43.2 | 54.2 |
+  | v2, triples both runs agree on | **72.1** | 32.6 | 35.6 |
 
-  - **Precision:** up 7 points (not significant), still short of the 65–70% target for a single run.
-  - **Recall:** the drop against the 98 gold facts is mostly an artefact of building the gold set from v1's output; pooled recall is unchanged.
+  - **Precision:** up 9 points (not significant), still short of the 65–70% target for a single run.
+  - **Recall:** the drop against the 95 gold facts is mostly an artefact of building the gold set from v1's output; pooled recall is unchanged or slightly higher.
   - **Relations:** alternatives are now found (ALTERNATIVE_TO P 75%, R 67%), but contact points are mostly lost and fees are still missing.
   - **Run agreement:** v2 triples found by one run only are 35.5% precise, so intersection would be the rule's choice, at the cost of a third of the facts.
-- [ ] Decide between v2 with two-run intersection and a further prompt revision, and how to treat places ("outside of the United States"); then the full extraction, entity resolution, and the full KG build.
+  - **Decision:** single run, not intersection: missing facts can't be recovered at QA time, noisy ones can be filtered there.
+- [x] Prompt v2.1 (`--prompt-version v2.1`): v2 plus contact-point extraction and worked examples for contact points and taxes/fees, followed by deterministic post-filters (`src/kg/postfilter.py`): opening-hours TimeLimits, staff Roles, UI text, PART_OF direction.
+- [x] **Full build** (v2.1, single run; [`full_build_report.md`](experiments/kg/full_build_report.md)):
 
-Reports: [`pilot2_report.md`](experiments/kg/pilot2_report.md) (closed-schema pilot), [`pilot3_report.md`](experiments/kg/pilot3_report.md) (pre-run checks, stability, entity resolution) and [`build_pilot_report.md`](experiments/kg/build_pilot_report.md) (graph build, statistics, coverage, example queries).
+  | | |
+  | :--- | :--- |
+  | Sections extracted | 3,549 of 4,114 (562 skipped by design, 3 lost: 2 content-filter false positives, 1 runaway output) |
+  | Mentions → entities | 28,782 → **14,731** (batched ER, 9,230 judge calls) |
+  | Entity relations | **13,277** (558 ALTERNATIVE_TO, 500 HAS_AMOUNT, 621 EXEMPT_FROM) |
+  | Connectivity | largest component 60% of entities, 23% isolated, degree median 1 / p90 4 / max 99 |
+  | dev-500 | gold section has an entity in **96.6%**; an entity of the gold section is named in the question or answer in **70.0%** (question alone 28%) |
+  | Cost | 12,970 LLM calls, 22.2M input / 3.9M output tokens, about 1 hour |
+  | Control precision (30 triples, unseen documents) | **53.3%** [36.1, 69.8] lenient, 33.3% [19.2, 51.2] strict (borderline = incorrect) |
+
+  Robustness fixes found during the run: a client timeout, retries on transient errors, no caching of invalid output, content-filter blocks recorded instead of retried, and an output-token cap.
+- [ ] Question answering over the KG, then Graph RAG (combining graph and passage retrieval).
+
+Reports: [`pilot2_report.md`](experiments/kg/pilot2_report.md) (closed-schema pilot), [`pilot3_report.md`](experiments/kg/pilot3_report.md) (pre-run checks, stability, entity resolution) [`build_pilot_report.md`](experiments/kg/build_pilot_report.md) (pilot graph build, statistics, coverage, example queries) and [`full_build_report.md`](experiments/kg/full_build_report.md) (full build, control sample, hub fix).
 
 ---
 
@@ -233,14 +249,15 @@ docker compose up -d neo4j      # browser at http://localhost:7474
 | `python -m src.kg.extract` | Open-extraction pilot (32 sections, cached) |
 | `python -m src.kg.extract_closed` | Closed-schema extraction of the 8 pilot documents (`--regression`, `--tables` for the other sets) |
 | `python -m src.kg.stability` | Compare two extraction runs (entity and triple overlap) |
-| `python -m src.kg.annotation export \| stability \| score \| score-er \| carry` | Annotation sheets, run-agreement file, triple precision/recall/F1, entity-cluster precision, label carry-over to a new extraction |
+| `python -m src.kg.annotation export \| stability \| score \| score-er \| carry \| gold \| control` | Annotation sheets, run-agreement file, triple precision/recall/F1, entity-cluster precision, label carry-over, gold set, control-sample precision (strict and lenient) |
 | `python -m src.kg.extract_closed --annotated --prompt-version v2` | Extract the 3 annotated documents with prompt v2 |
-| `python -m src.kg.compare_prompts` | v1 vs v2: precision, recall (fixed and pooled), F1 per relation and document, bootstrap CIs, run agreement |
+| `python -m src.kg.extract_closed --all --prompt-version v2.1 --usage-log <file>` | Full-corpus extraction with prompt v2.1 and post-filters |
+| `python -m src.kg.compare_prompts [check]` | v1 vs v2: precision, recall (fixed and pooled), F1 per relation and document, bootstrap CIs, run agreement |
 | `python -m src.kg.resolve calibrate \| run \| estimate` | Entity resolution: threshold calibration, pilot run, full-corpus cost estimate |
-| `python -m src.kg.load_neo4j` | Load the pilot metagraph and KG layer into Neo4j (idempotent per scope) |
-| `python -m src.kg.stats --scope pilot` | Per-layer counts, degree distribution, components, top entities |
-| `python -m src.kg.coverage --scope pilot [--examples validation]` | Coverage of QA gold sections by the graph |
-| `python -m pytest tests` | Run all tests (101 pass, 4 expected failures documenting open extraction issues) |
+| `python -m src.kg.load_neo4j [--scope full]` | Load the metagraph and KG layer into Neo4j (pilot or full scope, idempotent per scope) |
+| `python -m src.kg.stats --scope pilot\|full` | Per-layer counts, degree distribution, components, top entities |
+| `python -m src.kg.coverage --scope pilot\|full [--examples validation]` | Coverage of QA gold sections by the graph |
+| `python -m pytest tests` | Run all tests (143 pass, 4 expected failures documenting open extraction issues) |
 
 ### 6. Note on Dense Index
 
@@ -276,10 +293,11 @@ llm_rag/
 │   │   ├── schema.py             # Closed schema: types, relation rules, JSON schema
 │   │   ├── planning.py           # Extraction units: skipping, deduplication, chunking
 │   │   ├── extract_closed.py     # Closed-schema extraction and post-processing
+│   │   ├── postfilter.py         # Deterministic post-filters (prompt v2.1)
 │   │   ├── pilot2_stats.py       # Closed-pilot quality and overlap statistics
 │   │   ├── stability.py          # Run-to-run comparison
 │   │   ├── annotation.py         # Annotation export, label carry-over, precision/recall scoring
-│   │   ├── compare_prompts.py    # Prompt v1 vs v2 evaluation
+│   │   ├── compare_prompts.py    # Prompt v1 vs v2 evaluation and v2.1 checks
 │   │   ├── resolve.py            # Entity resolution
 │   │   ├── load_neo4j.py         # Metagraph and KG-layer loader
 │   │   ├── stats.py              # Graph statistics per scope
@@ -309,7 +327,8 @@ llm_rag/
 │   ├── test_hybrid_retriever.py
 │   ├── test_query_rewriter.py
 │   ├── test_kg_extraction.py     # Prompt regression tests (read cached model output)
-│   ├── test_kg_resolve.py        # Type-conflict resolution
+│   ├── test_kg_postfilter.py     # Post-filters
+│   ├── test_kg_resolve.py        # Type conflicts, generic-vs-specific rule, hub guard
 │   └── test_kg_build.py          # Loader tests (need Neo4j and the pilot files)
 │
 ├── data/

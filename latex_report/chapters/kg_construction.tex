@@ -3,19 +3,20 @@
 \chapter{Knowledge Graph Construction}\label{ch:kg}
 
 This chapter describes the construction of a \gls{kg} from the \gls{mdd} corpus,
-the first stage beyond passage retrieval. The work is in progress: the graph
-design, the extraction pipeline, entity resolution and the graph build are
-complete and have been evaluated on a set of pilot documents, including a first
-reviewed precision and recall annotation, while the extraction over the full corpus is
-still pending.
+the first stage beyond passage retrieval. The graph design, the extraction pipeline,
+entity resolution and the graph build were developed and evaluated on a set of pilot
+documents, including a reviewed precision and recall annotation, and then applied to
+the whole corpus; a control sample from documents outside the pilot estimates the
+precision of the resulting graph.
 Section~\ref{sec:kg:design} presents the three-layer design.
 Sections~\ref{sec:kg:structure}--\ref{sec:kg:extraction} cover the structural
 layer, the schema and the extraction pipeline. Sections~\ref{sec:kg:quality}
 and~\ref{sec:kg:er} report the automatic quality checks and entity resolution,
 Section~\ref{sec:kg:build} the graph built from the pilot,
-Section~\ref{sec:kg:eval} its pilot evaluation, and Section~\ref{sec:kg:v2} a revised
-extraction prompt evaluated on the same documents. Section~\ref{sec:kg:status}
-summarises the state of the work.
+Section~\ref{sec:kg:eval} its pilot evaluation, Section~\ref{sec:kg:v2} a revised
+extraction prompt evaluated on the same documents, and Section~\ref{sec:kg:full} the
+full-corpus build and its control evaluation. Section~\ref{sec:kg:status} summarises
+the state of the work.
 
 
 % ===========================================================================
@@ -420,6 +421,11 @@ gives recall. The gold labels and the list of missed triples were first drafted 
 \gls{llm} and then reviewed and corrected by the author; they are therefore not a fully
 independent human annotation.
 
+One labelling rule was revised after the comparison in Section~\ref{sec:kg:v2}: places
+and conditions such as ``outside of the United States'' are not roles, so the three
+triples that used one as a Role were relabelled incorrect, and the gold set has 95
+facts. All figures below use the revised labels.
+
 These are \emph{pilot v1} numbers: they describe the first version of the extraction
 prompt and entity resolution on three documents, and are meant to guide the revisions
 that precede the full-corpus run. They are not an estimate of the quality of the final
@@ -428,8 +434,8 @@ below are 95\% Wilson intervals.
 
 \subsection{Triple Precision and Recall}
 
-Overall precision is 46.4\% (65 of 140; 95\% CI $[38.4, 54.7]$) and recall 66.3\%
-(65 of 98 correct triples; CI $[56.5, 74.9]$), for an \fone{} of 54.6\%. The
+Overall precision is 44.3\% (62 of 140; 95\% CI $[36.3, 52.6]$) and recall 65.3\%
+(62 of 95 correct triples; CI $[55.3, 74.1]$), for an \fone{} of 52.8\%. The
 extraction therefore finds two thirds of the facts the sections state, but more than
 half of what it extracts is wrong. Table~\ref{tab:kg:precision} breaks the scores
 down by relation type. PROVIDED\_BY is precise, APPLIES\_TO and REQUIRES find most of
@@ -439,7 +445,7 @@ Statement of Origin \emph{or} Certificate of Origin) and none of the fees or tax
 service carries. By entity type (a triple counts for both of its endpoint types),
 precision ranges from 22\% for TimeLimit and 36\% for Outcome to 65--73\% for
 Document, Organization and ContactPoint. Across the three documents, precision
-ranges from 31\% to 64\% and recall from 56\% to 77\%. None of the missed triples lies
+ranges from 23\% to 64\% and recall from 53\% to 77\%. None of the missed triples lies
 in a section that was skipped as short or boilerplate.
 
 \begin{table}[ht]
@@ -453,7 +459,7 @@ in a section that was skipped as short or boilerplate.
         Relation & Correct & Labelled & Missed & Precision & Recall \\
         \midrule
         REQUIRES        & 26 & 55 & 9 & 47.3\% & 74.3\% \\
-        APPLIES\_TO     & 15 & 26 & 3 & 57.7\% & 83.3\% \\
+        APPLIES\_TO     & 12 & 26 & 3 & 46.2\% & 80.0\% \\
         AVAILABLE\_AT   & 11 & 19 & 5 & 57.9\% & 68.8\% \\
         LEADS\_TO       &  4 & 14 & 3 & 28.6\% & 57.1\% \\
         HAS\_TIME\_LIMIT &  2 &  9 & 0 & 22.2\% & 100.0\% \\
@@ -462,7 +468,7 @@ in a section that was skipped as short or boilerplate.
         ALTERNATIVE\_TO &  0 &  2 & 3 &  0.0\% &  0.0\% \\
         HAS\_AMOUNT     &  0 &  0 & 2 &  ---  &  0.0\% \\
         \midrule
-        All             & 65 & 140 & 33 & 46.4\% & 66.3\% \\
+        All             & 62 & 140 & 33 & 44.3\% & 65.3\% \\
         \bottomrule
     \end{tabular}
 \end{table}
@@ -494,10 +500,10 @@ c is required''), which the schema cannot represent and records as separate
 Precision depends strongly on whether a triple is reproduced by an independent second
 extraction run (Section~\ref{sec:kg:quality}). Triples found by both runs are correct
 in 67.3\% of cases (33 of 49; CI $[53.4, 78.8]$), those found by one run only in
-35.2\% (32 of 91; CI $[26.1, 45.4]$); the intervals do not overlap. Run agreement is
+31.9\% (29 of 91; CI $[23.2, 42.0]$); the intervals do not overlap. Run agreement is
 therefore a useful confidence signal: keeping only the triples that two runs agree on
 would roughly double the extraction cost and discard about two thirds of the triples,
-but raise precision by about 20 percentage points.
+but raise precision by about 23 percentage points.
 
 \subsection{Entity Resolution}
 
@@ -539,46 +545,49 @@ section not being independent.
     \centering
     \small
     \caption{Extraction prompt v1 and v2 on the three annotated pilot documents.
-             Recall against the 98 gold facts, and pooled recall against the 121 facts
+             Recall against the 95 gold facts, and pooled recall against the 118 facts
              obtained by adding the correct v2 triples outside that set. 95\% CIs from a
              paired section bootstrap.}
     \label{tab:kg:v2}
     \begin{tabular}{lrrrr}
         \toprule
-        & Precision & Recall (98 gold) & Recall (pooled) & \fone{} (98 gold) \\
+        & Precision & Recall (95 gold) & Recall (pooled) & \fone{} (95 gold) \\
         \midrule
-        v1, single run           & 46.4 $[35.0, 58.7]$ & 66.3 $[54.7, 79.6]$ & 53.7 & 54.6 \\
-        v2, single run           & 53.7 $[37.9, 69.9]$ & 41.8 $[23.9, 57.5]$ & 52.9 & 47.0 \\
-        v2, both runs agree      & 72.1                & 31.6                & 34.7 & --- \\
+        v1, single run           & 44.3 $[32.3, 56.8]$ & 65.3 $[52.1, 79.4]$ & 52.5 & 52.8 \\
+        v2, single run           & 53.7 $[37.9, 69.9]$ & 43.2 $[25.5, 58.0]$ & 54.2 & 47.8 \\
+        v2, both runs agree      & 72.1                & 32.6                & 35.6 & --- \\
         \midrule
-        v2 $-$ v1 (single run)   & $+7.2$ $[-10.9, 26.2]$ & $-24.5$ $[-46.4, -3.9]$ & $-0.8$ & $-7.6$ \\
+        v2 $-$ v1 (single run)   & $+9.4$ $[-7.0, 27.2]$ & $-22.1$ $[-44.4, -2.2]$ & $+1.7$ & $-4.9$ \\
         \bottomrule
     \end{tabular}
 \end{table}
 
-Precision rises by seven points, which is not significant on three documents, and the
+Precision rises by nine points, which is not significant on three documents, and the
 target of 65--70\% is not reached by a single run. The recall against the fixed gold
-set falls by a quarter, but this comparison favours the first version: the gold set
+set falls by a fifth, but this comparison favours the first version: the gold set
 was built from its own output plus the facts it missed, while 23 correct triples of
-the second version lie outside it. Against the pooled set, recall is unchanged (52.9\%
-against 53.7\%; 55.2\% against 51.7\% when the social-media links, which the entity
-layer drops by design, are excluded). The relation-level picture is mixed:
+the second version lie outside it. Against the pooled set, recall is unchanged or
+slightly higher (54.2\% against 52.5\%; 56.6\% against 50.4\% when the social-media
+links, which the entity layer drops by design, are excluded). The relation-level picture is mixed:
 alternatives are now found (ALTERNATIVE\_TO precision 75\%, recall 67\%, from none),
 and \textsc{requires} precision rises from 47\% to 55\%, but contact points are largely
 lost (AVAILABLE\_AT recall from 69\% to 6\%) and fees are still never extracted. The
 DMV document improves on every measure (precision from 40\% to 74\%, recall from 56\%
 to 65\%), while the SSA and VA documents lose recall, partly in a long section that is
-split into two chunks. The new rule against places as roles also removes three facts
-that the first evaluation counted as correct (services available to people
-``outside of the United States''), and some errors persist, such as opening hours
-extracted as time limits.
+split into two chunks. The new rule against places as roles initially conflicted with
+three first-version labels (services available to people ``outside of the United
+States''); those labels were corrected (Section~\ref{sec:kg:eval}), and the figures
+above use the corrected labels. Some errors persist, such as opening hours extracted
+as time limits.
 
 Run agreement remains the strongest precision signal. Triples produced by both runs of
 the second version are correct in 72.1\% of cases (44 of 61; Wilson CI
 $[59.8, 81.8]$), those produced by one run only in 35.5\% (22 of 62; CI
 $[24.7, 47.9]$). Keeping only the triples both runs agree on would meet the precision
-target, but at the cost of about a third of the facts (pooled recall 34.7\%) and twice
-the extraction calls.
+target, but at the cost of about a third of the facts (pooled recall 35.6\%) and twice
+the extraction calls. For question answering, missing facts cannot be recovered later,
+whereas noisy ones can still be filtered at retrieval time, so the full build uses a
+single run.
 
 The generic-versus-specific rule for entity resolution was evaluated by re-running the
 pairwise judge, with all its decisions cached, on the clusters labelled in
@@ -589,18 +598,108 @@ have split 15 of the 33 correct clusters and was rejected.
 
 
 % ===========================================================================
+\section{Full-Corpus Build}\label{sec:kg:full}
+
+\subsection{Prompt v2.1 and Post-Filters}
+
+The second prompt lost most contact points. A small revision (v2.1) restores them:
+phone numbers, TTY lines, offices and online accounts are extracted as contact points
+and linked with AVAILABLE\_AT from the service or organisation the sentence is about,
+and two further worked examples, again from documents outside the pilot, show contact
+points and taxes or fees. Everything else is kept from v2. In addition, four
+deterministic post-filters run on every extraction: time limits that are opening hours
+(``24/7'', ``Monday through Friday'') are removed, as are roles that are staff rather
+than citizens (counsellors, social workers, programme managers) and short entity names
+that are interface text (``sign in'', button labels); and when one entity is the source
+of several PART\_OF relations in a section, it is taken to be the parent and the
+relations are reversed.
+
+On the three annotated documents, checked without new labels by carrying the existing
+ones over, v2.1 extracts about as many contact points as the first version, but often
+attaches them to a different service than the annotator did, so their correctness could
+not be confirmed automatically; overall recall stays within the run-to-run variation of
+v2. The post-filters removed only relations that were labelled incorrect or were
+unlabelled. Version 2.1 was therefore used for the full build, with a single run.
+
+\subsection{Build}
+
+All 4{,}114 sections were processed with v2.1: 562 short or boilerplate sections were
+skipped by design and 3{,}549 extracted; three sections were lost, two because the
+provider's content filter blocked an innocuous text (``escort driver certification'')
+and one because the model's output never completed. Of the 20{,}228 extracted
+relations, 16{,}947 satisfy the type rules. The post-filters removed 58 opening-hour
+time limits, 49 staff roles and 36 interface-text entities, and reversed 235 PART\_OF
+relations.
+
+A first entity resolution over the corpus showed a new failure mode: names made only of
+generic words (``application'', ``other documents'', ``requirements listed below'', a
+``fee'' without amount) merged across documents and domains into hub entities with
+dozens of unrelated relations. Such names are now kept local to their section, and
+amounts or time limits without a stated value are no longer merged across domains.
+With this guard, the 28{,}782 mentions resolve into 14{,}731 entities
+(Table~\ref{tab:kg:full}); the batched judge needed 9{,}230 calls, fewer than the
+simulation in Section~\ref{sec:kg:v2} predicted, because the real candidate graph is
+sparser than the random-graph model assumed.
+
+\begin{table}[ht]
+    \centering
+    \caption{Knowledge graph built from the full \gls{mdd} corpus (prompt v2.1, single run).}
+    \label{tab:kg:full}
+    \begin{tabular}{lrl}
+        \toprule
+        Layer & Nodes & Relationships \\
+        \midrule
+        Structural   & 488 documents, 4{,}114 sections & 35{,}659 \textsc{has\_span}, 3{,}626 \textsc{next} \\
+        Metagraph    & 28{,}782 mentions & 16{,}947 mention relations \\
+        Entity layer & 14{,}731 entities & 13{,}277 entity relations \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Requirements (4{,}856 entities) and services (3{,}532) dominate,
+followed by documents (1{,}876); by domain the graph mirrors the corpus, with DMV the
+largest and SSA the smallest. The relation types that the first prompt never or rarely
+produced now occur at scale (558 ALTERNATIVE\_TO, 500 HAS\_AMOUNT and 621 EXEMPT\_FROM
+relations). Unlike the pilot graph, the full graph is largely connected: the largest
+component contains 60\% of the entities, linked through shared agencies, documents and
+contact points, while 23\% of the entities are isolated. The median entity degree is 1
+(90th percentile 4, maximum 99, ``VA health care''). Almost every mention resolves to an
+entity, and 94.5\% of the extractable sections have at least one.
+
+For question answering, 96.6\% of the dev-500 examples have a gold section with at least
+one extracted entity, and in 70.0\% an entity of the gold section is named in the user
+question or the reference answer. Only 28\% of the questions name such an entity
+themselves: most user turns are short or depend on the dialogue history, so a graph-based
+retriever will have to link entities through the conversation rather than the current
+question alone.
+
+The build used 12{,}970 \gls{llm} calls (22.2 million input and 3.9 million output
+tokens) and about an hour of computation, of which extraction took 35 minutes and entity
+resolution 29 minutes.
+
+\subsection{Control Evaluation}
+
+Thirty triples, each from a different random section outside all eight pilot documents,
+were labelled to estimate the precision of the full graph on unseen documents. Six
+labels were marked as borderline. Counting them as correct, precision is 53.3\% (16 of
+30; Wilson CI $[36.1, 69.8]$), in line with the pilot estimate for v2; counting them as
+incorrect, it is 33.3\% (10 of 30; CI $[19.2, 51.2]$). \textsc{requires}, the most
+frequent relation, is correct in 8 of 12 cases. The main remaining errors are endpoints
+that are not entities at all (headings, form-filling instructions, fragments), wrong
+entity types (a law typed as an organisation, a service used as a role), and occasional
+reversed or misnamed relations.
+
+
+% ===========================================================================
 \section{Status}\label{sec:kg:status}
 
-The structural layer is complete in Neo4j, and the extraction, entity resolution and
-graph build are implemented and evaluated on eight pilot documents. The pilot (v1)
-evaluation shows that a single extraction run finds two thirds of the stated facts but
-is correct for fewer than half of its triples, that triples agreed on by two runs are
-markedly more precise, and that the remaining errors concentrate in a few patterns:
-entity typing, the interpretation of \textsc{requires}, locations treated as roles,
-and missed alternatives and fees. A revised prompt fixes some of these patterns, finding
-alternatives and raising precision moderately at unchanged pooled recall, but loses
-contact points and does not reach the precision target on its own; agreement between
-two runs does, at a large recall cost. Before the full extraction of 3{,}542 calls,
-three decisions remain: whether to aggregate two runs or revise the prompt again, how
-to treat places such as ``outside of the United States'', and which
-entity-resolution judge to use.
+A knowledge graph of the full corpus is built and loaded in Neo4j: 14{,}731 entities and
+13{,}277 relations, each traceable to the sentence it was extracted from, on top of the
+document structure shared with the retrieval index. The pilot evaluation guided two
+prompt revisions and several entity-resolution safeguards; the final extraction finds
+about half of the stated facts with a precision of about one half on unseen documents,
+and agreement between two independent runs is the strongest available precision
+signal. The graph covers the gold sections of almost all dev-500 questions. The next
+step is question answering over the graph, where noisy triples can still be filtered
+by the retriever or the answering model, followed by its combination with passage
+retrieval.
