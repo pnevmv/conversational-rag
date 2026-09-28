@@ -1,0 +1,180 @@
+%!TEX root = ../main.tex
+
+\chapter{Knowledge Graph Retrieval}\label{ch:kgret}
+
+This chapter uses the graph of Chapter~\ref{ch:kg} for conversational question answering.
+Every pipeline is evaluated on the dev-500 subset with the generator, prompt and
+metrics of Chapter~\ref{ch:rag}, so its numbers are directly comparable to passage
+retrieval. A graph retriever has to start from entities: the user turn is first linked
+to entities of the graph, and the linked entities then select sections, facts, or both.
+Section~\ref{sec:kgret:linking} describes the entity linker and
+Section~\ref{sec:kgret:linkeval} evaluates it on its own, before any answer is
+generated. Section~\ref{sec:kgret:status} summarises the decisions it implies for the
+graph retrievers.
+
+
+% ===========================================================================
+\section{Entity Linking}\label{sec:kgret:linking}
+
+\paragraph{Input.} Only 28\% of the dev-500 questions name an entity of their gold
+section (Section~\ref{sec:kg:full}), so the current user turn alone is a weak input.
+Three variants are compared: the raw user turn; the standalone query produced by the
+rewriter of Section~\ref{sec:rag:rewrite}; and the rewritten query followed by the last
+agent turn. The rewrites reuse the prompt and the cache of Chapter~\ref{ch:rag}, so
+linking adds no \gls{llm} calls: there are 0.87 calls per question, the rewrite itself,
+which is skipped on first turns.
+
+\paragraph{Candidates.} Each entity is represented by its surface forms: its name, the
+names of the mentions resolved to it, and their aliases (19{,}067 forms for 14{,}731
+entities). Two candidate generators score the entities:
+\begin{itemize}
+    \item \textbf{dense}: the bge-small model of the dense retriever embeds the query
+    (with the BGE query instruction) and every surface form, and an entity scores the
+    cosine of its best form;
+    \item \textbf{\gls{bm25}} over one short document per entity, made of its surface
+    forms without stopwords.
+\end{itemize}
+The top-100 of each generator are fused with \gls{rrf} ($k = 60$, as in the hybrid
+retriever).
+
+\paragraph{Filters.} Two optional filters restrict the candidates.
+\begin{itemize}
+    \item \textbf{Domain.} The retrieval pipeline of Chapter~\ref{ch:rag} has no domain
+    classifier, so the predicted domain is the majority domain of the top-5 sections of
+    the best passage retriever (hybrid, rewrite, reranker), and its confidence is the
+    share of the top-5 in that domain. When at least 4 of the 5 sections agree, only
+    entities seen in that domain are kept. The prediction is correct for 94.8\% of the
+    dev-500 questions, is confident for 471 of them, and is correct for 97.9\% of the
+    confident ones.
+    \item \textbf{Hubs.} Entities with a degree above the 99th percentile of the graph
+    (more than 16 relations; 126 entities, for example ``VA health care'' with 99) are
+    skipped.
+\end{itemize}
+Both thresholds were fixed before the evaluation.
+
+
+% ===========================================================================
+\section{Linking Evaluation}\label{sec:kgret:linkeval}
+
+\paragraph{Metric.} Link recall@$k$ is the share of examples in which at least one of
+the top-$k$ linked entities has a mention in a gold section. All 500 examples have a
+gold section in the grounding annotation, including the 31 unanswerable turns; for
+96.6\% of them the gold section has at least one entity, which bounds link recall. The
+metric is lenient, since an entity mentioned in many sections reaches the gold section
+more easily. It is therefore reported with two controls:
+\begin{itemize}
+    \item \textbf{fan-out}: the number of distinct sections that the top-10 entities are
+    mentioned in;
+    \item \textbf{chance}: the recall obtained when each example receives the linked
+    entities of another random example of the same domain.
+\end{itemize}
+Intervals are 95\% Wilson intervals.
+
+\begin{table}[ht]
+    \centering
+    \caption{Link recall on dev-500 ($n = 500$, \%). Default linker: dense and
+    \gls{bm25} fused by \gls{rrf}, domain filter, hub skip. Ablations use the
+    rewritten query.}
+    \label{tab:kgret:linking}
+    \begin{tabular}{lcccrr}
+        \toprule
+        Configuration & R@1 & R@5 & R@10 & Chance & Fan-out \\
+        \midrule
+        Raw turn                 & 24.2 & 41.2 & 47.4 & 3.6 & 20 \\
+        Rewritten                & 29.6 & 52.2 & 62.0 & 5.1 & 22 \\
+        Rewritten + agent turn   & 24.8 & 49.2 & 59.4 & 5.4 & 21 \\
+        \midrule
+        Dense only               & 27.2 & 49.2 & 59.2 & 5.3 & 21 \\
+        \gls{bm25} only          & 32.8 & 50.0 & 59.4 & 5.0 & 20 \\
+        No domain filter         & 29.6 & 51.6 & 61.8 & 4.8 & 21 \\
+        Gold domain              & 30.6 & 54.2 & 63.8 & 5.2 & 22 \\
+        \textbf{No hub skip}     & \textbf{33.2} & \textbf{59.6} & \textbf{70.4} & 7.0 & 29 \\
+        Raw + rewritten fused    & 26.0 & 47.6 & 57.8 & 4.7 & 21 \\
+        \bottomrule
+    \end{tabular}
+    \\[2pt]
+    {\footnotesize Chance: recall@10 with the linked entities of a random example of the
+    same domain (mean of 5 permutations). Fan-out: median number of sections reached by
+    the top-10 entities.}
+\end{table}
+
+Table~\ref{tab:kgret:linking} summarises the results.
+\begin{itemize}
+    \item \textbf{Rewrite.} Rewriting the turn is the largest single gain: recall@10
+    rises from 47.4\% (CI $[43.1, 51.8]$) to 62.0\% ($[57.7, 66.1]$). Appending the last
+    agent turn does not help and lowers recall@1 by five points, because the previous
+    answer contributes its own entities.
+    \item \textbf{Generators and domain.} Dense and \gls{bm25} candidates are
+    complementary: \gls{bm25} is best at rank 1, where exact name overlap matters, and
+    their fusion is best at ranks 5 and 10. The domain filter is almost neutral: even
+    the gold domain adds less than two points.
+    \item \textbf{Hubs.} Skipping hubs is the one clearly harmful choice. Keeping them
+    raises recall@10 to 70.4\% ($[66.3, 74.2]$), with 46 more examples linked. The median
+    fan-out grows from 22 to 29 sections, but chance recall stays at 7\%, so the extra
+    hits are genuine: many questions are about a hub itself, such as ``VA health care''
+    or ``Social Security benefits''. This holds most in SSA, which gains 13.6 points.
+\end{itemize}
+
+\paragraph{Document switches.} Turns that move to a new document behave differently
+(Table~\ref{tab:kgret:splits}). There the raw turn links better than the rewrite
+(62.8\% vs 55.3\% at recall@10): a turn that opens a new topic usually names it, while
+the rewriter tends to carry the previous topic over. The last agent turn makes this
+worse (42.6\%). Fusing the rankings of the raw and the rewritten query recovers the
+switch turns (66.0\%) but loses on the much larger set of same-document turns. With 94
+switch turns, these differences lie within the confidence intervals.
+
+\begin{table}[ht]
+    \centering
+    \caption{Link recall@10 by turn type (\%, 95\% Wilson interval).}
+    \label{tab:kgret:splits}
+    \small
+    \begin{tabular}{lccc}
+        \toprule
+        Configuration & Same document (406) & Doc switch (94) & Unanswerable (31) \\
+        \midrule
+        Raw turn               & 43.8 {\scriptsize[39.1, 48.7]} & 62.8 {\scriptsize[52.7, 71.9]} & 16.1 {\scriptsize[7.1, 32.6]} \\
+        Rewritten              & 63.5 {\scriptsize[58.8, 68.1]} & 55.3 {\scriptsize[45.3, 65.0]} & 67.7 {\scriptsize[50.1, 81.4]} \\
+        Rewritten + agent turn & 63.3 {\scriptsize[58.5, 67.8]} & 42.6 {\scriptsize[33.0, 52.6]} & 80.6 {\scriptsize[63.7, 90.8]} \\
+        Rewritten, hubs kept   & 72.2 {\scriptsize[67.6, 76.3]} & 62.8 {\scriptsize[52.7, 71.9]} & 80.6 {\scriptsize[63.7, 90.8]} \\
+        Raw + rewritten, hubs kept & 64.8 {\scriptsize[60.0, 69.3]} & 66.0 {\scriptsize[55.9, 74.7]} & 58.1 {\scriptsize[40.8, 73.6]} \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\paragraph{Errors.} Of the 148 examples that the best configuration misses at
+recall@10, 17 have no entity in their gold section. In most of the others, the linker
+finds entities on the right topic that are different nodes from those in the gold
+section. For example, it links ``disability benefits'' and ``enough Social Security
+credits at this time to qualify'', while the gold section mentions ``monthly disability
+benefit'' and ``enough credits''. Long, clause-like entity names and conservative entity
+resolution split one concept into several nodes. One hop through entity relations, or
+section scoring by entity similarity rather than identity, can recover part of these
+cases. The remaining misses are turns without content words (``do not'') and gold
+sections that list many items, whose entities are the items rather than the topic the
+question names.
+
+\paragraph{Cost.} Linking takes about 15\,ms per question on a CPU (6\,ms query
+encoding, 9\,ms scoring). It needs no \gls{llm} calls beyond the rewrite.
+
+
+% ===========================================================================
+\section{Status}\label{sec:kgret:status}
+
+Entity linking reaches the gold section for 70\% of the dev-500 questions with the top-10
+entities, about the level of section recall@5 of the best passage retriever (67.4\%).
+However, a linked entity is mentioned in a median of 29 sections, so ranking these
+sections, rather than linking, will decide how graph retrieval compares with passage
+retrieval. The graph retrievers therefore use:
+\begin{itemize}
+    \item the rewritten query, without the agent turn;
+    \item the top-10 entities;
+    \item the domain filter;
+    \item hubs kept in linking, but down-weighted by the number of sections they are
+    mentioned in when sections are scored, and excluded from relation expansion.
+\end{itemize}
+Three graph retrievers are compared next against the best passage retriever:
+\begin{itemize}
+    \item graph to sections;
+    \item graph facts as context;
+    \item a hybrid of graph and passage retrieval.
+\end{itemize}

@@ -91,9 +91,9 @@ Key findings:
 
 See the thesis chapter `latex_report/chapters/rag.tex` for full analysis, and Appendix A (`latex_report/chapters/experimental_log.tex`) for the development history and supplementary results.
 
-### In Progress
+### Completed: Knowledge Graph
 
-**Step 5 — Knowledge Graph Construction** (full-corpus graph built with prompt v2.1: 14,731 entities, 13,277 relations; next: QA over the KG)
+**Step 5 — Knowledge Graph Construction** (full-corpus graph built with prompt v2.1: 14,731 entities, 13,277 relations)
 
 The design follows *Knowledge Graphs and LLMs in Action* (ch. 5–6), with three layers: a structural layer, a metagraph of raw LLM-extracted mentions, and a KG layer of resolved entities. Thesis chapter: `latex_report/chapters/kg_construction.tex`.
 
@@ -171,9 +171,43 @@ The design follows *Knowledge Graphs and LLMs in Action* (ch. 5–6), with three
   | Control precision (30 triples, unseen documents) | **53.3%** [36.1, 69.8] lenient, 33.3% [19.2, 51.2] strict (borderline = incorrect) |
 
   Robustness fixes found during the run: a client timeout, retries on transient errors, no caching of invalid output, content-filter blocks recorded instead of retried, and an output-token cap.
-- [ ] Question answering over the KG, then Graph RAG (combining graph and passage retrieval).
+- [x] Question answering over the KG: moved to Step 6.
 
 Reports: [`pilot2_report.md`](experiments/kg/pilot2_report.md) (closed-schema pilot), [`pilot3_report.md`](experiments/kg/pilot3_report.md) (pre-run checks, stability, entity resolution) [`build_pilot_report.md`](experiments/kg/build_pilot_report.md) (pilot graph build, statistics, coverage, example queries) and [`full_build_report.md`](experiments/kg/full_build_report.md) (full build, control sample, hub fix).
+
+### In Progress
+
+**Step 6 — KG-based Retrieval** (branch `kg/retrieval`; phase 1, entity linking, done; phase 2, KG retrievers and QA, next)
+
+Question answering over the full KG, on dev-500 with the Step 4 generator, prompt and metrics, so the numbers compare directly with RAG. Thesis chapter: `latex_report/chapters/kg_retrieval.tex`.
+
+- [x] Phase 1, entity linking (`src/kg_rag/`):
+  - **Entity table:** exported once from Neo4j (`graph_index.py`); each entity has its surface forms (name, resolved mention names, aliases), degree and sections.
+  - **Query:** the Step 4 rewrite of the user turn (cached, no new LLM calls). The raw turn and the rewrite plus the last agent turn are the baselines.
+  - **Candidates:** dense (bge-small over surface forms) and BM25 over entity names, fused by RRF.
+  - **Domain filter:** applied when the predicted domain is confident. Step 4 has no domain classifier, so the predicted domain is the majority domain of the Step 4 best top-5 sections (94.8% accurate; 97.9% on the 471 confident cases).
+  - **Hub skip:** entities with degree > p99 (16), as an ablation.
+  - **Metric:** link recall@k, the share of questions where a top-k entity is mentioned in the gold section (dev-500, 95% Wilson CIs):
+
+  | Query / linker | R@1 | R@5 | R@10 |
+  | :--- | ---: | ---: | ---: |
+  | raw turn | 24.2 | 41.2 | 47.4 |
+  | rewritten | 29.6 | 52.2 | 62.0 |
+  | rewritten + last agent turn | 24.8 | 49.2 | 59.4 |
+  | **rewritten, hubs kept** | **33.2** | **59.6** | **70.4** [66.3, 74.2] |
+
+  - **Rewrite:** +15 points over the raw turn. The agent turn does not help.
+  - **Hubs:** skipping them costs 8 points. Chance-level recall (entities of a random same-domain question) stays at 4–7%, so hub hits are genuine. Their cost is fan-out: the top-10 entities reach a median of 29 sections.
+  - **Doc-switch turns:** the raw turn beats the rewrite (62.8% vs 55.3%).
+  - **Domain filter:** nearly neutral.
+  - **Main error:** the right topic linked to a different node than the gold section's ("disability benefits" vs "monthly disability benefit").
+  - **Cost:** about 15 ms per question; 0.87 LLM calls per question (the rewrite).
+- [ ] Phase 2, KG retrievers and QA, each against Hybrid + Rewrite + Rerank (paired bootstrap):
+  - A: KG → sections;
+  - B: 1-hop KG facts as context;
+  - C: A fused with the best Step 4 retriever, then reranked.
+
+Report: [`phase1_report.md`](experiments/kg_rag/phase1_report.md).
 
 ---
 
@@ -185,8 +219,8 @@ Reports: [`pilot2_report.md`](experiments/kg/pilot2_report.md) (closed-schema pi
 | **Weeks 2–3** | **Step 2: Dataset Analysis** | Dataset analysis and preparation of MultiDoc2Dial (and EnronQA). | Completed |
 | **Weeks 3–4** | **Step 3: LLM Baseline** | LLM-only baseline, evaluation pipeline, EM + token F1 metrics. | Completed |
 | **Weeks 4–6** | **Step 4: Retrieval and RAG** | BM25, dense, hybrid, query rewriting, reranking, oracle ceiling; full-split and dev-500 evaluation. | Completed |
-| **Weeks 6–9** | **Step 5: KG Construction** | Unstructured document transformation into structured Knowledge Graphs. | In progress |
-| **Weeks 9–11** | **Step 6: KG-based Retrieval** | Natural language querying of Knowledge Graphs for conversational QA. | Planned |
+| **Weeks 6–9** | **Step 5: KG Construction** | Unstructured document transformation into structured Knowledge Graphs. | Completed |
+| **Weeks 9–11** | **Step 6: KG-based Retrieval** | Natural language querying of Knowledge Graphs for conversational QA. | In progress |
 | **Weeks 11–14** | **Step 7: Graph RAG** | Hybrid architectures combining structured graph data and textual context. | Planned |
 | **Weeks 14–17** | **Step 8: Agent-based Approaches** | Autonomous agents for reasoning, query construction, and source selection. | Planned |
 | **Weeks 17–19** | **Step 9: Evaluation & Comparison** | Benchmarking across answer quality, retrieval recall, and grounding. | Planned |
@@ -257,7 +291,9 @@ docker compose up -d neo4j      # browser at http://localhost:7474
 | `python -m src.kg.load_neo4j [--scope full]` | Load the metagraph and KG layer into Neo4j (pilot or full scope, idempotent per scope) |
 | `python -m src.kg.stats --scope pilot\|full` | Per-layer counts, degree distribution, components, top entities |
 | `python -m src.kg.coverage --scope pilot\|full [--examples validation]` | Coverage of QA gold sections by the graph |
-| `python -m pytest tests` | Run all tests (143 pass, 4 expected failures documenting open extraction issues) |
+| `python -m src.kg_rag.graph_index --scope full` | Export the entity table (surface forms, degree, sections) from Neo4j |
+| `python -m src.kg_rag.eval_linking` | Entity-linking evaluation on dev-500: query variants, ablations, splits, chance and fan-out controls |
+| `python -m pytest tests` | Run all tests (148 pass, 4 expected failures documenting open extraction issues) |
 
 ### 6. Note on Dense Index
 
@@ -302,6 +338,11 @@ llm_rag/
 │   │   ├── load_neo4j.py         # Metagraph and KG-layer loader
 │   │   ├── stats.py              # Graph statistics per scope
 │   │   └── coverage.py           # QA coverage of the graph
+│   ├── kg_rag/                   # KG-based retrieval (Step 6)
+│   │   ├── graph_index.py        # Entity table export from Neo4j
+│   │   ├── queries.py            # dev-500 query variants, Step 4 best retrieval, domain prediction
+│   │   ├── linker.py             # Entity linker (dense + BM25, RRF, domain and hub filters)
+│   │   └── eval_linking.py       # Phase 1 linking evaluation
 │   └── agents/                   # Agentic orchestration (planned)
 │
 ├── experiments/
@@ -313,7 +354,8 @@ llm_rag/
 │   ├── evaluate_baseline.py      # Per-file evaluation (EM, F1, recall, abstention)
 │   ├── evaluate_diagnostics.py   # Bootstrap CIs, hit/miss F1, paired tests
 │   ├── results/                  # Result JSONL + evaluation JSON (full split, dev_500/)
-│   └── kg/                       # KG pilot outputs, reports, annotation sheets, ER results
+│   ├── kg/                       # KG pilot outputs, reports, annotation sheets, ER results
+│   └── kg_rag/                   # KG retrieval results and reports
 │
 ├── latex_report/                 # Thesis (LuaLaTeX, unipd-thesis-modern)
 ├── docker-compose.yml            # Neo4j 5 Community
@@ -329,7 +371,8 @@ llm_rag/
 │   ├── test_kg_extraction.py     # Prompt regression tests (read cached model output)
 │   ├── test_kg_postfilter.py     # Post-filters
 │   ├── test_kg_resolve.py        # Type conflicts, generic-vs-specific rule, hub guard
-│   └── test_kg_build.py          # Loader tests (need Neo4j and the pilot files)
+│   ├── test_kg_build.py          # Loader tests (need Neo4j and the pilot files)
+│   └── test_kg_rag.py            # KG retrieval helpers
 │
 ├── data/
 │   ├── multidoc2dial/            # Dataset files (git-ignored)

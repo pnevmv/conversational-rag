@@ -73,7 +73,11 @@ only agreement between two runs reaches about 70\% precision, at the cost of a t
 of the facts. The graph built from the full corpus with a single run holds 14{,}731
 entities and 13{,}277 relations, covers the gold section of 96.6\% of the dev-500
 questions, and has a precision of 53\% on a control sample from unseen documents
-(33\% if borderline cases count as errors).
+(33\% if borderline cases count as errors). Linking the rewritten user turn to graph
+entities reaches an entity of the gold section for 70\% of the dev-500 questions with
+the top-10 entities, comparable to section recall@5 of the best passage retriever.
+Graph hubs must be kept, as skipping them costs 8 points. Turns that switch to a new
+document are linked better from the raw turn than from the rewrite.
 
 
 % ===========================================================================
@@ -118,8 +122,10 @@ tuple on a three-point scale (correct / partially correct / incorrect) and
 report agreement with human judgements as a calibration measure.
 
 \textbf{Knowledge graph retrieval and quality.} With the graph built
-(Chapter~\ref{ch:kg}), the immediate next step is question answering over it, where the
-retriever or the answering model can filter noisy triples; a filter for endpoints that
+(Chapter~\ref{ch:kg}) and its entities linked to the conversation
+(Chapter~\ref{ch:kgret}), the immediate next step is answering from it: ranking the
+sections reached by the linked entities, and giving their facts to the generator, where
+the retriever or the answering model can filter noisy triples; a filter for endpoints that
 are not entities (headings, instructions) and a second extraction run on the sections
 used most often are the most direct ways to raise its precision. A hybrid pipeline that combines flat-document retrieval with graph-query
 traversal (\emph{Graph~\gls{rag}}) could surface multi-hop relational evidence
