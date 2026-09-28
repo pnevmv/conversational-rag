@@ -1,0 +1,116 @@
+"""dev-500 queries and the Step 4 best retrieval, shared by linking and the KG retrievers.
+
+- Query variants per example: the raw user turn, the Step 4 rewrite (same prompt and LLM
+  cache as experiments/run_dev_subset.py, so no new calls), and the rewrite followed by the
+  last agent turn.
+- Step 4 best retrieval: Hybrid (BM25 + dense, RRF) on the rewritten query, top-50 reranked
+  by the cross-encoder. The full reranked list of 50 is kept, so the hybrid KG retriever can
+  fuse it; its top-5 is exactly the Step 4 context.
+- Domain prediction: Step 4 has no domain classifier, so the predicted domain is the
+  majority domain of the Step 4 top-5 sections, and its confidence the share of the top-5
+  in that domain (confident at >= DOMAIN_CONFIDENCE).
+
+Both are cached in experiments/kg_rag/ (step4_dev500.json).
+"""
+import json
+from collections import Counter
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
+
+from src.data.loader import load_doc_domain_map, load_sections, make_section_id
+from src.kg.coverage import load_examples
+from src.llm import LLMCache, LLMClient, generate_batch
+from src.rag.query_rewriter import REWRITE_PROMPT, _format_history
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+OUT_DIR = PROJECT_ROOT / "experiments" / "kg_rag"
+LLM_CACHE_DIR = PROJECT_ROOT / "experiments" / "cache"
+RERANKER_CACHE_DIR = LLM_CACHE_DIR / "reranker"
+STEP4_CACHE = OUT_DIR / "step4_dev500.json"
+RETRIEVE_K = 50
+TOP_K = 5
+DOMAIN_CONFIDENCE = 0.8  # 4 of the top-5 sections in one domain
+
+
+def last_agent_turn(example: Dict[str, Any]) -> Optional[str]:
+    for turn in reversed(example.get("dialogue_history") or []):
+        if turn["role"] == "agent":
+            return turn["utterance"].strip()
+    return None
+
+
+def section_of_span() -> Dict[Tuple[str, str], str]:
+    return {(s["doc_id"], str(sp)): make_section_id(s["doc_id"], s["id_sp"])
+            for s in load_sections() for sp in s["span_ids"]}
+
+
+def gold_section_ids(example: Dict[str, Any], span_map: Dict[Tuple[str, str], str]) -> List[str]:
+    return sorted({span_map[(g["doc_id"], str(g["id_sp"]))] for g in example.get("grounding") or []
+                   if (g.get("doc_id"), str(g.get("id_sp"))) in span_map})
+
+
+def rewrite_all(examples: List[Dict[str, Any]], client: Optional[LLMClient] = None,
+                workers: int = 8) -> Tuple[List[str], Dict[str, int]]:
+    """Step 4 rewrites (cached). First turns keep the raw question. Returns (queries, call stats)."""
+    cache = LLMCache(LLM_CACHE_DIR)
+    client = client or LLMClient()
+    prompts = {i: REWRITE_PROMPT.format(history=_format_history(ex["dialogue_history"]), question=ex["question"])
+               for i, ex in enumerate(examples) if ex.get("dialogue_history")}
+    idx = sorted(prompts)
+    answers = generate_batch(client, [prompts[i] for i in idx], cache=cache, max_workers=workers, verbose=False)
+    out = [ex["question"] for ex in examples]
+    for i, (answer, _) in zip(idx, answers):
+        if answer and answer.strip():
+            out[i] = answer.strip()
+    return out, {"llm_calls": len(idx), "cache_hits": cache.stats["hits"]}
+
+
+def predict_domain(top: List[Dict[str, Any]], doc_domain: Dict[str, str]) -> Tuple[Optional[str], float]:
+    doms = [doc_domain.get(r["doc_id"]) for r in top[:TOP_K]]
+    doms = [d for d in doms if d]
+    if not doms:
+        return None, 0.0
+    dom, n = Counter(doms).most_common(1)[0]
+    return dom, n / len(doms)
+
+
+def _step4_retrieval(rewritten: List[str]) -> List[List[Dict[str, Any]]]:
+    from src.rag import HybridRetriever, Reranker
+
+    retriever = HybridRetriever()
+    retriever.build_index()
+    candidates = [retriever.retrieve(q, top_k=RETRIEVE_K) for q in rewritten]
+    reranker = Reranker(cache_dir=RERANKER_CACHE_DIR)
+    ranked = reranker.rerank_many(rewritten, candidates, top_k=RETRIEVE_K)
+    out = []
+    for docs, _ in ranked:
+        out.append([{"rank": d["rank"], "doc_id": d["doc_id"], "id_sp": str(d["id_sp"]),
+                     "section_id": make_section_id(d["doc_id"], d["id_sp"]),
+                     "span_ids": [str(s) for s in d.get("span_ids", [d["id_sp"]])],
+                     "reranker_score": d["reranker_score"]} for d in docs])
+    return out
+
+
+def load_step4(workers: int = 8, refresh: bool = False) -> Dict[str, Any]:
+    """{"examples": [...dev-500 in order...], "records": {example_id: {...}}, "rewrite_stats": {...}}."""
+    examples = load_examples("dev500")
+    if STEP4_CACHE.exists() and not refresh:
+        data = json.loads(STEP4_CACHE.read_text(encoding="utf-8"))
+        return {"examples": examples, **data}
+
+    rewritten, stats = rewrite_all(examples, workers=workers)
+    retrieval = _step4_retrieval(rewritten)
+    doc_domain = load_doc_domain_map()
+    span_map = section_of_span()
+    records = {}
+    for ex, rw, top in zip(examples, rewritten, retrieval):
+        dom, conf = predict_domain(top, doc_domain)
+        records[ex["example_id"]] = {
+            "raw": ex["question"], "rewritten": rw, "last_agent": last_agent_turn(ex),
+            "gold_sections": gold_section_ids(ex, span_map),
+            "pred_domain": dom, "pred_domain_conf": conf, "step4_ranking": top,
+        }
+    data = {"records": records, "rewrite_stats": stats}
+    STEP4_CACHE.parent.mkdir(parents=True, exist_ok=True)
+    STEP4_CACHE.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+    return {"examples": examples, **data}
