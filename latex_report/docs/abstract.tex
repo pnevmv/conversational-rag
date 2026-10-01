@@ -43,8 +43,13 @@ the precision of a single extraction run at 44\% (recall 65\%), and at 67\% for 
 triples that two runs agree on. A revised extraction applied to the full corpus yields a
 graph of 14{,}731 entities and 13{,}277 relations that covers the gold section of 96.6\%
 of the diagnostic questions, with a precision of 53\% on a control sample from unseen
-documents. The thesis concludes with question answering over the graph, graph-\gls{rag}
-architectures, agent-based orchestration, and an open-weight \gls{llm} judge for more
-reliable generation evaluation.
+documents. Linking the rewritten user turn to graph entities reaches the gold section
+for 70\% of these questions, but retrieval over the graph alone finds the gold section
+half as often as passage retrieval and lowers \fone{} by 2.7 to 4.5 points: entity
+overlap cannot rank the many sections a question's entities reach. A hybrid of graph
+and passage retrieval matches the best passage pipeline without improving it. The thesis
+concludes with graph-\gls{rag} architectures that add graph facts to retrieved passages,
+agent-based orchestration, and an open-weight \gls{llm} judge for more reliable
+generation evaluation.
 
 \end{abstract}
