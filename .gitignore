@@ -80,3 +80,4 @@ experiments/**/*.jsonl
 experiments/kg_rag/*.npy
 experiments/kg_rag/entities_*.json
 experiments/kg_rag/step4_dev500.json
+experiments/kg_rag/relations_*.json

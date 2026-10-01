@@ -1,0 +1,50 @@
+{
+  "latency_ms": {
+    "encode": 14.213756084442139,
+    "kg_sections": 8.085051536560059,
+    "kg_sections_1hop": 8.127059936523438,
+    "kg_facts": 8.090274333953857,
+    "kg_hybrid": 16.581570625305176,
+    "kg_hybrid_rerank": 4.024811744689941
+  },
+  "hybrid_base": "kg_sections",
+  "pipelines": {
+    "kg_sections": {
+      "recall_at_1": 0.144,
+      "recall_at_5": 0.346,
+      "domain_recall": 0.8832000000000001,
+      "prompt_chars": 7946.674
+    },
+    "kg_sections_1hop": {
+      "recall_at_1": 0.126,
+      "recall_at_5": 0.366,
+      "domain_recall": 0.8956000000000001,
+      "prompt_chars": 8131.92
+    },
+    "kg_facts": {
+      "recall_at_1": 0.156,
+      "recall_at_5": 0.372,
+      "domain_recall": 0.9024,
+      "prompt_chars": 9648.854,
+      "context_recall": 0.488,
+      "empty_context": 0,
+      "mean_facts": 25.864
+    },
+    "kg_hybrid": {
+      "recall_at_1": 0.378,
+      "recall_at_5": 0.676,
+      "domain_recall": 0.938,
+      "prompt_chars": 6668.534
+    }
+  },
+  "llm": {
+    "rewrite_calls_per_question": 0.868,
+    "generation_calls_per_question": 1.0,
+    "cache": {
+      "hits": 452,
+      "misses": 1548,
+      "hit_rate": 0.226
+    }
+  },
+  "wall_time_s": 235.68558287620544
+}

@@ -5,10 +5,15 @@ One row per Entity:
     directions), forms (entity name, names of the mentions resolved to it, their aliases),
     section_ids (sections with a mention resolved to the entity).
 
-Linking and the KG retrievers read this table instead of querying Neo4j per question.
+One row per entity relation (relations_<scope>.json):
+    source, relation, target, support, section_ids, evidence (the evidence quotes of the
+    mention-level relations it aggregates, with their section; either direction for the
+    symmetric ALTERNATIVE_TO).
+
+Linking and the KG retrievers read these tables instead of querying Neo4j per question.
 
 Usage:
-    python -m src.kg_rag.graph_index --scope full          # export (overwrites the cache)
+    python -m src.kg_rag.graph_index --scope full          # export (overwrites the caches)
 """
 import argparse
 import json
@@ -21,6 +26,10 @@ OUT_DIR = PROJECT_ROOT / "experiments" / "kg_rag"
 
 def cache_path(scope: str) -> Path:
     return OUT_DIR / f"entities_{scope}.json"
+
+
+def relations_path(scope: str) -> Path:
+    return OUT_DIR / f"relations_{scope}.json"
 
 
 def export_entities(scope: str) -> List[Dict[str, Any]]:
@@ -52,6 +61,50 @@ def export_entities(scope: str) -> List[Dict[str, Any]]:
     return out
 
 
+def export_relations(scope: str) -> List[Dict[str, Any]]:
+    from src.kg.client import KGClient
+    from src.kg.schema import SYMMETRIC_RELATIONS
+
+    with KGClient() as client:
+        rels = client.run(
+            """
+            MATCH (a:Entity {scope: $scope})-[r]->(b:Entity {scope: $scope})
+            RETURN a.entity_id AS source, type(r) AS relation, b.entity_id AS target,
+                   r.support AS support, r.section_ids AS section_ids
+            ORDER BY source, relation, target
+            """, scope=scope)
+        evidence = client.run(
+            """
+            MATCH (ea:Entity {scope: $scope})<-[:RESOLVES_TO]-(ma:Mention)-[x:REL]->(mb:Mention)
+                  -[:RESOLVES_TO]->(eb:Entity {scope: $scope})
+            RETURN ea.entity_id AS source, x.type AS relation, eb.entity_id AS target,
+                   x.evidence AS evidence, ma.section_id AS section_id
+            """, scope=scope)
+    quotes: Dict[tuple, List[Dict[str, str]]] = {}
+    for e in evidence:
+        if not e["evidence"]:
+            continue
+        keys = [(e["source"], e["relation"], e["target"])]
+        if e["relation"] in SYMMETRIC_RELATIONS:
+            keys.append((e["target"], e["relation"], e["source"]))
+        for key in keys:
+            bucket = quotes.setdefault(key, [])
+            if all(q["text"] != e["evidence"] for q in bucket):
+                bucket.append({"text": e["evidence"], "section_id": e["section_id"]})
+    return [{**r, "section_ids": sorted(r["section_ids"] or []),
+             "evidence": quotes.get((r["source"], r["relation"], r["target"]), [])} for r in rels]
+
+
+def load_relations(scope: str = "full", refresh: bool = False) -> List[Dict[str, Any]]:
+    path = relations_path(scope)
+    if refresh or not path.exists():
+        relations = export_relations(scope)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(relations, ensure_ascii=False), encoding="utf-8")
+        return relations
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
 def load_entities(scope: str = "full", refresh: bool = False) -> List[Dict[str, Any]]:
     path = cache_path(scope)
     if refresh or not path.exists():
@@ -69,6 +122,9 @@ def main() -> None:
     entities = load_entities(args.scope, refresh=True)
     print(f"{len(entities):,} entities, {sum(len(e['forms']) for e in entities):,} surface forms "
           f"-> {cache_path(args.scope)}")
+    relations = load_relations(args.scope, refresh=True)
+    print(f"{len(relations):,} relations, {sum(bool(r['evidence']) for r in relations):,} with evidence "
+          f"-> {relations_path(args.scope)}")
 
 
 if __name__ == "__main__":
