@@ -2,8 +2,10 @@
 
 Uses the Step 4 diagnostic evaluator (experiments/evaluate_diagnostics.py) for F1, R@5,
 F1 on hit/miss and abstention, and adds R@1, domain recall, the abstain rate, splits by
-doc switch and answerability, per-domain F1 and paired bootstrap tests of token F1 against
-Hybrid + Rewrite + Rerank (agent prompt) overall and per split.
+doc switch, answerability and Step 4 retrieval hit/miss (answerable turns; hit = a gold span
+in the Step 4 top-5, the same partition for every pipeline, so the tests stay paired),
+per-domain F1 and paired bootstrap tests of token F1 against Hybrid + Rewrite + Rerank
+(agent prompt) overall and per split.
 
 Usage:
     python -m src.kg_rag.eval_qa
@@ -26,6 +28,8 @@ PIPELINES = {
     "kg_sections_1hop": "A: KG -> sections, 1-hop",
     "kg_facts": "B: KG facts",
     "kg_hybrid": "C: hybrid (A + Step 4, reranked)",
+    "kg_rerank": "D: A's top-50 reranked",
+    "step4_plus_facts": "E: Step 4 sections + KG facts",
 }
 
 
@@ -52,8 +56,11 @@ def main() -> None:
     ids = list(data[BASELINE])
     assert all(set(d) == set(ids) for d in data.values()), "pipelines cover different examples"
 
+    base_hit = {i: data[BASELINE][i]["recall_at_5"] > 0 for i in ids}
     splits = {
         "all": lambda r: True,
+        "step4_hit": lambda r: not r["is_unanswerable"] and base_hit[r["example_id"]],
+        "step4_miss": lambda r: not r["is_unanswerable"] and not base_hit[r["example_id"]],
         "same_doc": lambda r: not r["is_doc_switch"],
         "doc_switch": lambda r: r["is_doc_switch"],
         "answerable": lambda r: not r["is_unanswerable"],
@@ -78,7 +85,7 @@ def main() -> None:
             res["paired_vs_baseline"] = {
                 s: paired_bootstrap_test([d[i]["f1"] for i in ids if f(d[i])], [base[i]["f1"] for i in ids if f(d[i])])
                 for s, f in splits.items()}
-        if name == "kg_hybrid":
+        if name in ("kg_hybrid", "kg_rerank"):
             changed = [i for i in ids if d[i]["context"] != data[BASELINE][i]["context"]]
             res["changed_context"] = {
                 "n": len(changed),
@@ -90,6 +97,15 @@ def main() -> None:
                 "paired": paired_bootstrap_test([d[i]["f1"] for i in changed],
                                                 [data[BASELINE][i]["f1"] for i in changed]) if changed else None,
             }
+        if name == "step4_plus_facts":
+            def by_facts(flag):
+                sub = [i for i in ids if not d[i]["is_unanswerable"] and (d[i]["facts_context_recall"] > 0) == flag]
+                return {"n": len(sub), "f1": float(np.mean([d[i]["f1"] for i in sub])),
+                        "f1_baseline": float(np.mean([data[BASELINE][i]["f1"] for i in sub])),
+                        "paired": paired_bootstrap_test([d[i]["f1"] for i in sub],
+                                                        [data[BASELINE][i]["f1"] for i in sub])}
+            res["by_facts_gold"] = {"facts_reach_gold": by_facts(True), "facts_miss_gold": by_facts(False)}
+            res["mean_facts"] = float(np.mean([r["n_facts"] for r in rows]))
         if name == "kg_facts":
             res["context_recall"] = float(np.mean([r["context_recall"] for r in rows]))
             res["mean_facts"] = float(np.mean([r["n_facts"] for r in rows]))
@@ -111,7 +127,7 @@ def main() -> None:
               f"{pct(hit['ci']['mean'])} ({hit['n']}) | {pct(miss['ci']['mean'])} ({miss['n']}) | "
               f"{pct(r['abstain_rate'])} | {pct(dg['abstain_recall'])} | {pct(dg['false_abstention'])} | {delta} |")
     print()
-    for s in ("same_doc", "doc_switch", "unanswerable"):
+    for s in ("step4_hit", "step4_miss", "same_doc", "doc_switch", "unanswerable"):
         print(f"--- {s}")
         for name, r in result["pipelines"].items():
             st = r["splits"][s]
@@ -122,6 +138,11 @@ def main() -> None:
     print("--- by domain (F1)")
     for name, r in result["pipelines"].items():
         print(f"  {name:22} " + "  ".join(f"{d} {pct(v['f1']['mean'])}" for d, v in r["by_domain"].items()))
+    for nm in ("kg_rerank",):
+        cc = result["pipelines"][nm]["changed_context"]
+        print(f"--- {nm}: {cc['n']} examples with a different context; new sections in top-5 {cc['new_sections_in_top5']:.2f}; "
+              f"F1 {pct(cc['f1_hybrid'])} vs {pct(cc['f1_baseline'])}; R@5 {pct(cc['r5_hybrid'])} vs {pct(cc['r5_baseline'])}")
+    print("--- E by whether the facts reach a gold section:", json.dumps(result["pipelines"]["step4_plus_facts"]["by_facts_gold"], indent=1))
     cc = result["pipelines"]["kg_hybrid"]["changed_context"]
     print(f"--- hybrid: {cc['n']} examples with a different context; new sections in top-5 {cc['new_sections_in_top5']:.2f}; "
           f"F1 {pct(cc['f1_hybrid'])} vs {pct(cc['f1_baseline'])}; R@5 {pct(cc['r5_hybrid'])} vs {pct(cc['r5_baseline'])}; "

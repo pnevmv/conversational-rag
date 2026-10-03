@@ -5,9 +5,12 @@ Pipelines (output experiments/results/dev_500/<name>.jsonl, Step 4 record schema
   kg_sections_1hop    A with 1-hop expansion through entity relations
   kg_facts            B: top-30 KG facts with evidence quotes as context (no raw sections)
   kg_hybrid           C: RRF(A, Step 4 best) -> cross-encoder rerank -> top-5
+  kg_rerank           D: A's top-50 reranked by the Step 4 cross-encoder (KG as candidate generator)
+  step4_plus_facts    E: the Step 4 best top-5 sections, followed by B's KG facts in a separate
+                      "Facts" block
 
-All use the rewritten query for linking (top-10 entities, hubs kept); A and B link without
-the domain filter (the predicted domain comes from Step 4 retrieval), C with it. The
+All use the rewritten query for linking (top-10 entities, hubs kept); A, B, D and E link
+without the domain filter (the predicted domain comes from Step 4 retrieval), C with it. The
 generator, agent-style prompt and model are those of Step 4 (rag_rewrite_rerank_v2), and
 the question in the prompt is the raw user turn, as in Step 4.
 
@@ -32,7 +35,7 @@ from src.kg_rag.retrievers import KGRetriever, rrf_sections
 from src.llm import LLMCache, LLMClient, generate_batch
 
 TOP_K = 5
-PIPELINES = ("kg_sections", "kg_sections_1hop", "kg_facts", "kg_hybrid")
+PIPELINES = ("kg_sections", "kg_sections_1hop", "kg_facts", "kg_hybrid", "kg_rerank", "step4_plus_facts")
 
 
 def retrieve_all(hybrid_base: str = "kg_sections") -> Dict[str, Any]:
@@ -65,6 +68,16 @@ def retrieve_all(hybrid_base: str = "kg_sections") -> Dict[str, Any]:
         ms["kg_facts"].append(link_ms + (time.time() - t) * 1000)
         out["kg_facts"].append({"linked": linked, "facts": facts, "ranking": kg.fact_sections(facts)})
 
+        # D: A's candidates (no domain filter), reranked below.
+        out["kg_rerank"].append({"linked": linked, "candidates": out["kg_sections"][-1]["ranking"]})
+        ms["kg_rerank"].append(ms["kg_sections"][-1])
+
+        # E: Step 4 sections, plus B's facts.
+        step4_top5 = [kg.section_result(r["section_id"], r["rank"], r["reranker_score"])
+                      for r in rec["step4_ranking"][:TOP_K]]
+        out["step4_plus_facts"].append({"linked": linked, "facts": facts, "ranking": step4_top5})
+        ms["step4_plus_facts"].append(ms["kg_facts"][-1])
+
         # C: domain filter allowed; A's ranking re-linked with the predicted domain.
         t = time.time()
         dom = rec["pred_domain"] if rec["pred_domain_conf"] >= DOMAIN_CONFIDENCE else None
@@ -87,9 +100,17 @@ def retrieve_all(hybrid_base: str = "kg_sections") -> Dict[str, Any]:
         step4_top = {r["section_id"] for r in records[ex["example_id"]]["step4_ranking"][:TOP_K]}
         o["new_vs_step4"] = sum(1 for d in docs if d["section_id"] not in step4_top)
 
+    t = time.time()
+    reranked = reranker.rerank_many(queries, [o["candidates"] for o in out["kg_rerank"]], top_k=TOP_K)
+    rerank_d_ms = (time.time() - t) / len(queries) * 1000
+    for ex, o, (docs, _) in zip(examples, out["kg_rerank"], reranked):
+        o["ranking"] = docs
+        step4_top = {r["section_id"] for r in records[ex["example_id"]]["step4_ranking"][:TOP_K]}
+        o["new_vs_step4"] = sum(1 for d in docs if d["section_id"] not in step4_top)
+
     return {"step4": step4, "kg": kg, "out": out, "queries": queries,
             "latency_ms": {"encode": encode_ms, **{p: float(np.mean(v)) for p, v in ms.items()},
-                           "kg_hybrid_rerank": rerank_ms}}
+                           "kg_hybrid_rerank": rerank_ms, "kg_rerank_rerank": rerank_d_ms}}
 
 
 def build_records(name: str, examples, queries, results, kg: KGRetriever, ddm, template: str):
@@ -98,6 +119,8 @@ def build_records(name: str, examples, queries, results, kg: KGRetriever, ddm, t
         ranking = res["ranking"]
         if name == "kg_facts":
             context = kg.format_facts(res["facts"])
+        elif name == "step4_plus_facts":
+            context = format_context(ranking[:TOP_K]) + "\n\nFacts:\n" + kg.format_facts(res["facts"])
         else:
             context = format_context(ranking[:TOP_K])
         prompts.append(template.format(context=context, question=ex["question"]))
@@ -114,8 +137,12 @@ def build_records(name: str, examples, queries, results, kg: KGRetriever, ddm, t
                                  "degree": l["degree"]} for l in res["linked"]],
             "retrieved_sections": [r["section_id"] for r in ranking[:TOP_K]],
         })
-        if name == "kg_hybrid":
+        if name in ("kg_hybrid", "kg_rerank"):
             rows[-1]["new_vs_step4"] = res["new_vs_step4"]
+        if name in ("kg_facts", "step4_plus_facts"):
+            fact_secs = kg.fact_sections(res["facts"])
+            rows[-1]["n_facts"] = len(res["facts"])
+            rows[-1]["facts_context_recall"] = recall_at_k(fact_secs, ex["grounding"], len(fact_secs) or 1)
         if name == "kg_facts":
             rows[-1]["n_facts"] = len(res["facts"])
             rows[-1]["context_recall"] = recall_at_k(ranking, ex["grounding"], len(ranking) or 1)
@@ -141,6 +168,12 @@ def main() -> None:
     for name in PIPELINES:
         rows, prompts = build_records(name, examples, queries, out[name], kg, ddm, template)
         all_rows[name] = (rows, prompts)
+        if name == "step4_plus_facts":
+            # The sections part must be exactly the Step 4 context.
+            base = {json.loads(l)["example_id"]: json.loads(l)["context"]
+                    for l in open(RESULTS_DIR / "rag_rewrite_rerank_v2.jsonl", encoding="utf-8")}
+            bad = sum(1 for r in rows if not r["context"].startswith(base[r["example_id"]] + "\n\nFacts:\n"))
+            assert bad == 0, f"{bad} contexts differ from the Step 4 context"
         s = {"recall_at_1": float(np.mean([r["recall_at_1"] for r in rows])),
              "recall_at_5": float(np.mean([r["recall_at_5"] for r in rows])),
              "domain_recall": float(np.mean([r["domain_recall"] for r in rows])),

@@ -1,11 +1,14 @@
 {
   "latency_ms": {
-    "encode": 14.213756084442139,
-    "kg_sections": 8.085051536560059,
-    "kg_sections_1hop": 8.127059936523438,
-    "kg_facts": 8.090274333953857,
-    "kg_hybrid": 16.581570625305176,
-    "kg_hybrid_rerank": 4.024811744689941
+    "encode": 12.912712097167969,
+    "kg_sections": 7.285933971405029,
+    "kg_sections_1hop": 7.328789710998535,
+    "kg_facts": 7.289292812347412,
+    "kg_hybrid": 14.819572925567627,
+    "kg_rerank": 7.285933971405029,
+    "step4_plus_facts": 7.289292812347412,
+    "kg_hybrid_rerank": 4.367335796356201,
+    "kg_rerank_rerank": 466.45527601242065
   },
   "hybrid_base": "kg_sections",
   "pipelines": {
@@ -35,16 +38,28 @@
       "recall_at_5": 0.676,
       "domain_recall": 0.938,
       "prompt_chars": 6668.534
+    },
+    "kg_rerank": {
+      "recall_at_1": 0.358,
+      "recall_at_5": 0.588,
+      "domain_recall": 0.9316,
+      "prompt_chars": 7046.812
+    },
+    "step4_plus_facts": {
+      "recall_at_1": 0.38,
+      "recall_at_5": 0.674,
+      "domain_recall": 0.9368000000000001,
+      "prompt_chars": 15081.512
     }
   },
   "llm": {
     "rewrite_calls_per_question": 0.868,
     "generation_calls_per_question": 1.0,
     "cache": {
-      "hits": 452,
-      "misses": 1548,
-      "hit_rate": 0.226
+      "hits": 2108,
+      "misses": 892,
+      "hit_rate": 0.7026666666666667
     }
   },
-  "wall_time_s": 235.68558287620544
+  "wall_time_s": 381.0364558696747
 }
