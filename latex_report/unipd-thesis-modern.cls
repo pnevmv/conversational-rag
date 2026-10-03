@@ -591,11 +591,7 @@
 }
 
 \newcommand{\abstractpage} {
-    % english version
     \input{docs/abstract}
-    % italian version
-    \cleardoublepage
-    \input{docs/sommario}
 }
 
 % -- ACRONYMS/ABBREVIATIONS --

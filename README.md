@@ -91,9 +91,9 @@ Key findings:
 
 See the thesis chapter `latex_report/chapters/rag.tex` for full analysis, and Appendix A (`latex_report/chapters/experimental_log.tex`) for the development history and supplementary results.
 
-### In Progress
+### Completed: Knowledge Graph
 
-**Step 5 — Knowledge Graph Construction** (full-corpus graph built with prompt v2.1: 14,731 entities, 13,277 relations; next: QA over the KG)
+**Step 5 — Knowledge Graph Construction** (full-corpus graph built with prompt v2.1: 14,731 entities, 13,277 relations)
 
 The design follows *Knowledge Graphs and LLMs in Action* (ch. 5–6), with three layers: a structural layer, a metagraph of raw LLM-extracted mentions, and a KG layer of resolved entities. Thesis chapter: `latex_report/chapters/kg_construction.tex`.
 
@@ -171,9 +171,80 @@ The design follows *Knowledge Graphs and LLMs in Action* (ch. 5–6), with three
   | Control precision (30 triples, unseen documents) | **53.3%** [36.1, 69.8] lenient, 33.3% [19.2, 51.2] strict (borderline = incorrect) |
 
   Robustness fixes found during the run: a client timeout, retries on transient errors, no caching of invalid output, content-filter blocks recorded instead of retried, and an output-token cap.
-- [ ] Question answering over the KG, then Graph RAG (combining graph and passage retrieval).
+- [x] Question answering over the KG: moved to Step 6.
 
 Reports: [`pilot2_report.md`](experiments/kg/pilot2_report.md) (closed-schema pilot), [`pilot3_report.md`](experiments/kg/pilot3_report.md) (pre-run checks, stability, entity resolution) [`build_pilot_report.md`](experiments/kg/build_pilot_report.md) (pilot graph build, statistics, coverage, example queries) and [`full_build_report.md`](experiments/kg/full_build_report.md) (full build, control sample, hub fix).
+
+### Completed: KG-based Retrieval
+
+**Step 6 — KG-based Retrieval** (PR #3; entity linking and KG retrievers done: KG-only retrieval is below passage RAG, the hybrid matches it, and KG facts added to passages help only where they reach the answer's section)
+
+Question answering over the full KG, on dev-500 with the Step 4 generator, prompt and metrics, so the numbers compare directly with RAG. Thesis chapter: `latex_report/chapters/kg_retrieval.tex`.
+
+- [x] Phase 1, entity linking (`src/kg_rag/`):
+  - **Entity table:** exported once from Neo4j (`graph_index.py`); each entity has its surface forms (name, resolved mention names, aliases), degree and sections.
+  - **Query:** the Step 4 rewrite of the user turn (cached, no new LLM calls). The raw turn and the rewrite plus the last agent turn are the baselines.
+  - **Candidates:** dense (bge-small over surface forms) and BM25 over entity names, fused by RRF.
+  - **Domain filter:** applied when the predicted domain is confident. Step 4 has no domain classifier, so the predicted domain is the majority domain of the Step 4 best top-5 sections (94.8% accurate; 97.9% on the 471 confident cases).
+  - **Hub skip:** entities with degree > p99 (16), as an ablation.
+  - **Metric:** link recall@k, the share of questions where a top-k entity is mentioned in the gold section (dev-500, 95% Wilson CIs):
+
+  | Query / linker | R@1 | R@5 | R@10 |
+  | :--- | ---: | ---: | ---: |
+  | raw turn | 24.2 | 41.2 | 47.4 |
+  | rewritten | 29.6 | 52.2 | 62.0 |
+  | rewritten + last agent turn | 24.8 | 49.2 | 59.4 |
+  | **rewritten, hubs kept** | **33.2** | **59.6** | **70.4** [66.3, 74.2] |
+
+  - **Rewrite:** +15 points over the raw turn. The agent turn does not help.
+  - **Hubs:** skipping them costs 8 points. Chance-level recall (entities of a random same-domain question) stays at 4–7%, so hub hits are genuine. Their cost is fan-out: the top-10 entities reach a median of 29 sections.
+  - **Doc-switch turns:** the raw turn beats the rewrite (62.8% vs 55.3%).
+  - **Domain filter:** nearly neutral.
+  - **Main error:** the right topic linked to a different node than the gold section's ("disability benefits" vs "monthly disability benefit").
+  - **Cost:** about 15 ms per question; 0.87 LLM calls per question (the rewrite).
+- [x] Phase 2, KG retrievers and QA (`src/kg_rag/retrievers.py`, `run_qa.py`, `eval_qa.py`):
+  - **Same setup as Step 4:** generator, agent prompt and metrics.
+  - **Linking:** rewritten query, top-10 entities, hubs kept and down-weighted by section frequency (`link score × log(1 + N / sections)`). There is no domain filter for A and B, because the predicted domain comes from Step 4 retrieval.
+  - **A: KG → sections.** A section scores the summed weights of the linked entities it mentions; optionally 1-hop expansion through entity relations (no hubs).
+  - **B: KG facts.** The 1-hop facts of the linked entities, ranked by RRF of link weight and query–fact similarity; the top-30 go to the generator as triples with one evidence quote each, with no raw sections.
+  - **C: hybrid.** RRF of A (with the domain filter) and the Step 4 top-50, then the cross-encoder picks the top-5.
+  - **D: KG candidates reranked.** A's top-50 is reranked by the same cross-encoder, so the KG replaces BM25 + dense as the candidate generator.
+  - **E: Step 4 sections + KG facts.** The Step 4 top-5 sections are unchanged, with B's facts appended as a separate "Facts" block.
+  - **E-random (control).** The same sections plus as many facts as E, drawn at random from the question's domain (seed 42). This separates the facts' content from the longer context.
+
+  | dev-500 | R@1 | R@5 | F1 [CI] | F1 hit / miss | Abstain | ΔF1 vs Step 4 [CI] |
+  | :--- | ---: | ---: | :--- | :--- | ---: | :--- |
+  | Step 4 best (Hybrid + Rewrite + Rerank) | 38.0 | 67.4 | **28.0** [26.2, 29.9] | 33.3 / 17.4 | 6.4 | — |
+  | A: KG → sections | 14.4 | 34.6 | 24.5 [22.6, 26.3] | 33.5 / 18.4 | 10.6 | −3.5 [−5.1, −1.9] |
+  | A, 1-hop | 12.6 | 36.6 | 23.5 [21.8, 25.3] | 33.0 / 18.0 | 8.6 | −4.5 [−6.3, −2.8] |
+  | B: KG facts | 15.6 | 37.2 | 25.4 [23.6, 27.1] | 30.0 / 20.9 | 9.6 | −2.7 [−4.4, −0.8] |
+  | C: hybrid | 37.8 | 67.6 | 27.6 [25.7, 29.4] | 33.3 / 17.1 | 6.0 | −0.5 [−1.2, 0.1] |
+  | D: KG candidates reranked | 35.8 | 58.8 | 26.4 [24.6, 28.2] | 33.3 / 18.7 | 6.4 | −1.6 [−2.9, −0.4] |
+  | **E: Step 4 sections + KG facts** | 38.0 | 67.4 | **29.2** [27.2, 31.0] | 34.1 / 18.7 | 5.8 | +1.1 [−0.3, 2.5] |
+  | E-random: Step 4 sections + random facts | 38.0 | 67.4 | 29.1 [27.1, 31.0] | 33.3 / 18.1 | 8.4 | +1.0 [−0.3, 2.4] |
+
+  - **KG-only retrieval:** finds the gold section half as often as passage retrieval and loses 2.7–4.5 F1 points (significant).
+    - The loss is in ranking: A's candidates hold the gold section for 69% of questions (R@50), its top-5 for 35%.
+    - When A finds the gold section, the answer is as good as Step 4's (F1 33.5 vs 33.3).
+  - **1-hop expansion:** +2 R@5, −1 F1.
+  - **Section-frequency down-weighting:** does not help (R@5 36.6% without it, checked after the runs).
+  - **Facts (B):** the best KG-only context; most robust when the gold section is missed (F1 20.9 vs 17.4 for Step 4), but they lose detail when it is found.
+  - **Hybrid (C):** matches Step 4. KG-only sections take 0.12 of the 5 slots, and the context changes in only 62 of 500 questions.
+  - **KG as candidate generator (D):** reranking lifts A's R@5 from 35% to 59%, but the KG pool holds fewer gold sections than the Step 4 pool (69% vs 89% at 50). F1 is −1.6 (significant).
+  - **Facts added to passages (E) vs random facts (E-random):**
+    - **Overall:** E-random gains as much as E (+1.0 vs +1.1; E-random vs E −0.1 [−1.1, 1.1]). Random facts raise abstention (8.4% vs 5.8%), which pays only on the 31 unanswerable turns.
+    - **Answerable turns:** E +0.9 [0.0, 1.8], E-random +0.2 [−0.6, 1.0].
+    - **Content effect:** where E's facts come from a gold section (228 questions), E beats E-random by **+1.8** [0.3, 3.4]. Elsewhere there is no difference.
+  - **Abstention:** KG contexts raise it (10% vs 6%): more unanswerable turns are caught, but there are more false abstentions.
+  - **Splits:** the gap is largest on doc-switch turns (A R@5 28.7% vs 66.0%) and in SSA/VA (−5.7 F1 each for A).
+  - **Cost:** no extra LLM calls (0.87 rewrite + 1 generation per question); linking + scoring 7–8 ms per question.
+- [ ] Next (Step 7, Graph RAG):
+  - add fewer, better-ranked KG facts to the Step 4 sections (E made the prompt 2.3× longer);
+  - evaluate against a matched random-facts control;
+  - report answerable and unanswerable turns separately;
+  - possibly use the KG to choose sections within the linked document after a doc switch.
+
+Reports: [`phase1_report.md`](experiments/kg_rag/phase1_report.md) (entity linking) and [`phase2_report.md`](experiments/kg_rag/phase2_report.md) (KG retrievers and QA).
 
 ---
 
@@ -185,8 +256,8 @@ Reports: [`pilot2_report.md`](experiments/kg/pilot2_report.md) (closed-schema pi
 | **Weeks 2–3** | **Step 2: Dataset Analysis** | Dataset analysis and preparation of MultiDoc2Dial (and EnronQA). | Completed |
 | **Weeks 3–4** | **Step 3: LLM Baseline** | LLM-only baseline, evaluation pipeline, EM + token F1 metrics. | Completed |
 | **Weeks 4–6** | **Step 4: Retrieval and RAG** | BM25, dense, hybrid, query rewriting, reranking, oracle ceiling; full-split and dev-500 evaluation. | Completed |
-| **Weeks 6–9** | **Step 5: KG Construction** | Unstructured document transformation into structured Knowledge Graphs. | In progress |
-| **Weeks 9–11** | **Step 6: KG-based Retrieval** | Natural language querying of Knowledge Graphs for conversational QA. | Planned |
+| **Weeks 6–9** | **Step 5: KG Construction** | Unstructured document transformation into structured Knowledge Graphs. | Completed |
+| **Weeks 9–11** | **Step 6: KG-based Retrieval** | Natural language querying of Knowledge Graphs for conversational QA. | Completed |
 | **Weeks 11–14** | **Step 7: Graph RAG** | Hybrid architectures combining structured graph data and textual context. | Planned |
 | **Weeks 14–17** | **Step 8: Agent-based Approaches** | Autonomous agents for reasoning, query construction, and source selection. | Planned |
 | **Weeks 17–19** | **Step 9: Evaluation & Comparison** | Benchmarking across answer quality, retrieval recall, and grounding. | Planned |
@@ -257,7 +328,11 @@ docker compose up -d neo4j      # browser at http://localhost:7474
 | `python -m src.kg.load_neo4j [--scope full]` | Load the metagraph and KG layer into Neo4j (pilot or full scope, idempotent per scope) |
 | `python -m src.kg.stats --scope pilot\|full` | Per-layer counts, degree distribution, components, top entities |
 | `python -m src.kg.coverage --scope pilot\|full [--examples validation]` | Coverage of QA gold sections by the graph |
-| `python -m pytest tests` | Run all tests (143 pass, 4 expected failures documenting open extraction issues) |
+| `python -m src.kg_rag.graph_index --scope full` | Export the entity table (surface forms, degree, sections) from Neo4j |
+| `python -m src.kg_rag.eval_linking` | Entity-linking evaluation on dev-500: query variants, ablations, splits, chance and fan-out controls |
+| `python -m src.kg_rag.run_qa [--retrieval-only]` | KG pipelines A (± 1-hop), B, C, D, E and E-random on dev-500; writes `experiments/results/dev_500/*.jsonl` |
+| `python -m src.kg_rag.eval_qa` | Phase 2 evaluation against the Step 4 best: F1, recall, abstention, splits, paired bootstrap |
+| `python -m pytest tests` | Run all tests (152 pass, 4 expected failures documenting open extraction issues) |
 
 ### 6. Note on Dense Index
 
@@ -302,6 +377,14 @@ llm_rag/
 │   │   ├── load_neo4j.py         # Metagraph and KG-layer loader
 │   │   ├── stats.py              # Graph statistics per scope
 │   │   └── coverage.py           # QA coverage of the graph
+│   ├── kg_rag/                   # KG-based retrieval (Step 6)
+│   │   ├── graph_index.py        # Entity and relation tables exported from Neo4j
+│   │   ├── queries.py            # dev-500 query variants, Step 4 best retrieval, domain prediction
+│   │   ├── linker.py             # Entity linker (dense + BM25, RRF, domain and hub filters)
+│   │   ├── eval_linking.py       # Phase 1 linking evaluation
+│   │   ├── retrievers.py         # KG retrievers: sections (A), facts (B), hybrid (C)
+│   │   ├── run_qa.py             # Phase 2 retrieval and generation on dev-500 (A–E, E-random)
+│   │   └── eval_qa.py            # Phase 2 evaluation against the Step 4 best
 │   └── agents/                   # Agentic orchestration (planned)
 │
 ├── experiments/
@@ -313,7 +396,8 @@ llm_rag/
 │   ├── evaluate_baseline.py      # Per-file evaluation (EM, F1, recall, abstention)
 │   ├── evaluate_diagnostics.py   # Bootstrap CIs, hit/miss F1, paired tests
 │   ├── results/                  # Result JSONL + evaluation JSON (full split, dev_500/)
-│   └── kg/                       # KG pilot outputs, reports, annotation sheets, ER results
+│   ├── kg/                       # KG pilot outputs, reports, annotation sheets, ER results
+│   └── kg_rag/                   # KG retrieval results and reports
 │
 ├── latex_report/                 # Thesis (LuaLaTeX, unipd-thesis-modern)
 ├── docker-compose.yml            # Neo4j 5 Community
@@ -329,7 +413,8 @@ llm_rag/
 │   ├── test_kg_extraction.py     # Prompt regression tests (read cached model output)
 │   ├── test_kg_postfilter.py     # Post-filters
 │   ├── test_kg_resolve.py        # Type conflicts, generic-vs-specific rule, hub guard
-│   └── test_kg_build.py          # Loader tests (need Neo4j and the pilot files)
+│   ├── test_kg_build.py          # Loader tests (need Neo4j and the pilot files)
+│   └── test_kg_rag.py            # KG retrieval helpers
 │
 ├── data/
 │   ├── multidoc2dial/            # Dataset files (git-ignored)

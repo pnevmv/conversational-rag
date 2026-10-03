@@ -73,7 +73,23 @@ only agreement between two runs reaches about 70\% precision, at the cost of a t
 of the facts. The graph built from the full corpus with a single run holds 14{,}731
 entities and 13{,}277 relations, covers the gold section of 96.6\% of the dev-500
 questions, and has a precision of 53\% on a control sample from unseen documents
-(33\% if borderline cases count as errors).
+(33\% if borderline cases count as errors). Linking the rewritten user turn to graph
+entities reaches an entity of the gold section for 70\% of the dev-500 questions with
+the top-10 entities, comparable to section recall@5 of the best passage retriever.
+Graph hubs must be kept, as skipping them costs 8 points. Turns that switch to a new
+document are linked better from the raw turn than from the rewrite.
+
+\textbf{Graph-only retrieval does not beat passages on this corpus.} Retrieving sections
+through the linked entities, or giving their facts to the generator, finds the gold
+section about half as often as passage retrieval and lowers \fone{} by 2.7 to 4.5
+points. The loss lies in ranking: entity overlap cannot order the tens of sections a
+question's entities reach, and when the gold section is retrieved the answer is as good
+as with passage retrieval. Facts are the more robust graph context when the gold
+section is missed, and a hybrid of graph and passage retrieval matches the passage
+pipeline without improving it. Graph facts added to the retrieved passages gain
+0.9 points on answerable questions and beat the same number of random facts by 1.8 points
+where they come from the section of the answer; overall, however, random facts gain as
+much, because extra context also makes the generator abstain more often.
 
 
 % ===========================================================================
@@ -118,8 +134,13 @@ tuple on a three-point scale (correct / partially correct / incorrect) and
 report agreement with human judgements as a calibration measure.
 
 \textbf{Knowledge graph retrieval and quality.} With the graph built
-(Chapter~\ref{ch:kg}), the immediate next step is question answering over it, where the
-retriever or the answering model can filter noisy triples; a filter for endpoints that
+(Chapter~\ref{ch:kg}) and its entities linked to the conversation
+(Chapter~\ref{ch:kgret}), retrieval from the graph alone falls short of passage
+retrieval, and adding its facts to the retrieved passages helps only where the facts
+reach the section of the answer. The next step is a Graph~\gls{rag} pipeline with fewer,
+better-ranked facts, evaluated against a matched random-facts control and separately on
+answerable and unanswerable turns. The graph may also help after a document switch,
+where passage retrieval still misses a third of the gold sections; a filter for endpoints that
 are not entities (headings, instructions) and a second extraction run on the sections
 used most often are the most direct ways to raise its precision. A hybrid pipeline that combines flat-document retrieval with graph-query
 traversal (\emph{Graph~\gls{rag}}) could surface multi-hop relational evidence
