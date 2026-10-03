@@ -142,17 +142,28 @@ class ExtractionCache:
         )
 
 
-def _call_llm(client: LLMClient, prompt: str, max_retries: int) -> str:
+def _call_llm(
+    client: LLMClient,
+    prompt: str,
+    max_retries: int,
+    schema: Optional[Dict[str, Any]] = None,
+    schema_name: str = "kg_extraction",
+    params: Optional[Dict[str, Any]] = None,
+) -> str:
+    """Call the model with a strict JSON schema (open schema by default).
+
+    `params` are the sampling parameters; the default is temperature 0.
+    """
     for attempt in range(max_retries):
         try:
             response = client.client.responses.create(
                 model=client.default_model,
                 input=prompt,
-                temperature=0,
+                **(params or {"temperature": 0}),
                 text={"format": {
                     "type": "json_schema",
-                    "name": "kg_extraction",
-                    "schema": EXTRACTION_SCHEMA,
+                    "name": schema_name,
+                    "schema": schema or EXTRACTION_SCHEMA,
                     "strict": True,
                 }},
             )

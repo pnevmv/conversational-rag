@@ -55,6 +55,17 @@ precision improves. Token \fone{} is unchanged ($p > 0.3$ in all paired tests).
 Prompt engineering can improve calibration but is unlikely to drive large \fone{}
 gains within the current pipeline structure.
 
+\textbf{Knowledge graph extraction needs aggregation and careful entity
+resolution.} A closed schema of nine entity and eleven relation types, derived from
+an open-extraction pilot, removes the type proliferation of open extraction and
+keeps 96\% of evidence quotes verbatim. Two observations shape the next stage.
+First, extraction with the available model is not deterministic: two runs with
+identical settings share fewer than half of their triples, and no sampling parameter
+the deployment accepts improves this. Second, embedding similarity cannot decide
+entity merges on its own: even above a cosine of 0.95, about half of the candidate
+pairs are distinct entities that differ in one qualifier, so merges require rules or
+\gls{llm} confirmation, protected against chained merges.
+
 
 % ===========================================================================
 \section*{Scope Limitations}
@@ -65,6 +76,10 @@ wider than those for the full split; differences below $\sim$1~pp should be
 interpreted with caution. The five base pipelines were evaluated on the full
 split, but the ablation configurations were not; their effects should be
 re-checked at full scale before being treated as conclusive.
+
+The \gls{kg} chapter reports the pipeline and its quality checks on eight pilot
+documents; the full-corpus extraction and the manual precision and recall
+annotation are not yet complete.
 
 Token \fone{} is the sole generation metric reported. As noted in
 Chapter~\ref{ch:rag}, reference answers are verbatim extracts from the source
@@ -91,10 +106,10 @@ evaluation protocol would score each (question, context, prediction, reference)
 tuple on a three-point scale (correct / partially correct / incorrect) and
 report agreement with human judgements as a calibration measure.
 
-\textbf{Knowledge graph augmentation.} The \gls{mdd} corpus is amenable to
-\gls{kg} construction: entities such as benefit programmes, eligibility
-conditions, deadlines, and fees can be extracted and linked across documents.
-A hybrid pipeline that combines flat-document retrieval with graph-query
+\textbf{Knowledge graph completion and retrieval.} The immediate next steps are the
+manual annotation of the pilot extraction, the full extraction over the corpus
+(possibly aggregating several runs, given the measured instability), and entity
+resolution over the extracted mentions (Chapter~\ref{ch:kg}). A hybrid pipeline that combines flat-document retrieval with graph-query
 traversal (\emph{Graph~\gls{rag}}) could surface multi-hop relational evidence
 that dense retrieval over raw text is likely to miss, particularly for questions
 that span multiple documents or require chained inference over extracted facts.

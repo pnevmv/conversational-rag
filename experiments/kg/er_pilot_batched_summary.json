@@ -1,0 +1,215 @@
+{
+  "judge": "batched",
+  "llm_calls": 111,
+  "thresholds": {
+    "upper": 1.01,
+    "lower": 0.8,
+    "top_k": 5,
+    "same_doc_bonus": 0.02,
+    "shared_neighbour_bonus": 0.03,
+    "max_neighbour_bonus": 0.06
+  },
+  "mentions": 508,
+  "name_groups": 423,
+  "entities": 382,
+  "type_conflicts": [
+    {
+      "name": "ny state driver license",
+      "votes": {
+        "Document": 1,
+        "Service": 1
+      },
+      "resolved_type": "Service"
+    },
+    {
+      "name": "proof of ownership",
+      "votes": {
+        "Outcome": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Requirement"
+    },
+    {
+      "name": "oscar",
+      "votes": {
+        "Service": 1,
+        "Organization": 1
+      },
+      "resolved_type": "Service"
+    },
+    {
+      "name": "certified check",
+      "votes": {
+        "Amount": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Requirement"
+    },
+    {
+      "name": "money order",
+      "votes": {
+        "Amount": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Requirement"
+    },
+    {
+      "name": "customer service counter",
+      "votes": {
+        "Service": 1,
+        "ContactPoint": 1
+      },
+      "resolved_type": "Service"
+    },
+    {
+      "name": "mail",
+      "votes": {
+        "ContactPoint": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Requirement"
+    },
+    {
+      "name": "reconsideration",
+      "votes": {
+        "Service": 2,
+        "Outcome": 1
+      },
+      "resolved_type": "Service"
+    },
+    {
+      "name": "full retirement age",
+      "votes": {
+        "Requirement": 1,
+        "Role": 1
+      },
+      "resolved_type": "Requirement"
+    },
+    {
+      "name": "special enrollment period",
+      "votes": {
+        "Requirement": 1,
+        "Service": 1
+      },
+      "resolved_type": "Service"
+    },
+    {
+      "name": "initial enrollment period for medicare part b",
+      "votes": {
+        "TimeLimit": 1,
+        "Requirement": 1
+      },
+      "resolved_type": "Requirement"
+    },
+    {
+      "name": "va gov profile",
+      "votes": {
+        "Document": 1,
+        "Service": 1,
+        "ContactPoint": 1
+      },
+      "resolved_type": "Service"
+    },
+    {
+      "name": "ebenefit",
+      "votes": {
+        "Organization": 1,
+        "ContactPoint": 1,
+        "Service": 1
+      },
+      "resolved_type": "Service"
+    },
+    {
+      "name": "va gov",
+      "votes": {
+        "ContactPoint": 1,
+        "Organization": 1
+      },
+      "resolved_type": "Organization"
+    },
+    {
+      "name": "national call center for homeless veteran",
+      "votes": {
+        "Organization": 1,
+        "Service": 1
+      },
+      "resolved_type": "Service"
+    }
+  ],
+  "candidate_pairs": 259,
+  "bands": {
+    "reject_value": 42,
+    "llm": 214,
+    "auto_rule": 3
+  },
+  "rules": {
+    "form_number": 3
+  },
+  "llm_confirmed": 52,
+  "llm_rejected": 162,
+  "merged_pairs": 44,
+  "blocked_by_cannot_link": 11,
+  "clusters_for_review": 42,
+  "largest_clusters": [
+    {
+      "canonical_name": "Schedule A & C pdf",
+      "type": "Document",
+      "n_name_groups": 4,
+      "n_mentions": 6
+    },
+    {
+      "canonical_name": "disability compensation",
+      "type": "Service",
+      "n_name_groups": 4,
+      "n_mentions": 9
+    },
+    {
+      "canonical_name": "Veterans Housing Assistance",
+      "type": "Service",
+      "n_name_groups": 4,
+      "n_mentions": 4
+    },
+    {
+      "canonical_name": "Graduated Repayment Plan",
+      "type": "Service",
+      "n_name_groups": 3,
+      "n_mentions": 6
+    },
+    {
+      "canonical_name": "VA direct or VA - backed home loan",
+      "type": "Service",
+      "n_name_groups": 3,
+      "n_mentions": 3
+    },
+    {
+      "canonical_name": "higher monthly Part B premium",
+      "type": "Amount",
+      "n_name_groups": 2,
+      "n_mentions": 2
+    },
+    {
+      "canonical_name": "payment in the amount of $2.50 per vehicle",
+      "type": "Amount",
+      "n_name_groups": 2,
+      "n_mentions": 2
+    },
+    {
+      "canonical_name": "Call us at 800 - 827 - 1000",
+      "type": "ContactPoint",
+      "n_name_groups": 2,
+      "n_mentions": 2
+    },
+    {
+      "canonical_name": "DMV office",
+      "type": "ContactPoint",
+      "n_name_groups": 2,
+      "n_mentions": 3
+    },
+    {
+      "canonical_name": "current NY State Insurance ID card",
+      "type": "Document",
+      "n_name_groups": 2,
+      "n_mentions": 3
+    }
+  ]
+}

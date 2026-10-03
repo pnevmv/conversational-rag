@@ -3,7 +3,7 @@
 Loads the MultiDoc2Dial corpus into Neo4j as
 
     (:Domain {name})-[:HAS_DOCUMENT]->(:Document {doc_id, title, domain})
-    (:Document)-[:HAS_SECTION]->(:Section {section_id, heading, text, order})
+    (:Document)-[:HAS_SECTION]->(:Section {section_id, heading, text, order, is_table, is_boilerplate})
     (:Section)-[:HAS_SPAN]->(:Span {sp_id, text})
     (:Section)-[:NEXT]->(:Section)          # document order
 
@@ -11,9 +11,17 @@ Section ids match the RAG index (src.data.loader.make_section_id), and span ids
 use the same "<doc_id>::<id_sp>" form so dataset grounding annotations map
 directly onto Span nodes. All writes MERGE on ids, so re-running is idempotent.
 
+`is_table` flags enumeration-heavy sections. MultiDoc2Dial's HTML has no <table>
+elements (they were removed when the corpus was built), so the flag is a text
+heuristic: some content span lists at least ENUM_MIN_ITEMS short comma- or
+semicolon-separated items (e.g. state codes, registration classes, counties).
+`is_boilerplate` flags sections whose text occurs in BOILERPLATE_MIN_DOCS or more
+documents (src.kg.planning); they are skipped by extraction.
+
 Usage:
     python -m src.kg.structure
 """
+import re
 from typing import Any, Dict, Iterable, List
 
 from src.data.loader import (
@@ -23,8 +31,20 @@ from src.data.loader import (
     make_section_id,
 )
 from src.kg.client import KGClient
+from src.kg.planning import is_boilerplate, text_document_counts
 
 BATCH_SIZE = 1000
+ENUM_MIN_ITEMS = 6
+ENUM_ITEM_MAX_WORDS = 4
+
+
+def is_table_like(content_texts: List[str]) -> bool:
+    """True if any span enumerates ENUM_MIN_ITEMS or more short comma/semicolon items."""
+    for text in content_texts:
+        items = [p for p in re.split(r"[,;]", text) if 0 < len(p.split()) <= ENUM_ITEM_MAX_WORDS]
+        if len(items) >= ENUM_MIN_ITEMS:
+            return True
+    return False
 
 
 def _batches(rows: List[Dict[str, Any]], size: int = BATCH_SIZE) -> Iterable[List[Dict[str, Any]]]:
@@ -37,6 +57,7 @@ def build_rows() -> Dict[str, List[Dict[str, Any]]]:
     domain_map = load_doc_domain_map()
     documents = load_documents()
     sections = load_sections()
+    doc_counts = text_document_counts(sections)
 
     docs = [
         {"doc_id": doc_id, "title": doc.get("title", doc_id), "domain": domain_map[doc_id]}
@@ -50,18 +71,21 @@ def build_rows() -> Dict[str, List[Dict[str, Any]]]:
         doc_id = s["doc_id"]
         order = order_in_doc.get(doc_id, 0)
         order_in_doc[doc_id] = order + 1
+        raw_spans = documents[doc_id]["spans"]
+        content_ids = s["span_ids"][1:] if s["section_title"] else s["span_ids"]
         section_rows.append({
             "section_id": s["section_id"],
             "doc_id": doc_id,
             "heading": s["section_title"],
             "text": s["text"],
             "order": order,
+            "is_table": is_table_like([raw_spans[i]["text_sp"] for i in content_ids]),
+            "is_boilerplate": is_boilerplate(s, doc_counts),
         })
         if doc_id in prev_in_doc:
             next_rows.append({"src": prev_in_doc[doc_id], "dst": s["section_id"]})
         prev_in_doc[doc_id] = s["section_id"]
 
-        raw_spans = documents[doc_id]["spans"]
         for id_sp in s["span_ids"]:
             span_rows.append({
                 "sp_id": make_section_id(doc_id, id_sp),
@@ -94,7 +118,8 @@ def load_structure(client: KGClient) -> None:
             UNWIND $rows AS row
             MATCH (d:Document {doc_id: row.doc_id})
             MERGE (s:Section {section_id: row.section_id})
-            SET s.heading = row.heading, s.text = row.text, s.order = row.order
+            SET s.heading = row.heading, s.text = row.text, s.order = row.order,
+                s.is_table = row.is_table, s.is_boilerplate = row.is_boilerplate
             MERGE (d)-[:HAS_SECTION]->(s)
             """,
             rows=batch,
@@ -132,6 +157,10 @@ def main() -> None:
         print("\nNode counts by label:")
         for label, n in client.label_counts().items():
             print(f"  {label:<10} {n:>7,}")
+        n_table = client.run("MATCH (s:Section {is_table: true}) RETURN count(s) AS n")[0]["n"]
+        n_boiler = client.run("MATCH (s:Section {is_boilerplate: true}) RETURN count(s) AS n")[0]["n"]
+        print(f"\nSections flagged is_table: {n_table:,}")
+        print(f"Sections flagged is_boilerplate: {n_boiler:,}")
         print("\nRelationship counts by type:")
         for rel, n in client.relationship_counts().items():
             print(f"  {rel:<14} {n:>7,}")
