@@ -47,8 +47,11 @@ documents. Linking the rewritten user turn to graph entities reaches the gold se
 for 70\% of these questions, but retrieval over the graph alone finds the gold section
 half as often as passage retrieval and lowers \fone{} by 2.7 to 4.5 points: entity
 overlap cannot rank the many sections a question's entities reach. A hybrid of graph
-and passage retrieval matches the best passage pipeline without improving it. The thesis
-concludes with graph-\gls{rag} architectures that add graph facts to retrieved passages,
+and passage retrieval matches the best passage pipeline without improving it. Graph facts
+added to the retrieved passages help answerable questions only where they come from the
+section of the answer, and a random-facts control shows that their overall gain is a
+context effect. The thesis concludes with graph-\gls{rag} architectures that add graph
+facts to retrieved passages,
 agent-based orchestration, and an open-weight \gls{llm} judge for more reliable
 generation evaluation.
 

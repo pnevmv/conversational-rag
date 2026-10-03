@@ -9,9 +9,10 @@ retrieval. A graph retriever has to start from entities: the user turn is first 
 to entities of the graph, and the linked entities then select sections, facts, or both.
 Section~\ref{sec:kgret:linking} describes the entity linker and
 Section~\ref{sec:kgret:linkeval} evaluates it on its own, before any answer is
-generated. Section~\ref{sec:kgret:retrievers} defines three graph retrievers,
-Section~\ref{sec:kgret:results} compares them with the best passage retriever, and
-Section~\ref{sec:kgret:status} summarises the outcome.
+generated. Section~\ref{sec:kgret:retrievers} defines three graph retrievers and three
+variants, Section~\ref{sec:kgret:results} compares them with the best passage retriever,
+Section~\ref{sec:kgret:facts} examines graph facts added to retrieved passages against a
+random-facts control, and Section~\ref{sec:kgret:status} summarises the outcome.
 
 
 % ===========================================================================
@@ -203,6 +204,19 @@ retrieval into their results. Only the hybrid retriever uses it.
     cross-encoder of Section~\ref{sec:rag:reranker} reranks the fused top-50 to the
     top-5.
 \end{itemize}
+Three variants complete the comparison:
+\begin{itemize}
+    \item \textbf{D: graph candidates, reranked.} The top-50 sections of A (31 on
+    average) are reranked by the same cross-encoder to the top-5, so the graph replaces
+    \gls{bm25} and dense retrieval as the candidate generator.
+    \item \textbf{E: passages and facts.} The top-5 sections of the best passage
+    retriever, unchanged, are followed by the facts of B in a separate block, so the
+    graph adds to the context instead of replacing it.
+    \item \textbf{E-random: control.} The same sections are followed by as many facts as
+    E gives that question, drawn at random from all facts of the question's domain with
+    a fixed seed. This separates the content of the facts from the longer context.
+\end{itemize}
+D, E and E-random also link without the domain filter.
 All parameters (10 entities, decay 0.5, 30 facts, pools of 50) were fixed before the
 runs. The generator, its agent-style prompt (Section~\ref{sec:rag:prompt}) and the
 question in the prompt, which is the raw user turn, are those of the best passage
@@ -233,6 +247,9 @@ reproduces the results of Section~\ref{sec:rag:dev500} exactly.
         A, 1-hop              & 12.6 & 36.6 & 23.5 & 33.0 & 18.0 &  8.6 & $-4.5$ {\scriptsize[$-6.3$, $-2.8$]} \\
         B: graph facts        & 15.6 & 37.2 & 25.4 & 30.0 & 20.9 &  9.6 & $-2.7$ {\scriptsize[$-4.4$, $-0.8$]} \\
         C: hybrid             & 37.8 & 67.6 & 27.6 & 33.3 & 17.1 &  6.0 & $-0.5$ {\scriptsize[$-1.2$, $0.1$]} \\
+        D: candidates reranked & 35.8 & 58.8 & 26.4 & 33.3 & 18.7 &  6.4 & $-1.6$ {\scriptsize[$-2.9$, $-0.4$]} \\
+        E: passages + facts   & 38.0 & 67.4 & \textbf{29.2} & 34.1 & 18.7 &  5.8 & $+1.1$ {\scriptsize[$-0.3$, $2.5$]} \\
+        E-random: control     & 38.0 & 67.4 & 29.1 & 33.3 & 18.1 &  8.4 & $+1.0$ {\scriptsize[$-0.3$, $2.4$]} \\
         \bottomrule
     \end{tabular}
 \end{table}
@@ -282,6 +299,14 @@ the context changes in only 62 of the 500 questions. On those questions, recall@
 slightly (56.5\% against 54.8\%), while \fone{} falls (23.3 against 27.2, not
 significant).
 
+\paragraph{Graph as candidate generator.} Reranking the graph candidates (D) fixes most
+of the ranking problem of A: recall@5 rises from 34.6\% to 58.8\%, but stays below
+passage retrieval, because the graph candidates contain the gold section for 68.8\% of
+the questions against 88.6\% for the top-50 of passage retrieval. \fone{} is 1.6 points
+lower (significant). D helps on the questions where passage retrieval misses the gold
+section ($+1.6$, interval $[0.2, 3.0]$) but loses more where it hits ($-2.1$), and it
+rarely abstains on unanswerable turns (abstention recall 12.9\%).
+
 \paragraph{Abstention.} Graph contexts make the generator abstain more often: 9.6 to
 10.6\% of the answers, against 6.4\%. This catches more of the unanswerable turns
 (abstention recall 38.7--41.9\% against 25.8\%), at the cost of more false abstentions
@@ -304,6 +329,9 @@ relevant.
         A, 1-hop              & 23.2 & 37.7 & 24.7 & 31.9 & 29.3 & 19.7 & 23.2 & 21.9 \\
         B                     & 25.3 & 38.4 & 25.9 & 31.9 & 29.7 & 24.3 & 24.0 & 23.5 \\
         C                     & 27.5 & 68.0 & 27.8 & 66.0 & 31.1 & 28.1 & 23.6 & 27.5 \\
+        D                     & 26.2 & 61.1 & 27.5 & 48.9 & 31.4 & 25.3 & 23.4 & 25.6 \\
+        E                     & 29.2 & 67.7 & 29.1 & 66.0 & 35.3 & 27.8 & 25.9 & 27.7 \\
+        E-random              & 29.1 & 67.7 & 29.2 & 66.0 & 34.6 & 28.8 & 25.2 & 27.7 \\
         \bottomrule
     \end{tabular}
 \end{table}
@@ -327,7 +355,56 @@ relevant.
 \paragraph{Cost.} The graph retrievers add no \gls{llm} calls: there are 0.87 rewrite
 calls and one generation per question, as for passage retrieval. Linking and scoring
 take 7--8\,ms per question on a CPU. The prompts are longer than with passage retrieval
-(about 8{,}000 characters for A and 9{,}600 for B, against 6{,}600).
+(about 8{,}000 characters for A, 9{,}600 for B and 15{,}100 for E, against 6{,}600).
+
+
+% ===========================================================================
+\section{Graph Facts Added to Passages}\label{sec:kgret:facts}
+
+Adding the graph facts to the passages (E) is the only graph variant above passage
+retrieval, by 1.1 \fone{} points, but not significantly, and the random-facts control
+gains as much (Table~\ref{tab:kgret:qa}). Table~\ref{tab:kgret:facts} separates the two
+effects that this tie combines.
+
+\begin{table}[ht]
+    \centering
+    \caption{Passages with graph facts (E) and with random facts (E-random): $\Delta$\fone{}
+    in points, paired bootstrap, 95\% interval. Hit and miss refer to the passage
+    retriever's top-5, the same partition for all rows.}
+    \label{tab:kgret:facts}
+    \small
+    \begin{tabular}{lrlll}
+        \toprule
+        Subset & $n$ & E vs passages & E-random vs passages & E vs E-random \\
+        \midrule
+        All                          & 500 & $+1.1$ {\scriptsize[$-0.3$, $2.5$]}  & $+1.0$ {\scriptsize[$-0.3$, $2.4$]}  & $+0.1$ {\scriptsize[$-1.1$, $1.1$]} \\
+        Answerable                   & 469 & $+0.9$ {\scriptsize[$0.0$, $1.8$]}   & $+0.2$ {\scriptsize[$-0.6$, $1.0$]}  & $+0.7$ {\scriptsize[$-0.2$, $1.6$]} \\
+        \quad passages hit           & 316 & $+0.7$ {\scriptsize[$-0.5$, $1.9$]}  & $0.0$ {\scriptsize[$-1.1$, $1.1$]}   & $+0.7$ {\scriptsize[$-0.4$, $2.0$]} \\
+        \quad passages miss          & 153 & $+1.3$ {\scriptsize[$0.1$, $2.6$]}   & $+0.7$ {\scriptsize[$-0.4$, $1.9$]}  & $+0.6$ {\scriptsize[$-0.6$, $1.8$]} \\
+        \quad facts reach gold       & 228 & $+2.0$ {\scriptsize[$0.7$, $3.5$]}   & $+0.2$ {\scriptsize[$-1.1$, $1.6$]}  & $+1.8$ {\scriptsize[$0.3$, $3.4$]} \\
+        \quad facts miss gold        & 241 & $-0.1$ {\scriptsize[$-1.4$, $1.0$]}  & $+0.2$ {\scriptsize[$-0.8$, $1.3$]}  & $-0.4$ {\scriptsize[$-1.6$, $0.7$]} \\
+        Unanswerable                 &  31 & $+3.7$ {\scriptsize[$-12.2$, $19.8$]} & $+13.0$ {\scriptsize[$-3.1$, $29.1$]} & $-9.3$ {\scriptsize[$-22.2$, $0.3$]} \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{itemize}
+    \item \textbf{Abstention.} Random facts make the generator abstain more often (8.4\%
+    of the answers, against 5.8\% for E and 6.4\% for passages alone). This is rewarded
+    on the 31 unanswerable turns, whose reference answer is the abstention phrase, and
+    costs false abstentions on the answerable ones (6.4\% against 4.3\% for E). With
+    only 31 unanswerable turns, this effect is enough to equalise the overall scores.
+    \item \textbf{Content.} On the answerable turns, the graph facts help and random
+    facts do not ($+0.9$ against $+0.2$). The gain concentrates on the 228 questions
+    where at least one graph fact comes from a gold section: there the graph facts beat
+    the same number of random facts by 1.8 points, while on the other 241 questions the
+    two are equivalent. The split is defined by E and therefore exploratory, but both
+    variants are compared on the same questions with the same number of facts.
+\end{itemize}
+The graph thus contributes when its facts reach the section of the answer, which happens
+for about half of the questions, and a longer context alone does not help answerable
+questions. Part of the gain of E in DMV is a context effect, since random facts gain
+almost as much there (34.6 against 35.3 \fone{}).
 
 
 % ===========================================================================
@@ -336,12 +413,19 @@ take 7--8\,ms per question on a CPU. The prompts are longer than with passage re
 On \gls{mdd}, retrieval over the knowledge graph alone is worse than passage retrieval
 by 2.7 to 4.5 \fone{} points. The graph links the right topic for 70\% of the questions,
 but entity overlap is too coarse to rank the sections it reaches, and the answers of the
-dataset are passages rather than isolated facts. Facts are the more useful graph
-context, robust when the gold section is missed, and a hybrid with passage retrieval
-matches but does not exceed the passage pipeline. Two uses remain open:
+dataset are passages rather than isolated facts. Even reranked by the cross-encoder, the
+graph candidates are worse than those of passage retrieval, and fusing the two matches
+but does not exceed the passage pipeline. Graph facts added to the retrieved passages
+are the one use with a measurable benefit: on answerable questions they gain
+0.9 \fone{} points, and 1.8 points over random facts where they come from the section of
+the answer. Their overall gain, however, equals that of random facts, because extra
+context also changes how often the generator abstains. The next stage (Graph \gls{rag})
+therefore needs:
 \begin{itemize}
-    \item adding graph facts to the retrieved sections instead of replacing them
-    (Graph \gls{rag});
-    \item using the graph to choose sections within the linked document after a
-    document switch.
+    \item fewer, better-ranked facts, to shorten a prompt that E makes 2.3 times longer;
+    \item a matched random-facts control;
+    \item separate results for answerable and unanswerable turns;
+    \item confirmation beyond the dev-500 subset.
 \end{itemize}
+Using the graph to choose sections within the linked document after a document switch
+remains untested.
