@@ -1,14 +1,15 @@
 {
   "latency_ms": {
-    "encode": 12.912712097167969,
-    "kg_sections": 7.285933971405029,
-    "kg_sections_1hop": 7.328789710998535,
-    "kg_facts": 7.289292812347412,
-    "kg_hybrid": 14.819572925567627,
-    "kg_rerank": 7.285933971405029,
-    "step4_plus_facts": 7.289292812347412,
-    "kg_hybrid_rerank": 4.367335796356201,
-    "kg_rerank_rerank": 466.45527601242065
+    "encode": 14.387012004852295,
+    "kg_sections": 7.823338985443115,
+    "kg_sections_1hop": 7.8622050285339355,
+    "kg_facts": 7.823062896728516,
+    "kg_hybrid": 15.929570198059082,
+    "kg_rerank": 7.823338985443115,
+    "step4_plus_facts": 7.823062896728516,
+    "step4_plus_random_facts": 0.0,
+    "kg_hybrid_rerank": 5.250959873199463,
+    "kg_rerank_rerank": 1.1573681831359863
   },
   "hybrid_base": "kg_sections",
   "pipelines": {
@@ -50,16 +51,22 @@
       "recall_at_5": 0.674,
       "domain_recall": 0.9368000000000001,
       "prompt_chars": 15081.512
+    },
+    "step4_plus_random_facts": {
+      "recall_at_1": 0.38,
+      "recall_at_5": 0.674,
+      "domain_recall": 0.9368000000000001,
+      "prompt_chars": 15113.288
     }
   },
   "llm": {
     "rewrite_calls_per_question": 0.868,
     "generation_calls_per_question": 1.0,
     "cache": {
-      "hits": 2108,
-      "misses": 892,
-      "hit_rate": 0.7026666666666667
+      "hits": 3000,
+      "misses": 500,
+      "hit_rate": 0.8571428571428571
     }
   },
-  "wall_time_s": 381.0364558696747
+  "wall_time_s": 89.75131320953369
 }

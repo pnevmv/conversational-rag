@@ -1,6 +1,6 @@
 # Step 6, Phase 2: KG Retrievers and QA on dev-500
 
-Three retrievers over the full KG (A–C) and two cheap variants (D, E) are compared with the Step 4 best pipeline, Hybrid + Rewrite + Rerank with the agent-style prompt. Everything else is the same as Step 4: the dev-500 subset, the generator (`gpt-5.4-nano-smirnov`), the prompt with its few-shot examples, the raw user turn as the question in the prompt, the top-5 context size for section retrievers, and the evaluator (`experiments/evaluate_diagnostics.py`). The Step 4 baseline was regenerated from the cache (934 hits, 0 misses) and reproduces the published numbers exactly (F1 28.0, R@5 67.4).
+Three retrievers over the full KG (A–C), two cheap variants (D, E) and a random-facts control for E (E-random) are compared with the Step 4 best pipeline, Hybrid + Rewrite + Rerank with the agent-style prompt. Everything else is the same as Step 4: the dev-500 subset, the generator (`gpt-5.4-nano-smirnov`), the prompt with its few-shot examples, the raw user turn as the question in the prompt, the top-5 context size for section retrievers, and the evaluator (`experiments/evaluate_diagnostics.py`). The Step 4 baseline was regenerated from the cache (934 hits, 0 misses) and reproduces the published numbers exactly (F1 28.0, R@5 67.4).
 
 Code:
 - `src/kg_rag/retrievers.py` (retrievers), `run_qa.py` (retrieval and generation), `eval_qa.py` (evaluation);
@@ -11,7 +11,7 @@ Code:
 
 **Common linking step** (Phase 1 decisions):
 - rewritten query, top-10 entities, hubs kept;
-- **no domain filter for A, B, D and E**, since the predicted domain comes from Step 4 retrieval and would leak RAG into the KG-only results. C keeps the filter.
+- **no domain filter for A, B, D, E and E-random**, since the predicted domain comes from Step 4 retrieval and would leak RAG into the KG-only results. C keeps the filter.
 
 Each linked entity e gets a weight w(e) = link(e) · idf(e):
 - link(e) is its RRF linking score;
@@ -27,6 +27,7 @@ Each linked entity e gets a weight w(e) = link(e) · idf(e):
 | **C** | RRF of A (linked with the domain filter) and the Step 4 ranking (top-50 each), then the Step 4 cross-encoder reranks the fused top-50 to the top-5. | top-5 sections |
 | **D** | A's candidates (top-50, on average 31) reranked by the same cross-encoder (bge-reranker-base) to the top-5: the KG as candidate generator instead of BM25 + dense. | top-5 sections |
 | **E** | The Step 4 best top-5 sections, unchanged, followed by B's facts for the same linked entities in a separate "Facts:" block. The sections part was checked to be identical to the Step 4 context for all 500 questions. | top-5 Step 4 sections + top-30 facts |
+| **E-random** | Control for E: the same Step 4 sections, plus as many KG facts as E gives that question, drawn at random from all facts of the question's domain (seeded per question with seed 42; domain of a fact = domain of its first evidence section), in the same format. It isolates the facts' content from the longer context. | top-5 Step 4 sections + random facts |
 
 All parameters (10 entities, decay 0.5, 30 facts, top-50 pools) were fixed before the runs. For B, R@k is computed on the sections behind the facts, in fact order (the first evidence section of each fact). The context holds 25.9 facts on average and never comes out empty.
 
@@ -43,6 +44,7 @@ dev-500, n = 500. CIs: 95% bootstrap. ΔF1 is the paired bootstrap against the S
 | C: hybrid (A + Step 4, reranked) | 37.8 | 67.6 [63.2, 71.4] | 93.8 | 27.6 [25.7, 29.4] | 33.3 (317) | 17.1 (152) | 6.0 | 19.4 | 5.1 | −0.5 [−1.2, 0.1] |
 | D: A's top-50 reranked | 35.8 | 58.8 | 93.2 | 26.4 [24.6, 28.2] | 33.3 (274) | 18.7 (195) | 6.4 | 12.9 | 6.0 | **−1.6** [−2.9, −0.4] |
 | **E: Step 4 sections + KG facts** | 38.0 | 67.4 | 93.7 | **29.2** [27.2, 31.0] | 34.1 (316) | 18.7 (153) | 5.8 | 29.0 | 4.3 | +1.1 [−0.3, 2.5] |
+| E-random (control) | 38.0 | 67.4 | 93.7 | 29.1 [27.1, 31.0] | 33.3 (316) | 18.1 (153) | 8.4 | 38.7 | 6.4 | +1.0 [−0.3, 2.4] |
 
 Hit/miss uses answerable examples: hit = a gold span in the pipeline's own top-5 sections. For B these are the top-5 fact sections; for E they are the Step 4 sections. Abstain is the share of all answers that abstain. §3 gives the D and E results with a common hit/miss partition.
 
@@ -63,18 +65,19 @@ Hit/miss uses answerable examples: hit = a gold span in the pipeline's own top-5
    - Overall C is indistinguishable from Step 4 (−0.5 [−1.2, 0.1]).
 6. **KG contexts make the generator abstain more:** 9.6–10.6% of answers for A and B vs 6.4% for Step 4. This catches more unanswerable turns (abstain recall 38.7–41.9% vs 25.8%) at the cost of more false abstentions (7.5–8.7% vs 5.1%), i.e. the contexts are less often relevant.
 
-## 3. Variants D and E
+## 3. Variants D and E, and the random-facts control
 
 **ΔF1 vs Step 4 by split.** Hit/miss here is the same partition for every pipeline: whether the **Step 4** top-5 contains a gold span (answerable turns only). This keeps the comparisons paired.
 
-| Split (n) | Step 4 F1 | D: F1 / ΔF1 [CI] | E: F1 / ΔF1 [CI] |
-| :--- | ---: | :--- | :--- |
-| All (500) | 28.0 | 26.4 / **−1.6** [−2.9, −0.4] | 29.2 / +1.1 [−0.3, 2.5] |
-| Step 4 hit (316) | 33.3 | 31.2 / **−2.1** [−3.6, −0.7] | 34.1 / +0.7 [−0.5, 1.9] |
-| Step 4 miss (153) | 17.4 | 19.0 / **+1.6** [0.2, 3.0] | 18.7 / **+1.3** [0.1, 2.6] |
-| Same document (406) | 28.0 | 26.2 / **−1.8** [−3.3, −0.5] | 29.2 / +1.2 [−0.4, 2.9] |
-| Doc switch (94) | 28.4 | 27.5 / −0.9 [−3.7, 1.7] | 29.1 / +0.7 [−0.9, 2.5] |
-| Unanswerable (31) | 26.7 | 13.9 / **−12.9** [−25.6, −3.0] | 30.4 / +3.7 [−12.2, 19.8] |
+| Split (n) | Step 4 F1 | D: F1 / ΔF1 vs Step 4 | E: F1 / ΔF1 vs Step 4 | E-random: F1 / ΔF1 vs Step 4 | E-random vs E: ΔF1 |
+| :--- | ---: | :--- | :--- | :--- | :--- |
+| All (500) | 28.0 | 26.4 / **−1.6** [−2.9, −0.4] | 29.2 / +1.1 [−0.3, 2.5] | 29.1 / +1.0 [−0.3, 2.4] | −0.1 [−1.1, 1.1] |
+| Answerable (469) | 28.1 | — | 29.1 / **+0.9** [0.0, 1.8] | 28.4 / +0.2 [−0.6, 1.0] | −0.7 [−1.6, 0.2] |
+| Step 4 hit (316) | 33.3 | 31.2 / **−2.1** [−3.6, −0.7] | 34.1 / +0.7 [−0.5, 1.9] | 33.3 / −0.0 [−1.1, 1.1] | −0.7 [−2.0, 0.4] |
+| Step 4 miss (153) | 17.4 | 19.0 / **+1.6** [0.2, 3.0] | 18.7 / **+1.3** [0.1, 2.6] | 18.1 / +0.7 [−0.4, 1.9] | −0.6 [−1.8, 0.6] |
+| Same document (406) | 28.0 | 26.2 / **−1.8** [−3.3, −0.5] | 29.2 / +1.2 [−0.4, 2.9] | 29.1 / +1.1 [−0.6, 2.7] | −0.1 [−1.3, 1.1] |
+| Doc switch (94) | 28.4 | 27.5 / −0.9 [−3.7, 1.7] | 29.1 / +0.7 [−0.9, 2.5] | 29.2 / +0.8 [−1.1, 2.5] | +0.1 [−1.8, 2.0] |
+| Unanswerable (31) | 26.7 | 13.9 / **−12.9** [−25.6, −3.0] | 30.4 / +3.7 [−12.2, 19.8] | 39.8 / +13.0 [−3.1, 29.1] | +9.3 [−0.3, 22.2] |
 
 **Abstention:**
 
@@ -83,6 +86,7 @@ Hit/miss uses answerable examples: hit = a gold span in the pipeline's own top-5
 | Step 4 best | 6.4 | 25.8 | 5.1 |
 | D | 6.4 | 12.9 | 6.0 |
 | E | 5.8 | 29.0 | 4.3 |
+| E-random | 8.4 | 38.7 | 6.4 |
 
 **D: KG as candidate generator.**
 - The cross-encoder fixes most of A's ranking problem: R@5 rises from 34.6% (A) to 58.8%, but stays below Step 4 (67.4%). The KG candidate set is the limit: it holds the gold section for 68.8% of the questions, against 88.6% for the Step 4 top-50.
@@ -102,6 +106,21 @@ Hit/miss uses answerable examples: hit = a gold span in the pipeline's own top-5
 - **By domain,** the gain is largest in DMV (+3.5) and StudentAid (+1.2). SSA and VA are unchanged (§4).
 - **Cost:** the prompt is 2.3 times as long (15,082 characters vs 6,598). There are no extra LLM calls, and the facts retrieval adds 7–8 ms.
 
+**E-random: is it the facts or the longer context?**
+- **Overall,** random facts do as well as linked facts: +1.0 vs +1.1 against Step 4, and E-random vs E −0.1 [−1.1, 1.1]. The overall gain of E is therefore not evidence that the KG facts help.
+- **The overall tie hides two opposite effects:**
+  - **Unanswerable turns:** random facts push the generator to abstain (8.4% of answers vs 5.8% for E and 6.4% for Step 4). This pays on the 31 unanswerable turns (abstain recall 38.7%, F1 +13.0 vs Step 4) but costs answerable ones (false abstention 6.4% vs 4.3% for E).
+  - **Answerable turns:** relevant facts help and random ones do not. E gains +0.9 [0.0, 1.8] (just significant; one-sided p = 0.02), E-random +0.2 [−0.6, 1.0], with E ahead by 0.7 [−0.2, 1.6] (not significant).
+- **Same questions, split by whether E's facts reach a gold section** (answerable turns; the split is defined by E, and both variants are compared on the same questions with the same number of facts):
+
+  | Subset (n) | E vs Step 4 | E-random vs Step 4 | E vs E-random |
+  | :--- | :--- | :--- | :--- |
+  | E's facts reach a gold section (228) | **+2.0** [0.7, 3.5] | +0.2 [−1.1, 1.6] | **+1.8** [0.3, 3.4] |
+  | E's facts reach none (241) | −0.1 [−1.4, 1.0] | +0.2 [−0.8, 1.3] | −0.4 [−1.6, 0.7] |
+
+  Where the linked facts come from a gold section, they beat the same number of random facts by 1.8 points. Where they do not, linked and random facts are equivalent, and neither changes F1. The content effect is real but confined to these questions. Random facts reach a gold section in only 16 of the 469 answerable questions.
+- **By domain,** E-random is close to E: DMV 34.6 vs 35.3, SSA 28.8 vs 27.8, StudentAid 25.2 vs 25.9, VA 27.7 vs 27.7. Part of the DMV gain of E is a context-length or format effect rather than content.
+
 ## 4. Splits
 
 **By turn type:** F1, R@5 and ΔF1 vs Step 4 (n in brackets).
@@ -115,6 +134,7 @@ Hit/miss uses answerable examples: hit = a gold span in the pipeline's own top-5
 | C | 27.5 / 68.0 / −0.5 [−1.2, 0.1] | 27.8 / 66.0 / −0.7 [−2.0, 0.2] | 20.3 / 19.4 / −6.5 [−15.9, 0.1] |
 | D | 26.2 / 61.1 / −1.8 [−3.3, −0.5] | 27.5 / 48.9 / −0.9 [−3.7, 1.7] | 13.9 / 12.9 / −12.9 [−25.6, −3.0] |
 | E | 29.2 / 67.7 / +1.2 [−0.4, 2.9] | 29.1 / 66.0 / +0.7 [−0.9, 2.5] | 30.4 / 29.0 / +3.7 [−12.2, 19.8] |
+| E-random | 29.1 / 67.7 / +1.1 [−0.6, 2.7] | 29.2 / 66.0 / +0.8 [−1.1, 2.5] | 39.8 / 38.7 / +13.0 [−3.1, 29.1] |
 
 - **Doc-switch turns:** the KG loses more retrieval recall on them (A: 28.7% vs 66.0%). The rewrite carries the previous topic into linking (Phase 1, §4), whereas the passage retriever and reranker recover from it.
 - **Unanswerable turns** gain F1 under B and A because these contexts lead to more abstentions, and the reference answer of an unanswerable turn is the abstention phrase itself. With 31 examples the intervals are wide. Only D's loss there is significant.
@@ -130,6 +150,7 @@ Hit/miss uses answerable examples: hit = a gold span in the pipeline's own top-5
 | C | 31.1 | 28.1 | 23.6 | 27.5 |
 | D | 31.4 | 25.3 | 23.4 | 25.6 |
 | E | **35.3** | 27.8 | **25.9** | 27.7 |
+| E-random | 34.6 | 28.8 | 25.2 | 27.7 |
 
 - **DMV:** the KG comes closest here (A −0.9). Its questions often name a specific document or fee, which links to few sections.
 - **SSA and VA:** the gap is largest (−5.7 and −5.7 for A). Their entities are broad, frequently mentioned services ("Social Security benefits", "VA health care"), the hubs of Phase 1.
@@ -151,6 +172,8 @@ Q: "What VA dental care benefits do I qualify for?" The top facts begin with the
 - **Total LLM use in this phase:**
   - A–C: 1,548 new generation calls (452 C prompts were identical to Step 4 prompts and came from the cache), 236 s wall time with 12 workers.
   - D and E: 892 new calls (108 D prompts identical to Step 4), 381 s including the reranking.
+  - E-random: 500 new calls, 90 s. E-random adds no retrieval time beyond Step 4.
+- `phase2_retrieval.json` comes from the last run, in which all reranker scores were already cached, so its reranking times are not the cold-cache times quoted above.
 
 ## 7. Ablation: section-frequency down-weighting (retrieval only)
 
@@ -169,10 +192,15 @@ The down-weighting does not help: without it, R@5 is 2 points higher, within noi
 - **Facts (B) are the better KG context:** more robust when the gold section is missed, but they lose detail when it is found.
 - **The hybrid (C) matches Step 4 but does not improve it.** The cross-encoder rarely prefers a KG-only section, and when it does, F1 does not rise.
 - **The KG as a candidate generator (D) is worse than BM25 + dense** (−1.6 F1, significant). Reranking fixes most of A's ranking, but the KG candidates reach fewer gold sections than the Step 4 pool (69% vs 89% at 50).
-- **Adding facts to the Step 4 sections (E) is the most promising use of the KG:** +1.1 F1 overall, not significant (CI [−0.3, 2.5]). The gain is significant where Step 4 misses the gold section (+1.3) and where the facts reach it (+2.0, exploratory), with no loss where Step 4 already hits. This is the starting point for Step 7 (Graph RAG). Open questions there:
-  - a control with the same number of random facts, to separate content from context length;
-  - fewer, better-ranked facts, to shorten the 2.3-times-longer prompt;
-  - confirmation beyond dev-500.
+- **Adding facts to the Step 4 sections (E) gains +1.1 F1 overall, but the random-facts control gains as much (+1.0).** The overall gain is not evidence that the KG helps.
+  - Random facts raise abstention, which is rewarded only on unanswerable turns.
+  - On answerable turns, linked facts help (+0.9 [0.0, 1.8]) and random facts do not (+0.2).
+  - The content effect is concentrated where the linked facts come from a gold section: +1.8 [0.3, 3.4] over random facts on the same 228 questions, and nothing elsewhere.
+- **Implication for Step 7 (Graph RAG):** the KG adds value only when its facts reach the answer's section, about half of the questions. A Graph RAG pipeline should:
+  - add fewer, better-ranked facts, to keep this content effect while cutting the 2.3-times-longer prompt and the abstentions that extra context induces;
+  - be evaluated against a matched random-facts control;
+  - report answerable and unanswerable turns separately, because abstention changes alone can move overall F1 by a point;
+  - be confirmed beyond dev-500.
 - **Not tested:** using the KG to rank sections within the linked document for doc-switch turns.
 
 **Limitations.**
@@ -180,4 +208,5 @@ The down-weighting does not help: without it, R@5 is 2 points higher, within noi
 - Token F1 penalises the longer answers built from facts.
 - Retriever parameters were fixed without tuning.
 - Several splits are compared, without correction for multiple comparisons. The split results for D and E, especially the split by facts reaching the gold section, are exploratory.
+- E-random uses one random draw per question (seed 42). A different seed would change the per-question facts, though not their expected relevance.
 - The KG has about 53% triple precision on unseen documents (Step 5 control sample).

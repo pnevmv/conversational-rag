@@ -30,7 +30,9 @@ PIPELINES = {
     "kg_hybrid": "C: hybrid (A + Step 4, reranked)",
     "kg_rerank": "D: A's top-50 reranked",
     "step4_plus_facts": "E: Step 4 sections + KG facts",
+    "step4_plus_random_facts": "E-random: Step 4 sections + random same-domain facts",
 }
+E, E_RANDOM = "step4_plus_facts", "step4_plus_random_facts"
 
 
 def per_example(path) -> Dict[str, Dict[str, Any]]:
@@ -85,6 +87,10 @@ def main() -> None:
             res["paired_vs_baseline"] = {
                 s: paired_bootstrap_test([d[i]["f1"] for i in ids if f(d[i])], [base[i]["f1"] for i in ids if f(d[i])])
                 for s, f in splits.items()}
+        if name == E_RANDOM:
+            res["paired_vs_E"] = {
+                s: paired_bootstrap_test([d[i]["f1"] for i in ids if f(d[i])], [data[E][i]["f1"] for i in ids if f(d[i])])
+                for s, f in splits.items()}
         if name in ("kg_hybrid", "kg_rerank"):
             changed = [i for i in ids if d[i]["context"] != data[BASELINE][i]["context"]]
             res["changed_context"] = {
@@ -97,7 +103,7 @@ def main() -> None:
                 "paired": paired_bootstrap_test([d[i]["f1"] for i in changed],
                                                 [data[BASELINE][i]["f1"] for i in changed]) if changed else None,
             }
-        if name == "step4_plus_facts":
+        if name in (E, E_RANDOM):
             def by_facts(flag):
                 sub = [i for i in ids if not d[i]["is_unanswerable"] and (d[i]["facts_context_recall"] > 0) == flag]
                 return {"n": len(sub), "f1": float(np.mean([d[i]["f1"] for i in sub])),
@@ -142,7 +148,11 @@ def main() -> None:
         cc = result["pipelines"][nm]["changed_context"]
         print(f"--- {nm}: {cc['n']} examples with a different context; new sections in top-5 {cc['new_sections_in_top5']:.2f}; "
               f"F1 {pct(cc['f1_hybrid'])} vs {pct(cc['f1_baseline'])}; R@5 {pct(cc['r5_hybrid'])} vs {pct(cc['r5_baseline'])}")
-    print("--- E by whether the facts reach a gold section:", json.dumps(result["pipelines"]["step4_plus_facts"]["by_facts_gold"], indent=1))
+    for nm in (E, E_RANDOM):
+        print(f"--- {nm} by whether the facts reach a gold section:", json.dumps(result["pipelines"][nm]["by_facts_gold"], indent=1))
+    print("--- E-random vs E")
+    for s, t in result["pipelines"][E_RANDOM]["paired_vs_E"].items():
+        print(f"  {s:12} n={t['n_paired']:3}  Δ {t['mean_diff']*100:+.1f} [{t['ci_low']*100:.1f}, {t['ci_high']*100:.1f}]")
     cc = result["pipelines"]["kg_hybrid"]["changed_context"]
     print(f"--- hybrid: {cc['n']} examples with a different context; new sections in top-5 {cc['new_sections_in_top5']:.2f}; "
           f"F1 {pct(cc['f1_hybrid'])} vs {pct(cc['f1_baseline'])}; R@5 {pct(cc['r5_hybrid'])} vs {pct(cc['r5_baseline'])}; "

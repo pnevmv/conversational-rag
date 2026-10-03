@@ -8,6 +8,8 @@ Pipelines (output experiments/results/dev_500/<name>.jsonl, Step 4 record schema
   kg_rerank           D: A's top-50 reranked by the Step 4 cross-encoder (KG as candidate generator)
   step4_plus_facts    E: the Step 4 best top-5 sections, followed by B's KG facts in a separate
                       "Facts" block
+  step4_plus_random_facts  E-random (control): the Step 4 top-5 sections plus as many KG facts as E,
+                      drawn at random (fixed seed) from the facts of the example's domain
 
 All use the rewritten query for linking (top-10 entities, hubs kept); A, B, D and E link
 without the domain filter (the predicted domain comes from Step 4 retrieval), C with it. The
@@ -20,7 +22,9 @@ Usage:
 """
 import argparse
 import json
+import random
 import time
+from collections import defaultdict
 from pathlib import Path
 from typing import Any, Dict, List
 
@@ -35,7 +39,28 @@ from src.kg_rag.retrievers import KGRetriever, rrf_sections
 from src.llm import LLMCache, LLMClient, generate_batch
 
 TOP_K = 5
-PIPELINES = ("kg_sections", "kg_sections_1hop", "kg_facts", "kg_hybrid", "kg_rerank", "step4_plus_facts")
+PIPELINES = ("kg_sections", "kg_sections_1hop", "kg_facts", "kg_hybrid", "kg_rerank", "step4_plus_facts",
+             "step4_plus_random_facts")
+RANDOM_SEED = 42
+
+
+def facts_by_domain(kg: KGRetriever) -> Dict[str, List[int]]:
+    """Relation indices per domain (domain of the document of its first evidence section)."""
+    ddm = load_doc_domain_map()
+    out: Dict[str, List[int]] = defaultdict(list)
+    for i, r in enumerate(kg.relations):
+        sid = r["evidence"][0]["section_id"] if r["evidence"] else (r["section_ids"] or [None])[0]
+        dom = ddm.get(kg.sections[sid]["doc_id"]) if sid in kg.sections else None
+        if dom:
+            out[dom].append(i)
+    return out
+
+
+def random_facts(kg: KGRetriever, pool: List[int], n: int, example_id: str) -> List[Dict[str, Any]]:
+    rng = random.Random(f"{RANDOM_SEED}:{example_id}")
+    picked = rng.sample(pool, min(n, len(pool)))
+    return [{"rank": rank, "relation_index": i, "score": 0.0, **kg.relations[i]}
+            for rank, i in enumerate(picked, start=1)]
 
 
 def retrieve_all(hybrid_base: str = "kg_sections") -> Dict[str, Any]:
@@ -50,6 +75,7 @@ def retrieve_all(hybrid_base: str = "kg_sections") -> Dict[str, Any]:
     embs = linker.encode(queries)
     encode_ms = (time.time() - t) / len(queries) * 1000
 
+    pools = facts_by_domain(kg)
     out: Dict[str, List[Dict[str, Any]]] = {p: [] for p in PIPELINES}
     ms: Dict[str, List[float]] = {p: [] for p in PIPELINES}
     for ex, q, emb in zip(examples, queries, embs):
@@ -77,6 +103,11 @@ def retrieve_all(hybrid_base: str = "kg_sections") -> Dict[str, Any]:
                       for r in rec["step4_ranking"][:TOP_K]]
         out["step4_plus_facts"].append({"linked": linked, "facts": facts, "ranking": step4_top5})
         ms["step4_plus_facts"].append(ms["kg_facts"][-1])
+
+        # E-random: same sections, same number of facts, drawn at random from the domain.
+        rnd = random_facts(kg, pools[ex["domain"]], len(facts), ex["example_id"])
+        out["step4_plus_random_facts"].append({"linked": linked, "facts": rnd, "ranking": step4_top5})
+        ms["step4_plus_random_facts"].append(0.0)
 
         # C: domain filter allowed; A's ranking re-linked with the predicted domain.
         t = time.time()
@@ -119,7 +150,7 @@ def build_records(name: str, examples, queries, results, kg: KGRetriever, ddm, t
         ranking = res["ranking"]
         if name == "kg_facts":
             context = kg.format_facts(res["facts"])
-        elif name == "step4_plus_facts":
+        elif name in ("step4_plus_facts", "step4_plus_random_facts"):
             context = format_context(ranking[:TOP_K]) + "\n\nFacts:\n" + kg.format_facts(res["facts"])
         else:
             context = format_context(ranking[:TOP_K])
@@ -139,7 +170,7 @@ def build_records(name: str, examples, queries, results, kg: KGRetriever, ddm, t
         })
         if name in ("kg_hybrid", "kg_rerank"):
             rows[-1]["new_vs_step4"] = res["new_vs_step4"]
-        if name in ("kg_facts", "step4_plus_facts"):
+        if name in ("kg_facts", "step4_plus_facts", "step4_plus_random_facts"):
             fact_secs = kg.fact_sections(res["facts"])
             rows[-1]["n_facts"] = len(res["facts"])
             rows[-1]["facts_context_recall"] = recall_at_k(fact_secs, ex["grounding"], len(fact_secs) or 1)
@@ -168,7 +199,7 @@ def main() -> None:
     for name in PIPELINES:
         rows, prompts = build_records(name, examples, queries, out[name], kg, ddm, template)
         all_rows[name] = (rows, prompts)
-        if name == "step4_plus_facts":
+        if name in ("step4_plus_facts", "step4_plus_random_facts"):
             # The sections part must be exactly the Step 4 context.
             base = {json.loads(l)["example_id"]: json.loads(l)["context"]
                     for l in open(RESULTS_DIR / "rag_rewrite_rerank_v2.jsonl", encoding="utf-8")}
