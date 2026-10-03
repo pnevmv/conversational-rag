@@ -1,0 +1,752 @@
+{
+  "scope": "full",
+  "documents": 488,
+  "layers": {
+    "structural": {
+      "nodes": {
+        "Document": 488,
+        "Section": 4114,
+        "Span": 35659
+      },
+      "relationships": {
+        "HAS_SECTION": 4114,
+        "HAS_SPAN": 35659,
+        "NEXT": 3626
+      }
+    },
+    "metagraph": {
+      "nodes": {
+        "Mention": 28782
+      },
+      "mentions_by_type": {
+        "Amount": 1064,
+        "ContactPoint": 1665,
+        "Document": 4466,
+        "Organization": 1847,
+        "Outcome": 1920,
+        "Requirement": 7725,
+        "Role": 1020,
+        "Service": 7920,
+        "TimeLimit": 1155
+      },
+      "relationships": {
+        "MENTIONS": 28782,
+        "REL": 16947
+      },
+      "REL_by_type": {
+        "ALTERNATIVE_TO": 788,
+        "APPLIES_TO": 938,
+        "AVAILABLE_AT": 1766,
+        "DETERMINED_BY": 158,
+        "EXEMPT_FROM": 790,
+        "HAS_AMOUNT": 631,
+        "HAS_TIME_LIMIT": 985,
+        "LEADS_TO": 1883,
+        "PART_OF": 739,
+        "PROVIDED_BY": 905,
+        "REQUIRES": 7364
+      }
+    },
+    "kg": {
+      "nodes": {
+        "Entity": 14731
+      },
+      "entities_by_type": {
+        "Amount": 684,
+        "ContactPoint": 692,
+        "Document": 1876,
+        "Organization": 571,
+        "Outcome": 1209,
+        "Requirement": 4856,
+        "Role": 481,
+        "Service": 3532,
+        "TimeLimit": 830
+      },
+      "relationships": {
+        "RESOLVES_TO": 28781,
+        "entity relations": 13277
+      },
+      "relations_by_type": {
+        "ALTERNATIVE_TO": {
+          "edges": 558,
+          "support": 751
+        },
+        "APPLIES_TO": {
+          "edges": 718,
+          "support": 883
+        },
+        "AVAILABLE_AT": {
+          "edges": 1363,
+          "support": 1728
+        },
+        "DETERMINED_BY": {
+          "edges": 137,
+          "support": 145
+        },
+        "EXEMPT_FROM": {
+          "edges": 621,
+          "support": 727
+        },
+        "HAS_AMOUNT": {
+          "edges": 500,
+          "support": 583
+        },
+        "HAS_TIME_LIMIT": {
+          "edges": 815,
+          "support": 940
+        },
+        "LEADS_TO": {
+          "edges": 1465,
+          "support": 1791
+        },
+        "PART_OF": {
+          "edges": 582,
+          "support": 663
+        },
+        "PROVIDED_BY": {
+          "edges": 704,
+          "support": 857
+        },
+        "REQUIRES": {
+          "edges": 5814,
+          "support": 7158
+        }
+      }
+    }
+  },
+  "section_coverage": {
+    "sections": 4114,
+    "with_mentions": 3355,
+    "share_with_mentions": 0.8155080213903744,
+    "extractable_sections": 3552,
+    "share_of_extractable_with_mentions": 0.9445382882882883
+  },
+  "entity_graph": {
+    "degree": {
+      "median": 1.0,
+      "p90": 4.0,
+      "max": 99,
+      "mean": 1.8,
+      "isolated": 3344
+    },
+    "components": {
+      "count": 4130,
+      "largest": 8807,
+      "largest_share": 0.5978548638924717,
+      "size_distribution": {
+        "8807": 1,
+        "31": 1,
+        "28": 1,
+        "18": 1,
+        "17": 1,
+        "16": 1,
+        "14": 2,
+        "13": 3,
+        "12": 1,
+        "11": 2,
+        "10": 4,
+        "9": 9,
+        "8": 13,
+        "7": 21,
+        "6": 25,
+        "5": 44,
+        "4": 68,
+        "3": 179,
+        "2": 409,
+        "1": 3344
+      }
+    },
+    "top_by_degree": {
+      "Service": [
+        {
+          "name": "VA health care",
+          "degree": 99,
+          "n_mentions": 60
+        },
+        {
+          "name": "Direct Consolidation Loan",
+          "degree": 59,
+          "n_mentions": 38
+        },
+        {
+          "name": "federal student loans",
+          "degree": 58,
+          "n_mentions": 35
+        },
+        {
+          "name": "income-driven repayment plan",
+          "degree": 56,
+          "n_mentions": 38
+        },
+        {
+          "name": "driver responsibility assessment",
+          "degree": 55,
+          "n_mentions": 17
+        },
+        {
+          "name": "online application",
+          "degree": 50,
+          "n_mentions": 33
+        },
+        {
+          "name": "federal student aid",
+          "degree": 49,
+          "n_mentions": 43
+        },
+        {
+          "name": "file a claim for disability compensation",
+          "degree": 46,
+          "n_mentions": 25
+        },
+        {
+          "name": "disability benefits from VA",
+          "degree": 45,
+          "n_mentions": 16
+        },
+        {
+          "name": "disability benefits",
+          "degree": 44,
+          "n_mentions": 48
+        }
+      ],
+      "Organization": [
+        {
+          "name": "DMV",
+          "degree": 96,
+          "n_mentions": 165
+        },
+        {
+          "name": "loan servicer",
+          "degree": 59,
+          "n_mentions": 92
+        },
+        {
+          "name": "U.S. Department of Education",
+          "degree": 49,
+          "n_mentions": 58
+        },
+        {
+          "name": "financial aid office",
+          "degree": 26,
+          "n_mentions": 41
+        },
+        {
+          "name": "Social Security",
+          "degree": 24,
+          "n_mentions": 59
+        },
+        {
+          "name": "New York State Department of Motor Vehicles",
+          "degree": 23,
+          "n_mentions": 48
+        },
+        {
+          "name": "Driver Improvement Unit",
+          "degree": 14,
+          "n_mentions": 13
+        },
+        {
+          "name": "Vet Center",
+          "degree": 13,
+          "n_mentions": 17
+        },
+        {
+          "name": "Custom Plates Unit",
+          "degree": 11,
+          "n_mentions": 18
+        },
+        {
+          "name": "Title Bureau",
+          "degree": 11,
+          "n_mentions": 13
+        }
+      ],
+      "ContactPoint": [
+        {
+          "name": "DMV office",
+          "degree": 70,
+          "n_mentions": 100
+        },
+        {
+          "name": "local Social Security office",
+          "degree": 24,
+          "n_mentions": 64
+        },
+        {
+          "name": "TTY 1 - 800 - 325 - 0778",
+          "degree": 22,
+          "n_mentions": 57
+        },
+        {
+          "name": "1 - 800 - 772 - 1213",
+          "degree": 21,
+          "n_mentions": 47
+        },
+        {
+          "name": "local DMV office",
+          "degree": 17,
+          "n_mentions": 27
+        },
+        {
+          "name": "my Social Security account",
+          "degree": 17,
+          "n_mentions": 42
+        },
+        {
+          "name": "nearest VA regional benefit office",
+          "degree": 17,
+          "n_mentions": 23
+        },
+        {
+          "name": "800 - 827 - 1000",
+          "degree": 16,
+          "n_mentions": 17
+        },
+        {
+          "name": "motor vehicle office",
+          "degree": 16,
+          "n_mentions": 18
+        },
+        {
+          "name": "DMV Call Center",
+          "degree": 14,
+          "n_mentions": 15
+        }
+      ],
+      "Document": [
+        {
+          "name": "FAFSA form",
+          "degree": 65,
+          "n_mentions": 75
+        },
+        {
+          "name": "bill of sale",
+          "degree": 36,
+          "n_mentions": 37
+        },
+        {
+          "name": "title certificate",
+          "degree": 25,
+          "n_mentions": 30
+        },
+        {
+          "name": "child's U.S. passport",
+          "degree": 21,
+          "n_mentions": 35
+        },
+        {
+          "name": "New York State driver license",
+          "degree": 21,
+          "n_mentions": 34
+        },
+        {
+          "name": "military record",
+          "degree": 19,
+          "n_mentions": 10
+        },
+        {
+          "name": "non - driver ID",
+          "degree": 19,
+          "n_mentions": 29
+        },
+        {
+          "name": "DD214",
+          "degree": 17,
+          "n_mentions": 20
+        },
+        {
+          "name": "MV-44",
+          "degree": 17,
+          "n_mentions": 29
+        },
+        {
+          "name": "Certificate of Title MV-999",
+          "degree": 16,
+          "n_mentions": 17
+        }
+      ],
+      "Requirement": [
+        {
+          "name": "acceptable proof of ownership",
+          "degree": 47,
+          "n_mentions": 33
+        },
+        {
+          "name": "service-connected disability",
+          "degree": 23,
+          "n_mentions": 32
+        },
+        {
+          "name": "proof of identity",
+          "degree": 22,
+          "n_mentions": 21
+        },
+        {
+          "name": "Social Security number",
+          "degree": 15,
+          "n_mentions": 26
+        },
+        {
+          "name": "All documents must be current not expired",
+          "degree": 14,
+          "n_mentions": 35
+        },
+        {
+          "name": "proof of insurance",
+          "degree": 14,
+          "n_mentions": 17
+        },
+        {
+          "name": "current U.S. immigration document",
+          "degree": 13,
+          "n_mentions": 6
+        },
+        {
+          "name": "proof of identity",
+          "degree": 13,
+          "n_mentions": 35
+        },
+        {
+          "name": "full retirement age",
+          "degree": 12,
+          "n_mentions": 35
+        },
+        {
+          "name": "at least one of the requirements listed below",
+          "degree": 11,
+          "n_mentions": 7
+        }
+      ],
+      "Role": [
+        {
+          "name": "Veteran",
+          "degree": 28,
+          "n_mentions": 44
+        },
+        {
+          "name": "dependent student",
+          "degree": 13,
+          "n_mentions": 14
+        },
+        {
+          "name": "student",
+          "degree": 13,
+          "n_mentions": 12
+        },
+        {
+          "name": "service member",
+          "degree": 11,
+          "n_mentions": 21
+        },
+        {
+          "name": "spouse",
+          "degree": 11,
+          "n_mentions": 13
+        },
+        {
+          "name": "surviving spouse",
+          "degree": 10,
+          "n_mentions": 18
+        },
+        {
+          "name": "active-duty service members",
+          "degree": 8,
+          "n_mentions": 8
+        },
+        {
+          "name": "graduate or professional student",
+          "degree": 8,
+          "n_mentions": 9
+        },
+        {
+          "name": "parent PLUS loan borrowers",
+          "degree": 6,
+          "n_mentions": 3
+        },
+        {
+          "name": "service members and Veterans active duty, Guard, and Reserve",
+          "degree": 6,
+          "n_mentions": 5
+        }
+      ],
+      "Amount": [
+        {
+          "name": "sales tax",
+          "degree": 9,
+          "n_mentions": 12
+        },
+        {
+          "name": "fees",
+          "degree": 8,
+          "n_mentions": 1
+        },
+        {
+          "name": "no fee",
+          "degree": 6,
+          "n_mentions": 5
+        },
+        {
+          "name": "$1,000",
+          "degree": 5,
+          "n_mentions": 8
+        },
+        {
+          "name": "annual fee",
+          "degree": 5,
+          "n_mentions": 4
+        },
+        {
+          "name": "payment of $17.50",
+          "degree": 5,
+          "n_mentions": 4
+        },
+        {
+          "name": "title certificate fee",
+          "degree": 5,
+          "n_mentions": 4
+        },
+        {
+          "name": "vehicle plate fee",
+          "degree": 5,
+          "n_mentions": 4
+        },
+        {
+          "name": "$4,000",
+          "degree": 4,
+          "n_mentions": 5
+        },
+        {
+          "name": "0% interest",
+          "degree": 4,
+          "n_mentions": 4
+        }
+      ],
+      "TimeLimit": [
+        {
+          "name": "within 10 days",
+          "degree": 9,
+          "n_mentions": 24
+        },
+        {
+          "name": "immediately",
+          "degree": 8,
+          "n_mentions": 12
+        },
+        {
+          "name": "six - month grace period",
+          "degree": 6,
+          "n_mentions": 5
+        },
+        {
+          "name": "90 days",
+          "degree": 5,
+          "n_mentions": 6
+        },
+        {
+          "name": "within the past 24 months",
+          "degree": 5,
+          "n_mentions": 2
+        },
+        {
+          "name": "1 year from the date on your decision",
+          "degree": 4,
+          "n_mentions": 4
+        },
+        {
+          "name": "18-month period",
+          "degree": 4,
+          "n_mentions": 4
+        },
+        {
+          "name": "between 10 and 30 years",
+          "degree": 4,
+          "n_mentions": 2
+        },
+        {
+          "name": "October 2020",
+          "degree": 4,
+          "n_mentions": 9
+        },
+        {
+          "name": "one year",
+          "degree": 4,
+          "n_mentions": 5
+        }
+      ],
+      "Outcome": [
+        {
+          "name": "default",
+          "degree": 8,
+          "n_mentions": 4
+        },
+        {
+          "name": "interest capitalization",
+          "degree": 8,
+          "n_mentions": 6
+        },
+        {
+          "name": "monthly payments",
+          "degree": 8,
+          "n_mentions": 5
+        },
+        {
+          "name": "license suspension",
+          "degree": 7,
+          "n_mentions": 1
+        },
+        {
+          "name": "suspend your driver license",
+          "degree": 7,
+          "n_mentions": 8
+        },
+        {
+          "name": "traffic ticket",
+          "degree": 6,
+          "n_mentions": 11
+        },
+        {
+          "name": "help you take charge of your treatment",
+          "degree": 5,
+          "n_mentions": 1
+        },
+        {
+          "name": "loan becomes past due, or delinquent",
+          "degree": 5,
+          "n_mentions": 4
+        },
+        {
+          "name": "lower your monthly payment",
+          "degree": 5,
+          "n_mentions": 10
+        },
+        {
+          "name": "benefit as a spouse cannot exceed one - half of your spouse's full retirement amount",
+          "degree": 4,
+          "n_mentions": 4
+        }
+      ]
+    }
+  },
+  "domains": {
+    "entities_by_domain_and_type": {
+      "ssa": {
+        "Requirement": 511,
+        "Amount": 98,
+        "Service": 315,
+        "Document": 195,
+        "TimeLimit": 68,
+        "Outcome": 160,
+        "Role": 67,
+        "ContactPoint": 64,
+        "Organization": 26
+      },
+      "va": {
+        "ContactPoint": 236,
+        "Document": 383,
+        "Organization": 173,
+        "Service": 1266,
+        "Requirement": 1382,
+        "Outcome": 305,
+        "TimeLimit": 220,
+        "Role": 177,
+        "Amount": 128
+      },
+      "studentaid": {
+        "Organization": 175,
+        "TimeLimit": 215,
+        "Amount": 139,
+        "Document": 332,
+        "Service": 810,
+        "Outcome": 395,
+        "Requirement": 1133,
+        "Role": 104,
+        "ContactPoint": 121
+      },
+      "dmv": {
+        "Document": 966,
+        "Organization": 197,
+        "Amount": 319,
+        "TimeLimit": 327,
+        "Service": 1141,
+        "ContactPoint": 271,
+        "Requirement": 1830,
+        "Outcome": 349,
+        "Role": 133
+      }
+    },
+    "entities_by_domain": {
+      "ssa": 1504,
+      "va": 4270,
+      "studentaid": 3424,
+      "dmv": 5533
+    },
+    "relations_by_domain_and_type": {
+      "ssa": {
+        "LEADS_TO": 206,
+        "PROVIDED_BY": 44,
+        "REQUIRES": 657,
+        "AVAILABLE_AT": 165,
+        "APPLIES_TO": 79,
+        "HAS_AMOUNT": 53,
+        "EXEMPT_FROM": 65,
+        "HAS_TIME_LIMIT": 66,
+        "DETERMINED_BY": 19,
+        "PART_OF": 36,
+        "ALTERNATIVE_TO": 82
+      },
+      "va": {
+        "REQUIRES": 1440,
+        "PART_OF": 284,
+        "LEADS_TO": 451,
+        "HAS_TIME_LIMIT": 200,
+        "APPLIES_TO": 321,
+        "ALTERNATIVE_TO": 185,
+        "HAS_AMOUNT": 86,
+        "AVAILABLE_AT": 432,
+        "PROVIDED_BY": 157,
+        "EXEMPT_FROM": 142,
+        "DETERMINED_BY": 64
+      },
+      "dmv": {
+        "ALTERNATIVE_TO": 184,
+        "REQUIRES": 2564,
+        "HAS_AMOUNT": 274,
+        "HAS_TIME_LIMIT": 323,
+        "PROVIDED_BY": 283,
+        "AVAILABLE_AT": 548,
+        "EXEMPT_FROM": 291,
+        "LEADS_TO": 349,
+        "APPLIES_TO": 96,
+        "PART_OF": 135,
+        "DETERMINED_BY": 29
+      },
+      "studentaid": {
+        "AVAILABLE_AT": 218,
+        "ALTERNATIVE_TO": 107,
+        "REQUIRES": 1153,
+        "EXEMPT_FROM": 123,
+        "LEADS_TO": 459,
+        "APPLIES_TO": 222,
+        "HAS_TIME_LIMIT": 226,
+        "PROVIDED_BY": 220,
+        "HAS_AMOUNT": 87,
+        "PART_OF": 127,
+        "DETERMINED_BY": 25
+      }
+    },
+    "relations_by_domain": {
+      "ssa": 1472,
+      "va": 3762,
+      "dmv": 5076,
+      "studentaid": 2967
+    },
+    "entities_in_several_domains": 100,
+    "mentions": {
+      "total": 28782,
+      "social": 1,
+      "resolved": 28781,
+      "share_resolved": 0.999965256062817,
+      "share_of_non_social_resolved": 1.0
+    }
+  }
+}

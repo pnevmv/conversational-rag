@@ -13,13 +13,13 @@ ContactPoint,DMV office,local DMV office,0.9467,0.02,0.9667,,llm,True,batch quer
 Document,current NY State Insurance ID card,NY State Insurance ID cards,0.9461,0.02,0.9661,,llm,True,batch query: current NY State Insurance ID card,True
 Document,letter from the leasing company that gives you permission to register the vehicle in NY State,power of attorney from the leasing company that authorizes you to register the vehicle in NY State,0.9148,0.05,0.9648,,llm,False,batch query: letter from the leasing company that gives you permission to register the vehicle in NY State,False
 Service|va,Veterans Housing Assistance,Veterans Housing Assistance Grants,0.9437,0.02,0.9637,,llm,True,batch query: Veterans Housing Assistance Grants,False
-Service|va,disability compensation,Disability Compensation Pay,0.9626,0.0,0.9626,,llm,False,batch query: disability compensation,False
+Service|va,disability compensation,Disability Compensation Pay,0.9626,0.0,0.9626,,llm,True,batch query: Disability Compensation Pay,True
 Service|ssa,Request a Hearing for a Medical Determination Online,Request a Hearing for a Non-Medical Determination Online,0.9424,0.02,0.9624,,llm,False,batch query: Request a Hearing for a Non-Medical Determination Online,False
 Service|va,housing grant,Specially Adapted Housing grant,0.9124,0.05,0.9624,,llm,False,batch query: housing grant,False
 Service|studentaid,Direct Subsidized Loans,Direct Unsubsidized Loans,0.9077,0.05,0.9577,,llm,False,batch query: Direct Unsubsidized Loans,False
 Service|va,VA direct home loan,VA home loan,0.9364,0.02,0.9564,,llm,True,batch query: VA home loan,True
 Service|studentaid,consolidation loans,Direct Consolidation Loans,0.9314,0.02,0.9514,,llm,False,batch query: Direct Consolidation Loans,False
-Service|va,VA - backed home loan,VA home loan,0.9293,0.02,0.9493,,llm,True,batch query: VA home loan,False
+Service|va,VA - backed home loan,VA home loan,0.9293,0.02,0.9493,,llm,False,batch query: VA - backed home loan,False
 Amount,higher monthly Part B premium,higher monthly premium,0.9273,0.02,0.9473,,llm,True,batch query: higher monthly premium,True
 TimeLimit,10 and 30 years,10 years,0.8957,0.05,0.9457,,reject_value,,,False
 Document,digital electronic NY State Insurance ID Card,NY State Insurance ID cards,0.9251,0.02,0.9451,,llm,False,batch query: digital electronic NY State Insurance ID Card,False
@@ -27,12 +27,12 @@ Service|ssa,Request a Hearing for a Non-Medical Determination Online,Request a R
 ContactPoint,800 - 827 - 1000,Call us at 800 - 827 - 1000,0.9243,0.02,0.9443,,llm,True,batch query: 800 - 827 - 1000,True
 Requirement|va,update your contact information,update your information,0.9239,0.02,0.9439,,llm,True,batch query: update your contact information,True
 Amount,$2.50 per vehicle,payment in the amount of $2.50 per vehicle,0.9209,0.02,0.9409,,llm,True,batch query: $2.50 per vehicle,True
-Requirement|va,bank's address,bank's phone number,0.8901,0.05,0.9401,,llm,True,batch query: bank's address,True
+Requirement|va,bank's address,bank's phone number,0.8901,0.05,0.9401,,llm,False,batch query: bank's phone number,False
 Service|studentaid,FFEL Consolidation Loans,FFEL PLUS Loans,0.8897,0.05,0.9397,,llm,False,batch query: FFEL Consolidation Loans,False
-Role|va,surviving spouses,surviving spouse or child,0.9196,0.02,0.9396,,llm,False,batch query: surviving spouses,False
+Role|va,surviving spouses,surviving spouse or child,0.9196,0.02,0.9396,,reject_generic,,,False
 Service|studentaid,another repayment plan,repayment plan,0.9394,0.0,0.9394,,llm,False,batch query: another repayment plan,False
-Service|va,VA - backed home loan,VA direct or VA - backed home loan,0.9185,0.02,0.9385,,llm,False,batch query: VA - backed home loan,False
-Service|va,VA direct home loan,VA direct or VA - backed home loan,0.918,0.02,0.938,,llm,True,batch query: VA direct home loan,True
+Service|va,VA - backed home loan,VA direct or VA - backed home loan,0.9185,0.02,0.9385,,reject_generic,,,False
+Service|va,VA direct home loan,VA direct or VA - backed home loan,0.918,0.02,0.938,,reject_generic,,,False
 TimeLimit,24 hours a day,"24 hours a day , 7 days a week",0.9178,0.02,0.9378,,reject_value,,,False
 Service|ssa,Request Non - Medical Reconsideration,Request a Reconsideration Online for a Non-Medical Determination,0.916,0.02,0.936,,llm,True,batch query: Request a Reconsideration Online for a Non-Medical Determination,True
 Document,current NY State Insurance ID card,digital electronic NY State Insurance ID Card,0.9156,0.02,0.9356,,llm,False,batch query: current NY State Insurance ID card,False
@@ -42,14 +42,14 @@ Service|studentaid,Subsidized Federal Stafford Loans,Unsubsidized Federal Staffo
 TimeLimit,"24 hours a day , 7 days a week",7 days a week,0.9106,0.02,0.9306,,reject_value,,,False
 TimeLimit,between 10 and 30 years,up to 10 years,0.9094,0.02,0.9294,,reject_value,,,False
 Service|va,VA housing assistance,Veterans Housing Assistance Grants,0.908,0.02,0.928,,llm,False,batch query: VA housing assistance,False
-Requirement|dmv,Proof of sales tax payment,"proof of sales tax payment, sales tax exemption, or purchase price",0.9064,0.02,0.9264,,llm,False,batch query: Proof of sales tax payment,False
+Requirement|dmv,Proof of sales tax payment,"proof of sales tax payment, sales tax exemption, or purchase price",0.9064,0.02,0.9264,,reject_generic,,,False
 Service|studentaid,Direct Consolidation Loans,FFEL Consolidation Loans,0.8463,0.08,0.9263,,llm,False,batch query: Direct Consolidation Loans,False
 Service|va,direct deposit feature,direct deposit payments,0.9041,0.02,0.9241,,llm,False,batch query: direct deposit payments,False
 Service|ssa,Request a Hearing for a Medical Determination Online,Request a Reconsideration Online for a Medical Determination,0.8998,0.02,0.9198,,llm,False,batch query: Request a Reconsideration Online for a Medical Determination,False
 Service|studentaid,Direct Consolidation Loans,Direct Subsidized Loans,0.8694,0.05,0.9194,,llm,False,batch query: Direct Consolidation Loans,False
 Service|studentaid,Direct Subsidized Loans,Subsidized Federal Stafford Loans,0.868,0.05,0.918,,llm,False,batch query: Direct Subsidized Loans,False
-Role|ssa,age 65 or older,people age 65 or older,0.8977,0.02,0.9177,,llm,False,batch query: age 65 or older,False
-Service|va,VA home loan,VA Home Loan Benefits,0.8977,0.02,0.9177,,llm,False,batch query: VA home loan,False
+Role|ssa,age 65 or older,people age 65 or older,0.8977,0.02,0.9177,,reject_generic,,,False
+Service|va,VA home loan,VA Home Loan Benefits,0.8977,0.02,0.9177,,llm,True,batch query: VA home loan,False
 Requirement|studentaid,federal aid eligibility,financial aid eligibility,0.8974,0.02,0.9174,,llm,False,batch query: federal aid eligibility,False
 Service|studentaid,Graduated Plan,Graduated Repayment Plan,0.8962,0.02,0.9162,,llm,True,batch query: Graduated Repayment Plan,True
 Document,Schedule A&C [2] IRP-6,Schedule A / C IRP6,0.8947,0.02,0.9147,form_number,auto_rule,,,True
@@ -60,8 +60,8 @@ Role|va,spouse of a Veteran who is missing in action or being held as a Prisoner
 Service|studentaid,Direct Unsubsidized Loans,Unsubsidized Federal Stafford Loans,0.8591,0.05,0.9091,,llm,False,batch query: Direct Unsubsidized Loans,False
 Amount,higher monthly Part B premium,monthly premium,0.8588,0.05,0.9088,,reject_value,,,False
 Requirement|dmv,transfer plates from one vehicle to another,transfer a vehicle from one fleet to another fleet,0.858,0.05,0.908,,llm,False,batch query: transfer plates from one vehicle to another,False
-Service|va,disability compensation,disability compensation and pension benefits,0.8864,0.02,0.9064,,llm,True,batch query: disability compensation and pension benefits,True
-Requirement|va,bank's address,bank's name,0.8561,0.05,0.9061,,llm,True,batch query: bank's address,False
+Service|va,disability compensation,disability compensation and pension benefits,0.8864,0.02,0.9064,,reject_generic,,,False
+Requirement|va,bank's address,bank's name,0.8561,0.05,0.9061,,llm,False,batch query: bank's address,False
 TimeLimit,each year,each year of college,0.8857,0.02,0.9057,,reject_value,,,False
 Role|va,surviving spouses,surviving spouse of a Veteran,0.8848,0.02,0.9048,,llm,True,batch query: surviving spouse of a Veteran,True
 Service|studentaid,Graduated Repayment Plan,repayment plan,0.9041,0.0,0.9041,,llm,False,batch query: Graduated Repayment Plan,False
@@ -83,27 +83,27 @@ Requirement|studentaid,income is low now,low income,0.8723,0.02,0.8923,,llm,True
 Service|dmv,register a leased vehicle,register your vehicle,0.8712,0.02,0.8912,,llm,True,batch query: register a leased vehicle,True
 Requirement|va,bank's phone number,bank's routing number,0.8699,0.02,0.8899,,llm,False,batch query: bank's routing number,False
 Requirement|dmv,proof of identity,proof of ownership,0.8394,0.05,0.8894,,llm,False,batch query: proof of identity,False
-Service|va,disability compensation,VA disability compensation,0.8694,0.02,0.8894,,llm,True,batch query: VA disability compensation,True
+Service|va,disability compensation,VA disability compensation,0.8694,0.02,0.8894,,llm,True,batch query: VA disability compensation,False
 Requirement|dmv,proof of insurance,proof of NY State insurance,0.8891,0.0,0.8891,,llm,False,batch query: proof of insurance,False
-Requirement|dmv,proof of both identity and age,proof of identity,0.8887,0.0,0.8887,,llm,False,batch query: proof of identity,False
-Document,Insurance ID Card,NY State Insurance ID cards,0.8686,0.02,0.8886,,llm,True,batch query: Insurance ID Card,False
-Requirement|va,bank's name,bank's phone number,0.8386,0.05,0.8886,,llm,False,batch query: bank's name,False
+Requirement|dmv,proof of both identity and age,proof of identity,0.8887,0.0,0.8887,,reject_generic,,,False
+Document,Insurance ID Card,NY State Insurance ID cards,0.8686,0.02,0.8886,,llm,False,batch query: NY State Insurance ID cards,False
+Requirement|va,bank's name,bank's phone number,0.8386,0.05,0.8886,,llm,False,batch query: bank's phone number,False
 Requirement|dmv,except state holidays,state holidays,0.8669,0.02,0.8869,,llm,True,batch query: except state holidays,True
 Service|studentaid,Direct PLUS Loans,Direct Unsubsidized Loans,0.8362,0.05,0.8862,,llm,False,batch query: Direct Unsubsidized Loans,False
-Service|va,VA direct or VA - backed home loan,VA home loan,0.8655,0.02,0.8855,,llm,True,batch query: VA home loan,True
+Service|va,VA direct or VA - backed home loan,VA home loan,0.8655,0.02,0.8855,,reject_generic,,,False
 Document,FAFSA data,FAFSA form,0.8648,0.02,0.8848,,llm,False,batch query: FAFSA data,False
 Amount,130.67 percent of your full retirement age benefit,93.33 percent of your full benefit amount,0.8347,0.05,0.8847,,reject_value,,,False
 Document,DTF-803,DTF-804,0.8635,0.02,0.8835,,llm,False,batch query: DTF-804,False
-Service|studentaid,another repayment plan,Graduated Repayment Plan,0.8628,0.02,0.8828,,llm,False,batch query: Graduated Repayment Plan,False
-Service|ssa,retirement benefit,retirement or spouses benefits,0.8625,0.02,0.8825,,llm,False,batch query: retirement benefit,False
+Service|studentaid,another repayment plan,Graduated Repayment Plan,0.8628,0.02,0.8828,,llm,False,batch query: another repayment plan,False
+Service|ssa,retirement benefit,retirement or spouses benefits,0.8625,0.02,0.8825,,reject_generic,,,False
 Requirement|studentaid,other sources of aid,types of aid,0.8624,0.02,0.8824,,llm,False,batch query: other sources of aid,False
 Document,digital electronic NY State Insurance ID Card,Insurance ID Card,0.8617,0.02,0.8817,,llm,False,batch query: digital electronic NY State Insurance ID Card,False
-Organization,VA,VA.gov,0.8597,0.02,0.8797,,llm,False,batch query: VA.gov,False
+Organization,VA,VA.gov,0.8597,0.02,0.8797,,llm,True,batch query: VA,True
 Outcome|studentaid,repayment options,repayment plans you may be eligible for,0.8789,0.0,0.8789,,llm,False,batch query: repayment options,False
-Requirement|va,account number,bank's phone number,0.8287,0.05,0.8787,,llm,False,batch query: account number,False
-Service|va,VA - backed mortgage,VA home loan,0.8585,0.02,0.8785,,llm,False,batch query: VA home loan,False
+Requirement|va,account number,bank's phone number,0.8287,0.05,0.8787,,llm,False,batch query: bank's phone number,False
+Service|va,VA - backed mortgage,VA home loan,0.8585,0.02,0.8785,,llm,True,batch query: VA - backed mortgage,False
 ContactPoint,Call us at 800 - 827 - 1000,TTY : 800 - 829 - 4833,0.8266,0.05,0.8766,,reject_value,,,False
-Organization,Department of Veterans Affairs,VA.gov,0.8556,0.02,0.8756,,llm,False,batch query: VA.gov,False
+Organization,Department of Veterans Affairs,VA.gov,0.8556,0.02,0.8756,,reject_generic,,,False
 Service|ssa,Hospital insurance Part A,Medical insurance Part B,0.8554,0.02,0.8754,,llm,False,batch query: Hospital insurance Part A,False
 Service|va,direct deposit feature,VA direct deposit information,0.7954,0.08,0.8754,,llm,False,batch query: VA direct deposit information,False
 Document,current NY State Insurance ID card,Insurance ID Card,0.8553,0.02,0.8753,,llm,False,batch query: current NY State Insurance ID card,False
@@ -116,24 +116,25 @@ TimeLimit,24/7,24 hours a day,0.8488,0.02,0.8688,,reject_value,,,False
 Service|ssa,Request Non - Medical Reconsideration,Request a Reconsideration Online for a Medical Determination,0.8485,0.02,0.8685,,llm,False,batch query: Request Non - Medical Reconsideration,False
 Organization,DMV,DMV local office,0.8483,0.02,0.8683,,llm,False,batch query: DMV,False
 Service|va,VA direct home loan,VA Home Loan Benefits,0.8483,0.02,0.8683,,llm,False,batch query: VA Home Loan Benefits,False
-Service|va,disability compensation and pension benefits,pension benefits,0.8474,0.02,0.8674,,llm,True,batch query: disability compensation and pension benefits,True
+Service|va,disability compensation and pension benefits,pension benefits,0.8474,0.02,0.8674,,reject_generic,,,False
 Service|va,housing grant,Veterans Housing Assistance Grants,0.8469,0.02,0.8669,,llm,True,batch query: Veterans Housing Assistance Grants,True
 Requirement|dmv,proof of an established place of business,proof of ownership,0.816,0.05,0.866,,llm,False,batch query: proof of ownership,False
 ContactPoint,1 - 518 - 473 - 5834,518 - 486 - 6579,0.8453,0.02,0.8653,,reject_value,,,False
 Requirement|dmv,proof of insurance,proof of ownership,0.8144,0.05,0.8644,,llm,False,batch query: proof of insurance,False
 Service|va,Grants,housing grant,0.8438,0.02,0.8638,,llm,False,batch query: housing grant,False
 Organization,VA Regional Loan Center,VA regional office,0.8628,0.0,0.8628,,llm,False,batch query: VA regional office,False
+Document,NY State driver license,NY State Insurance ID cards,0.842,0.02,0.862,,llm,False,batch query: NY State Insurance ID cards,False
 Service|studentaid,aid offer,Get Your Aid,0.8417,0.02,0.8617,,llm,True,batch query: aid offer,True
-Service|va,education benefits,GI Bill and other education benefits,0.8401,0.02,0.8601,,llm,True,batch query: education benefits,True
+Service|va,education benefits,GI Bill and other education benefits,0.8401,0.02,0.8601,,reject_generic,,,False
 TimeLimit,8:00 a.m. to 9:00 p.m. ET,8:00am to 3:45pm,0.86,0.0,0.86,,reject_value,,,False
 Service|ssa,non - medical appeal online,Request Non - Medical Reconsideration,0.8098,0.05,0.8598,,llm,False,batch query: non - medical appeal online,False
 Organization,Department of Veterans Affairs,Veterans Benefits Administration,0.8595,0.0,0.8595,,llm,False,batch query: Veterans Benefits Administration,False
-Service|va,disability compensation and pension benefits,Disability Compensation Pay,0.8591,0.0,0.8591,,llm,False,batch query: disability compensation and pension benefits,False
-Service|va,VA home loan,VA housing assistance,0.8389,0.02,0.8589,,llm,True,batch query: VA home loan,False
+Service|va,disability compensation and pension benefits,Disability Compensation Pay,0.8591,0.0,0.8591,,llm,True,batch query: Disability Compensation Pay,False
+Service|va,VA home loan,VA housing assistance,0.8389,0.02,0.8589,,llm,False,batch query: VA home loan,False
 Role|va,surviving spouse of a Veteran,surviving spouse or child,0.837,0.02,0.857,,llm,False,batch query: surviving spouse of a Veteran,False
 Service|ssa,non - medical appeal online,Request a Hearing for a Non-Medical Determination Online,0.8366,0.02,0.8566,,llm,False,batch query: Request a Hearing for a Non-Medical Determination Online,False
 Service|ssa,Social Security benefits,Supplemental Security Income (SSI),0.8058,0.05,0.8558,,llm,False,batch query: Social Security benefits,False
-Role|va,Veteran you care about,Veteran or Servicemember,0.8334,0.02,0.8534,,llm,False,batch query: Veteran or Servicemember,False
+Role|va,Veteran you care about,Veteran or Servicemember,0.8334,0.02,0.8534,,llm,False,batch query: Veteran you care about,False
 Service|va,VA - backed mortgage,VA direct home loan,0.833,0.02,0.853,,llm,False,batch query: VA - backed mortgage,False
 Requirement|va,bank's address,bank's routing number,0.832,0.02,0.852,,llm,False,batch query: bank's routing number,False
 Service|studentaid,Direct PLUS Loans,FFEL PLUS Loans,0.8018,0.05,0.8518,,llm,False,batch query: Direct PLUS Loans,False
@@ -142,14 +143,14 @@ Service|va,VA disability compensation,VA disability increase,0.8315,0.02,0.8515,
 Requirement|va,direct deposit feature not available to everyone right now,sign in to change your direct deposit information,0.8012,0.05,0.8512,,llm,False,batch query: direct deposit feature not available to everyone right now,False
 Service|studentaid,Direct Consolidation Loans,Monthly Payments for Federal Education Loans Except Consolidation Loans,0.7701,0.08,0.8501,,llm,False,batch query: Direct Consolidation Loans,False
 TimeLimit,"The 8-month period that begins with the month after your group health plan coverage or the employment it is based on ends , whichever comes first","Any month you remain covered under the group health plan and your, or your spouse's, employment continues",0.7997,0.05,0.8497,,reject_value,,,False
-Service|va,VA - backed mortgage,VA Home Loan Benefits,0.8284,0.02,0.8484,,llm,False,batch query: VA Home Loan Benefits,False
+Service|va,VA - backed mortgage,VA Home Loan Benefits,0.8284,0.02,0.8484,,llm,False,batch query: VA - backed mortgage,False
 Service|ssa,non - medical hearing,Request a Hearing for a Non-Medical Determination Online,0.8277,0.02,0.8477,,llm,True,batch query: Request a Hearing for a Non-Medical Determination Online,True
 Requirement|va,account number,routing number,0.7967,0.05,0.8467,,llm,False,batch query: account number,False
 Document,Registration Authorization PDF (MV-95),Vehicle Registration / Title Application PDF (MV-82),0.7966,0.05,0.8466,,llm,False,batch query: Registration Authorization PDF (MV-95),False
-Role|va,Veterans,Veteran or Servicemember,0.8264,0.02,0.8464,,llm,True,batch query: Veterans,True
+Role|va,Veterans,Veteran or Servicemember,0.8264,0.02,0.8464,,reject_generic,,,False
 Organization,VA,VA medical center,0.8263,0.02,0.8463,,llm,False,batch query: VA,False
-Service|studentaid,FFEL Consolidation Loans,Monthly Payments for Federal Education Loans Except Consolidation Loans,0.7646,0.08,0.8446,,llm,False,batch query: Monthly Payments for Federal Education Loans Except Consolidation Loans,False
-Role|va,service members,Veteran or Servicemember,0.824,0.02,0.844,,llm,True,batch query: Veteran or Servicemember,False
+Service|studentaid,FFEL Consolidation Loans,Monthly Payments for Federal Education Loans Except Consolidation Loans,0.7646,0.08,0.8446,,llm,False,batch query: FFEL Consolidation Loans,False
+Role|va,service members,Veteran or Servicemember,0.824,0.02,0.844,,reject_generic,,,False
 Service|va,free health care,free limited dental care,0.7932,0.05,0.8432,,llm,False,batch query: free health care,False
 Service|va,VA home loan,VA Loan Funding Fee,0.8225,0.02,0.8425,,llm,False,batch query: VA home loan,False
 Role|va,Veterans,wartime Veteran,0.822,0.02,0.842,,llm,False,batch query: Veterans,False
@@ -161,13 +162,14 @@ Service|va,Disability Compensation Pay,VA disability compensation,0.8398,0.0,0.8
 Service|ssa,benefits,retirement benefit,0.7867,0.05,0.8367,,llm,False,batch query: retirement benefit,False
 TimeLimit,within 10 days,within 72 hours,0.8161,0.02,0.8361,,reject_value,,,False
 Service|studentaid,repayment period,repayment plan,0.8356,0.0,0.8356,,llm,False,batch query: repayment plan,False
-Service|va,VA direct or VA - backed home loan,VA Home Loan Benefits,0.8142,0.02,0.8342,,llm,True,batch query: VA Home Loan Benefits,False
+Document,current NY State Insurance ID card,NY State driver license,0.8154,0.02,0.8354,,llm,False,batch query: current NY State Insurance ID card,False
+Service|va,VA direct or VA - backed home loan,VA Home Loan Benefits,0.8142,0.02,0.8342,,llm,False,batch query: VA Home Loan Benefits,False
 TimeLimit,24 hours a day,7 days a week,0.784,0.05,0.834,,reject_value,,,False
 TimeLimit,each year,the year,0.8135,0.02,0.8335,,reject_value,,,False
 Document,IRP-6,Schedule A&C [2] IRP-6,0.7832,0.05,0.8332,form_number,auto_rule,,,True
 Requirement|ssa,evidence submitted used in the original determination,new evidence,0.7832,0.05,0.8332,,llm,True,batch query: evidence submitted used in the original determination,True
-Requirement|va,account number,bank's routing number,0.7828,0.05,0.8328,,llm,False,batch query: account number,False
-Service|studentaid,monthly payments,Monthly Payments for Federal Education Loans Except Consolidation Loans,0.7823,0.05,0.8323,,llm,False,batch query: Monthly Payments for Federal Education Loans Except Consolidation Loans,False
+Requirement|va,account number,bank's routing number,0.7828,0.05,0.8328,,llm,False,batch query: bank's routing number,False
+Service|studentaid,monthly payments,Monthly Payments for Federal Education Loans Except Consolidation Loans,0.7823,0.05,0.8323,,llm,True,batch query: Monthly Payments for Federal Education Loans Except Consolidation Loans,True
 ContactPoint,1 - 800 - 325 - 0778,800 - 827 - 1000,0.8319,0.0,0.8319,,reject_value,,,False
 Role|dmv,Nassau County,Suffolk County,0.7817,0.05,0.8317,,llm,False,batch query: Suffolk County,False
 Requirement|dmv,address change,name change,0.7816,0.05,0.8316,,llm,False,batch query: address change,False
@@ -181,7 +183,7 @@ Requirement|ssa,age 65,full retirement age,0.8085,0.02,0.8285,,llm,False,batch q
 Service|va,VA Home Loan Benefits,VA housing assistance,0.808,0.02,0.828,,llm,False,batch query: VA Home Loan Benefits,False
 TimeLimit,each year,every two years,0.8278,0.0,0.8278,,reject_value,,,False
 ContactPoint,1 - 800 - 325 - 0778,877 - 424 - 3838,0.8276,0.0,0.8276,,reject_value,,,False
-Service|studentaid,federal grants,"state, college, and nonprofit grants and scholarships",0.8073,0.02,0.8273,,llm,False,"batch query: state, college, and nonprofit grants and scholarships",False
+Service|studentaid,federal grants,"state, college, and nonprofit grants and scholarships",0.8073,0.02,0.8273,,llm,False,batch query: federal grants,False
 Requirement|dmv,proof of identity,proof of insurance,0.8269,0.0,0.8269,,llm,False,batch query: proof of identity,False
 Organization,VA,VA regional office,0.8066,0.02,0.8266,,llm,False,batch query: VA,False
 Document,additional documents,request for additional information,0.8263,0.0,0.8263,,llm,False,batch query: additional documents,False
@@ -195,29 +197,30 @@ ContactPoint,1 - 800 - 325 - 0778,TTY : 800 - 829 - 4833,0.8212,0.0,0.8212,,reje
 Document,additional documents,Document Guide,0.8012,0.02,0.8212,,llm,False,batch query: additional documents,False
 Service|va,VA - backed home loan,VA Loan Funding Fee,0.8009,0.02,0.8209,,llm,False,batch query: VA - backed home loan,False
 ContactPoint,1 - 800 - 325 - 0778,Call us at 800 - 827 - 1000,0.8197,0.0,0.8197,,reject_value,,,False
-Role|va,Veterans,Veteran you care about,0.7992,0.02,0.8192,,llm,False,batch query: Veterans,False
+Role|va,Veterans,Veteran you care about,0.7992,0.02,0.8192,,llm,True,batch query: Veterans,True
 Requirement|dmv,Find your proofs,proof of identity,0.8191,0.0,0.8191,,llm,False,batch query: proof of identity,False
 ContactPoint,1 - 800 - 772 - 1213,TTY : 800 - 829 - 4833,0.8188,0.0,0.8188,,reject_value,,,False
 ContactPoint,518 - 486 - 6579,800 - 827 - 1000,0.8185,0.0,0.8185,,reject_value,,,False
 Role|dmv,Suffolk County,Westchester County,0.7685,0.05,0.8185,,llm,False,batch query: Suffolk County,False
 Document,certified copy of the title certificate,photocopy of the changed title certificate,0.8181,0.0,0.8181,,llm,False,batch query: certified copy of the title certificate,False
-Requirement|va,adopt a child,have a baby,0.7978,0.02,0.8178,,llm,False,batch query: adopt a child,False
-Organization,VA.gov,VA regional office,0.7959,0.02,0.8159,,llm,False,batch query: VA.gov,False
+Requirement|va,adopt a child,have a baby,0.7978,0.02,0.8178,,reject_generic,,,False
+Document,digital electronic NY State Insurance ID Card,NY State driver license,0.7964,0.02,0.8164,,llm,False,batch query: digital electronic NY State Insurance ID Card,False
+Organization,VA.gov,VA regional office,0.7959,0.02,0.8159,,llm,False,batch query: VA regional office,False
 Requirement|dmv,proof of ownership,Proof of sales tax payment,0.7954,0.02,0.8154,,llm,False,batch query: proof of ownership,False
-Service|va,VA home loan,Veterans Housing Assistance,0.7948,0.02,0.8148,,llm,False,batch query: VA home loan,False
-Organization,Social Security Administration,Veterans Benefits Administration,0.8141,0.0,0.8141,,llm,False,batch query: Veterans Benefits Administration,False
+Service|va,VA home loan,Veterans Housing Assistance,0.7948,0.02,0.8148,,reject_generic,,,False
+Organization,Social Security Administration,Veterans Benefits Administration,0.8141,0.0,0.8141,,llm,False,batch query: Social Security Administration,False
 TimeLimit,8:00am to 3:45pm,Monday through Friday,0.7639,0.05,0.8139,,reject_value,,,False
 ContactPoint,800 - 827 - 1000,877 - 424 - 3838,0.8138,0.0,0.8138,,reject_value,,,False
-Requirement|va,account number,bank's address,0.7634,0.05,0.8134,,llm,False,batch query: account number,False
+Requirement|va,account number,bank's address,0.7634,0.05,0.8134,,reject_generic,,,False
 Requirement|dmv,address change,changes to an IRP registration by phone,0.7631,0.05,0.8131,,llm,False,batch query: address change,False
 Requirement|dmv,proof of identity,Send photocopies of your proofs of identity.,0.7929,0.02,0.8129,,llm,True,batch query: proof of identity,True
 Service|va,Grants,Specially Adapted Housing grant,0.7921,0.02,0.8121,,llm,False,batch query: Specially Adapted Housing grant,False
 ContactPoint,1 - 518 - 473 - 5834,1 - 800 - 325 - 0778,0.8118,0.0,0.8118,,reject_value,,,False
 Service|va,change your address on file with VA,Change Your VA Direct Deposit Information,0.7918,0.02,0.8118,,llm,False,batch query: Change Your VA Direct Deposit Information,False
 Service|studentaid,another repayment plan,repayment period,0.7914,0.02,0.8114,,llm,False,batch query: another repayment plan,False
-Organization,VA.gov,Veterans Benefits Administration,0.8112,0.0,0.8112,,llm,False,batch query: VA.gov,False
+Organization,VA.gov,Veterans Benefits Administration,0.8112,0.0,0.8112,,reject_generic,,,False
 Requirement|va,bank's name,bank's routing number,0.7911,0.02,0.8111,,llm,False,batch query: bank's routing number,False
-Service|ssa,disability and SSI Reconsideration,Supplemental Security Income (SSI),0.791,0.02,0.811,,llm,False,batch query: Supplemental Security Income (SSI),False
+Service|ssa,disability and SSI Reconsideration,Supplemental Security Income (SSI),0.791,0.02,0.811,,reject_generic,,,False
 ContactPoint,1 - 800 - 772 - 1213,518 - 486 - 6579,0.8107,0.0,0.8107,,reject_value,,,False
 Service|va,VA - backed home loan,VA housing assistance,0.7896,0.02,0.8096,,llm,True,batch query: VA - backed home loan,True
 Role|dmv,Monroe County,Suffolk County,0.7594,0.05,0.8094,,llm,False,batch query: Suffolk County,False
@@ -225,11 +228,11 @@ Service|ssa,online retirement application,retirement benefit,0.7893,0.02,0.8093,
 ContactPoint,1 - 518 - 473 - 5834,800 - 827 - 1000,0.8087,0.0,0.8087,,reject_value,,,False
 TimeLimit,2 years,every two years,0.8087,0.0,0.8087,,reject_value,,,False
 Service|va,education benefits,pension benefits,0.7582,0.05,0.8082,,llm,False,batch query: education benefits,False
-Service|studentaid,Graduated Repayment Plan,Monthly Payments for Federal Education Loans Except Consolidation Loans,0.728,0.08,0.808,,llm,True,batch query: Monthly Payments for Federal Education Loans Except Consolidation Loans,True
+Service|studentaid,Graduated Repayment Plan,Monthly Payments for Federal Education Loans Except Consolidation Loans,0.728,0.08,0.808,,reject_generic,,,False
 Service|ssa,Hospital insurance Part A,Medicare supplementary medical insurance Part B,0.7879,0.02,0.8079,,llm,False,batch query: Hospital insurance Part A,False
 Role|dmv,Nassau County,Westchester County,0.7574,0.05,0.8074,,llm,False,batch query: Nassau County,False
-Service|va,VA Home Loan Benefits,Veterans Housing Assistance Grants,0.7874,0.02,0.8074,,llm,False,batch query: VA Home Loan Benefits,False
-Service|va,disability compensation and pension benefits,VA disability compensation,0.7864,0.02,0.8064,,llm,True,batch query: disability compensation and pension benefits,True
+Service|va,VA Home Loan Benefits,Veterans Housing Assistance Grants,0.7874,0.02,0.8074,,reject_generic,,,False
+Service|va,disability compensation and pension benefits,VA disability compensation,0.7864,0.02,0.8064,,llm,True,batch query: VA disability compensation,True
 Service|va,Specially Adapted Housing grant,Veterans Housing Assistance Grants,0.7861,0.02,0.8061,,llm,False,batch query: Veterans Housing Assistance Grants,False
 ContactPoint,518 - 486 - 6579,TTY : 800 - 829 - 4833,0.8059,0.0,0.8059,,reject_value,,,False
 Service|ssa,non - medical appeal online,Social Security s Appeals Council online,0.7856,0.02,0.8056,,llm,False,batch query: non - medical appeal online,False
@@ -237,22 +240,22 @@ Document,proofs,two proofs of new address,0.8048,0.0,0.8048,,llm,False,batch que
 Service|ssa,Check the Status of Your Reconsideration,reconsideration,0.7846,0.02,0.8046,,llm,False,batch query: Check the Status of Your Reconsideration,False
 Document,DTF-802,DTF-804,0.7842,0.02,0.8042,,llm,False,batch query: DTF-804,False
 Service|ssa,monthly Social Security benefits,retirement benefit,0.7838,0.02,0.8038,,llm,False,batch query: retirement benefit,False
-Document,FAFSA data,Student Aid Report,0.7835,0.02,0.8035,,llm,False,batch query: FAFSA data,False
+Document,FAFSA data,Student Aid Report,0.7835,0.02,0.8035,,reject_generic,,,False
 Service|ssa,Appeals Council review,Social Security s Appeals Council online,0.7834,0.02,0.8034,,llm,False,batch query: Social Security s Appeals Council online,False
 Service|ssa,Review by the Appeals Council,Social Security s Appeals Council online,0.7828,0.02,0.8028,,llm,False,batch query: Social Security s Appeals Council online,False
 Service|va,VA - backed mortgage,VA Loan Funding Fee,0.7827,0.02,0.8027,,llm,False,batch query: VA - backed mortgage,False
 Requirement|ssa,excess earnings,no limit on your earnings,0.7526,0.05,0.8026,,llm,False,batch query: excess earnings,False
-Role|va,Veteran or Servicemember,wartime Veteran,0.7826,0.02,0.8026,,llm,True,batch query: Veteran or Servicemember,False
-Service|studentaid,consolidation loans,Monthly Payments for Federal Education Loans Except Consolidation Loans,0.7826,0.02,0.8026,,llm,False,batch query: Monthly Payments for Federal Education Loans Except Consolidation Loans,False
+Role|va,Veteran or Servicemember,wartime Veteran,0.7826,0.02,0.8026,,llm,False,batch query: Veteran or Servicemember,False
+Service|studentaid,consolidation loans,Monthly Payments for Federal Education Loans Except Consolidation Loans,0.7826,0.02,0.8026,,llm,False,batch query: consolidation loans,False
 Service|va,VA direct home loan,VA Loan Funding Fee,0.7826,0.02,0.8026,,llm,False,batch query: VA direct home loan,False
-ContactPoint,Facebook,Instagram,0.7524,0.05,0.8024,,llm,False,batch query: Facebook,False
+ContactPoint,Facebook,Instagram,0.7524,0.05,0.8024,,reject_generic,,,False
 ContactPoint,877 - 424 - 3838,TTY : 800 - 829 - 4833,0.8022,0.0,0.8022,,reject_value,,,False
-ContactPoint,Facebook,Twitter,0.7514,0.05,0.8014,,llm,False,batch query: Facebook,False
-Service|studentaid,scholarships,"state, college, and nonprofit grants and scholarships",0.7814,0.02,0.8014,,llm,False,"batch query: state, college, and nonprofit grants and scholarships",False
+ContactPoint,Facebook,Twitter,0.7514,0.05,0.8014,,reject_generic,,,False
+Service|studentaid,scholarships,"state, college, and nonprofit grants and scholarships",0.7814,0.02,0.8014,,reject_generic,,,False
 ContactPoint,1 - 800 - 325 - 0778,518 - 486 - 6579,0.8013,0.0,0.8013,,reject_value,,,False
 Role|dmv,Onondaga County,Suffolk County,0.7513,0.05,0.8013,,llm,False,batch query: Suffolk County,False
-Requirement|va,account number,bank's name,0.7511,0.05,0.8011,,llm,False,batch query: account number,False
-Role|va,service members,Veterans,0.7207,0.08,0.8007,,llm,False,batch query: Veterans,False
+Requirement|va,account number,bank's name,0.7511,0.05,0.8011,,reject_generic,,,False
+Role|va,service members,Veterans,0.7207,0.08,0.8007,,reject_generic,,,False
 ContactPoint,1 - 518 - 473 - 5834,TTY : 800 - 829 - 4833,0.8004,0.0,0.8004,,reject_value,,,False
 Role|dmv,Monroe County,Onondaga County,0.7503,0.05,0.8003,,llm,False,batch query: Monroe County,False
 Service|ssa,monthly Social Security benefits,retirement or spouses benefits,0.7802,0.02,0.8002,,llm,False,batch query: monthly Social Security benefits,False

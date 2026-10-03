@@ -1,0 +1,140 @@
+{
+  "name": "v2.1",
+  "loadable_triples": 103,
+  "labelled": 52,
+  "correct": 33,
+  "precision_labelled": 0.6346153846153846,
+  "pooled_recall": 0.2627118644067797,
+  "pooled_size": 118,
+  "pooled_recall_approx": 0.3644067796610169,
+  "approx_recall_by_relation": {
+    "ALTERNATIVE_TO": [
+      2,
+      7
+    ],
+    "APPLIES_TO": [
+      8,
+      15
+    ],
+    "AVAILABLE_AT": [
+      3,
+      17
+    ],
+    "HAS_AMOUNT": [
+      0,
+      2
+    ],
+    "HAS_TIME_LIMIT": [
+      0,
+      2
+    ],
+    "LEADS_TO": [
+      4,
+      8
+    ],
+    "PART_OF": [
+      4,
+      6
+    ],
+    "PROVIDED_BY": [
+      4,
+      15
+    ],
+    "REQUIRES": [
+      18,
+      46
+    ]
+  },
+  "relations": {
+    "REQUIRES": 37,
+    "PART_OF": 9,
+    "ALTERNATIVE_TO": 4,
+    "LEADS_TO": 11,
+    "AVAILABLE_AT": 16,
+    "PROVIDED_BY": 7,
+    "HAS_TIME_LIMIT": 4,
+    "APPLIES_TO": 15
+  },
+  "recall_by_relation": {
+    "ALTERNATIVE_TO": [
+      1,
+      7
+    ],
+    "APPLIES_TO": [
+      11,
+      15
+    ],
+    "AVAILABLE_AT": [
+      1,
+      17
+    ],
+    "HAS_AMOUNT": [
+      0,
+      2
+    ],
+    "HAS_TIME_LIMIT": [
+      1,
+      2
+    ],
+    "LEADS_TO": [
+      4,
+      8
+    ],
+    "PART_OF": [
+      0,
+      6
+    ],
+    "PROVIDED_BY": [
+      1,
+      15
+    ],
+    "REQUIRES": [
+      12,
+      46
+    ]
+  },
+  "postfilter": [
+    {
+      "action": "drop_entity",
+      "reason": "staff_role",
+      "name": "VA social worker",
+      "type": "Role",
+      "section_id": "VA Housing Assistance | Veterans Affairs#1_0::8",
+      "known_label": ""
+    },
+    {
+      "action": "drop_entity",
+      "reason": "staff_role",
+      "name": "Women Veterans Program Manager",
+      "type": "Role",
+      "section_id": "VA Housing Assistance | Veterans Affairs#1_0::8",
+      "known_label": ""
+    },
+    {
+      "action": "drop_relation",
+      "reason": "endpoint_removed",
+      "source": "programs and services that may help",
+      "relation": "PROVIDED_BY",
+      "target": "VA social worker",
+      "section_id": "VA Housing Assistance | Veterans Affairs#1_0::8",
+      "known_label": ""
+    },
+    {
+      "action": "drop_entity",
+      "reason": "opening_hours",
+      "name": "24 hours a day , 7 days a week",
+      "type": "TimeLimit",
+      "section_id": "VA Housing Assistance | Veterans Affairs#1_0::49",
+      "known_label": ""
+    },
+    {
+      "action": "drop_relation",
+      "reason": "endpoint_removed",
+      "source": "National Call Center for Homeless Veterans",
+      "relation": "HAS_TIME_LIMIT",
+      "target": "24 hours a day , 7 days a week",
+      "section_id": "VA Housing Assistance | Veterans Affairs#1_0::49",
+      "known_label": "incorrect"
+    }
+  ]
+}

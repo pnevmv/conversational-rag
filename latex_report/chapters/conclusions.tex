@@ -64,7 +64,13 @@ identical settings share fewer than half of their triples, and no sampling param
 the deployment accepts improves this. Second, embedding similarity cannot decide
 entity merges on its own: even above a cosine of 0.95, about half of the candidate
 pairs are distinct entities that differ in one qualifier, so merges require rules or
-\gls{llm} confirmation, protected against chained merges.
+\gls{llm} confirmation, protected against chained merges. A pilot annotation of 140
+triples, drafted by an \gls{llm} and reviewed by the author, puts single-run precision at 46\% and recall at 66\%; precision rises to
+67\% for the triples that two independent runs agree on; entity merges are correct in 70\% of the reviewed
+clusters, and in all those made by rules. A revised prompt raises precision to 54\%
+at unchanged pooled recall and finds the alternatives the first version missed, but
+only agreement between two runs reaches about 70\% precision, at the cost of a third
+of the facts.
 
 
 % ===========================================================================
@@ -77,9 +83,11 @@ interpreted with caution. The five base pipelines were evaluated on the full
 split, but the ablation configurations were not; their effects should be
 re-checked at full scale before being treated as conclusive.
 
-The \gls{kg} chapter reports the pipeline and its quality checks on eight pilot
-documents; the full-corpus extraction and the manual precision and recall
-annotation are not yet complete.
+The \gls{kg} chapter reports the pipeline, its quality checks and a first precision
+and recall annotation on eight pilot documents; the full-corpus extraction is not yet
+complete. The precision and recall estimates are pilot v1 numbers resting on three
+documents (140 extracted and 33 missed triples), with labels drafted by an \gls{llm}
+and reviewed by the author, and do not measure the quality of the final graph.
 
 Token \fone{} is the sole generation metric reported. As noted in
 Chapter~\ref{ch:rag}, reference answers are verbatim extracts from the source
@@ -107,7 +115,7 @@ tuple on a three-point scale (correct / partially correct / incorrect) and
 report agreement with human judgements as a calibration measure.
 
 \textbf{Knowledge graph completion and retrieval.} The immediate next steps are the
-manual annotation of the pilot extraction, the full extraction over the corpus
+revisions suggested by the pilot evaluation, the full extraction over the corpus
 (possibly aggregating several runs, given the measured instability), and entity
 resolution over the extracted mentions (Chapter~\ref{ch:kg}). A hybrid pipeline that combines flat-document retrieval with graph-query
 traversal (\emph{Graph~\gls{rag}}) could surface multi-hop relational evidence

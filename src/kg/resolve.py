@@ -2,10 +2,16 @@
 
 Pipeline:
   1. Type conflicts: mentions sharing a normalised name but extracted with different
-     types get the majority type over all mentions (ties: ENTITY_TYPES order).
+     types get the majority type over all mentions. A tie goes to the tied type under
+     which the most of the mentions' relations satisfy the type rules, then to the
+     fixed TYPE_PRIORITY order.
   2. Blocking by type. Service, Requirement, Role and Outcome are compared only within
      the same domain; Organization, Document, ContactPoint, Amount and TimeLimit also
-     across domains.
+     across domains, except Amounts and TimeLimits without a stated value.
+     Hub guard: a name made only of generic words ("application", "other documents",
+     "requirements listed below", "fee", "benefits") is not resolved at all: it stays an
+     entity of its own section. In the first full build such names became hubs that
+     connected unrelated services across documents and domains.
   3. Mentions with the same normalised name in a block form one name group (merged).
   4. Candidate pairs of name groups:
        - rules, merged automatically: alias (an alias or parenthetical abbreviation of
@@ -19,6 +25,13 @@ Pipeline:
      between an LLM confirms (temperature 0, strict JSON, cached). Only each name
      group's TOP_K nearest neighbours enter the LLM band, so the number of LLM calls
      grows linearly with the corpus rather than quadratically.
+  5b. Generic vs specific: two names never merge (without a rule match) when they share no
+     content word ("proof of identity" / "NY State driver license": a category and one of its
+     instances), or when one name is a coordination of the other with something else
+     ("disability compensation" / "disability compensation and pension benefits"). These
+     pairs are rejected without an LLM call. A broader rule (any name whose words are a
+     subset of another's) was rejected: on the labelled pilot clusters it split 15 of 33
+     correct merges ("loans" / "student loans", "DMV office" / "local DMV office").
   6. Constrained clustering: accepted pairs are merged (rules first, then by score)
      unless the two clusters contain a cannot-link pair, i.e. a pair the LLM rejected or
      two Amount / TimeLimit / ContactPoint groups with different values. This stops
@@ -48,10 +61,11 @@ from typing import Any, Dict, Iterable, List, Optional, Set, Tuple
 
 import numpy as np
 
-from src.kg.extract import ExtractionCache, _call_llm
+from src.kg import extract as extract_module
+from src.kg.extract import ContentFilterError, ExtractionCache, _call_llm
 from src.kg.extract_closed import loadable_relations
 from src.kg.pilot2_stats import normalized_key
-from src.kg.schema import ENTITY_TYPES
+from src.kg.schema import is_valid_triple
 from src.llm.client import LLMClient
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
@@ -61,6 +75,9 @@ DEFAULT_CACHE_DIR = PROJECT_ROOT / "experiments" / "cache" / "kg_er"
 EMBED_MODEL = "BAAI/bge-small-en-v1.5"
 
 CROSS_DOMAIN_TYPES = {"Organization", "Document", "ContactPoint", "Amount", "TimeLimit"}
+# Last-resort tie-break for type conflicts (after majority vote and relation fit).
+TYPE_PRIORITY = ["Document", "Organization", "Service", "Requirement", "Role", "Outcome", "Amount",
+                 "TimeLimit", "ContactPoint"]
 
 # Score bands, chosen from the pilot calibration (experiments/kg/er_calibration.json):
 # below 0.75 the LLM judged 1 of 100 sampled pairs the same entity; above it the rate never
@@ -87,6 +104,11 @@ _ACRONYM_STOP = {"of", "and", "the", "for", "on", "in", "to", "a", "an", "&"}
 # the model sometimes fills `alias` with a category label ("Sales Tax Form").
 _ABBREVIATION = re.compile(r"^[A-Z][A-Za-z0-9&./\-]{1,9}$")
 VALUE_TYPES = {"Amount", "TimeLimit", "ContactPoint"}
+# Generic-vs-specific rule: words that carry no identity of their own.
+_GENERIC_STOP = {"of", "the", "a", "an", "and", "or", "for", "to", "in", "on", "by", "with", "your", "you",
+                 "my", "our", "their", "his", "her", "this", "that", "these", "those", "another", "other",
+                 "any", "some", "all", "each", "s"}
+_COORDINATORS = {"and", "or"}
 _PAREN = re.compile(r"\(([^)]+)\)")
 _FORM_CODES = [
     re.compile(r"\b([A-Z]{1,5})[ -]?(\d{1,4}[A-Z]?)\b"),        # IRP-6, MV-232, DTF-803, DD214
@@ -171,6 +193,12 @@ def load_mentions(paths: Iterable[Path]) -> List[Dict[str, Any]]:
             for rel in loadable_relations(r):
                 neighbours[rel["source"].casefold()].add(key_of(rel["target"]))
                 neighbours[rel["target"].casefold()].add(key_of(rel["source"]))
+            # All extracted relations (valid or not), for choosing among tied types:
+            # (relation, this mention is the source?, the other endpoint's extracted type).
+            rel_roles: Dict[str, List[Tuple[str, bool, str]]] = defaultdict(list)
+            for rel in r["relations"]:
+                rel_roles[rel["source"].casefold()].append((rel["relation"], True, rel["target_type"]))
+                rel_roles[rel["target"].casefold()].append((rel["relation"], False, rel["source_type"]))
             for i, e in enumerate(r["entities"]):
                 mentions.append({
                     "mention_id": f"{r['section_id']}#{i}",
@@ -178,13 +206,38 @@ def load_mentions(paths: Iterable[Path]) -> List[Dict[str, Any]]:
                     "title": r["title"], "name": e["name"], "alias": e.get("alias"), "value": e.get("value"),
                     "extracted_type": e["type"], "type": e["type"], "evidence": e["evidence"],
                     "neighbours": sorted(neighbours[e["name"].casefold()]),
+                    "relations": rel_roles[e["name"].casefold()],
                 })
     return mentions
 
 
+def relation_fit(type_: str, mentions: List[Dict[str, Any]]) -> int:
+    """Number of the mentions' relations that satisfy the type rules if they had `type_`."""
+    fit = 0
+    for m in mentions:
+        for relation, is_source, other in m.get("relations", []):
+            src, dst = (type_, other) if is_source else (other, type_)
+            fit += is_valid_triple(relation, src, dst)
+    return fit
+
+
+def choose_type(mentions: List[Dict[str, Any]]) -> Tuple[str, str]:
+    """(type, reason): majority vote; ties -> best relation fit; then TYPE_PRIORITY."""
+    votes = Counter(m["extracted_type"] for m in mentions)
+    top = max(votes.values())
+    tied = [t for t, n in votes.items() if n == top]
+    if len(tied) == 1:
+        return tied[0], "majority"
+    fits = {t: relation_fit(t, mentions) for t in tied}
+    best = max(fits.values())
+    tied = [t for t in tied if fits[t] == best]
+    if len(tied) == 1:
+        return tied[0], "relation_fit"
+    return min(tied, key=TYPE_PRIORITY.index), "priority"
+
+
 def resolve_types(mentions: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    """Majority vote of the type over mentions sharing a normalised name; returns the conflicts."""
-    order = {t: i for i, t in enumerate(ENTITY_TYPES)}
+    """Resolve type conflicts among mentions sharing a normalised name; returns the conflicts."""
     by_key: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
     for m in mentions:
         by_key[key_of(m["name"])].append(m)
@@ -193,15 +246,31 @@ def resolve_types(mentions: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         votes = Counter(m["extracted_type"] for m in ms)
         if len(votes) < 2:
             continue
-        winner = sorted(votes.items(), key=lambda kv: (-kv[1], order[kv[0]]))[0][0]
+        winner, reason = choose_type(ms)
         for m in ms:
             m["type"] = winner
-        conflicts.append({"name": key, "votes": dict(votes), "resolved_type": winner})
+        conflicts.append({"name": key, "votes": dict(votes), "resolved_type": winner, "rule": reason})
     return conflicts
 
 
+# Words that do not identify anything on their own (after normalisation, so singular forms).
+GENERIC_WORDS = {
+    "application", "form", "document", "paperwork", "information", "info", "detail", "item", "material",
+    "requirement", "condition", "listed", "below", "above", "following", "more", "other", "additional",
+    "required", "necessary", "certain", "fee", "amount", "payment", "cost", "charge", "service", "program",
+    "benefit", "option", "step", "instruction", "proof", "record", "thing", "case", "request", "process",
+}
+
+
+def is_generic_name(name: str) -> bool:
+    """True if the name has no content word outside GENERIC_WORDS (e.g. 'other documents')."""
+    words = _content_words(key_of(name))
+    return not words or words <= GENERIC_WORDS
+
+
 def block_of(m: Dict[str, Any]) -> str:
-    return m["type"] if m["type"] in CROSS_DOMAIN_TYPES else f"{m['type']}|{m['domain']}"
+    cross = m["type"] in CROSS_DOMAIN_TYPES and not (m["type"] in ("Amount", "TimeLimit") and not m.get("value"))
+    return m["type"] if cross else f"{m['type']}|{m['domain']}"
 
 
 # --- name groups ------------------------------------------------------------------------
@@ -209,9 +278,11 @@ def block_of(m: Dict[str, Any]) -> str:
 def build_groups(mentions: List[Dict[str, Any]]) -> Dict[str, Dict[str, Any]]:
     groups: Dict[str, Dict[str, Any]] = {}
     for m in mentions:
-        gid = f"{block_of(m)}::{key_of(m['name'])}"
+        generic = is_generic_name(m["name"])
+        # Generic names stay section-local: their own group per section, never a merge candidate.
+        gid = f"{block_of(m)}::{key_of(m['name'])}" + (f"::@{m['section_id']}" if generic else "")
         g = groups.setdefault(gid, {
-            "gid": gid, "block": block_of(m), "type": m["type"], "key": key_of(m["name"]),
+            "gid": gid, "block": block_of(m), "type": m["type"], "key": key_of(m["name"]), "generic": generic,
             "names": Counter(), "aliases": set(), "mention_ids": [], "sections": set(), "docs": set(),
             "domains": set(), "titles": set(), "neighbours": set(), "evidence": [], "values": set(),
         })
@@ -241,6 +312,23 @@ def build_groups(mentions: List[Dict[str, Any]]) -> Dict[str, Dict[str, Any]]:
 def value_conflict(a: Dict[str, Any], b: Dict[str, Any]) -> bool:
     """Two value-typed groups whose stated values are disjoint cannot be the same entity."""
     return a["type"] in VALUE_TYPES and bool(a["values"]) and bool(b["values"]) and not (a["values"] & b["values"])
+
+
+def _content_words(key: str) -> Set[str]:
+    return {w for w in key.split() if w not in _GENERIC_STOP}
+
+
+def generic_specific_conflict(a: Dict[str, Any], b: Dict[str, Any]) -> Optional[str]:
+    """'disjoint' or 'coordination' if the two name groups must not merge, else None."""
+    wa, wb = _content_words(a["key"]), _content_words(b["key"])
+    if not wa or not wb:
+        return None
+    if not wa & wb:
+        return "disjoint"
+    for (small, _), (big, big_key) in (((wa, a), (wb, b["key"])), ((wb, b), (wa, a["key"]))):
+        if small < big and _COORDINATORS & set(big_key.split()):
+            return "coordination"
+    return None
 
 
 def _acronym(key: str) -> Optional[str]:
@@ -275,6 +363,78 @@ def graph_bonus(a: Dict[str, Any], b: Dict[str, Any]) -> float:
     return bonus + min(MAX_NEIGHBOUR_BONUS, SHARED_NEIGHBOUR_BONUS * shared)
 
 
+# Blocks larger than this use the scalable candidate generation (_block_candidates_fast); smaller
+# ones (all pilot blocks) keep the exhaustive pairwise loop, so pilot results are unchanged.
+FAST_BLOCK_SIZE = 500
+MAX_BONUS = SAME_DOC_BONUS + MAX_NEIGHBOUR_BONUS
+NEIGHBOURS_PER_NAME = 4 * TOP_K
+
+
+def _rule_candidate_pairs(gs: List[Dict[str, Any]]) -> Set[Tuple[int, int]]:
+    """Index-based candidates for the alias, acronym and form-number rules (no O(n^2) loop)."""
+    by_key: Dict[str, Set[int]] = defaultdict(set)
+    for i, g in enumerate(gs):
+        by_key[g["key"]].add(i)
+        by_key[g["key"].replace(" ", "")].add(i)
+        for a in g["aliases"]:
+            by_key[a].add(i)
+        acr = _acronym(g["key"])
+        if acr and len(acr) >= 2:
+            by_key[acr].add(i)
+        if g["type"] == "Document":
+            for code in _form_codes(g):
+                by_key[f"form:{code}"].add(i)
+    pairs: Set[Tuple[int, int]] = set()
+    for members in by_key.values():
+        if 1 < len(members) <= 50:  # very common keys carry no identity
+            ms = sorted(members)
+            pairs.update((ms[x], ms[y]) for x in range(len(ms)) for y in range(x + 1, len(ms)))
+    return pairs
+
+
+def _block_candidates_fast(block: str, gs: List[Dict[str, Any]], emb: "np.ndarray", min_score: float
+                           ) -> Dict[Tuple[int, int], Dict[str, Any]]:
+    """Each name's NEIGHBOURS_PER_NAME nearest names above (min_score - MAX_BONUS), plus rule pairs."""
+    n = len(gs)
+    cand: Set[Tuple[int, int]] = set()
+    for start in range(0, n, 1024):
+        sims = emb[start:start + 1024] @ emb.T
+        for row, i in enumerate(range(start, min(start + 1024, n))):
+            sims[row, i] = -1.0
+            k = min(NEIGHBOURS_PER_NAME, n - 1)
+            top = np.argpartition(-sims[row], k)[:k]
+            for j in top:
+                if sims[row, j] >= min_score - MAX_BONUS:
+                    cand.add((min(i, j), max(i, j)))
+    cand |= _rule_candidate_pairs(gs)
+    scored = {}
+    for i, j in cand:
+        a, b = gs[i], gs[j]
+        rule = rule_match(a, b)
+        cos = float(emb[i] @ emb[j])
+        score = min(1.0, cos + graph_bonus(a, b))
+        if rule or score >= min_score:
+            scored[(i, j)] = {"block": block, "a": a["gid"], "b": b["gid"], "cosine": round(cos, 4),
+                              "bonus": round(score - cos, 4), "score": round(score, 4), "rule": rule}
+    return scored
+
+
+def _exhaustive_block(block: str, gs: List[Dict[str, Any]], emb: "np.ndarray", min_score: float
+                      ) -> Dict[Tuple[int, int], Dict[str, Any]]:
+    sims = emb @ emb.T
+    scored = {}
+    for i in range(len(gs)):
+        for j in range(i + 1, len(gs)):
+            a, b = gs[i], gs[j]
+            rule = rule_match(a, b)
+            cos = float(sims[i, j])
+            score = min(1.0, cos + graph_bonus(a, b))
+            if rule or score >= min_score:
+                scored[(i, j)] = {"block": block, "a": a["gid"], "b": b["gid"], "cosine": round(cos, 4),
+                                  "bonus": round(score - cos, 4), "score": round(score, 4), "rule": rule}
+    return scored
+
+
 def candidate_pairs(groups: Dict[str, Dict[str, Any]], min_score: float,
                     top_k: Optional[int] = None) -> List[Dict[str, Any]]:
     """Within-block pairs that match a rule, or score >= min_score (and, if top_k is set,
@@ -284,25 +444,20 @@ def candidate_pairs(groups: Dict[str, Dict[str, Any]], min_score: float,
     model = SentenceTransformer(EMBED_MODEL)
     by_block: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
     for g in groups.values():
-        by_block[g["block"]].append(g)
+        if not g.get("generic"):
+            by_block[g["block"]].append(g)
 
     pairs = []
     for block, gs in sorted(by_block.items()):
         if len(gs) < 2:
             continue
         gs.sort(key=lambda g: g["gid"])
-        emb = model.encode([g["names"].most_common(1)[0][0] for g in gs], normalize_embeddings=True)
-        sims = emb @ emb.T
-        scored = {}
-        for i in range(len(gs)):
-            for j in range(i + 1, len(gs)):
-                a, b = gs[i], gs[j]
-                rule = rule_match(a, b)
-                cos = float(sims[i, j])
-                score = min(1.0, cos + graph_bonus(a, b))
-                if rule or score >= min_score:
-                    scored[(i, j)] = {"block": block, "a": a["gid"], "b": b["gid"], "cosine": round(cos, 4),
-                                      "bonus": round(score - cos, 4), "score": round(score, 4), "rule": rule}
+        emb = model.encode([g["names"].most_common(1)[0][0] for g in gs], normalize_embeddings=True,
+                           batch_size=256)
+        if len(gs) > FAST_BLOCK_SIZE:
+            scored = _block_candidates_fast(block, gs, emb, min_score)
+        else:
+            scored = _exhaustive_block(block, gs, emb, min_score)
         if top_k is not None:
             keep = {k for k, p in scored.items() if p["rule"]}
             partners: Dict[int, List[Tuple[float, Tuple[int, int]]]] = defaultdict(list)
@@ -340,7 +495,10 @@ def judge(pair: Dict[str, Any], groups: Dict[str, Dict[str, Any]], client: LLMCl
     key = f"{pair['a']}||{pair['b']}"
     raw = cache.get(key, prompt_hash)
     if raw is None:
-        raw = _call_llm(client, prompt, 5, schema=JUDGE_SCHEMA, schema_name="kg_entity_match")
+        try:
+            raw = _call_llm(client, prompt, 5, schema=JUDGE_SCHEMA, schema_name="kg_entity_match")
+        except ContentFilterError:
+            raw = json.dumps({"same": False, "reason": "content filter blocked the request"})
         cache.put(key, prompt_hash, raw)
     return json.loads(raw)
 
@@ -377,7 +535,11 @@ def judge_batch(query: str, candidates: List[str], groups: Dict[str, Dict[str, A
     key = f"batch::{query}||{'|'.join(candidates)}"
     raw = cache.get(key, prompt_hash)
     if raw is None:
-        raw = _call_llm(client, prompt, 5, schema=BATCH_SCHEMA, schema_name="kg_entity_match_batch")
+        try:
+            raw = _call_llm(client, prompt, 5, schema=BATCH_SCHEMA, schema_name="kg_entity_match_batch")
+        except ContentFilterError:
+            # A content-filter false positive: no decision, so nothing is merged (like a rejection).
+            raw = json.dumps({"decisions": [], "content_filter": True})
         cache.put(key, prompt_hash, raw)
     decisions = json.loads(raw)["decisions"]
     return {candidates[d["candidate"] - 1] for d in decisions
@@ -421,6 +583,8 @@ def decide(pair: Dict[str, Any], upper: float, lower: float) -> str:
         return "auto_rule"
     if pair.get("value_conflict"):
         return "reject_value"
+    if pair.get("generic_conflict"):
+        return "reject_generic"
     if pair["score"] >= upper:
         return "auto_score"
     if pair["score"] < lower:
@@ -504,6 +668,7 @@ def run(paths: List[Path], workers: int, upper: float, lower: float, top_k: Opti
     pairs = candidate_pairs(groups, lower, top_k)
     for p in pairs:
         p["value_conflict"] = value_conflict(groups[p["a"]], groups[p["b"]])
+        p["generic_conflict"] = generic_specific_conflict(groups[p["a"]], groups[p["b"]])
         p["band"] = decide(p, upper, lower)
     middle = [p for p in pairs if p["band"] == "llm"]
     if batched:
@@ -512,8 +677,10 @@ def run(paths: List[Path], workers: int, upper: float, lower: float, top_k: Opti
         judge_all(middle, groups, workers)
         llm_calls = len(middle)
     accepted = [p for p in pairs if p["band"] in ("auto_rule", "auto_score") or p.get("llm_same")]
+    for p in accepted:
+        p["accepted"] = True
     cannot_link = {frozenset((p["a"], p["b"])) for p in pairs
-                   if p["band"] == "reject_value" or (p["band"] == "llm" and not p["llm_same"])}
+                   if p["band"] in ("reject_value", "reject_generic") or (p["band"] == "llm" and not p["llm_same"])}
     root, blocked = cluster(groups, accepted, cannot_link)
     for p in blocked:
         p["blocked"] = True
@@ -569,7 +736,7 @@ def run(paths: List[Path], workers: int, upper: float, lower: float, top_k: Opti
             w.writerow([p["block"], groups[p["a"]]["names"].most_common(1)[0][0],
                         groups[p["b"]]["names"].most_common(1)[0][0], p["cosine"], p["bonus"], p["score"],
                         p["rule"] or "", p["band"], p.get("llm_same", ""), p.get("llm_reason", ""),
-                        p in accepted and not p.get("blocked")])
+                        bool(p.get("accepted")) and not p.get("blocked")])
 
     bands = Counter(p["band"] for p in pairs)
     summary = {
@@ -654,9 +821,11 @@ def main() -> None:
     parser.add_argument("--top-k", type=int, default=TOP_K, help="0 = all pairs above the lower threshold")
     parser.add_argument("--pairwise", action="store_true", help="one LLM call per pair (calibration judge)")
     parser.add_argument("--prefix", default=None, help="output file prefix in experiments/kg/")
+    parser.add_argument("--usage-log", type=Path, default=None, help="append per-call token usage (JSONL)")
     parser.add_argument("--scale", type=float, default=3194 / 63,
                         help="estimate: corpus units / pilot units (3,194 / 63)")
     args = parser.parse_args()
+    extract_module.USAGE_LOG = args.usage_log
     if args.command == "calibrate":
         calibrate(args.input, args.workers)
     elif args.command == "estimate":
