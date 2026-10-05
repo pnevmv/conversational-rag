@@ -1,8 +1,8 @@
-# Conversational RAG and Knowledge Graphs - M.Sc. Thesis
+# Conversational RAG and Knowledge Graphs
 
-This repository contains the code, experiments and thesis for my M.Sc. thesis on conversational question answering over document collections, starting from Retrieval-Augmented Generation (RAG) and moving towards Knowledge Graphs (KGs), Graph RAG and agent-based approaches.
+This repository contains the code, experiments and write-up of my research project on conversational question answering over document collections, starting from Retrieval-Augmented Generation (RAG) and moving towards Knowledge Graphs (KGs), Graph RAG and agent-based approaches.
 
-The thesis is part of the
+The work is carried out within the
 
 * [Master Degree in Computer Engineering](https://degrees.dei.unipd.it/master-degrees/computer-engineering/) of the [Department of Information Engineering](https://www.dei.unipd.it/en/), [University of Padua](https://www.unipd.it/en/), Italy.
 
@@ -19,7 +19,7 @@ The repository is organised as follows:
 
 * `src`: the source code. `llm` is the Azure OpenAI client with a parallel runner and a disk cache, `data` the MultiDoc2Dial loader, `evaluation` the metrics, `rag` the retrievers, query rewriter and reranker, `kg` the knowledge graph construction (schema, extraction, entity resolution, Neo4j loaders) and `kg_rag` the retrieval over the graph.
 * `experiments`: the scripts that run the pipelines and evaluate them, plus the reports of the KG work in `experiments/kg` and `experiments/kg_rag`.
-* `latex_report`: the thesis (LuaLaTeX, unipd-thesis-modern template).
+* `latex_report`: the written report of the research (LuaLaTeX, unipd-thesis-modern template).
 * `tests`: unit and regression tests.
 * `data`: the dataset (not tracked), the ids of the fixed dev-500 subset and the dense index cache.
 
