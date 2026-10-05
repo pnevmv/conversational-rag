@@ -157,11 +157,16 @@ def cmd_run(args) -> None:
             for r in rows:
                 fh.write(json.dumps(r, ensure_ascii=False) + "\n")
         s = summarise(rows)
+        if not s["n_scored"]:
+            errors = Counter((r.get("error") or "")[:120] for r in rows if r["score"] is None)
+            print(f"{f.stem:28} no verdicts ({s['n_failed']} failed): {errors.most_common(1)[0][0]}")
+            continue
         print(f"{f.stem:28} judge {s['all']['score']['mean']*100:5.1f}  correct {s['all']['correct']*100:5.1f}%  "
               f"F1 {s['all']['f1']*100:5.1f}  ({s['n_judge_calls']} judge calls, {s['n_failed']} failed)")
 
     summary = {"model": client.model, "run_id": args.run_id, "limit": args.limit,
-               "files": {k: summarise(v) for k, v in all_rows.items()}, "paired_vs_baseline": {}}
+               "files": {k: summarise(v) for k, v in all_rows.items() if summarise(v)["n_scored"]},
+               "paired_vs_baseline": {}}
     if BASELINE in all_rows:
         base = {r["example_id"]: r for r in all_rows[BASELINE]}
         for name, rows in all_rows.items():

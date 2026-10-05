@@ -6,7 +6,8 @@ answer is supported by the gold section. Abstentions are scored by rule, without
 an abstention is correct on an unanswerable turn and incorrect otherwise, and any real
 answer to an unanswerable turn is incorrect.
 
-Settings in .env: HF_TOKEN, optionally JUDGE_MODEL and JUDGE_BASE_URL.
+Settings in .env: HF_TOKEN, optionally JUDGE_MODEL and JUDGE_BASE_URL (any OpenAI-compatible
+server, e.g. a local Ollama at http://localhost:11434/v1).
 """
 import json
 import os
@@ -58,12 +59,15 @@ class JudgeClient:
 
     def __init__(self, model: Optional[str] = None, api_key: Optional[str] = None,
                  base_url: Optional[str] = None):
-        api_key = api_key or os.getenv("HF_TOKEN")
+        base_url = base_url or os.getenv("JUDGE_BASE_URL") or DEFAULT_BASE_URL
+        # A local server (e.g. Ollama) accepts any key; the Hugging Face router needs HF_TOKEN.
+        api_key = api_key or os.getenv("JUDGE_API_KEY") or os.getenv("HF_TOKEN")
         if not api_key:
-            raise ValueError("HF_TOKEN not set. Add your Hugging Face token to .env.")
+            if base_url == DEFAULT_BASE_URL:
+                raise ValueError("HF_TOKEN not set. Add your Hugging Face token to .env.")
+            api_key = "none"
         self.model = model or os.getenv("JUDGE_MODEL") or DEFAULT_MODEL
-        self.client = OpenAI(base_url=base_url or os.getenv("JUDGE_BASE_URL") or DEFAULT_BASE_URL,
-                             api_key=api_key, timeout=float(os.getenv("LLM_TIMEOUT", "120")))
+        self.client = OpenAI(base_url=base_url, api_key=api_key, timeout=float(os.getenv("LLM_TIMEOUT", "120")))
 
     def generate(self, prompt: str) -> str:
         try:
