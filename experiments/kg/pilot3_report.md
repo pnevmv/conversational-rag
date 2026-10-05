@@ -1,6 +1,6 @@
 # Step 5: checks before the full extraction run (pilot 3 and 4)
 
-Model: `gpt-5.4-nano-smirnov`, temperature 0, strict JSON schema. Same 8 pilot documents as pilot 2.
+Model: `gpt-5.4-nano`, temperature 0, strict JSON schema. Same 8 pilot documents as pilot 2.
 
 This report collects the changes made after pilot 2 and the checks I ran before the full extraction: prompt regression tests, run-to-run stability, the annotation sheets and entity resolution. Sections 8-10 are follow-ups: what the deployment allows for sampling, a cheaper batched judge for entity resolution, and a rule for ContactPoint values. At this point nothing extracted by the LLM had been written to Neo4j yet.
 

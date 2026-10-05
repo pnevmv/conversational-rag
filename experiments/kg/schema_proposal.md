@@ -1,6 +1,6 @@
 # Step 5: KG schema proposal from an open-extraction pilot
 
-Model: `gpt-5.4-nano-smirnov` (Azure OpenAI), temperature 0, strict JSON schema output.
+Model: `gpt-5.4-nano` (Azure OpenAI), temperature 0, strict JSON schema output.
 
 This is the first part of the KG work: the structural layer in Neo4j, a small open extraction on 32 sections, and the closed schema I proposed for the full extraction based on it. Nothing extracted by the LLM was written to Neo4j at this stage.
 

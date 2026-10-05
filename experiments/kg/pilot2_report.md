@@ -1,6 +1,6 @@
 # Step 5: closed-schema pilot on whole documents (pilot 2)
 
-Model: `gpt-5.4-nano-smirnov`, temperature 0, strict JSON schema.
+Model: `gpt-5.4-nano`, temperature 0, strict JSON schema.
 
 This pilot applies the schema agreed in `schema_proposal.md` to every section of 8 whole documents. It measures extraction quality and how often entities repeat across sections, which is needed to plan entity resolution. Nothing extracted by the LLM was written to Neo4j at this stage.
 

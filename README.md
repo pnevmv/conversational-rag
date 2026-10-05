@@ -40,7 +40,7 @@ Raw model outputs (`*.jsonl`) and LLM caches are not tracked; they can be regene
 | 9 | Evaluation and comparison | planned |
 | 10 | Error analysis and write-up | planned |
 
-All LLM calls use an Azure OpenAI deployment (`gpt-5.4-nano-smirnov`).
+All LLM calls use an Azure OpenAI deployment of `gpt-5.4-nano`; set the deployment name in `LLM_MODEL`.
 
 ### Steps 3-4: LLM baseline and RAG
 
@@ -133,7 +133,7 @@ Then set in `.env`:
 ```env
 AZURE_OPENAI_API_KEY=<your key>
 AZURE_OPENAI_BASE_URL=https://<your resource>.services.ai.azure.com/openai/v1
-LLM_MODEL=gpt-5.4-nano-smirnov
+LLM_MODEL=gpt-5.4-nano
 ```
 
 ### 4. Run the pipelines

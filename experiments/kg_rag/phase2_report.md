@@ -1,6 +1,6 @@
 # Step 6, phase 2: graph retrievers and QA on dev-500
 
-This report compares several ways of using the knowledge graph for retrieval with the best Step 4 pipeline (hybrid retrieval + query rewriting + reranking, agent-style prompt). Everything else is kept the same as in Step 4: dev-500, the generator (`gpt-5.4-nano-smirnov`), the prompt and its few-shot examples, the raw user turn as the question in the prompt, five sections of context, and the evaluator in `experiments/evaluate_diagnostics.py`. The Step 4 baseline was regenerated from the cache (934 hits, no misses) and gives exactly the same numbers as before (F1 28.0, R@5 67.4).
+This report compares several ways of using the knowledge graph for retrieval with the best Step 4 pipeline (hybrid retrieval + query rewriting + reranking, agent-style prompt). Everything else is kept the same as in Step 4: dev-500, the generator (`gpt-5.4-nano`), the prompt and its few-shot examples, the raw user turn as the question in the prompt, five sections of context, and the evaluator in `experiments/evaluate_diagnostics.py`. The Step 4 baseline was regenerated from the cache (934 hits, no misses) and gives exactly the same numbers as before (F1 28.0, R@5 67.4).
 
 Code is in `src/kg_rag/` (`retrievers.py`, `run_qa.py`, `eval_qa.py`). To reproduce:
 

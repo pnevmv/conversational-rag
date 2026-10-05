@@ -1,6 +1,6 @@
 # Step 5: full KG build (prompt v2.1, single run)
 
-Model: `gpt-5.4-nano-smirnov` (Azure), reasoning effort none, temperature 0. Neo4j scope `full`, run id `full_v21`. The `pilot` scope is still in the database next to it.
+Model: `gpt-5.4-nano` (Azure), reasoning effort none, temperature 0. Neo4j scope `full`, run id `full_v21`. The `pilot` scope is still in the database next to it.
 
 The whole corpus was extracted once with prompt v2.1, entities were resolved with the batched judge (generic-vs-specific rule, lower threshold 0.80) and both layers were loaded into Neo4j. After the first build, generic names like "application" or "fee" turned out to be hubs, so a hub guard was added to entity resolution and the graph was rebuilt from the cache (section 6). The numbers below are for the final graph unless stated otherwise: 14,731 entities and 13,277 entity relations.
 
