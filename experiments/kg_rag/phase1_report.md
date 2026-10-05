@@ -35,9 +35,9 @@ Default linker: RRF, domain filter, hub skip.
 
 | Query | R@1 | R@5 | R@10 | Chance R@10 | Fan-out@10 (median) |
 | :--- | :---: | :---: | :---: | :---: | :---: |
-| raw | 24.2 [20.7, 28.1] | 41.2 [37.0, 45.6] | 47.4 [43.1, 51.8] | 3.6 | 20 |
-| rewritten | 29.6 [25.8, 33.7] | 52.2 [47.8, 56.5] | 62.0 [57.7, 66.1] | 5.1 | 22 |
-| rewritten + agent | 24.8 [21.2, 28.8] | 49.2 [44.8, 53.6] | 59.4 [55.0, 63.6] | 5.4 | 21 |
+| raw | 24.2 [20.7, 28.1] | 41.2 [37.0, 45.6] | 47.4 [43.1, 51.8] | 3.7 | 20 |
+| rewritten | 29.6 [25.8, 33.7] | 52.2 [47.8, 56.5] | 62.0 [57.7, 66.1] | 4.8 | 22 |
+| rewritten + agent | 24.8 [21.2, 28.8] | 49.2 [44.8, 53.6] | 59.4 [55.0, 63.6] | 5.0 | 21 |
 
 The rewrite adds about 15 points at R@10. Only 28% of the raw questions name an entity of the gold section (Step 5 coverage), and the rewrite brings back the referent from the history. Adding the last agent turn doesn't help and lowers R@1 by 5 points, because the previous answer brings in its own entities. Chance recall is 4-7%, so the hits are not just an effect of the fan-out.
 
@@ -45,18 +45,18 @@ The rewrite adds about 15 points at R@10. Only 28% of the raw questions name an 
 
 | Linker | R@1 | R@5 | R@10 | Chance R@10 | Fan-out@10 (median / mean) |
 | :--- | :---: | :---: | :---: | :---: | :---: |
-| default (RRF, domain filter, hub skip) | 29.6 | 52.2 | 62.0 | 5.1 | 22 / 23.5 |
-| dense only | 27.2 | 49.2 | 59.2 | 5.3 | 21 / 23.0 |
-| BM25 only | 32.8 | 50.0 | 59.4 | 5.0 | 20 / 22.5 |
-| no domain filter | 29.6 | 51.6 | 61.8 | 4.8 | 21 / 23.3 |
-| gold domain (upper bound for the filter) | 30.6 | 54.2 | 63.8 | 5.2 | 22 / 23.3 |
-| no hub skip | **33.2** [29.2, 37.4] | **59.6** [55.2, 63.8] | **70.4** [66.3, 74.2] | 7.0 | 29 / 36.5 |
-| raw + rewritten fused, hub skip | 26.0 | 47.6 | 57.8 | 4.7 | 21 / 23.3 |
+| default (RRF, domain filter, hub skip) | 29.6 | 52.2 | 62.0 | 4.8 | 22 / 23.5 |
+| dense only | 27.2 | 49.2 | 59.2 | 5.0 | 21 / 23.0 |
+| BM25 only | 32.8 | 50.0 | 59.4 | 4.7 | 20 / 22.5 |
+| no domain filter | 29.6 | 51.6 | 61.8 | 4.3 | 21 / 23.3 |
+| gold domain (upper bound for the filter) | 30.6 | 54.2 | 63.8 | 5.0 | 22 / 23.3 |
+| no hub skip | **33.2** [29.2, 37.4] | **59.6** [55.2, 63.8] | **70.4** [66.3, 74.2] | 7.1 | 29 / 36.5 |
+| raw + rewritten fused, hub skip | 26.0 | 47.6 | 57.8 | 4.5 | 21 / 23.3 |
 | raw + rewritten fused, no hub skip | 30.6 | 53.2 | 65.0 | 6.2 | 25 / 31.8 |
 
 RRF is better than either generator alone at R@5 and R@10; BM25 alone is best at R@1 (exact name overlap), and dense adds paraphrases. The domain filter is almost neutral (+0.2 at R@10): when the prediction is confident it is nearly always right, and wrong-domain entities rarely reach the top-10 anyway. Even the gold domain would add only about 2 points.
 
-Skipping hubs is the biggest effect, and it's negative. Keeping them adds 8.4 points at R@10 (46 more examples), at the cost of a wider fan-out (median 22 to 29 sections, mean 23.5 to 36.5). Chance recall only goes up to 7.0%, so most of these hits are real: questions about "VA health care" or "Social Security benefits" are about the hub itself.
+Skipping hubs is the biggest effect, and it's negative. Keeping them adds 8.4 points at R@10 (46 more examples), at the cost of a wider fan-out (median 22 to 29 sections, mean 23.5 to 36.5). Chance recall only goes up to 7.1%, so most of these hits are real: questions about "VA health care" or "Social Security benefits" are about the hub itself.
 
 Fusing raw and rewritten helps on doc-switch turns (section 4) but costs 4-5 points overall.
 

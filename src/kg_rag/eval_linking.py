@@ -135,7 +135,7 @@ def main() -> None:
             total = 0
             for seed in range(CHANCE_SEEDS):
                 rng = random.Random(seed)
-                for dom in {r["domain"] for r in rows}:
+                for dom in sorted({r["domain"] for r in rows}):
                     sub = [r for r in rows if r["domain"] == dom]
                     donors = sub[:]
                     rng.shuffle(donors)

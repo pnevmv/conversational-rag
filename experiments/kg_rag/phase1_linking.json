@@ -14,17 +14,17 @@
     "gold_has_nonhub_entity": 0.964
   },
   "latency_ms": {
-    "encode_per_query": 5.8853786786397295,
-    "link_raw": 6.534388065338135,
-    "link_rewritten": 9.102085590362549,
-    "link_rewritten_agent": 15.004295825958252,
-    "link_rewritten_dense_only": 2.556364059448242,
-    "link_rewritten_bm25_only": 8.242782592773438,
-    "link_rewritten_no_domain_filter": 8.836934089660645,
-    "link_rewritten_no_hub_skip": 8.390108108520508,
-    "link_rewritten_gold_domain": 9.483759880065918,
-    "link_raw+rewritten": 15.838550090789795,
-    "link_raw+rewritten_no_hub_skip": 13.423693656921387
+    "encode_per_query": 5.072328726450602,
+    "link_raw": 6.548426151275635,
+    "link_rewritten": 9.119888305664062,
+    "link_rewritten_agent": 14.656139850616455,
+    "link_rewritten_dense_only": 1.9382901191711426,
+    "link_rewritten_bm25_only": 7.507217884063721,
+    "link_rewritten_no_domain_filter": 8.321844100952148,
+    "link_rewritten_no_hub_skip": 7.648494243621826,
+    "link_rewritten_gold_domain": 8.921090126037598,
+    "link_raw+rewritten": 15.841752052307127,
+    "link_raw+rewritten_no_hub_skip": 13.258686065673828
   },
   "rewrite": {
     "llm_calls": 434,
@@ -265,9 +265,9 @@
         }
       },
       "chance": {
-        "R@1": 0.0096,
-        "R@5": 0.0232,
-        "R@10": 0.0364
+        "R@1": 0.0064,
+        "R@5": 0.018,
+        "R@10": 0.0368
       }
     },
     "rewritten": {
@@ -504,9 +504,9 @@
         }
       },
       "chance": {
-        "R@1": 0.0108,
-        "R@5": 0.034,
-        "R@10": 0.0508
+        "R@1": 0.0096,
+        "R@5": 0.0308,
+        "R@10": 0.0476
       }
     },
     "rewritten_agent": {
@@ -743,9 +743,9 @@
         }
       },
       "chance": {
-        "R@1": 0.014,
-        "R@5": 0.0364,
-        "R@10": 0.0536
+        "R@1": 0.01,
+        "R@5": 0.032,
+        "R@10": 0.0504
       }
     },
     "rewritten_dense_only": {
@@ -982,9 +982,9 @@
         }
       },
       "chance": {
-        "R@1": 0.0092,
-        "R@5": 0.0356,
-        "R@10": 0.0528
+        "R@1": 0.0084,
+        "R@5": 0.0292,
+        "R@10": 0.0504
       }
     },
     "rewritten_bm25_only": {
@@ -1221,9 +1221,9 @@
         }
       },
       "chance": {
-        "R@1": 0.012,
-        "R@5": 0.0304,
-        "R@10": 0.0504
+        "R@1": 0.0104,
+        "R@5": 0.0284,
+        "R@10": 0.0468
       }
     },
     "rewritten_no_domain_filter": {
@@ -1461,8 +1461,8 @@
       },
       "chance": {
         "R@1": 0.01,
-        "R@5": 0.0332,
-        "R@10": 0.0476
+        "R@5": 0.03,
+        "R@10": 0.0432
       }
     },
     "rewritten_no_hub_skip": {
@@ -1699,9 +1699,9 @@
         }
       },
       "chance": {
-        "R@1": 0.0124,
-        "R@5": 0.0472,
-        "R@10": 0.0704
+        "R@1": 0.01,
+        "R@5": 0.0408,
+        "R@10": 0.0712
       }
     },
     "rewritten_gold_domain": {
@@ -1938,9 +1938,9 @@
         }
       },
       "chance": {
-        "R@1": 0.0108,
-        "R@5": 0.0344,
-        "R@10": 0.0524
+        "R@1": 0.0096,
+        "R@5": 0.032,
+        "R@10": 0.05
       }
     },
     "raw+rewritten": {
@@ -2177,9 +2177,9 @@
         }
       },
       "chance": {
-        "R@1": 0.01,
-        "R@5": 0.0288,
-        "R@10": 0.0472
+        "R@1": 0.008,
+        "R@5": 0.0248,
+        "R@10": 0.0452
       }
     },
     "raw+rewritten_no_hub_skip": {
@@ -2416,9 +2416,9 @@
         }
       },
       "chance": {
-        "R@1": 0.0112,
-        "R@5": 0.0372,
-        "R@10": 0.0624
+        "R@1": 0.0104,
+        "R@5": 0.0304,
+        "R@10": 0.0616
       }
     }
   }
