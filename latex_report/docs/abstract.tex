@@ -32,27 +32,22 @@ analysis shows that the generator fully exploits the newly retrieved gold sectio
 but that the gain is largely offset by gold sections the reranker displaces from
 the top five.
 
-Finally, we begin the construction of a knowledge graph from the corpus, following
-a three-layer design of document structure, extracted mentions and resolved
-entities. A closed schema derived from an open-extraction pilot keeps 96\% of
-evidence quotes verbatim, but two identical extraction runs share fewer than half of
-their triples, and embedding similarity alone cannot decide entity merges, since even
-pairs above a cosine of 0.95 are distinct entities about half of the time. A pilot
-annotation of three documents, drafted by an \gls{llm} and reviewed by the author, puts
-the precision of a single extraction run at 44\% (recall 65\%), and at 67\% for the
-triples that two runs agree on. A revised extraction applied to the full corpus yields a
-graph of 14{,}731 entities and 13{,}277 relations that covers the gold section of 96.6\%
-of the diagnostic questions, with a precision of 53\% on a control sample from unseen
-documents. Linking the rewritten user turn to graph entities reaches the gold section
-for 70\% of these questions, but retrieval over the graph alone finds the gold section
-half as often as passage retrieval and lowers \fone{} by 2.7 to 4.5 points: entity
-overlap cannot rank the many sections a question's entities reach. A hybrid of graph
-and passage retrieval matches the best passage pipeline without improving it. Graph facts
-added to the retrieved passages help answerable questions only where they come from the
-section of the answer, and a random-facts control shows that their overall gain is a
-context effect. The thesis concludes with graph-\gls{rag} architectures that add graph
-facts to retrieved passages,
-agent-based orchestration, and an open-weight \gls{llm} judge for more reliable
-generation evaluation.
+We then build a knowledge graph from the corpus, with three layers for the document
+structure, the extracted mentions and the resolved entities. Extraction turns out to be
+noisy: two runs with the same settings share fewer than half of their triples, and
+embedding similarity alone is not enough to decide which entities to merge. On a small
+annotated sample a single extraction run has 44\% precision and 65\% recall. The final
+graph has 14{,}731 entities and 13{,}277 relations, covers the gold section of 96.6\% of
+the diagnostic questions, and has a precision of 53\% on a control sample.
+
+Using the graph for retrieval, the rewritten user turn can be linked to an entity of the
+gold section for 70\% of the questions, but retrieving through the graph alone finds the
+gold section only half as often as passage retrieval and lowers \fone{} by 2.7 to 4.5
+points, mainly because entity overlap cannot rank the many sections the entities lead
+to. Combining graph and passage retrieval matches the best passage pipeline without
+improving it. Adding graph facts to the retrieved passages helps on answerable
+questions when the facts come from the section of the answer, but a control with random
+facts gives the same overall gain. We conclude with directions for Graph \gls{rag},
+agent-based approaches and \gls{llm}-based evaluation.
 
 \end{abstract}

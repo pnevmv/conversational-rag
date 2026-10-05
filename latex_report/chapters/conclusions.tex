@@ -9,153 +9,114 @@
 % ===========================================================================
 \section*{Summary of Findings}
 
-This thesis presented a progressive empirical investigation of \gls{rag} for
-document-grounded \gls{cqa} on the \gls{mdd} benchmark. Five \gls{rag} pipeline
-configurations were evaluated on the full 4{,}427-example validation split and
-on a fixed 500-example diagnostic subset, with a further two ablations on the
-diagnostic subset. The key findings are as follows.
+This thesis studied retrieval-augmented generation for document-grounded \gls{cqa} on
+\gls{mdd}, and then the construction of a knowledge graph from the same documents and
+its use for retrieval. Five \gls{rag} configurations were evaluated on the full
+validation split (4{,}427 examples) and, together with the later ablations and all graph
+experiments, on a fixed subset of 500 examples.
 
-\textbf{\gls{rag} substantially improves over the \gls{llm}-only baseline.} The
-\gls{llm}-only system achieves $\fone = 15.9\%$ on the full validation split.
-All \gls{rag} configurations outperform this substantially, with the best system
-(Hybrid+Rewrite) reaching $\fone = 26.8\%$, a gain of $+10.9$~pp. The performance
-ordering is consistent across both the full split and dev-500.
+Retrieval clearly helps. The \gls{llm}-only baseline reaches 15.9\% \fone{} on the full
+split, and every \gls{rag} configuration is well above it, the best one (hybrid retrieval
+with query rewriting) reaching 26.8\%. The ordering of the systems is the same on the full
+split and on dev-500.
 
-\textbf{Query rewriting is the single most impactful intervention.} Adding
-conversational query rewriting to hybrid retrieval raises \ratk{5} from 44.7\%
-to 59.5\% on the full split ($+14.8$~pp) and improves \fone{} by $+2.0$~pp
-($p < 0.001$, paired bootstrap; $+1.9$~pp, $p = 0.017$ on dev-500). The improvement is driven by the rewriter
-correctly anchoring retrieval to the target domain, raising domain-level
-\ratk{5} from 69.4\% to 92.5\%.
+Query rewriting was the most useful single change. On the full split it raises \ratk{5}
+from 44.7\% to 59.5\% and \fone{} by 2.0 points ($p < 0.001$; 1.9 points, $p = 0.017$
+on dev-500). Most of the gain comes from the rewritten query pointing retrieval to the
+right domain: domain-level \ratk{5} goes from 69.4\% to 92.5\%.
 
-\textbf{Retrieval coverage remains the main bottleneck.} The oracle
-experiment (gold context provided directly) achieves $\fone = 36.1\%$, establishing
-the generation ceiling for this model--prompt combination. The 8.1~pp gap between
-the best \gls{rag} system and the oracle is dominated by retrieval misses (39\% of
-answerable dev-500 examples, $\fone = 18.3\%$ vs.\ 33.3\% on hits): converting
-every miss into a hit would close roughly two thirds of the gap. The remainder
-comes from the lower F1-hit of the \gls{rag} system relative to the oracle
-(33.3\% vs.\ 36.7\%).
+Retrieval is still the main bottleneck. With the gold sections given directly, the
+generator reaches 36.1\% \fone{}. About two thirds of the 8.1-point gap between the best
+pipeline and this oracle is due to retrieval misses, which affect 39\% of the answerable
+dev-500 examples (18.3\% \fone{} against 33.3\% on hits); the rest comes from a lower
+\fone{} on hits than with the oracle context (33.3\% against 36.7\%).
 
-\textbf{Reranking improves retrieval, but its \fone{} gain is offset by
-displaced hits.} The cross-encoder reranker raises \ratk{5} from 61.2\% to
-67.4\% ($+6.2$~pp), a net gain of 30 retrieval hits among the 500 dev examples.
-The corresponding \fone{} gain of $+0.16$~pp is not statistically significant
-($p = 0.414$). A per-example decomposition shows that the generator benefits fully
-from the 53 newly retrieved gold sections ($+11.3$~pp \fone{} on those examples),
-but this gain is largely cancelled by 23 examples whose gold section the reranker
-pushes out of the top-5, together with fewer abstentions on unanswerable
-questions. The limiting factor is therefore the reranker's stability, not the
-generator.
+The cross-encoder reranker improves retrieval but not the answers. It raises \ratk{5}
+from 61.2\% to 67.4\%, yet the \fone{} gain of 0.16 points is not significant. The
+generator does use the 53 newly found gold sections (11.3 points more \fone{} on those
+examples), but this is mostly cancelled by 23 examples where the reranker pushes the gold
+section out of the top five, and by fewer abstentions on unanswerable questions. The
+agent-style prompt lowers false abstentions (from 7.0\% to 4.9\% with hybrid retrieval and
+rewriting, and from 4.1\% to 1.9\% with the oracle) without changing \fone{}, so prompt
+changes mainly affect calibration.
 
-\textbf{Agent-style prompting reduces false abstentions without a \fone{} gain.}
-The v2 prompt reduces the false-abstention rate from 7.0\% to 4.9\% on
-Hybrid+Rewrite and from 4.1\% to 1.9\% on the oracle system, while abstain
-precision improves. Token \fone{} is unchanged ($p > 0.3$ in all paired tests).
-Prompt engineering can improve calibration but is unlikely to drive large \fone{}
-gains within the current pipeline structure.
+Building the knowledge graph showed that extraction needs some aggregation and that
+entity resolution has to be done carefully. The closed schema of nine entity and eleven
+relation types, derived from an open-extraction pilot, avoids the explosion of types seen
+in open extraction and keeps 96\% of the evidence quotes verbatim. Extraction with the
+available model is not deterministic, and two runs with the same settings share less
+than half of their triples. Embedding similarity alone cannot decide merges: even above
+a cosine of 0.95, about half of the candidate pairs are different entities that differ
+in one qualifier, so merges go through rules or an \gls{llm} judge. A pilot annotation of
+140 triples (drafted by an \gls{llm} and reviewed by the author) gives 44\% precision and
+65\% recall for a single run, and 67\% precision for triples that two runs agree on;
+70\% of the reviewed entity merges are correct. A revised prompt raised precision to 54\%
+without losing pooled recall. The final graph, built with a single run over the whole
+corpus, has 14{,}731 entities and 13{,}277 relations, covers the gold section of 96.6\% of
+the dev-500 questions and has a precision of 53\% on a control sample from unseen
+documents (33\% if borderline cases are counted as errors).
 
-\textbf{Knowledge graph extraction needs aggregation and careful entity
-resolution.} A closed schema of nine entity and eleven relation types, derived from
-an open-extraction pilot, removes the type proliferation of open extraction and
-keeps 96\% of evidence quotes verbatim. Two observations shape the next stage.
-First, extraction with the available model is not deterministic: two runs with
-identical settings share fewer than half of their triples, and no sampling parameter
-the deployment accepts improves this. Second, embedding similarity cannot decide
-entity merges on its own: even above a cosine of 0.95, about half of the candidate
-pairs are distinct entities that differ in one qualifier, so merges require rules or
-\gls{llm} confirmation, protected against chained merges. A pilot annotation of 140
-triples, drafted by an \gls{llm} and reviewed by the author, puts single-run precision at 44\% and recall at 65\%; precision rises to
-67\% for the triples that two independent runs agree on; entity merges are correct in 70\% of the reviewed
-clusters, and in all those made by rules. A revised prompt raises precision to 54\%
-at unchanged pooled recall and finds the alternatives the first version missed, but
-only agreement between two runs reaches about 70\% precision, at the cost of a third
-of the facts. The graph built from the full corpus with a single run holds 14{,}731
-entities and 13{,}277 relations, covers the gold section of 96.6\% of the dev-500
-questions, and has a precision of 53\% on a control sample from unseen documents
-(33\% if borderline cases count as errors). Linking the rewritten user turn to graph
-entities reaches an entity of the gold section for 70\% of the dev-500 questions with
-the top-10 entities, comparable to section recall@5 of the best passage retriever.
-Graph hubs must be kept, as skipping them costs 8 points. Turns that switch to a new
-document are linked better from the raw turn than from the rewrite.
-
-\textbf{Graph-only retrieval does not beat passages on this corpus.} Retrieving sections
-through the linked entities, or giving their facts to the generator, finds the gold
-section about half as often as passage retrieval and lowers \fone{} by 2.7 to 4.5
-points. The loss lies in ranking: entity overlap cannot order the tens of sections a
-question's entities reach, and when the gold section is retrieved the answer is as good
-as with passage retrieval. Facts are the more robust graph context when the gold
-section is missed, and a hybrid of graph and passage retrieval matches the passage
-pipeline without improving it. Graph facts added to the retrieved passages gain
-0.9 points on answerable questions and beat the same number of random facts by 1.8 points
-where they come from the section of the answer; overall, however, random facts gain as
-much, because extra context also makes the generator abstain more often.
+Retrieval over the graph alone did not beat passage retrieval. Linking the rewritten
+user turn to entities reaches an entity of the gold section for 70\% of the dev-500
+questions, which is comparable to the recall of the best passage retriever, and
+high-degree entities have to be kept. However, retrieving sections through the linked
+entities, or giving their facts to the generator, finds the gold section about half as
+often as passage retrieval and lowers \fone{} by 2.7 to 4.5 points. The problem is
+ranking: entity overlap cannot order the many sections a question's entities lead to,
+while the answers are as good as with passage retrieval when the gold section is found.
+A hybrid of graph and passage retrieval matches the passage pipeline without improving
+it. Adding graph facts to the retrieved passages gains 0.9 points on answerable
+questions, and 1.8 points over the same number of random facts where the facts come from
+the section of the answer, but overall random facts gain as much, because extra context
+also makes the generator abstain more often.
 
 
 % ===========================================================================
 \section*{Scope Limitations}
 
-All ablation experiments (oracle, v2 prompt, reranker) were conducted on the
-dev-500 diagnostic subset. Reported confidence intervals are correspondingly
-wider than those for the full split; differences below $\sim$1~pp should be
-interpreted with caution. The five base pipelines were evaluated on the full
-split, but the ablation configurations were not; their effects should be
-re-checked at full scale before being treated as conclusive.
+All ablations (oracle, prompt v2, reranker) and all graph experiments were run on the
+dev-500 subset, so their confidence intervals are wider than on the full split and
+differences below about one point should be read with caution. Only the five base
+pipelines were evaluated on the full split.
 
-The \gls{kg} precision and recall estimates rest on small samples: the pilot numbers on
-three documents (140 extracted and 33 missed triples) and the control precision of the
-full graph on 30 triples, with confidence intervals of about $\pm$17 percentage points.
-All labels were drafted by an \gls{llm} and reviewed by the author, and the recall of
-the full graph has not been measured outside the pilot documents.
+The precision and recall estimates for the graph rest on small samples: the pilot on
+three documents (140 extracted and 33 missed triples) and a control sample of 30 triples
+from the full graph, with intervals of about $\pm$17 points. The labels were drafted by
+an \gls{llm} and reviewed by the author, and the recall of the full graph was not
+measured outside the pilot documents.
 
-Token \fone{} is the sole generation metric reported. As noted in
-Chapter~\ref{ch:rag}, reference answers are verbatim extracts from the source
-document, while the model produces paraphrases; semantically correct paraphrases
-receive low token \fone{}. An \gls{llm}-based judge evaluating semantic
-correctness rather than token overlap would provide a more reliable signal,
-particularly for the v2 prompt ablation.
+Token \fone{} is the only generation metric. As discussed in Chapter~\ref{ch:rag}, the
+reference answers are extracts from the source documents while the model paraphrases, so
+correct paraphrases can get a low score. An \gls{llm} judge of semantic correctness would
+give a more reliable signal, especially for the prompt comparison and for the longer
+answers produced from graph facts.
 
 
 % ===========================================================================
 \section*{Future Directions}
 
-\textbf{Full-split ablations.} The most immediate next step is to run the
-Hybrid+Rewrite+Rerank, Oracle (v2), and Hybrid+Rewrite (v2) pipelines on the
-full validation split to validate the dev-500 findings at scale. For the
-reranker, combining the cross-encoder score with the first-stage RRF score
-(instead of replacing it) may retain previously retrieved gold sections while
-keeping the newly gained ones.
+The first step is to run the hybrid pipeline with rewriting and reranking, and the v2
+prompt variants, on the full validation split to confirm the dev-500 results. For the
+reranker, combining its score with the first-stage \gls{rrf} score instead of replacing
+it might keep the previously retrieved gold sections while adding the new ones.
 
-\textbf{LLM-judge evaluation.} Replacing or complementing token \fone{} with
-a local \gls{llm} judge (e.g.\ Qwen2.5-14B-Instruct or Llama~3.1~8B) would
-close the semantic gap between generation style and reference format. The
-evaluation protocol would score each (question, context, prediction, reference)
-tuple on a three-point scale (correct / partially correct / incorrect) and
-report agreement with human judgements as a calibration measure.
+Token \fone{} could be complemented with a local \gls{llm} judge (for example
+Qwen2.5-14B-Instruct or Llama~3.1~8B) that rates each answer as correct, partially correct
+or incorrect given the question, context and reference, with its agreement with human
+judgements reported as a check.
 
-\textbf{Knowledge graph retrieval and quality.} With the graph built
-(Chapter~\ref{ch:kg}) and its entities linked to the conversation
-(Chapter~\ref{ch:kgret}), retrieval from the graph alone falls short of passage
-retrieval, and adding its facts to the retrieved passages helps only where the facts
-reach the section of the answer. The next step is a Graph~\gls{rag} pipeline with fewer,
-better-ranked facts, evaluated against a matched random-facts control and separately on
-answerable and unanswerable turns. The graph may also help after a document switch,
-where passage retrieval still misses a third of the gold sections; a filter for endpoints that
-are not entities (headings, instructions) and a second extraction run on the sections
-used most often are the most direct ways to raise its precision. A hybrid pipeline that combines flat-document retrieval with graph-query
-traversal (\emph{Graph~\gls{rag}}) could surface multi-hop relational evidence
-that dense retrieval over raw text is likely to miss, particularly for questions
-that span multiple documents or require chained inference over extracted facts.
+For the knowledge graph, the next step is a Graph~\gls{rag} pipeline that adds a small
+number of well-ranked facts to the retrieved passages, evaluated against a matched
+random-facts control and separately on answerable and unanswerable turns. The graph may
+also help after a document switch, where passage retrieval still misses a third of the
+gold sections. Its precision could be raised by filtering endpoints that are not
+entities (headings, instructions) and by a second extraction run on the most frequently
+used sections.
 
-\textbf{Agent architectures.} Beyond pipeline \gls{rag}, an agent-based
-architecture could orchestrate multiple specialised tools --- a retrieval tool,
-a graph-query tool, and a code-execution tool for numerical reasoning --- using
-the \gls{llm} as a planner. This would address the limitation of fixed-$K$
-context windows for multi-hop questions and allow the system to refine its
-retrieval strategy based on intermediate findings.
+Beyond fixed pipelines, an agent could use the \gls{llm} as a planner and choose between
+tools such as passage retrieval, graph queries and code execution for numerical
+questions, refining its retrieval based on what it finds.
 
-\textbf{Evaluation of unanswerable calibration.} With only 31 unanswerable
-examples in dev-500 (and 226 in the full split), abstention metrics are
-noisy. Augmenting the dataset with additional unanswerable examples, or
-evaluating on a purpose-built unanswerable-question benchmark, would enable
-more reliable conclusions about abstention behaviour across pipeline variants.
+Finally, with only 31 unanswerable examples in dev-500 (226 in the full split),
+abstention metrics are noisy. More unanswerable examples, or a dedicated benchmark,
+would be needed to draw firm conclusions about abstention.

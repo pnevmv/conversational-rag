@@ -2,83 +2,68 @@
 
 \chapter{Knowledge Graph Retrieval}\label{ch:kgret}
 
-This chapter uses the graph of Chapter~\ref{ch:kg} for conversational question answering.
-Every pipeline is evaluated on the dev-500 subset with the generator, prompt and
-metrics of Chapter~\ref{ch:rag}, so its numbers are directly comparable to passage
-retrieval. A graph retriever has to start from entities: the user turn is first linked
-to entities of the graph, and the linked entities then select sections, facts, or both.
-Section~\ref{sec:kgret:linking} describes the entity linker and
-Section~\ref{sec:kgret:linkeval} evaluates it on its own, before any answer is
-generated. Section~\ref{sec:kgret:retrievers} defines three graph retrievers and three
-variants, Section~\ref{sec:kgret:results} compares them with the best passage retriever,
-Section~\ref{sec:kgret:facts} examines graph facts added to retrieved passages against a
-random-facts control, and Section~\ref{sec:kgret:status} summarises the outcome.
+This chapter tests whether the graph built in Chapter~\ref{ch:kg} can serve as the
+retrieval source for conversational question answering. All experiments use the dev-500
+subset with the generator, prompt and metrics of Chapter~\ref{ch:rag}, so the results
+can be compared directly with passage retrieval. Any graph retriever has to start from
+entities, so the first step is to link the user turn to entities of the graph; the
+linked entities are then used to select sections, facts, or both. Entity linking is
+described and evaluated on its own in Sections~\ref{sec:kgret:linking}
+and~\ref{sec:kgret:linkeval}. Section~\ref{sec:kgret:retrievers} introduces the graph
+retrievers and Section~\ref{sec:kgret:results} compares them with passage retrieval.
+Section~\ref{sec:kgret:facts} looks more closely at graph facts added to retrieved
+passages, using a control with random facts.
 
 
 % ===========================================================================
 \section{Entity Linking}\label{sec:kgret:linking}
 
-\paragraph{Input.} Only 28\% of the dev-500 questions name an entity of their gold
-section (Section~\ref{sec:kg:full}), so the current user turn alone is a weak input.
-Three variants are compared: the raw user turn; the standalone query produced by the
-rewriter of Section~\ref{sec:rag:rewrite}; and the rewritten query followed by the last
-agent turn. The rewrites reuse the prompt and the cache of Chapter~\ref{ch:rag}, so
-linking adds no \gls{llm} calls: there are 0.87 calls per question, the rewrite itself,
-which is skipped on first turns.
+Only 28\% of the dev-500 questions name an entity of their gold section
+(Section~\ref{sec:kg:full}), so the current user turn on its own is a weak input for
+linking. Three inputs were compared: the raw user turn, the standalone query produced by
+the rewriter of Section~\ref{sec:rag:rewrite}, and the rewritten query followed by the
+last agent turn. The rewrites come from the same prompt and cache as in
+Chapter~\ref{ch:rag}, so linking itself needs no extra \gls{llm} calls.
 
-\paragraph{Candidates.} Each entity is represented by its surface forms: its name, the
-names of the mentions resolved to it, and their aliases (19{,}067 forms for 14{,}731
-entities). Two candidate generators score the entities:
-\begin{itemize}
-    \item \textbf{dense}: the bge-small model of the dense retriever embeds the query
-    (with the BGE query instruction) and every surface form, and an entity scores the
-    cosine of its best form;
-    \item \textbf{\gls{bm25}} over one short document per entity, made of its surface
-    forms without stopwords.
-\end{itemize}
-The top-100 of each generator are fused with \gls{rrf} ($k = 60$, as in the hybrid
-retriever).
+Each entity is represented by its surface forms, that is its name, the names of the
+mentions resolved to it and their aliases (19{,}067 forms for 14{,}731 entities). Two
+candidate generators are used. The dense one embeds the query and every surface form
+with the bge-small model of the dense retriever, and an entity gets the cosine of its
+best form. The sparse one runs \gls{bm25} over a short document per entity made of its
+surface forms. The top 100 entities of each are fused with \gls{rrf} ($k = 60$, as in
+the hybrid retriever).
 
-\paragraph{Filters.} Two optional filters restrict the candidates.
-\begin{itemize}
-    \item \textbf{Domain.} The retrieval pipeline of Chapter~\ref{ch:rag} has no domain
-    classifier, so the predicted domain is the majority domain of the top-5 sections of
-    the best passage retriever (hybrid, rewrite, reranker), and its confidence is the
-    share of the top-5 in that domain. When at least 4 of the 5 sections agree, only
-    entities seen in that domain are kept. The prediction is correct for 94.8\% of the
-    dev-500 questions, is confident for 471 of them, and is correct for 97.9\% of the
-    confident ones.
-    \item \textbf{Hubs.} Entities with a degree above the 99th percentile of the graph
-    (more than 16 relations; 126 entities, for example ``VA health care'' with 99) are
-    skipped.
-\end{itemize}
-Both thresholds were fixed before the evaluation.
+Two optional filters were also tested. The first keeps only entities of the predicted
+domain. Since the pipeline of Chapter~\ref{ch:rag} has no domain classifier, the
+predicted domain is taken as the majority domain among the top-5 sections of the best
+passage retriever, and the filter is applied only when at least four of the five agree.
+This prediction is correct for 94.8\% of the questions, and for 97.9\% of the 471 where
+it is applied. The second filter skips hub entities, defined as those with a degree
+above the 99th percentile of the graph (more than 16 relations, 126 entities, for
+example ``VA health care'' with 99). Both thresholds were set before running the
+evaluation.
 
 
 % ===========================================================================
 \section{Linking Evaluation}\label{sec:kgret:linkeval}
 
-\paragraph{Metric.} Link recall@$k$ is the share of examples in which at least one of
-the top-$k$ linked entities has a mention in a gold section. All 500 examples have a
-gold section in the grounding annotation, including the 31 unanswerable turns; for
-96.6\% of them the gold section has at least one entity, which bounds link recall. The
-metric is lenient, since an entity mentioned in many sections reaches the gold section
-more easily. It is therefore reported with two controls:
-\begin{itemize}
-    \item \textbf{fan-out}: the number of distinct sections that the top-10 entities are
-    mentioned in;
-    \item \textbf{chance}: the recall obtained when each example receives the linked
-    entities of another random example of the same domain.
-\end{itemize}
-Intervals are 95\% Wilson intervals.
+Linking is measured by link recall@$k$, the share of examples in which at least one of
+the top-$k$ linked entities is mentioned in a gold section. All 500 examples have a gold
+section, including the 31 unanswerable turns, and for 96.6\% of them the gold section
+contains at least one entity, which is an upper bound for link recall. Because an entity
+mentioned in many sections reaches the gold section more easily, the metric is somewhat
+lenient. To check this, Table~\ref{tab:kgret:linking} also reports the recall obtained
+when each example is given the linked entities of a random other example of the same
+domain (chance), and the median number of sections that the top-10 entities point to
+(fan-out).
 
 \begin{table}[ht]
     \centering
-    \caption{Link recall on dev-500 ($n = 500$, \%). Default linker: dense and
-    \gls{bm25} fused by \gls{rrf}, domain filter, hub skip. Ablations use the
-    rewritten query.}
+    \caption{Link recall on dev-500 (\%). The default linker fuses dense and \gls{bm25}
+    candidates, uses the domain filter and skips hubs; the lower rows change one setting
+    and use the rewritten query.}
     \label{tab:kgret:linking}
-    \begin{tabular}{lcccrr}
+    \begin{tabular}{lccccc}
         \toprule
         Configuration & R@1 & R@5 & R@10 & Chance & Fan-out \\
         \midrule
@@ -90,228 +75,159 @@ Intervals are 95\% Wilson intervals.
         \gls{bm25} only          & 32.8 & 50.0 & 59.4 & 5.0 & 20 \\
         No domain filter         & 29.6 & 51.6 & 61.8 & 4.8 & 21 \\
         Gold domain              & 30.6 & 54.2 & 63.8 & 5.2 & 22 \\
-        \textbf{No hub skip}     & \textbf{33.2} & \textbf{59.6} & \textbf{70.4} & 7.0 & 29 \\
+        No hub skip              & 33.2 & 59.6 & 70.4 & 7.0 & 29 \\
         Raw + rewritten fused    & 26.0 & 47.6 & 57.8 & 4.7 & 21 \\
         \bottomrule
     \end{tabular}
-    \\[2pt]
-    {\footnotesize Chance: recall@10 with the linked entities of a random example of the
-    same domain (mean of 5 permutations). Fan-out: median number of sections reached by
-    the top-10 entities.}
 \end{table}
 
-Table~\ref{tab:kgret:linking} summarises the results.
-\begin{itemize}
-    \item \textbf{Rewrite.} Rewriting the turn is the largest single gain: recall@10
-    rises from 47.4\% (CI $[43.1, 51.8]$) to 62.0\% ($[57.7, 66.1]$). Appending the last
-    agent turn does not help and lowers recall@1 by five points, because the previous
-    answer contributes its own entities.
-    \item \textbf{Generators and domain.} Dense and \gls{bm25} candidates are
-    complementary: \gls{bm25} is best at rank 1, where exact name overlap matters, and
-    their fusion is best at ranks 5 and 10. The domain filter is almost neutral: even
-    the gold domain adds less than two points.
-    \item \textbf{Hubs.} Skipping hubs is the one clearly harmful choice. Keeping them
-    raises recall@10 to 70.4\% ($[66.3, 74.2]$), with 46 more examples linked. The median
-    fan-out grows from 22 to 29 sections, but chance recall stays at 7\%, so the extra
-    hits are genuine: many questions are about a hub itself, such as ``VA health care''
-    or ``Social Security benefits''. This holds most in SSA, which gains 13.6 points.
-\end{itemize}
+Rewriting the turn gives the largest improvement: recall@10 goes from 47.4\% (95\% Wilson
+interval $[43.1, 51.8]$) to 62.0\% ($[57.7, 66.1]$). Adding the last agent turn does not
+help and lowers recall@1 by five points, since the previous answer brings in its own
+entities. The dense and \gls{bm25} candidates complement each other: \gls{bm25} is better
+at rank 1, where exact name overlap matters, while their fusion is better at ranks 5 and
+10. The domain filter makes almost no difference, and even the gold domain would add
+less than two points.
 
-\paragraph{Document switches.} Turns that move to a new document behave differently
-(Table~\ref{tab:kgret:splits}). There the raw turn links better than the rewrite
-(62.8\% vs 55.3\% at recall@10): a turn that opens a new topic usually names it, while
-the rewriter tends to carry the previous topic over. The last agent turn makes this
-worse (42.6\%). Fusing the rankings of the raw and the rewritten query recovers the
-switch turns (66.0\%) but loses on the much larger set of same-document turns. With 94
-switch turns, these differences lie within the confidence intervals.
+Skipping hubs, on the other hand, clearly hurts. With hubs kept, recall@10 reaches
+70.4\% ($[66.3, 74.2]$), 46 more examples are linked, and the median fan-out grows from
+22 to 29 sections. Chance recall only rises to 7\%, so most of the extra hits are real:
+many questions are simply about a hub, such as ``VA health care'' or ``Social Security
+benefits''. The effect is largest in SSA, which gains 13.6 points.
 
-\begin{table}[ht]
-    \centering
-    \caption{Link recall@10 by turn type (\%, 95\% Wilson interval).}
-    \label{tab:kgret:splits}
-    \small
-    \begin{tabular}{lccc}
-        \toprule
-        Configuration & Same document (406) & Doc switch (94) & Unanswerable (31) \\
-        \midrule
-        Raw turn               & 43.8 {\scriptsize[39.1, 48.7]} & 62.8 {\scriptsize[52.7, 71.9]} & 16.1 {\scriptsize[7.1, 32.6]} \\
-        Rewritten              & 63.5 {\scriptsize[58.8, 68.1]} & 55.3 {\scriptsize[45.3, 65.0]} & 67.7 {\scriptsize[50.1, 81.4]} \\
-        Rewritten + agent turn & 63.3 {\scriptsize[58.5, 67.8]} & 42.6 {\scriptsize[33.0, 52.6]} & 80.6 {\scriptsize[63.7, 90.8]} \\
-        Rewritten, hubs kept   & 72.2 {\scriptsize[67.6, 76.3]} & 62.8 {\scriptsize[52.7, 71.9]} & 80.6 {\scriptsize[63.7, 90.8]} \\
-        Raw + rewritten, hubs kept & 64.8 {\scriptsize[60.0, 69.3]} & 66.0 {\scriptsize[55.9, 74.7]} & 58.1 {\scriptsize[40.8, 73.6]} \\
-        \bottomrule
-    \end{tabular}
-\end{table}
+Turns that switch to a new document behave differently. On the 94 switch turns, the raw
+turn links better than the rewrite (62.8\% against 55.3\% at recall@10), because a turn
+that opens a new topic usually names it, while the rewriter tends to carry the previous
+topic over. Adding the agent turn makes this worse (42.6\%). Fusing the raw and
+rewritten rankings recovers the switch turns (66.0\%) but loses on the much larger set
+of same-document turns, so the rewrite alone was kept. With only 94 switch turns, these
+differences are within the confidence intervals.
 
-\paragraph{Errors.} Of the 148 examples that the best configuration misses at
-recall@10, 17 have no entity in their gold section. In most of the others, the linker
-finds entities on the right topic that are different nodes from those in the gold
-section. For example, it links ``disability benefits'' and ``enough Social Security
-credits at this time to qualify'', while the gold section mentions ``monthly disability
-benefit'' and ``enough credits''. Long, clause-like entity names and conservative entity
-resolution split one concept into several nodes. One hop through entity relations, or
-section scoring by entity similarity rather than identity, can recover part of these
-cases. The remaining misses are turns without content words (``do not'') and gold
-sections that list many items, whose entities are the items rather than the topic the
-question names.
+The best configuration misses 148 examples at recall@10. In 17 of them the gold section
+has no entity at all. In most of the others the linker finds entities on the right
+topic, but they are different nodes from those of the gold section: for instance it
+links ``disability benefits'' while the gold section mentions ``monthly disability
+benefit''. Long, clause-like entity names and conservative entity resolution tend to
+split one concept into several nodes. The remaining misses are turns without content
+words (``do not'') and gold sections that list many items, whose entities are the items
+rather than the topic of the question. Linking takes about 15\,ms per question on a CPU.
 
-\paragraph{Cost.} Linking takes about 15\,ms per question on a CPU (6\,ms query
-encoding, 9\,ms scoring). It needs no \gls{llm} calls beyond the rewrite.
-
-
-% ===========================================================================
-\paragraph{Decisions.} Entity linking reaches the gold section for 70\% of the dev-500
-questions with the top-10 entities, about the level of section recall@5 of the best
-passage retriever (67.4\%). However, a linked entity is mentioned in a median of 29
-sections, so ranking these sections, rather than linking, decides how graph retrieval
-compares with passage retrieval. The graph retrievers therefore link the rewritten
-query, without the agent turn, to the top-10 entities, and keep hubs.
+Overall, the top-10 entities reach the gold section for 70\% of the questions, which is
+close to the recall@5 of the best passage retriever (67.4\%). However, each linked entity
+points to a median of 29 sections, so the real difficulty for a graph retriever is
+ranking those sections. The retrievers below therefore use the rewritten query, the
+top-10 entities, and keep hubs.
 
 
 % ===========================================================================
 \section{Graph Retrievers}\label{sec:kgret:retrievers}
 
-\paragraph{Entity weights.} Each linked entity $e$ receives the weight
+Each linked entity $e$ gets the weight
 \[
     w(e) = \mathrm{link}(e) \cdot \log\left(1 + \frac{N}{n(e)}\right),
 \]
-where $\mathrm{link}(e)$ is its \gls{rrf} linking score, $n(e)$ the number of sections
-it is mentioned in, and $N = 3{,}355$ the number of sections with at least one entity.
-The logarithmic factor down-weights entities by section frequency: a hub mentioned in
-hundreds of sections points to no section in particular.
+where $\mathrm{link}(e)$ is its \gls{rrf} linking score, $n(e)$ is the number of sections
+it is mentioned in and $N = 3{,}355$ is the number of sections with at least one entity.
+The logarithmic term down-weights entities that appear in many sections, since a hub
+mentioned in hundreds of sections does not point to any of them in particular.
 
-\paragraph{Domain filter.} The predicted domain comes from passage retrieval, so the two
-graph-only retrievers link without the domain filter, which would otherwise leak passage
-retrieval into their results. Only the hybrid retriever uses it.
+Retriever A goes from the linked entities, through their mentions, to sections. Each
+section is scored by the sum of the weights of the linked entities it mentions, and the
+top five form the context. In a variant with 1-hop expansion, the neighbours of the
+non-hub linked entities also contribute, with half the link score of the entity they
+are reached from. Retriever B does not use sections at all: it takes the relations of
+the linked entities (their one-hop subgraph), ranks them by \gls{rrf} of the weight of
+their best linked endpoint and the cosine between the query and the fact text, and
+gives the top 30 to the generator as triples, each with one evidence quote and the page
+it comes from. Retriever C fuses the ranking of A with the ranking of the best passage
+retriever by \gls{rrf} and reranks the fused top-50 with the cross-encoder of
+Section~\ref{sec:rag:reranker}.
 
-\paragraph{Retrievers.} Three retrievers are compared.
-\begin{itemize}
-    \item \textbf{A: graph to sections.} The linked entities lead through their mentions
-    to sections. A section scores the sum of the weights of the linked entities it
-    mentions, with ties broken by the number of linked entities, and the top-5 sections
-    form the context. With \textbf{1-hop expansion}, the neighbours of the non-hub
-    linked entities through entity relations also contribute, with weight
-    $0.5 \cdot \mathrm{link}(e) \cdot \log(1 + N / n(\text{neighbour}))$; hubs are
-    never added as neighbours.
-    \item \textbf{B: graph facts.} The candidates are the entity relations of the
-    linked entities, i.e.\ their one-hop subgraph. They are ranked by \gls{rrf} of two
-    rankings: the weight of their best linked endpoint, and the cosine between the
-    query and the text of the fact (bge-small). The top-30 facts are given to the
-    generator as triples, each with one evidence quote and its source page, and without
-    any raw section.
-    \item \textbf{C: hybrid.} The ranking of A, linked with the domain filter, and the
-    ranking of the best passage retriever (top-50 each) are fused by \gls{rrf}. The
-    cross-encoder of Section~\ref{sec:rag:reranker} reranks the fused top-50 to the
-    top-5.
-\end{itemize}
-Three variants complete the comparison:
-\begin{itemize}
-    \item \textbf{D: graph candidates, reranked.} The top-50 sections of A (31 on
-    average) are reranked by the same cross-encoder to the top-5, so the graph replaces
-    \gls{bm25} and dense retrieval as the candidate generator.
-    \item \textbf{E: passages and facts.} The top-5 sections of the best passage
-    retriever, unchanged, are followed by the facts of B in a separate block, so the
-    graph adds to the context instead of replacing it.
-    \item \textbf{E-random: control.} The same sections are followed by as many facts as
-    E gives that question, drawn at random from all facts of the question's domain with
-    a fixed seed. This separates the content of the facts from the longer context.
-\end{itemize}
-D, E and E-random also link without the domain filter.
-All parameters (10 entities, decay 0.5, 30 facts, pools of 50) were fixed before the
-runs. The generator, its agent-style prompt (Section~\ref{sec:rag:prompt}) and the
-question in the prompt, which is the raw user turn, are those of the best passage
-pipeline. For B, recall@$k$ is computed on the sections behind the facts, in fact
-order.
+Three more variants were added afterwards. In D, the top-50 sections of A (31 on average)
+are reranked by the same cross-encoder, so that the graph takes the place of \gls{bm25}
+and dense retrieval as the candidate generator. In E, the top-5 sections of the best
+passage retriever are kept unchanged and the facts of B are appended as a separate
+block, so the graph adds to the context instead of replacing it. E-random is a control
+for E: the same sections are followed by the same number of facts, but drawn at random
+from the facts of the question's domain (with a fixed seed).
+
+The predicted domain comes from passage retrieval, so using it would mix passage
+retrieval into the graph results. For this reason only C uses the domain filter. All
+parameters (10 entities, decay 0.5, 30 facts, pools of 50) were fixed before the runs,
+and the generator, the agent-style prompt of Section~\ref{sec:rag:prompt} and the
+question in the prompt (the raw user turn) are the same as in the best passage
+pipeline. For B, recall is computed on the sections the facts come from.
 
 
 % ===========================================================================
 \section{Results}\label{sec:kgret:results}
 
-Table~\ref{tab:kgret:qa} compares the graph retrievers with the best passage retriever
-(hybrid, rewrite, reranker). The baseline was regenerated from the cache and
-reproduces the results of Section~\ref{sec:rag:dev500} exactly.
+Table~\ref{tab:kgret:qa} compares all variants with the best passage pipeline (hybrid
+retrieval, rewriting and reranking). The baseline was regenerated from the cache and
+gives the same numbers as in Section~\ref{sec:rag:dev500}.
 
 \begin{table}[ht]
     \centering
-    \caption{Graph retrieval on dev-500 ($n = 500$, \%). $\Delta$\fone{}: paired
-    bootstrap against the best passage retriever, 95\% interval. \fone{} on hit and
-    miss: answerable examples with and without a gold span in the top-5.}
+    \caption{Graph-based variants on dev-500 (\%). $\Delta$\fone{} is the paired bootstrap
+    difference to the passage baseline with its 95\% interval. \fone{} hit and miss are
+    computed on answerable examples with and without a gold span in the top-5.}
     \label{tab:kgret:qa}
     \small
-    \begin{tabular}{lrrrrrrl}
+    \begin{tabular}{lrrrrrl}
         \toprule
-        Pipeline & R@1 & R@5 & \fone{} & \fone{} hit & \fone{} miss & Abstain & $\Delta$\fone{} \\
+        Pipeline & R@5 & \fone{} & \fone{} hit & \fone{} miss & Abstain & $\Delta$\fone{} \\
         \midrule
-        Hybrid+Rewrite+Rerank & 38.0 & 67.4 & \textbf{28.0} & 33.3 & 17.4 & 6.4 & --- \\
-        A: graph to sections  & 14.4 & 34.6 & 24.5 & 33.5 & 18.4 & 10.6 & $-3.5$ {\scriptsize[$-5.1$, $-1.9$]} \\
-        A, 1-hop              & 12.6 & 36.6 & 23.5 & 33.0 & 18.0 &  8.6 & $-4.5$ {\scriptsize[$-6.3$, $-2.8$]} \\
-        B: graph facts        & 15.6 & 37.2 & 25.4 & 30.0 & 20.9 &  9.6 & $-2.7$ {\scriptsize[$-4.4$, $-0.8$]} \\
-        C: hybrid             & 37.8 & 67.6 & 27.6 & 33.3 & 17.1 &  6.0 & $-0.5$ {\scriptsize[$-1.2$, $0.1$]} \\
-        D: candidates reranked & 35.8 & 58.8 & 26.4 & 33.3 & 18.7 &  6.4 & $-1.6$ {\scriptsize[$-2.9$, $-0.4$]} \\
-        E: passages + facts   & 38.0 & 67.4 & \textbf{29.2} & 34.1 & 18.7 &  5.8 & $+1.1$ {\scriptsize[$-0.3$, $2.5$]} \\
-        E-random: control     & 38.0 & 67.4 & 29.1 & 33.3 & 18.1 &  8.4 & $+1.0$ {\scriptsize[$-0.3$, $2.4$]} \\
+        Passage baseline       & 67.4 & 28.0 & 33.3 & 17.4 & 6.4 & --- \\
+        A: sections            & 34.6 & 24.5 & 33.5 & 18.4 & 10.6 & $-3.5$ ($-5.1$, $-1.9$) \\
+        A with 1-hop           & 36.6 & 23.5 & 33.0 & 18.0 &  8.6 & $-4.5$ ($-6.3$, $-2.8$) \\
+        B: facts               & 37.2 & 25.4 & 30.0 & 20.9 &  9.6 & $-2.7$ ($-4.4$, $-0.8$) \\
+        C: hybrid              & 67.6 & 27.6 & 33.3 & 17.1 &  6.0 & $-0.5$ ($-1.2$, $0.1$) \\
+        D: reranked candidates & 58.8 & 26.4 & 33.3 & 18.7 &  6.4 & $-1.6$ ($-2.9$, $-0.4$) \\
+        E: passages + facts    & 67.4 & 29.2 & 34.1 & 18.7 &  5.8 & $+1.1$ ($-0.3$, $2.5$) \\
+        E-random               & 67.4 & 29.1 & 33.3 & 18.1 &  8.4 & $+1.0$ ($-0.3$, $2.4$) \\
         \bottomrule
     \end{tabular}
 \end{table}
 
-\paragraph{Graph-only retrieval.} Both graph-only retrievers find the gold section half
-as often as passage retrieval (recall@5 35--37\% against 67.4\%), and \fone{} falls by
-2.7 to 4.5 points, significantly in all three configurations.
-\begin{itemize}
-    \item \textbf{Ranking, not linking.} The loss lies in ranking. The candidates of A
-    contain the gold section for 68.8\% of the questions (recall@50, close to the link
-    recall of 70.4\%), but its top-5 does so for only 34.6\%. Passage retrieval finds the
-    gold section in 179 questions where A misses it, and A in only 15 where passage
-    retrieval misses it. Entity overlap is the only ranking signal the graph provides,
-    and a typical question links entities shared by tens of sections, whereas the
-    passage retriever and the cross-encoder compare the whole question with the whole
-    section.
-    \item \textbf{Generation is unaffected.} When A does retrieve the gold section, the
-    answer is as good as with passage retrieval (\fone{} 33.5 against 33.3), so the
-    loss is due entirely to the lower hit rate.
-    \item \textbf{Expansion.} One-hop expansion raises recall@5 by two points but lowers
-    \fone{} by one (not significant): the sections of neighbouring entities are on a
-    related topic but rarely contain the answer.
-    \item \textbf{Down-weighting.} Down-weighting by section frequency does not help: a
-    retrieval-only check after the runs gives recall@5 of 36.6\% without it, against
-    34.6\% with it. The link score already demotes loosely related hubs, and the
-    remaining hub links are mostly about the hub itself.
-\end{itemize}
+Both graph-only retrievers find the gold section about half as often as passage
+retrieval (recall@5 of 35--37\% against 67.4\%), and \fone{} drops by 2.7 to 4.5 points,
+significantly in all three configurations. The problem is ranking rather than linking.
+The candidates of A contain the gold section for 68.8\% of the questions, close to the
+link recall, but its top five only for 34.6\%. Passage retrieval finds the gold section
+in 179 questions where A misses it, while the opposite happens in only 15. Entity
+overlap is the only ranking signal the graph offers, and a typical question links
+entities shared by tens of sections, whereas the passage retriever and the
+cross-encoder compare the whole question with the whole section. When A does retrieve
+the gold section, the answers are as good as with passage retrieval (33.5 against 33.3
+\fone{}), so the loss comes entirely from the lower hit rate. One-hop expansion adds two
+points of recall but loses one point of \fone{}, since the sections of neighbouring
+entities are on related topics but rarely contain the answer. The section-frequency
+weighting did not help either: a retrieval-only check done after the runs gives 36.6\%
+recall@5 without it, against 34.6\% with it.
 
-\paragraph{Facts as context.} Facts are the better graph-only context
-($+0.9$ \fone{} over A, not significant), even without any raw section. They behave
-differently from sections.
-\begin{itemize}
-    \item When the gold section is missed, about 26 facts from 15 sections still carry
-    parts of the answer: \fone{} on misses is 20.9, against 18.4 for A and 17.4 for
-    passage retrieval.
-    \item When the gold section is found, a triple with one quote holds less detail
-    than the section, and \fone{} on hits drops to 30.0.
-    \item The hub problem remains: in the question ``What VA dental care benefits do I
-    qualify for?'', the two top facts concern general eligibility for ``VA health care''
-    before the facts of the gold section follow.
-\end{itemize}
+Facts work slightly better than sections as graph-only context ($+0.9$ \fone{} over A,
+not significant), even though no raw text is given. When the gold section is missed,
+the roughly 26 facts from about 15 sections still contain parts of the answer, and
+\fone{} on misses is 20.9, against 18.4 for A and 17.4 for passage retrieval. When the
+gold section is found, a triple with one quote carries less detail than the section and
+\fone{} on hits drops to 30.0. Hubs remain a problem here: for ``What VA dental care
+benefits do I qualify for?'', the top two facts are about general eligibility for ``VA
+health care'', and the facts from the gold section only come after them.
 
-\paragraph{Hybrid retrieval.} The hybrid matches passage retrieval but does not improve
-it ($-0.5$ \fone{}, interval $[-1.2, 0.1]$). The cross-encoder rarely prefers a section
-found only through the graph: such sections fill 0.12 of the five slots on average, and
-the context changes in only 62 of the 500 questions. On those questions, recall@5 rises
-slightly (56.5\% against 54.8\%), while \fone{} falls (23.3 against 27.2, not
-significant).
+The hybrid C matches passage retrieval but does not improve on it ($-0.5$ \fone{}). The
+cross-encoder rarely prefers a section found only through the graph; such sections fill
+on average 0.12 of the five slots, and the context changes in only 62 of the 500
+questions. Reranking the graph candidates (D) solves most of the ranking problem of A,
+raising recall@5 from 34.6\% to 58.8\%, but the graph candidates contain the gold section
+for only 68.8\% of the questions against 88.6\% for the passage top-50, and \fone{} ends
+up 1.6 points lower. D is better where passage retrieval misses the gold section
+($+1.6$) but worse where it hits ($-2.1$).
 
-\paragraph{Graph as candidate generator.} Reranking the graph candidates (D) fixes most
-of the ranking problem of A: recall@5 rises from 34.6\% to 58.8\%, but stays below
-passage retrieval, because the graph candidates contain the gold section for 68.8\% of
-the questions against 88.6\% for the top-50 of passage retrieval. \fone{} is 1.6 points
-lower (significant). D helps on the questions where passage retrieval misses the gold
-section ($+1.6$, interval $[0.2, 3.0]$) but loses more where it hits ($-2.1$), and it
-rarely abstains on unanswerable turns (abstention recall 12.9\%).
-
-\paragraph{Abstention.} Graph contexts make the generator abstain more often: 9.6 to
-10.6\% of the answers, against 6.4\%. This catches more of the unanswerable turns
-(abstention recall 38.7--41.9\% against 25.8\%), at the cost of more false abstentions
-on answerable ones (7.5--8.7\% against 5.1\%), a sign that the context is less often
-relevant.
+Graph contexts also make the generator abstain more often, in 9.6 to 10.6\% of the answers
+against 6.4\% for passage retrieval. This catches more unanswerable turns (abstention
+recall of 38.7--41.9\% against 25.8\%) but also produces more false abstentions on
+answerable ones (7.5--8.7\% against 5.1\%), which suggests that the context is less often
+relevant. D goes the other way and rarely abstains on unanswerable turns (12.9\%).
 
 \begin{table}[ht]
     \centering
@@ -324,108 +240,91 @@ relevant.
         \cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-9}
         Pipeline & \fone{} & R@5 & \fone{} & R@5 & DMV & SSA & SA & VA \\
         \midrule
-        Hybrid+Rewrite+Rerank & 28.0 & 67.7 & 28.4 & 66.0 & 31.8 & 28.0 & 24.7 & 27.7 \\
-        A                     & 24.6 & 36.0 & 24.0 & 28.7 & 30.9 & 22.3 & 22.9 & 22.0 \\
-        A, 1-hop              & 23.2 & 37.7 & 24.7 & 31.9 & 29.3 & 19.7 & 23.2 & 21.9 \\
-        B                     & 25.3 & 38.4 & 25.9 & 31.9 & 29.7 & 24.3 & 24.0 & 23.5 \\
-        C                     & 27.5 & 68.0 & 27.8 & 66.0 & 31.1 & 28.1 & 23.6 & 27.5 \\
-        D                     & 26.2 & 61.1 & 27.5 & 48.9 & 31.4 & 25.3 & 23.4 & 25.6 \\
-        E                     & 29.2 & 67.7 & 29.1 & 66.0 & 35.3 & 27.8 & 25.9 & 27.7 \\
-        E-random              & 29.1 & 67.7 & 29.2 & 66.0 & 34.6 & 28.8 & 25.2 & 27.7 \\
+        Passage baseline & 28.0 & 67.7 & 28.4 & 66.0 & 31.8 & 28.0 & 24.7 & 27.7 \\
+        A                & 24.6 & 36.0 & 24.0 & 28.7 & 30.9 & 22.3 & 22.9 & 22.0 \\
+        A with 1-hop     & 23.2 & 37.7 & 24.7 & 31.9 & 29.3 & 19.7 & 23.2 & 21.9 \\
+        B                & 25.3 & 38.4 & 25.9 & 31.9 & 29.7 & 24.3 & 24.0 & 23.5 \\
+        C                & 27.5 & 68.0 & 27.8 & 66.0 & 31.1 & 28.1 & 23.6 & 27.5 \\
+        D                & 26.2 & 61.1 & 27.5 & 48.9 & 31.4 & 25.3 & 23.4 & 25.6 \\
+        E                & 29.2 & 67.7 & 29.1 & 66.0 & 35.3 & 27.8 & 25.9 & 27.7 \\
+        E-random         & 29.1 & 67.7 & 29.2 & 66.0 & 34.6 & 28.8 & 25.2 & 27.7 \\
         \bottomrule
     \end{tabular}
 \end{table}
 
-\paragraph{Splits.} Table~\ref{tab:kgret:split} breaks the results down.
-\begin{itemize}
-    \item \textbf{Document switches.} Graph retrieval loses most on them (recall@5 of A
-    28.7\% against 66.0\%), because the rewrite carries the previous topic into linking
-    (Section~\ref{sec:kgret:linkeval}), which passage retrieval and reranking recover
-    from.
-    \item \textbf{Domains.} By domain, the graph comes closest in DMV, whose questions
-    often name a specific document or fee. It falls furthest behind in SSA and VA
-    ($-5.7$ points each for A), whose questions link broad, frequently mentioned
-    services such as ``Social Security benefits'' and ``VA health care''.
-    \item \textbf{Unanswerable turns.} On the 31 unanswerable turns, A and B gain
-    \fone{} through their extra abstentions, since the reference answer of an
-    unanswerable turn is the abstention phrase itself, but none of the differences is
-    significant.
-\end{itemize}
+Table~\ref{tab:kgret:split} breaks the results down by turn type and domain. Graph
+retrieval loses most on document switches (recall@5 of 28.7\% for A against 66.0\%),
+because the rewrite carries the previous topic into linking, while passage retrieval
+and reranking recover from it. Among the domains, the graph comes closest in DMV, whose
+questions often name a specific document or fee, and falls furthest behind in SSA and VA
+($-5.7$ points each for A), where questions link broad and frequently mentioned services
+such as ``Social Security benefits''. On the 31 unanswerable turns, A and B gain \fone{}
+through their extra abstentions, because the reference answer of an unanswerable turn
+is the abstention phrase itself, but none of these differences is significant.
 
-\paragraph{Cost.} The graph retrievers add no \gls{llm} calls: there are 0.87 rewrite
-calls and one generation per question, as for passage retrieval. Linking and scoring
-take 7--8\,ms per question on a CPU. The prompts are longer than with passage retrieval
-(about 8{,}000 characters for A, 9{,}600 for B and 15{,}100 for E, against 6{,}600).
+None of the variants adds \gls{llm} calls: there are still 0.87 rewrite calls and one
+generation per question. Linking and scoring take 7--8\,ms per question, but the prompts
+get longer, about 8{,}000 characters for A, 9{,}600 for B and 15{,}100 for E, against
+6{,}600 for passage retrieval.
 
 
 % ===========================================================================
 \section{Graph Facts Added to Passages}\label{sec:kgret:facts}
 
-Adding the graph facts to the passages (E) is the only graph variant above passage
-retrieval, by 1.1 \fone{} points, but not significantly, and the random-facts control
-gains as much (Table~\ref{tab:kgret:qa}). Table~\ref{tab:kgret:facts} separates the two
-effects that this tie combines.
+E is the only variant that scores above passage retrieval, by 1.1 \fone{} points, but the
+difference is not significant and the random-facts control gains just as much.
+Table~\ref{tab:kgret:facts} shows where the two differ.
 
 \begin{table}[ht]
     \centering
-    \caption{Passages with graph facts (E) and with random facts (E-random): $\Delta$\fone{}
-    in points, paired bootstrap, 95\% interval. Hit and miss refer to the passage
-    retriever's top-5, the same partition for all rows.}
+    \caption{Passages with graph facts (E) and with random facts (E-random), \fone{}
+    difference in points with 95\% paired bootstrap interval. Hit and miss refer to the
+    top-5 of the passage retriever.}
     \label{tab:kgret:facts}
     \small
     \begin{tabular}{lrlll}
         \toprule
-        Subset & $n$ & E vs passages & E-random vs passages & E vs E-random \\
+        Subset & $n$ & E vs baseline & E-random vs baseline & E vs E-random \\
         \midrule
-        All                          & 500 & $+1.1$ {\scriptsize[$-0.3$, $2.5$]}  & $+1.0$ {\scriptsize[$-0.3$, $2.4$]}  & $+0.1$ {\scriptsize[$-1.1$, $1.1$]} \\
-        Answerable                   & 469 & $+0.9$ {\scriptsize[$0.0$, $1.8$]}   & $+0.2$ {\scriptsize[$-0.6$, $1.0$]}  & $+0.7$ {\scriptsize[$-0.2$, $1.6$]} \\
-        \quad passages hit           & 316 & $+0.7$ {\scriptsize[$-0.5$, $1.9$]}  & $0.0$ {\scriptsize[$-1.1$, $1.1$]}   & $+0.7$ {\scriptsize[$-0.4$, $2.0$]} \\
-        \quad passages miss          & 153 & $+1.3$ {\scriptsize[$0.1$, $2.6$]}   & $+0.7$ {\scriptsize[$-0.4$, $1.9$]}  & $+0.6$ {\scriptsize[$-0.6$, $1.8$]} \\
-        \quad facts reach gold       & 228 & $+2.0$ {\scriptsize[$0.7$, $3.5$]}   & $+0.2$ {\scriptsize[$-1.1$, $1.6$]}  & $+1.8$ {\scriptsize[$0.3$, $3.4$]} \\
-        \quad facts miss gold        & 241 & $-0.1$ {\scriptsize[$-1.4$, $1.0$]}  & $+0.2$ {\scriptsize[$-0.8$, $1.3$]}  & $-0.4$ {\scriptsize[$-1.6$, $0.7$]} \\
-        Unanswerable                 &  31 & $+3.7$ {\scriptsize[$-12.2$, $19.8$]} & $+13.0$ {\scriptsize[$-3.1$, $29.1$]} & $-9.3$ {\scriptsize[$-22.2$, $0.3$]} \\
+        All                    & 500 & $+1.1$ ($-0.3$, $2.5$)  & $+1.0$ ($-0.3$, $2.4$)  & $+0.1$ ($-1.1$, $1.1$) \\
+        Answerable             & 469 & $+0.9$ ($0.0$, $1.8$)   & $+0.2$ ($-0.6$, $1.0$)  & $+0.7$ ($-0.2$, $1.6$) \\
+        \quad passages hit     & 316 & $+0.7$ ($-0.5$, $1.9$)  & $0.0$ ($-1.1$, $1.1$)   & $+0.7$ ($-0.4$, $2.0$) \\
+        \quad passages miss    & 153 & $+1.3$ ($0.1$, $2.6$)   & $+0.7$ ($-0.4$, $1.9$)  & $+0.6$ ($-0.6$, $1.8$) \\
+        \quad facts reach gold & 228 & $+2.0$ ($0.7$, $3.5$)   & $+0.2$ ($-1.1$, $1.6$)  & $+1.8$ ($0.3$, $3.4$) \\
+        \quad facts miss gold  & 241 & $-0.1$ ($-1.4$, $1.0$)  & $+0.2$ ($-0.8$, $1.3$)  & $-0.4$ ($-1.6$, $0.7$) \\
+        Unanswerable           &  31 & $+3.7$ ($-12.2$, $19.8$) & $+13.0$ ($-3.1$, $29.1$) & $-9.3$ ($-22.2$, $0.3$) \\
         \bottomrule
     \end{tabular}
 \end{table}
 
-\begin{itemize}
-    \item \textbf{Abstention.} Random facts make the generator abstain more often (8.4\%
-    of the answers, against 5.8\% for E and 6.4\% for passages alone). This is rewarded
-    on the 31 unanswerable turns, whose reference answer is the abstention phrase, and
-    costs false abstentions on the answerable ones (6.4\% against 4.3\% for E). With
-    only 31 unanswerable turns, this effect is enough to equalise the overall scores.
-    \item \textbf{Content.} On the answerable turns, the graph facts help and random
-    facts do not ($+0.9$ against $+0.2$). The gain concentrates on the 228 questions
-    where at least one graph fact comes from a gold section: there the graph facts beat
-    the same number of random facts by 1.8 points, while on the other 241 questions the
-    two are equivalent. The split is defined by E and therefore exploratory, but both
-    variants are compared on the same questions with the same number of facts.
-\end{itemize}
-The graph thus contributes when its facts reach the section of the answer, which happens
-for about half of the questions, and a longer context alone does not help answerable
-questions. Part of the gain of E in DMV is a context effect, since random facts gain
-almost as much there (34.6 against 35.3 \fone{}).
+The overall tie hides two different effects. Random facts make the generator abstain
+more often (8.4\% of the answers, against 5.8\% for E and 6.4\% for passages alone). This
+pays off on the unanswerable turns, whose reference answer is the abstention phrase, and
+costs false abstentions on the answerable ones (6.4\% against 4.3\% for E). With 31
+unanswerable turns this is enough to make the overall scores equal. On answerable turns,
+instead, the graph facts help and random ones do not ($+0.9$ against $+0.2$). The gain is
+concentrated on the 228 questions where at least one graph fact comes from a gold
+section: there the graph facts beat the same number of random facts by 1.8 points, while
+on the other 241 questions the two are equivalent. Since this split is defined by E
+itself it should be seen as exploratory, but both variants are compared on the same
+questions with the same number of facts. Part of the gain of E in DMV seems to be a
+context effect, as random facts gain almost as much there (34.6 against 35.3).
 
 
 % ===========================================================================
-\section{Status}\label{sec:kgret:status}
+\section{Discussion}\label{sec:kgret:status}
 
 On \gls{mdd}, retrieval over the knowledge graph alone is worse than passage retrieval
-by 2.7 to 4.5 \fone{} points. The graph links the right topic for 70\% of the questions,
-but entity overlap is too coarse to rank the sections it reaches, and the answers of the
-dataset are passages rather than isolated facts. Even reranked by the cross-encoder, the
-graph candidates are worse than those of passage retrieval, and fusing the two matches
-but does not exceed the passage pipeline. Graph facts added to the retrieved passages
-are the one use with a measurable benefit: on answerable questions they gain
-0.9 \fone{} points, and 1.8 points over random facts where they come from the section of
-the answer. Their overall gain, however, equals that of random facts, because extra
-context also changes how often the generator abstains. The next stage (Graph \gls{rag})
-therefore needs:
-\begin{itemize}
-    \item fewer, better-ranked facts, to shorten a prompt that E makes 2.3 times longer;
-    \item a matched random-facts control;
-    \item separate results for answerable and unanswerable turns;
-    \item confirmation beyond the dev-500 subset.
-\end{itemize}
-Using the graph to choose sections within the linked document after a document switch
-remains untested.
+by 2.7 to 4.5 \fone{} points. Linking finds the right topic for 70\% of the questions,
+but entity overlap is too coarse to rank the sections the entities lead to, and the
+answers in this dataset are passages rather than isolated facts. Reranking the graph
+candidates still gives a worse candidate pool than passage retrieval, and fusing the two
+only matches the passage pipeline. Adding graph facts to the retrieved passages is the
+one setting where the graph seems to help: on answerable questions the facts add
+0.9 points, and 1.8 points over random facts where they come from the section of the
+answer. Overall, however, random facts gain as much, because the extra context also
+changes how often the model abstains. A Graph \gls{rag} pipeline built on this should use
+fewer and better-ranked facts, since E makes the prompt 2.3 times longer, and it should
+be compared with a matched random control, with answerable and unanswerable turns
+reported separately and with results beyond dev-500. Using the graph to choose sections
+within the linked document after a document switch has not been tried yet.
