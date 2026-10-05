@@ -1,52 +1,12 @@
-"""Manual annotation of extracted triples: export sheets and score them.
+"""Annotation sheets for extracted triples and their scoring.
 
-export: writes, for the annotation documents,
-  - annotation_sample.csv   every loadable triple, with empty `label` (correct /
-                            incorrect) and `note` columns to fill in;
-  - annotation_sections.csv the full text of every section of those documents
-                            (including skipped ones), to find missing triples;
-  - annotation_missing.csv  an empty template where each missing triple is one row
-                            (same columns as the sample; relation and types must
-                            come from the schema).
-
-stability: writes annotation_stability.csv (triple_id, in_run2): whether each annotated
-triple was also extracted by the second, independent run of the same pilot. It only
-reads annotation_sample.csv.
-
-score: computes precision, recall and F1 per relation type and per entity type
-(a triple counts for both of its endpoint types) from the filled-in CSVs:
-  precision = correct / labelled,  recall = correct / (correct + missing).
-If annotation_stability.csv exists, precision is also reported separately for triples
-found by both runs and by run 1 only.
-
-score-er: precision of the entity-resolution clusters labelled in er_pilot_clusters.csv
-(clusters that merge differently written names), overall, per entity type, and by
-merge evidence: name normalisation only (case, plural, articles), a rule match (alias,
-acronym, form number), or LLM confirmation.
-
-carry: for a new extraction of the annotated documents (e.g. prompt v2), carries the
-existing labels over to identical triples (same section, normalised source, relation,
-normalised target; ALTERNATIVE_TO in either direction): v1-labelled triples keep their
-label, triples that match a missed gold triple are correct. It writes
-  - gold_v1.csv              the 98 gold triples (v1 correct triples t####, missed m##);
-  - <prefix>.csv             every loadable triple of the new run, with the carried labels;
-  - <prefix>_new.csv         the unlabelled triples, with section text and the most similar
-                             labelled triples as context, and a suggested gold triple
-                             (same section and relation, similar endpoints) to confirm in
-                             `gold_id` or clear; fill `label` (correct / incorrect).
-
-Usage:
-    python -m src.kg.annotation export
-    python -m src.kg.annotation stability
-    python -m src.kg.annotation score
-    python -m src.kg.annotation score-er
-    python -m src.kg.annotation carry --input experiments/kg/v2_extraction.jsonl --prefix annotation_v2
-    python -m src.kg.annotation gold        # rewrite gold_v1.csv after a label correction
-    python -m src.kg.annotation control --input experiments/kg/full_v21_extraction.jsonl
-
-control: a control sample for the full build: CONTROL_SIZE random sections (seed 42) that
-have at least one loadable triple and lie outside all 8 pilot documents, one random triple
-per section, in the same format as the v2 labelling sheet (annotation_control.csv).
+    python -m src.kg.annotation export      # sheets for the annotated documents
+    python -m src.kg.annotation stability   # which annotated triples run 2 also found
+    python -m src.kg.annotation score       # precision / recall / F1
+    python -m src.kg.annotation score-er    # precision of entity clusters
+    python -m src.kg.annotation carry --input FILE --prefix NAME   # reuse labels for a new run
+    python -m src.kg.annotation gold        # rebuild gold_v1.csv
+    python -m src.kg.annotation control --input FILE               # control sample
 """
 import argparse
 import csv

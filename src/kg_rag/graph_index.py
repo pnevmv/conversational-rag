@@ -1,19 +1,7 @@
-"""Entity table of one KG scope, exported from Neo4j once and cached as JSON.
+"""Export the entities and entity relations of a scope from Neo4j to JSON, so the
+linker and retrievers don't query Neo4j per question.
 
-One row per Entity:
-    entity_id, name, type, domain, domains, value, degree (typed entity relations, both
-    directions), forms (entity name, names of the mentions resolved to it, their aliases),
-    section_ids (sections with a mention resolved to the entity).
-
-One row per entity relation (relations_<scope>.json):
-    source, relation, target, support, section_ids, evidence (the evidence quotes of the
-    mention-level relations it aggregates, with their section; either direction for the
-    symmetric ALTERNATIVE_TO).
-
-Linking and the KG retrievers read these tables instead of querying Neo4j per question.
-
-Usage:
-    python -m src.kg_rag.graph_index --scope full          # export (overwrites the caches)
+    python -m src.kg_rag.graph_index --scope full
 """
 import argparse
 import json

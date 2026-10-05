@@ -1,24 +1,9 @@
-"""Structural layer of the knowledge graph (no LLM).
+"""Load the structural layer into Neo4j: Domain -> Document -> Section -> Span.
 
-Loads the MultiDoc2Dial corpus into Neo4j as
+Section and span ids match the RAG index, so retrieval results and grounding annotations
+map directly to graph nodes. Sections get two flags: is_table (long enumerations, a text
+heuristic) and is_boilerplate (text repeated in many documents). Re-running is safe.
 
-    (:Domain {name})-[:HAS_DOCUMENT]->(:Document {doc_id, title, domain})
-    (:Document)-[:HAS_SECTION]->(:Section {section_id, heading, text, order, is_table, is_boilerplate})
-    (:Section)-[:HAS_SPAN]->(:Span {sp_id, text})
-    (:Section)-[:NEXT]->(:Section)          # document order
-
-Section ids match the RAG index (src.data.loader.make_section_id), and span ids
-use the same "<doc_id>::<id_sp>" form so dataset grounding annotations map
-directly onto Span nodes. All writes MERGE on ids, so re-running is idempotent.
-
-`is_table` flags enumeration-heavy sections. MultiDoc2Dial's HTML has no <table>
-elements (they were removed when the corpus was built), so the flag is a text
-heuristic: some content span lists at least ENUM_MIN_ITEMS short comma- or
-semicolon-separated items (e.g. state codes, registration classes, counties).
-`is_boilerplate` flags sections whose text occurs in BOILERPLATE_MIN_DOCS or more
-documents (src.kg.planning); they are skipped by extraction.
-
-Usage:
     python -m src.kg.structure
 """
 import re

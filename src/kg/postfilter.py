@@ -1,21 +1,8 @@
-"""Deterministic post-filters for extracted entities and relations (prompt v2.1 onwards).
+"""Simple post-filters applied to v2.1 extractions.
 
-Applied after post-processing, per section record. Each removal or change is recorded in
-the record's `postfilter` list with a reason, so it can be audited against labels.
-
-  - opening_hours: TimeLimit entities whose name or value is opening hours
-    ("24/7", "hours a day", "days a week", "Monday through Friday", "8:00 a.m. to ...")
-  - staff_role: Role entities that are staff rather than a kind of citizen
-    (counselor, social worker, program manager, staff member, representative)
-  - ui_text: short entity names that are interface text (sign in, create account,
-    learn more, continue, request ...): a UI verb phrase of at most UI_MAX_WORDS words.
-    "Request ..." counts only in Title Case ("Request Medical Reconsideration", a button):
-    in the pilot, "request an appeal" is a real service, the parent of the appeal levels
-  - part_of_direction: an entity that is the source of two or more PART_OF relations in a
-    section is the parent of those parts, so the relations are flipped (e.g. "request an
-    appeal PART_OF Reconsideration" becomes "Reconsideration PART_OF request an appeal")
-
-Relations touching a removed entity are removed with it.
+Removes opening hours typed as TimeLimit, staff typed as Role and short UI texts
+("sign in", "learn more"), and flips PART_OF when one entity is the source of several
+PART_OF relations in a section. Every change is logged in the record.
 """
 import re
 from collections import Counter

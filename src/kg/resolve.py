@@ -1,53 +1,14 @@
-"""Entity resolution for extracted KG mentions.
+"""Entity resolution for the extracted mentions.
 
-Pipeline:
-  1. Type conflicts: mentions sharing a normalised name but extracted with different
-     types get the majority type over all mentions. A tie goes to the tied type under
-     which the most of the mentions' relations satisfy the type rules, then to the
-     fixed TYPE_PRIORITY order.
-  2. Blocking by type. Service, Requirement, Role and Outcome are compared only within
-     the same domain; Organization, Document, ContactPoint, Amount and TimeLimit also
-     across domains, except Amounts and TimeLimits without a stated value.
-     Hub guard: a name made only of generic words ("application", "other documents",
-     "requirements listed below", "fee", "benefits") is not resolved at all: it stays an
-     entity of its own section. In the first full build such names became hubs that
-     connected unrelated services across documents and domains.
-  3. Mentions with the same normalised name in a block form one name group (merged).
-  4. Candidate pairs of name groups:
-       - rules, merged automatically: alias (an alias or parenthetical abbreviation of
-         one group is a name of the other), acronym (initials of a multi-word name equal
-         the other name, e.g. Department of Motor Vehicles / DMV), form number (two
-         Documents citing the same form code, e.g. IRP-6 / IRP6);
-       - embedding cosine of the names (bge-small-en-v1.5) plus graph signals, as in
-         ch. 6.1.4 of the book: +SAME_DOC_BONUS if both occur in the same document,
-         +SHARED_NEIGHBOUR_BONUS per shared relation neighbour (capped).
-  5. Three bands on the resulting score: >= UPPER merge, < LOWER never merge, in
-     between an LLM confirms (temperature 0, strict JSON, cached). Only each name
-     group's TOP_K nearest neighbours enter the LLM band, so the number of LLM calls
-     grows linearly with the corpus rather than quadratically.
-  5b. Generic vs specific: two names never merge (without a rule match) when they share no
-     content word ("proof of identity" / "NY State driver license": a category and one of its
-     instances), or when one name is a coordination of the other with something else
-     ("disability compensation" / "disability compensation and pension benefits"). These
-     pairs are rejected without an LLM call. A broader rule (any name whose words are a
-     subset of another's) was rejected: on the labelled pilot clusters it split 15 of 33
-     correct merges ("loans" / "student loans", "DMV office" / "local DMV office").
-  6. Constrained clustering: accepted pairs are merged (rules first, then by score)
-     unless the two clusters contain a cannot-link pair, i.e. a pair the LLM rejected or
-     two Amount / TimeLimit / ContactPoint groups with different values. This stops
-     chains such as A=B, B=C merging A and C when the LLM said A != C.
+Mentions are grouped by type (and by domain for some types), and names that normalise to
+the same key are merged directly. Other pairs are merged by rules (alias, acronym, form
+number) or, if their embedding score is between LOWER and UPPER, after an LLM check.
+Merges are blocked when the LLM said no or when values conflict, so clusters can't grow
+by chaining. Names made only of generic words ("application", "fee") are not resolved.
 
-LLM confirmation is batched by default: one call receives a query name group (name,
-type, evidence) and up to BATCH_SIZE candidate groups and returns which candidates are
-the same entity. Groups with the most pending candidates are queried first, and a pair
-already judged from the other side is not asked again. `--pairwise` reproduces the
-one-pair-per-call judge used for calibration.
-
-Commands:
-    python -m src.kg.resolve calibrate   # LLM-judge pairs over a score range, per-bin agreement
-    python -m src.kg.resolve run         # batched ER on the pilot -> er_pilot_batched_*
-    python -m src.kg.resolve run --pairwise --lower 0.75 --prefix er_pilot   # previous run
-    python -m src.kg.resolve estimate    # simulate full-corpus LLM calls from pilot densities
+    python -m src.kg.resolve calibrate
+    python -m src.kg.resolve run [--input FILE --prefix NAME]
+    python -m src.kg.resolve estimate
 """
 import argparse
 import csv

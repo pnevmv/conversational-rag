@@ -1,16 +1,8 @@
-"""dev-500 queries and the Step 4 best retrieval, shared by linking and the KG retrievers.
+"""dev-500 queries and the Step 4 best retrieval (hybrid + rewrite + rerank), cached in
+experiments/kg_rag/step4_dev500.json.
 
-- Query variants per example: the raw user turn, the Step 4 rewrite (same prompt and LLM
-  cache as experiments/run_dev_subset.py, so no new calls), and the rewrite followed by the
-  last agent turn.
-- Step 4 best retrieval: Hybrid (BM25 + dense, RRF) on the rewritten query, top-50 reranked
-  by the cross-encoder. The full reranked list of 50 is kept, so the hybrid KG retriever can
-  fuse it; its top-5 is exactly the Step 4 context.
-- Domain prediction: Step 4 has no domain classifier, so the predicted domain is the
-  majority domain of the Step 4 top-5 sections, and its confidence the share of the top-5
-  in that domain (confident at >= DOMAIN_CONFIDENCE).
-
-Both are cached in experiments/kg_rag/ (step4_dev500.json).
+The predicted domain is the majority domain of the Step 4 top-5 (there is no domain
+classifier in Step 4).
 """
 import json
 from collections import Counter

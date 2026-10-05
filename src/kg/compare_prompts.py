@@ -1,33 +1,11 @@
-"""Compare two extraction prompt versions on the annotated pilot documents.
+"""Compare two prompt versions on the annotated pilot documents.
 
-Inputs (all in experiments/kg/):
-  - gold_v1.csv            the 98 gold triples (correct v1 triples t####, missed m##)
-  - annotation_sample.csv  v1 labels (pilot 3 run 1)
-  - annotation_v2.csv      v2 labels (carried + new), with gold_id for correct triples that
-                           express a gold fact
-  - v2_extraction_run2.jsonl  second v2 run, for the run-agreement split
+Precision, recall (against gold_v1.csv and a pooled gold set) and F1, overall, per relation
+and per document, with a paired bootstrap over sections. `check` scores an unlabelled run
+(e.g. v2.1) on the triples whose labels can be carried over.
 
-Metrics per version: precision (correct / labelled), recall (distinct gold facts expressed
-by a correct triple / 98), F1, per relation (precision by the triple's relation, recall by
-the gold fact's relation) and per document. Confidence intervals come from a paired
-bootstrap over sections (B = 2,000, seed 42): sections are resampled with replacement and
-both versions are scored on the same resample, which also gives CIs for the v2 - v1
-differences. Correct v2 triples without a gold id are correct facts outside the gold set;
-they count for precision but not for the fixed-gold recall. Because the gold set was built
-from v1's own output plus the facts v1 missed, the fixed-gold recall favours v1; the report
-therefore also gives a pooled recall (gold set extended with v2's correct triples outside it),
-recall without the social-media links that the KG layer drops by design, and the scores of
-the v2 two-run intersection.
-
-`check` scores an unlabelled extraction of the same documents (e.g. prompt v2.1) on its
-labelled subset: labels are carried over from the v1 and v2 annotations to identical triples,
-precision is computed on those, and recall against the pooled gold set (gold triples plus
-v2's correct triples outside it). It also reports relation counts and what the
-deterministic post-filters removed, with the labels the removed triples carry.
-
-Usage:
     python -m src.kg.compare_prompts
-    python -m src.kg.compare_prompts check --input experiments/kg/v21_extraction.jsonl --name v2.1
+    python -m src.kg.compare_prompts check --input FILE --name v2.1
 """
 import csv
 import json

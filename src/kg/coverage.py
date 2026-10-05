@@ -1,22 +1,10 @@
-"""dev-500 coverage of the KG for one scope.
+"""How well the graph covers the gold sections of dev-500 (or the validation split).
 
-For every dev-500 example whose gold section (from the grounding annotation) lies in a
-document of the scope, report:
-  - whether the gold section has at least one Mention;
-  - whether an entity mentioned in the gold section is also named in the user question
-    or in the reference answer. An entity is matched by any of its surface forms (the
-    entity name, the names of all mentions resolved to it, and their aliases), after the
-    same light normalisation used for entity resolution, as a whole-word sequence.
+For each example: does the gold section have mentions, and is one of its entities named in
+the question or the answer.
 
-The documents in scope are those with at least one Mention of the scope, so the script
-runs unchanged on the full graph later (--scope '*' for all scopes).
-
-`--examples validation` uses the whole validation split instead of dev-500, which gives a
-larger sample while the graph covers only a few documents.
-
-Usage:
     python -m src.kg.coverage --scope pilot
-    python -m src.kg.coverage --scope pilot --examples validation
+    python -m src.kg.coverage --scope full [--examples validation]
 """
 import argparse
 import json

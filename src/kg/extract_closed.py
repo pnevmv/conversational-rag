@@ -1,40 +1,13 @@
-"""Closed-schema entity and relation extraction from MultiDoc2Dial sections.
+"""Closed-schema extraction of entities and relations from MultiDoc2Dial sections.
 
-Uses the schema in src.kg.schema (9 entity types, 11 relation types, at most
-MAX_ENTITIES entities per LLM call), temperature 0 and a strict JSON schema.
-Extraction is organised in *units* (src.kg.planning): short and boilerplate sections
-are skipped, a text repeated across sections is extracted once and attached to every
-section where it occurs, and texts over CHUNK_MAX_CHARS are split into chunks at
-sentence boundaries. Raw outputs are cached per (unit chunk, prompt hash).
+Sections are planned into units (src.kg.planning), sent to the LLM with a strict JSON
+schema and cached. The output is cleaned up (names, kinds, values, invalid relations are
+flagged). Prompt versions: v1, v2 and v2.1 (v2.1 output also goes through
+src.kg.postfilter).
 
-Post-processing (per chunk, then merged per unit):
-  - normalises names and aliases, drops empty and duplicate entities
-  - clears `kind` / `value` where the type does not use them, maps unknown kinds to "other"
-  - a ContactPoint whose evidence contains a phone number, address, email or URL must have
-    a value: if the model left it empty, the detail found in the evidence is used
-  - ContactPoints that are social-media links are flagged `is_social` (kept here, not
-    loaded into the KG layer)
-  - drops relations with an endpoint that is not an extracted entity, and self-loops
-  - stores symmetric relations (ALTERNATIVE_TO) in one canonical direction
-  - flags relations that violate the domain -> range rules (`schema_valid`); they stay in
-    the output and are dropped at load time (see loadable_relations)
-
-Prompt versions (`--prompt-version`, part of the cache key, so both can be re-run):
-    v1  the prompt used for the pilots and the v1 annotation
-    v2  stricter rules for the error patterns of the v1 annotation (UI text, REQUIRES overuse,
-        self-relations, places as Role, opening hours as TimeLimit, documents as Service,
-        negation) and guidance for ALTERNATIVE_TO, HAS_AMOUNT and PART_OF, with three worked
-        examples from documents outside the pilot
-    v2.1 v2 plus contact-point extraction (phone, TTY, offices, online accounts as
-        AVAILABLE_AT ContactPoints) and worked examples for contact points and taxes/fees;
-        its output goes through the deterministic post-filters of src.kg.postfilter
-
-Modes (nothing is written to Neo4j):
-    python -m src.kg.extract_closed                      # whole-document pilot (8 docs)
-    python -m src.kg.extract_closed --annotated          # the 3 annotated pilot documents
-    python -m src.kg.extract_closed --tables             # is_table sections, 2 per domain
-    python -m src.kg.extract_closed --regression         # sections behind known pilot-1 errors
-    python -m src.kg.extract_closed --cache-dir DIR --output FILE   # e.g. a second run
+    python -m src.kg.extract_closed                  # 8 pilot documents
+    python -m src.kg.extract_closed --annotated      # 3 annotated documents
+    python -m src.kg.extract_closed --all            # whole corpus
 """
 import argparse
 import hashlib

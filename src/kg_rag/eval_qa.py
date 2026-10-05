@@ -1,15 +1,7 @@
-"""Phase 2 evaluation: KG pipelines vs the Step 4 best on dev-500.
+"""Evaluate the phase 2 pipelines against the Step 4 best (F1, recall, abstention,
+splits, paired bootstrap). Writes experiments/kg_rag/phase2_qa.json.
 
-Uses the Step 4 diagnostic evaluator (experiments/evaluate_diagnostics.py) for F1, R@5,
-F1 on hit/miss and abstention, and adds R@1, domain recall, the abstain rate, splits by
-doc switch, answerability and Step 4 retrieval hit/miss (answerable turns; hit = a gold span
-in the Step 4 top-5, the same partition for every pipeline, so the tests stay paired),
-per-domain F1 and paired bootstrap tests of token F1 against Hybrid + Rewrite + Rerank
-(agent prompt) overall and per split.
-
-Usage:
     python -m src.kg_rag.eval_qa
-Outputs experiments/kg_rag/phase2_qa.json.
 """
 import json
 from typing import Any, Dict, List

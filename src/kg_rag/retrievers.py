@@ -1,26 +1,9 @@
-"""KG retrievers for dev-500 QA (Step 6, phase 2).
+"""KG retrievers (phase 2).
 
-All start from the top-10 entities linked to the rewritten query (src.kg_rag.linker, hubs
-kept). Each linked entity e gets a weight
-
-    w(e) = link(e) * idf(e),   link(e) = its RRF linking score,
-                               idf(e)  = log(1 + N / sections(e))
-
-where N is the number of sections with at least one entity and sections(e) the number of
-sections e is mentioned in: an entity mentioned everywhere (a hub) points to no section
-in particular.
-
-A. KG -> sections. A section scores the sum of the weights of the linked entities it
-   mentions (ties: more linked entities, then section id). With 1-hop expansion, every
-   neighbour n of a non-hub linked entity e through an entity relation also counts, with
-   weight EXPAND_DECAY * link(e) * idf(n) (the maximum over its linked neighbours); hub
-   neighbours are not added.
-B. KG facts. Candidate facts are the entity relations of the linked entities. They are
-   ranked by RRF of (i) the weight of their best linked endpoint (ties: support) and
-   (ii) the cosine between the query and the fact text (bge-small); the top FACT_BUDGET
-   facts are given to the generator as triples with one evidence quote each.
-C. Hybrid. RRF of A's ranking and the Step 4 best ranking (Hybrid + Rewrite + Rerank,
-   top-50 each); the fused top-50 is reranked by the Step 4 cross-encoder to the top-5.
+Linked entities are weighted by link score * log(1 + N / number of sections).
+A ranks sections by the summed weights of the linked entities they mention (optionally
+with 1-hop neighbours), B ranks the relations of the linked entities as facts, and
+rrf_sections fuses rankings for the hybrid variants.
 """
 import math
 from collections import defaultdict
@@ -65,7 +48,6 @@ class KGRetriever:
         self._fact_emb: Optional[np.ndarray] = None
         self._scope = scope
 
-    # --- shared ---------------------------------------------------------------------------
 
     def link(self, query: str, query_emb: np.ndarray, domain: Optional[str] = None) -> List[Dict[str, Any]]:
         return self.linker.link(query, k=LINK_K, domain=domain, skip_hubs=False, query_emb=query_emb)
@@ -92,7 +74,6 @@ class KGRetriever:
                 "span_ids": [str(x) for x in s["span_ids"]], "title": s["title"],
                 "section_title": s["section_title"], "text": s["text"], "score": score, **extra}
 
-    # --- A: KG -> sections ----------------------------------------------------------------
 
     def rank_sections(self, linked: List[Dict[str, Any]], expand: bool = False, k: int = POOL_K) -> List[Dict[str, Any]]:
         w = self.weights(linked, expand)
@@ -107,7 +88,6 @@ class KGRetriever:
         return [self.section_result(sid, rank, score[sid], n_entities=count[sid])
                 for rank, sid in enumerate(ranked, start=1)]
 
-    # --- B: KG facts ----------------------------------------------------------------------
 
     def fact_text(self, r: Dict[str, Any]) -> str:
         a, b = self.entities[r["source"]], self.entities[r["target"]]

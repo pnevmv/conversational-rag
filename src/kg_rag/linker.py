@@ -1,16 +1,5 @@
-"""Entity linking: query text -> ranked KG entities.
-
-Two candidate generators over the entity surface forms (entity name, resolved mention
-names, aliases; see src.kg_rag.graph_index):
-  - dense: bge-small (the Step 4 dense model), cosine between the query (with the BGE query
-    prefix) and every surface form; an entity scores its best form;
-  - BM25 over one short document per entity (its forms, stopwords removed).
-The two rankings are fused with RRF (k=60, as in the Step 4 hybrid retriever).
-
-Filters, both optional:
-  - domain: when the predicted domain is confident, keep entities seen in that domain;
-  - hubs: skip entities whose degree (typed entity relations) is above a cap, by default the
-    99th percentile of the scope (16 in the full graph), e.g. "VA health care" (99).
+"""Entity linking: dense (bge-small over surface forms) and BM25 over entity names,
+fused with RRF. Optional domain filter and hub skip (degree above the 99th percentile).
 """
 import re
 from pathlib import Path

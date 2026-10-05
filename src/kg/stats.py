@@ -1,20 +1,6 @@
-"""Statistics of the graph layers for one scope (or all scopes).
+"""Graph statistics for one scope: counts per layer, type and domain, degree
+distribution, connected components and top entities.
 
-Reports, for the documents in scope:
-  - nodes and relationships per type in the structural, metagraph and KG layers;
-  - the share of sections with at least one mention (of all sections, and of the
-    sections that were not skipped as short or boilerplate);
-  - entities and entity relations per type and per domain (an entity's most frequent
-    domain; a relation counts for its source entity's domain), and the share of
-    mentions resolved to an entity (social-media ContactPoints are not resolved by design);
-  - the degree distribution of Entity nodes in the KG layer (median, p90, max);
-  - the connected components of the entity graph;
-  - the top 10 entities by degree per entity type.
-
-The documents in scope are those with at least one Mention of the scope, so the same
-script works for the pilot and, later, the full graph (--scope '*' for all scopes).
-
-Usage:
     python -m src.kg.stats --scope pilot
 """
 import argparse

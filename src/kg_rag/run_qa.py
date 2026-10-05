@@ -1,24 +1,10 @@
-"""Phase 2: KG retrievers and QA on dev-500, comparable with Step 4.
+"""Run the KG pipelines on dev-500 with the Step 4 generator and prompt (phase 2).
 
-Pipelines (output experiments/results/dev_500/<name>.jsonl, Step 4 record schema):
-  kg_sections         A: KG -> sections, top-5 as context
-  kg_sections_1hop    A with 1-hop expansion through entity relations
-  kg_facts            B: top-30 KG facts with evidence quotes as context (no raw sections)
-  kg_hybrid           C: RRF(A, Step 4 best) -> cross-encoder rerank -> top-5
-  kg_rerank           D: A's top-50 reranked by the Step 4 cross-encoder (KG as candidate generator)
-  step4_plus_facts    E: the Step 4 best top-5 sections, followed by B's KG facts in a separate
-                      "Facts" block
-  step4_plus_random_facts  E-random (control): the Step 4 top-5 sections plus as many KG facts as E,
-                      drawn at random (fixed seed) from the facts of the example's domain
+A sections, A with 1-hop, B facts, C hybrid, D reranked KG candidates, E Step 4 sections
+plus facts, and E-random (random facts from the same domain). Results go to
+experiments/results/dev_500/.
 
-All use the rewritten query for linking (top-10 entities, hubs kept); A, B, D and E link
-without the domain filter (the predicted domain comes from Step 4 retrieval), C with it. The
-generator, agent-style prompt and model are those of Step 4 (rag_rewrite_rerank_v2), and
-the question in the prompt is the raw user turn, as in Step 4.
-
-Usage:
-    python -m src.kg_rag.run_qa --retrieval-only     # recall only, no generation
-    python -m src.kg_rag.run_qa --workers 12
+    python -m src.kg_rag.run_qa [--retrieval-only] [--workers 12]
 """
 import argparse
 import json

@@ -1,32 +1,11 @@
-"""Load the metagraph and KG layers into Neo4j for one scope.
+"""Load the metagraph (mentions) and the entity layer into Neo4j for one scope.
 
-Metagraph (one node per extracted mention, created, never merged):
-    (:Section)-[:MENTIONS]->(:Mention {mention_id, name, name_normalized, type, value, kind,
-                                      alias, evidence, is_social, run_id, scope, section_id})
-    (:Mention)-[:REL {type, evidence}]->(:Mention)       # loadable relations only
+Loading a scope first deletes its Mention and Entity nodes, so it can be re-run. Entity
+relations aggregate the mention relations between the resolved entities. Social-media
+contact points stay in the metagraph only.
 
-KG layer (from the entity-resolution clusters):
-    (:Mention)-[:RESOLVES_TO]->(:Entity {entity_id, name, type, domain, domains, value, kind,
-                                        n_mentions, scope})
-    (:Entity)-[:<RELATION> {support, section_ids}]->(:Entity)
-
-Entity relations aggregate the mention-level relations between the resolved endpoints:
-`support` is the number of mention-level relations and `section_ids` the sections they
-come from. ALTERNATIVE_TO is stored once per entity pair. Relations that break the type
-rules are not loaded (counted at mention level, and again at entity level, where the
-resolved majority type can differ from the extracted one); relations whose two
-endpoints resolve to the same entity are dropped and counted. Social-media ContactPoints
-(`is_social`, see src.kg.schema.is_social_contact) stay in the metagraph but get no
-RESOLVES_TO, entity or entity relation; they are counted per domain.
-
-Idempotent: loading a scope first deletes that scope's Mention and Entity nodes (and
-with them their relationships). The structural layer is never modified.
-
-Usage:
-    python -m src.kg.load_neo4j                       # pilot scope (defaults below)
-    python -m src.kg.load_neo4j --scope pilot \\
-        --extraction experiments/kg/pilot3_closed_extraction.jsonl \\
-        --resolution experiments/kg/er_pilot_batched_mentions.jsonl --run-id pilot3_run1
+    python -m src.kg.load_neo4j
+    python -m src.kg.load_neo4j --scope full --run-id full_v21 --extraction FILE --resolution FILE
 """
 import argparse
 import json

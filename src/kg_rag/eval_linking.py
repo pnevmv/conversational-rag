@@ -1,17 +1,9 @@
-"""Phase 1: entity-linking evaluation on dev-500.
+"""Entity-linking evaluation on dev-500 (phase 1).
 
-Link recall@k = share of examples where at least one of the top-k linked entities has a
-mention in a gold section (examples with a gold section only; unanswerable turns have none).
+Link recall@k: share of examples where one of the top-k entities is mentioned in a gold
+section. Compares query variants and linker settings.
 
-Query variants: raw user turn, Step 4 rewrite, rewrite + last agent turn.
-Default linker: dense + BM25 fused by RRF, restricted to the predicted domain when the
-Step 4 domain prediction is confident, hub entities (degree > p99) skipped.
-Ablations on the rewritten query: each generator alone, no domain filter, no hub skip, and
-the gold domain as an upper bound for the domain filter.
-
-Usage:
     python -m src.kg_rag.eval_linking
-Outputs experiments/kg_rag/phase1_linking.json (summary) and phase1_linking.jsonl (per example).
 """
 import json
 import math

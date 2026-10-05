@@ -36,7 +36,6 @@ def test_wilson_interval():
     assert lo == pytest.approx(0.363, abs=1e-3) and hi == pytest.approx(0.526, abs=1e-3)
 
 
-# --- retrievers --------------------------------------------------------------------------
 
 from collections import defaultdict
 
