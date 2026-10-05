@@ -92,7 +92,7 @@ def judge_file(path: Path, client: JudgeClient, cache: LLMCache, ctx: Dict, work
         verdict = rule_verdict(ex, answer)
         if verdict is None:
             pending.append(len(rows))
-            prompts.append(build_prompt(ex, answer, gold_text(ex, ctx["sections"])))
+            prompts.append(build_prompt(ex, answer, gold_text(ex, ctx["sections"]), rec.get("context")))
         else:
             row.update(verdict)
         rows.append(row)

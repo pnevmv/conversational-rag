@@ -252,7 +252,7 @@ Expected token F1: ~24.5 for A, ~29.2 for E.
 
 ## LLM judge
 
-Token F1 only counts word overlap with the reference, so correct paraphrases get low scores. `experiments/judge_answers.py` re-scores the cached answers with an LLM judge from a different model family, called through the [Hugging Face inference router](https://huggingface.co/docs/inference-providers). The judge sees the last turns of the dialogue, the question, the reference answer and the gold section, and rates each answer as correct, partial or incorrect, and whether it is supported by the section. Abstentions are scored by rule (correct only on unanswerable turns), without a call.
+Token F1 only counts word overlap with the reference, so correct paraphrases get low scores. `experiments/judge_answers.py` re-scores the cached answers with an LLM judge from a different model family, called through the [Hugging Face inference router](https://huggingface.co/docs/inference-providers). The judge sees the last turns of the dialogue, the question, the reference answer, the gold section and the context the model was given. It rates each answer as correct, partial or incorrect, and separately says whether the answer is supported by the section or the context. Abstentions are scored by rule (correct only on unanswerable turns), without a call.
 
 1. Add your token to `.env` (and optionally another model):
 
@@ -261,7 +261,7 @@ HF_TOKEN=<your Hugging Face token>
 JUDGE_MODEL=meta-llama/Llama-3.3-70B-Instruct
 ```
 
-2. Try it on a few answers, then run it on all dev-500 pipelines (about 4,300 calls, 3M input tokens; cached, so reruns are free):
+2. Try it on a few answers, then run it on all dev-500 pipelines (about 4,300 calls, 8M input tokens; cached, so reruns are free):
 
 ```bash
 python experiments/judge_answers.py run --limit 10

@@ -109,7 +109,9 @@ def test_abstentions_are_scored_by_rule():
 def test_judge_prompt_contains_all_parts():
     ex = {"question": "Do I need insurance?", "reference_answer": "Yes, liability insurance.",
           "dialogue_history": [{"role": "user", "utterance": "Hi"}, {"role": "agent", "utterance": "Hello"}]}
-    p = build_prompt(ex, "Yes, you need insurance.", "Section text")
+    p = build_prompt(ex, "Yes, you need insurance.", "Section text", "Retrieved context")
     for part in ("Customer: Hi", "Agent: Hello", "Do I need insurance?", "Yes, liability insurance.",
-                 "Section text", "Yes, you need insurance."):
+                 "Section text", "Retrieved context", "Yes, you need insurance."):
         assert part in p
+    assert "answered without documents" in build_prompt(ex, "Yes.", "Section text")
+    assert build_prompt(ex, "Yes.", "S", "§" * 10000).count("§") == 6000
