@@ -250,10 +250,41 @@ Expected token F1: ~24.5 for A, ~29.2 for E.
 
 ---
 
+## LLM judge
+
+Token F1 only counts word overlap with the reference, so correct paraphrases get low scores. `experiments/judge_answers.py` re-scores the cached answers with an LLM judge from a different model family, called through the [Hugging Face inference router](https://huggingface.co/docs/inference-providers). The judge sees the last turns of the dialogue, the question, the reference answer and the gold section, and rates each answer as correct, partial or incorrect, and whether it is supported by the section. Abstentions are scored by rule (correct only on unanswerable turns), without a call.
+
+1. Add your token to `.env` (and optionally another model):
+
+```env
+HF_TOKEN=<your Hugging Face token>
+JUDGE_MODEL=meta-llama/Llama-3.3-70B-Instruct
+```
+
+2. Try it on a few answers, then run it on all dev-500 pipelines (about 4,300 calls, 3M input tokens; cached, so reruns are free):
+
+```bash
+python experiments/judge_answers.py run --limit 10
+python experiments/judge_answers.py run --workers 8
+```
+
+The summary is written to `experiments/results/judge/<model>/summary.md`.
+
+3. Check the judge against your own labels on 100 answers, and against a second run of itself:
+
+```bash
+python experiments/judge_answers.py export --n 100      # fill `label` in experiments/results/judge/human_labels.csv
+python experiments/judge_answers.py agreement
+python experiments/judge_answers.py run --run-id run2
+python experiments/judge_answers.py stability --other run2
+```
+
+---
+
 ## Tests
 
 ```bash
 python -m pytest tests
 ```
 
-152 tests pass and 4 are expected failures that document open extraction issues. The tests in `tests/test_kg_build.py` need Neo4j and are skipped if it is not running.
+155 tests pass and 4 are expected failures that document open extraction issues. The tests in `tests/test_kg_build.py` need Neo4j and are skipped if it is not running.

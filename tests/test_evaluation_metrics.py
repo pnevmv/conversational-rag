@@ -83,3 +83,33 @@ class TestComputeMetrics(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+# LLM judge helpers
+
+from src.evaluation.judge import build_prompt, parse_verdict, rule_verdict
+
+
+def test_parse_verdict_reads_json_inside_text():
+    v = parse_verdict('Sure. {"verdict": "Partial", "supported": "true", "reason": "misses the fee"}')
+    assert v == {"verdict": "partial", "supported": True, "reason": "misses the fee"}
+    assert parse_verdict("no json here") is None
+    assert parse_verdict('{"verdict": "maybe"}') is None
+
+
+def test_abstentions_are_scored_by_rule():
+    abst = "Unfortunately, no relevant information is found."
+    assert rule_verdict({"is_unanswerable": True}, abst)["verdict"] == "correct"
+    assert rule_verdict({"is_unanswerable": True}, "You need form MV-82.")["verdict"] == "incorrect"
+    assert rule_verdict({"is_unanswerable": False}, abst)["verdict"] == "incorrect"
+    assert rule_verdict({"is_unanswerable": False}, "")["verdict"] == "incorrect"
+    assert rule_verdict({"is_unanswerable": False}, "You need form MV-82.") is None
+
+
+def test_judge_prompt_contains_all_parts():
+    ex = {"question": "Do I need insurance?", "reference_answer": "Yes, liability insurance.",
+          "dialogue_history": [{"role": "user", "utterance": "Hi"}, {"role": "agent", "utterance": "Hello"}]}
+    p = build_prompt(ex, "Yes, you need insurance.", "Section text")
+    for part in ("Customer: Hi", "Agent: Hello", "Do I need insurance?", "Yes, liability insurance.",
+                 "Section text", "Yes, you need insurance."):
+        assert part in p
