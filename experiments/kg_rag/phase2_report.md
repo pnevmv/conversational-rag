@@ -23,7 +23,7 @@ The pipelines:
 * B: the relations of the linked entities (their 1-hop subgraph) as facts, ranked by RRF of the endpoint weight and the query-fact cosine (bge-small). The top 30 are given as triples with one evidence quote each, without any raw section.
 * C: RRF of A (linked with the domain filter) and the Step 4 ranking, top-50 each, then reranked by the Step 4 cross-encoder.
 * D: A's top-50 (31 sections on average) reranked by the same cross-encoder, so the graph replaces BM25 + dense as the candidate generator.
-* E: the Step 4 top-5 sections unchanged, followed by B's facts in a separate "Facts:" block. I checked that the sections part is identical to the Step 4 context for all 500 questions.
+* E: the Step 4 top-5 sections unchanged, followed by B's facts in a separate "Facts:" block. The sections part was checked to be identical to the Step 4 context for all 500 questions.
 * E-random: a control for E. Same sections, plus the same number of facts drawn at random from the facts of the question's domain (seed 42 per question).
 
 All parameters (10 entities, decay 0.5, 30 facts, pools of 50) were fixed before running. For B, recall is computed on the sections the facts come from, in fact order. B's context has 25.9 facts on average and is never empty.

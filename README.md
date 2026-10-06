@@ -1,6 +1,6 @@
 # Conversational RAG and Knowledge Graphs
 
-This repository contains the code, experiments and write-up of my research project on conversational question answering over document collections, starting from Retrieval-Augmented Generation (RAG) and moving towards Knowledge Graphs (KGs), Graph RAG and agent-based approaches.
+This repository contains the code, experiments and write-up of a research project on conversational question answering over document collections, starting from Retrieval-Augmented Generation (RAG) and moving towards Knowledge Graphs (KGs), Graph RAG and agent-based approaches.
 
 The work is carried out within the
 
@@ -76,7 +76,7 @@ A few things learned on the way:
 | Precision on a control sample (30 triples, unseen documents) | 73% [56, 86] |
 | Cost | 12,970 LLM calls, about 1 hour |
 
-All annotations were done by me, without automatic help (`experiments/kg/reannotation/`). They replace a first round of labels that were drafted by an LLM and reviewed by me; with those, the graph looked less precise (53% on the control sample) and the second prompt looked better than the first. Details are in `latex_report/chapters/kg_construction.tex` and `experiments/kg/full_build_report.md`.
+All annotations were made by hand, without automatic help (`experiments/kg/reannotation/`). They replace a first round of labels that were drafted by an LLM and then reviewed; with those, the graph looked less precise (53% on the control sample) and the second prompt looked better than the first. Details are in `latex_report/chapters/kg_construction.tex` and `experiments/kg/full_build_report.md`.
 
 ### Step 6: Retrieval over the knowledge graph
 
@@ -270,7 +270,7 @@ python experiments/judge_answers.py run --workers 8
 
 The summary is written to `experiments/results/judge/<model>/summary.md`.
 
-3. Check the judge against your own labels on 100 answers, and against a second run of itself:
+3. Check the judge against human labels on 100 answers, and against a second run of itself:
 
 ```bash
 python experiments/judge_answers.py export --n 100      # fill `label` in experiments/results/judge/human_labels.csv

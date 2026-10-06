@@ -99,14 +99,14 @@ grounding set $G$,
 \begin{equation}
     \ratk{K} = \frac{|\{g \in G : g \in \text{top-}K\}|}{|G|}.
 \end{equation}
-We report $\ratk{1}$ and $\ratk{5}$ throughout. In our experiments $K = 5$
+$\ratk{1}$ and $\ratk{5}$ are reported throughout. In all experiments $K = 5$
 sections are passed to the generator, so $\ratk{5}$ measures whether the model
 has access to the relevant content.
 
 \subsection{Abstention Metrics}
 
-For the unanswerable subset ($n = 226$ in the full validation split), we report
-three complementary metrics:
+For the unanswerable subset ($n = 226$ in the full validation split), three
+complementary metrics are reported:
 \begin{itemize}
     \item \textbf{Abstain recall} --- fraction of unanswerable questions on which
           the model abstains, i.e.\ produces the abstention phrase
@@ -128,8 +128,7 @@ achieves 100\% abstain recall but a high false-abstention rate.
 \section{Dev-500 Diagnostic Subset}\label{sec:dataset:dev500}
 
 The full validation split (4{,}427 examples) requires several hours of \gls{llm}
-calls per pipeline, making it impractical for rapid ablation studies. We therefore
-constructed a fixed 500-example subset (\emph{dev-500}) for diagnostic experiments.
+calls per pipeline, making it impractical for rapid ablation studies. A fixed 500-example subset (\emph{dev-500}) was therefore built for diagnostic experiments.
 
 \subsection{Sampling Procedure}
 

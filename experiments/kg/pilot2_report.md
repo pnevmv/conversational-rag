@@ -92,7 +92,7 @@ So entity resolution should look for candidates first within a document and then
 
 ## 7. Entity cap
 
-8 of the 90 sections hit the cap of 15 entities, i.e. 8 of the 67 sections with any entities (12%). None of them is `is_table`: they are simply the longest sections (890-2,932 characters, against a median of 351 for the rest). In the corpus 698 sections are longer than 890 characters and 268 longer than 1,500, so with a flat cap about one section in six would lose entities. I'd keep the cap of 15 per call but split sections longer than about 1,500 characters into chunks of about 1,000 characters along span boundaries, each with its own cap.
+8 of the 90 sections hit the cap of 15 entities, i.e. 8 of the 67 sections with any entities (12%). None of them is `is_table`: they are simply the longest sections (890-2,932 characters, against a median of 351 for the rest). In the corpus 698 sections are longer than 890 characters and 268 longer than 1,500, so with a flat cap about one section in six would lose entities. The proposal is to keep the cap of 15 per call but split sections longer than about 1,500 characters into chunks of about 1,000 characters along span boundaries, each with its own cap.
 
 ## 8. Extra run on `is_table` sections
 
@@ -115,7 +115,7 @@ The closed prompt no longer turns every item of an enumeration into an entity (p
 
 ## 10. Open decisions
 
-1. Allow Organization as an AVAILABLE_AT source and Requirement as a REQUIRES source (I'd say yes).
+1. Allow Organization as an AVAILABLE_AT source and Requirement as a REQUIRES source (recommended).
 2. Drop relations that break the type rules at load time but keep them in the raw output (yes).
 3. Add the Service kinds `appeal`, `insurance` and `online_tool` (yes).
 4. Skip sections under 40 characters and extract identical texts once (yes).

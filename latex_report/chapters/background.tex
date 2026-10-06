@@ -100,7 +100,7 @@ transformer), and retrieve by approximate nearest-neighbour search in the embedd
 space. This allows the retriever to handle paraphrase and semantic variation that
 would cause keyword-based methods to fail.
 
-In this work we use \texttt{BAAI/bge-small-en-v1.5}~\cite{bge2023}, a 384-dimensional
+This work uses \texttt{BAAI/bge-small-en-v1.5}~\cite{bge2023}, a 384-dimensional
 bi-encoder fine-tuned for retrieval tasks. Section-level embeddings are pre-computed
 once and stored on disk; query embeddings are computed at inference time and matched
 by cosine similarity.
@@ -115,7 +115,7 @@ combines their ranked lists using \gls{rrf}~\cite{cormack2009rrf}:
         \frac{1}{k_{\mathrm{rrf}} + \mathrm{rank}_r(d)},
 \end{equation}
 where $\mathcal{R}$ is the set of ranked lists and $k_{\mathrm{rrf}}$ is a constant
-(set to $60$ in our experiments). The fused score requires no normalisation and
+(set to $60$ in the experiments). The fused score requires no normalisation and
 tends to rank documents that appear highly in multiple lists above those that rank
 highly in only one.
 
@@ -127,7 +127,7 @@ rerankers~\cite{nogueira2020passage} concatenate the query and document as a sin
 input to a transformer, enabling full cross-attention. This produces more accurate
 relevance scores at the cost of higher computational complexity.
 
-In this work we use \texttt{BAAI/bge-reranker-base}, applying it as a second stage:
+This work uses \texttt{BAAI/bge-reranker-base} as a second stage:
 the retriever fetches the top~50 candidates, the reranker scores all 50
 (query, section) pairs, and the top~5 are passed to the generator.
 Section texts exceeding 512~tokens (the model's maximum) are silently truncated by
@@ -151,7 +151,7 @@ to resolve ``fees'' as ``driver's licence renewal fees'' to formulate an effecti
 retrieval query.
 
 Query rewriting addresses this by generating a self-contained reformulation of the
-follow-up question given the dialogue history~\cite{yu2020few}. We implement this
+follow-up question given the dialogue history~\cite{yu2020few}. Here it is implemented
 as an additional \gls{llm} call that produces a rewritten query before retrieval,
 using a sliding window of the last six dialogue turns as context.
 
@@ -170,7 +170,7 @@ In realistic deployments, users will ask questions for which the corpus contains
 no answer. A reliable system must \emph{abstain} on such questions rather than
 generating a fluent but unsupported answer. This creates a calibration problem:
 abstention should fire on genuinely unanswerable questions but not on answerable
-ones (false abstention). We assess this via abstain recall, false-abstention rate,
+ones (false abstention). This is measured by abstain recall, false-abstention rate
 and abstain precision.
 
 

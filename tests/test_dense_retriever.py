@@ -77,7 +77,7 @@ class TestDenseRetrieverWithMock(unittest.TestCase):
 
     def test_retrieve_best_match(self):
         retriever = self._make_retriever_with_fake_index()
-        # Our fake encode always returns embeddings[3], so span 3 should be rank 1
+        # The fake encode always returns embeddings[3], so span 3 should be rank 1
         results = retriever.retrieve("any query", top_k=1)
         self.assertEqual(results[0]["doc_id"], "doc_3")
 

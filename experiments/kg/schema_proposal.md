@@ -2,11 +2,11 @@
 
 Model: `gpt-5.4-nano` (Azure OpenAI), temperature 0, strict JSON schema output.
 
-This is the first part of the KG work: the structural layer in Neo4j, a small open extraction on 32 sections, and the closed schema I proposed for the full extraction based on it. Nothing extracted by the LLM was written to Neo4j at this stage.
+This is the first part of the KG work: the structural layer in Neo4j, a small open extraction on 32 sections, and the closed schema proposed for the full extraction based on it. Nothing extracted by the LLM was written to Neo4j at this stage.
 
 ## 1. Structural layer in Neo4j
 
-Neo4j 5 Community runs in Docker (`docker compose up -d neo4j`, see `docker-compose.yml`). I chose it over Aura Free because it runs locally, needs no account and has no node limit: Aura Free allows 200k nodes and 400k relationships, and the structural layer alone already has about 40k nodes. The connection settings are `NEO4J_URI`, `NEO4J_USER` and `NEO4J_PASSWORD` in `.env`, and the client is `src/kg/client.py`.
+Neo4j 5 Community runs in Docker (`docker compose up -d neo4j`, see `docker-compose.yml`). It was chosen over Aura Free because it runs locally, needs no account and has no node limit: Aura Free allows 200k nodes and 400k relationships, and the structural layer alone already has about 40k nodes. The connection settings are `NEO4J_URI`, `NEO4J_USER` and `NEO4J_PASSWORD` in `.env`, and the client is `src/kg/client.py`.
 
 Section ids are `"<doc_id>::<id_sp>"` (`src.data.loader.make_section_id`), so a RAG result `(doc_id, id_sp)` maps directly to a Section node, and span ids use the same form, so the grounding annotations of the dataset map to Span nodes. There are uniqueness constraints on `Domain.name`, `Document.doc_id`, `Section.section_id` and `Span.sp_id`.
 
@@ -30,13 +30,13 @@ Each evidence quote was checked against the section text: verbatim (exact substr
 | Relations | 207 (78.4%) | 44 (16.7%) | 13 (4.9%) | 264 |
 | All | 472 (81.1%) | 95 (16.3%) | 15 (2.6%) | 582 |
 
-I went through the 15 quotes that were not found, and none of them invents content: 9 join fragments with "..." (each fragment is in the text), 3 stitch list items together without an ellipsis, 1 drops a footnote marker, 1 is a light paraphrase ("apply for" instead of "applying for") and 1 comes from the document title. Most of them are from one DMV fee-table section, e.g. `AdditionalFee -[EXEMPTS]-> FarmRegistrationClass` with the evidence "The classes include ... Farm FAR".
+The 15 quotes that were not found were checked by hand, and none of them invents content: 9 join fragments with "..." (each fragment is in the text), 3 stitch list items together without an ellipsis, 1 drops a footnote marker, 1 is a light paraphrase ("apply for" instead of "applying for") and 1 comes from the document title. Most of them are from one DMV fee-table section, e.g. `AdditionalFee -[EXEMPTS]-> FarmRegistrationClass` with the evidence "The classes include ... Farm FAR".
 
 A verbatim quote doesn't mean the triple is right, though. Checking all 20 REQUIRES relations by hand, 13 are correct, 3 point the wrong way (`SupervisedDrivingPractice -[REQUIRES]-> RoadTest`, `VAHealthCareEligibilityCondition -[REQUIRES]-> VAHealthCare`) and 4 have a requirement as the source (`DisabilityReviewRequirement -[REQUIRES]-> CaseReview`). There are also 7 self-loops (`VA Health Care -[HAS_PDF]-> VA Health Care`). All relation endpoints match an extracted entity.
 
 ## 4. What types came out
 
-Entity types with at least 3 mentions, and the candidate type I mapped them to:
+Entity types with at least 3 mentions, and the candidate type they were mapped to:
 
 | Open type | n | Mapped to | Example |
 | :--- | :---: | :--- | :--- |
@@ -63,7 +63,7 @@ Relation types with at least 2 mentions include REQUIRES (20), EXEMPTS (8), INCL
 
 ## 5. Mapping onto a candidate schema
 
-I mapped every open type by hand to a candidate type, a new type, or "drop" (`pilot_type_mapping.json`).
+Every open type was mapped by hand to a candidate type, a new type, or "drop" (`pilot_type_mapping.json`).
 
 Entities (318 mentions):
 
@@ -154,8 +154,8 @@ For the full run the prompt should have closed type lists with one-line definiti
 ## 8. Open decisions
 
 1. Rename Agency to Organization and Fee to Amount, or keep the names with broader definitions?
-2. 10 relations, or 11 with ALTERNATIVE_TO? I'd keep it for the "instead / or you can" pattern.
-3. Add ContactPoint as a 9th type? I'd say yes, for "where / how do I contact" turns.
+2. 10 relations, or 11 with ALTERNATIVE_TO? Keeping it is recommended, for the "instead / or you can" pattern.
+3. Add ContactPoint as a 9th type? Recommended, for "where / how do I contact" turns.
 4. Cap or skip table-like sections?
 5. Run another pilot with the closed prompt on about 2 whole documents per domain before the full run, to measure overlap within documents?
 

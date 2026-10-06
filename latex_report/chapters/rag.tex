@@ -101,7 +101,7 @@ Follow-up questions in a multi-turn dialogue are frequently under-specified (e.g
 Submitting such questions as-is to a retrieval system typically yields poor results
 because the query text contains little discriminating content.
 
-To address this, we implement a \emph{query rewriter}: an additional \gls{llm} call
+To address this, a \emph{query rewriter} is added: an additional \gls{llm} call
 that reformulates the current question into a self-contained query given the dialogue
 history. The rewrite prompt uses a sliding window of the last six dialogue turns
 (three user--agent exchanges) and instructs the model to produce a single, complete question that includes
@@ -127,7 +127,7 @@ Real rewrites from the development set are listed in Appendix~\ref{ax:log:rewrit
 % ===========================================================================
 \section{Cross-Encoder Reranking}\label{sec:rag:reranker}
 
-As a second-stage refinement, we evaluate \texttt{BAAI/bge-reranker-base}, a
+As a second-stage refinement, \texttt{BAAI/bge-reranker-base} is evaluated, a
 cross-encoder that scores (query, section) pairs by computing cross-attention
 between query tokens and section tokens. This produces more accurate relevance
 judgements than bi-encoder cosine similarity at the cost of $O(K')$ forward passes.
@@ -203,8 +203,8 @@ Section~\ref{sec:rag:dev500}.
 % ===========================================================================
 \section{Oracle Upper Bound}\label{sec:rag:oracle}
 
-To disentangle retrieval failures from generation failures, we establish an
-\emph{oracle} baseline in which the model is given the gold grounding sections
+To disentangle retrieval failures from generation failures, an \emph{oracle}
+baseline is used in which the model is given the gold grounding sections
 directly, bypassing retrieval entirely. Recall@5 is set to 1.0 for all answerable
 examples by construction; unanswerable examples receive an empty context.
 

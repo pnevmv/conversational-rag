@@ -22,7 +22,7 @@ All LLM outputs are cached in `experiments/cache/` (not tracked), so a rerun on 
 
 ## 1. Before the build
 
-The decision to build with v2.1 was made on the first round of labels, which were drafted by an LLM and reviewed by me (with three v1 labels corrected: places like "outside of the United States" are not a Role). With those labels v2 looked more precise than v1 at about the same pooled recall:
+The decision to build with v2.1 was made on the first round of labels, which were drafted by an LLM and then reviewed (with three v1 labels corrected: places like "outside of the United States" are not a Role). With those labels v2 looked more precise than v1 at about the same pooled recall:
 
 | First labels | Precision | Recall (95 gold) | Pooled recall (118 facts) |
 | :--- | :---: | :---: | :---: |
@@ -30,7 +30,7 @@ The decision to build with v2.1 was made on the first round of labels, which wer
 | v2 | 53.7% | 43.2% | 54.2% |
 | v2, both runs agree | 72.1% | 32.6% | 35.6% |
 
-I later relabelled everything myself without the drafts (`reannotation/`), and the picture changed: v1 is the better prompt on the pilot documents.
+Everything was later relabelled by hand without the drafts (`reannotation/`), and the picture changed: v1 is the better prompt on the pilot documents.
 
 | Independent labels | Precision | Recall (110 gold) | Pooled recall (121 facts) |
 | :--- | :---: | :---: | :---: |
@@ -50,7 +50,7 @@ On the 3 annotated documents, without new labels (two runs each; a gold fact cou
 | v2, runs 1-2 | 49.2% / 40.7% | 31 / 22 | 7 / 2, 8 / 4 |
 | v2.1, runs 1-2 | 36.4% / 39.0% | 18 / 21 | 16 / 3, 10 / 3 |
 
-v2.1 extracts contact points again, but many are attached to a different source than in the gold triple, so AVAILABLE_AT recall can't be confirmed without labels (5 of the 17 gold facts are social links that the KG drops anyway). On these documents the filters removed 2 staff Roles and 1 opening-hours TimeLimit, and their labelled relations were all incorrect. I decided to go ahead with v2.1 and a single run.
+v2.1 extracts contact points again, but many are attached to a different source than in the gold triple, so AVAILABLE_AT recall can't be confirmed without labels (5 of the 17 gold facts are social links that the KG drops anyway). On these documents the filters removed 2 staff Roles and 1 opening-hours TimeLimit, and their labelled relations were all incorrect. The build therefore went ahead with v2.1 and a single run.
 
 ## 2. Extraction
 
@@ -174,7 +174,7 @@ The hub fix added 412 judge calls. No reasoning tokens were used. The price of t
 
 ## 8. Control sample
 
-To estimate precision on documents the prompts were not tuned on, `annotation_control.csv` has 30 triples, one from each of 30 random sections (seed 42) that have at least one loadable triple and lie outside all 8 pilot documents. The relation mix is REQUIRES 12, APPLIES_TO 5, PROVIDED_BY 4, HAS_TIME_LIMIT 4, LEADS_TO 3, DETERMINED_BY 1, EXEMPT_FROM 1. I labelled them myself, without automatic help.
+To estimate precision on documents the prompts were not tuned on, `annotation_control.csv` has 30 triples, one from each of 30 random sections (seed 42) that have at least one loadable triple and lie outside all 8 pilot documents. The relation mix is REQUIRES 12, APPLIES_TO 5, PROVIDED_BY 4, HAS_TIME_LIMIT 4, LEADS_TO 3, DETERMINED_BY 1, EXEMPT_FROM 1. They were labelled by hand, without automatic help.
 
 22 of the 30 are correct: precision 73.3% (Wilson 95% CI [55.6, 85.8]). No label is marked borderline. By relation: REQUIRES 9/12, APPLIES_TO 4/5, HAS_TIME_LIMIT 3/4, PROVIDED_BY 2/4, LEADS_TO 2/3, DETERMINED_BY 1/1, EXEMPT_FROM 1/1.
 
@@ -186,4 +186,4 @@ The 8 errors:
 * a review period read as a time limit;
 * a relation between two names of the same thing ("TNC PROVIDED_BY rideshare company").
 
-The first round of labels (LLM drafts reviewed by me) gave only 53.3% on the same sample, or 33.3% when the six borderline cases counted as errors. The two rounds agree on 20 of the 30 triples (Cohen's kappa 0.31), so this estimate depends a lot on who labels. A second annotator would be needed to pin it down. Scores are in `control_scores.json`.
+The first round of labels (reviewed LLM drafts) gave only 53.3% on the same sample, or 33.3% when the six borderline cases counted as errors. The two rounds agree on 20 of the 30 triples (Cohen's kappa 0.31), so this estimate depends a lot on who labels. A second annotator would be needed to pin it down. Scores are in `control_scores.json`.

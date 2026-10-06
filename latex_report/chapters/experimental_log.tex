@@ -156,8 +156,8 @@ From the dev-500 experiments onwards, a single shared function
 \section{Score-Threshold Abstention: A Negative Result}\label{ax:log:threshold}
 
 Since the pilot showed that better retrieval reduced abstention (BM25 abstained on
-67\% of unanswerable turns, Hybrid+Rewrite on none), we tested a retrieval-side
-abstention gate: if the top-1 retrieval score falls below a threshold, the system
+67\% of unanswerable turns, Hybrid+Rewrite on none), a retrieval-side abstention
+gate was tested: if the top-1 retrieval score falls below a threshold, the system
 returns the abstention phrase without calling the \gls{llm}. Each retriever exposes
 its own score: raw BM25 (about 0--30 on this corpus), cosine similarity for dense
 retrieval (about 0.5--0.9), and the RRF score for hybrid retrieval (about
@@ -168,7 +168,7 @@ unanswerable examples obtained RRF scores of 0.0323--0.0328, at or above the
 answerable median (0.0320), so any threshold that catches the unanswerable examples
 also abstains on most answerable ones. Rewriting makes queries specific enough to
 always find plausible-looking context. The gate is more viable for BM25, where an
-unanswerable question sometimes shares no term with any section. We concluded that
+unanswerable question sometimes shares no term with any section. The conclusion is that
 abstention needs a generation-side mechanism, such as an \gls{llm} sufficiency check,
 rather than a retrieval score gate.
 

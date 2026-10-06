@@ -10,11 +10,11 @@ This work presents a systematic empirical evaluation of approaches to this
 problem, using \gls{mdd} as the primary benchmark --- a dataset of goal-oriented
 dialogues grounded in government-service documents spanning four domains.
 
-We begin with a simple \gls{llm}-only baseline and progressively develop a full
+The work starts from a simple \gls{llm}-only baseline and progressively develops a full
 \gls{rag} pipeline, evaluating each design choice in terms of generation quality,
 retrieval precision, and abstention calibration.
 Starting from a parametric-memory baseline of 15.9\% token \fone{} on the full
-validation split, we find that incorporating retrieved context raises performance to
+validation split, incorporating retrieved context raises performance to
 26.8\% (\fone) with hybrid sparse--dense retrieval and conversational query rewriting
 --- with query rewriting alone contributing a statistically significant
 $+2.0$~pp over hybrid retrieval (paired bootstrap, $p < 0.001$).
@@ -23,7 +23,7 @@ establishes a generation ceiling of 36.1\% \fone{}, revealing that approximately
 thirds of the gap between the best \gls{rag} system and the oracle is attributable to
 retrieval failures rather than generation deficiencies.
 
-We additionally evaluate two targeted interventions: an agent-style generation
+Two targeted interventions are also evaluated: an agent-style generation
 prompt with few-shot examples drawn from the training split, and a cross-encoder
 reranker that expands retrieval to the top 50 candidates before selecting the final
 five. The reranker increases \ratk{5} by 6.2 percentage points (61.2\% to 67.4\%)
@@ -32,7 +32,7 @@ analysis shows that the generator fully exploits the newly retrieved gold sectio
 but that the gain is largely offset by gold sections the reranker displaces from
 the top five.
 
-We then build a knowledge graph from the corpus, with three layers for the document
+A knowledge graph is then built from the corpus, with three layers for the document
 structure, the extracted mentions and the resolved entities. Extraction turns out to be
 noisy: two runs with the same settings share fewer than half of their triples, and
 embedding similarity alone is not enough to decide which entities to merge. On a small
@@ -47,7 +47,7 @@ points, mainly because entity overlap cannot rank the many sections the entities
 to. Combining graph and passage retrieval matches the best passage pipeline without
 improving it. Adding graph facts to the retrieved passages helps on answerable
 questions when the facts come from the section of the answer, but a control with random
-facts gives the same overall gain. We conclude with directions for Graph \gls{rag},
+facts gives the same overall gain. The work concludes with directions for Graph \gls{rag},
 agent-based approaches and \gls{llm}-based evaluation.
 
 \end{abstract}

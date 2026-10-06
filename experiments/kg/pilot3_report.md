@@ -2,7 +2,7 @@
 
 Model: `gpt-5.4-nano`, temperature 0, strict JSON schema. Same 8 pilot documents as pilot 2.
 
-This report collects the changes made after pilot 2 and the checks I ran before the full extraction: prompt regression tests, run-to-run stability, the annotation sheets and entity resolution. Sections 8-10 are follow-ups: what the deployment allows for sampling, a cheaper batched judge for entity resolution, and a rule for ContactPoint values. At this point nothing extracted by the LLM had been written to Neo4j yet.
+This report collects the changes made after pilot 2 and the checks run before the full extraction: prompt regression tests, run-to-run stability, the annotation sheets and entity resolution. Sections 8-10 are follow-ups: what the deployment allows for sampling, a cheaper batched judge for entity resolution, and a rule for ContactPoint values. At this point nothing extracted by the LLM had been written to Neo4j yet.
 
 ## 1. Changes since pilot 2
 
@@ -88,7 +88,7 @@ So a single pass will miss links that a second pass finds. If recall turned out 
 * `annotation_sections.csv`: the text of all 31 sections of those documents, including skipped ones, to look for missing triples;
 * `annotation_missing.csv`: an empty template for the missing triples, using schema names.
 
-`python -m src.kg.annotation score` computes precision (correct / labelled), recall (correct / (correct + missing)) and F1 per relation and per entity type, into `annotation_scores.json`. I checked the scorer on a copy with fake labels first.
+`python -m src.kg.annotation score` computes precision (correct / labelled), recall (correct / (correct + missing)) and F1 per relation and per entity type, into `annotation_scores.json`. The scorer was first checked on a copy with fake labels.
 
 ## 6. Entity resolution
 
@@ -108,9 +108,9 @@ To calibrate the thresholds (`python -m src.kg.resolve calibrate`, `er_calibrati
 | 0.93-0.95 | 21 | 12 | 0.57 |
 | 0.95-1.00 | 19 | 10 | 0.53 |
 
-I set the lower threshold to 0.75 (below it only 1 of 100 sampled pairs is a match) and disabled the upper one: even above 0.95 only about half of the pairs are the same entity. The rejected ones are near-identical siblings that embeddings can't tell apart, like Subsidized vs Unsubsidized loans, Medical vs Non-Medical hearings, or FFEL PLUS vs FFEL Consolidation. So only rule matches merge without asking the LLM.
+The lower threshold was set to 0.75 (below it only 1 of 100 sampled pairs is a match) and the upper one was disabled: even above 0.95 only about half of the pairs are the same entity. The rejected ones are near-identical siblings that embeddings can't tell apart, like Subsidized vs Unsubsidized loans, Medical vs Non-Medical hearings, or FFEL PLUS vs FFEL Consolidation. So only rule matches merge without asking the LLM.
 
-The first pilot run produced chained clusters ("VA direct deposit" with "contact VA", "10 years" with "10-30 years"), so I added some safeguards:
+The first pilot run produced chained clusters ("VA direct deposit" with "contact VA", "10 years" with "10-30 years"), so some safeguards were added:
 
 1. Cannot-link: two clusters are not merged if the LLM rejected any pair across them (14 merges blocked).
 2. Value conflicts: Amount, TimeLimit or ContactPoint groups with different values are rejected without an LLM call (57 pairs).
@@ -140,7 +140,7 @@ What the deployment (`gpt-5.4-nano-2026-03-17`, a reasoning model) accepts:
 * `temperature`: only accepted with effort none;
 * `top_p`: accepted.
 
-To see which setting is most deterministic, I extracted 4 pilot sections 5 times per configuration and compared the repeats by mean pairwise triple Jaccard:
+To see which setting is most deterministic, 4 pilot sections were extracted 5 times per configuration and compared the repeats by mean pairwise triple Jaccard:
 
 | Configuration | Mean triple Jaccard | Identical repeats |
 | :--- | :---: | :---: |
@@ -201,7 +201,7 @@ Effect of the lower threshold on the pairwise judgments:
 | 0.85 | 139 | 49 |
 | 0.90 | 67 | 31 |
 
-Reading the 17 "same" verdicts between 0.75 and 0.80 by hand, only about 2 are real matches (the Schedule A/C IRP-6 variants, and maybe "hearing" with "Hearing by an administrative law judge"); the rest are wrong merges like "mail" with "phone", "housing grant" with "Veterans Housing Assistance" or "Room 136" with "Room 1366". Between 0.80 and 0.85 about 4 of 12 look right. So I raised the lower threshold to 0.80 (now the default): it removes about 44% of the judge work and mostly false merges, while 0.85 would start losing real ones.
+Reading the 17 "same" verdicts between 0.75 and 0.80 by hand, only about 2 are real matches (the Schedule A/C IRP-6 variants, and maybe "hearing" with "Hearing by an administrative law judge"); the rest are wrong merges like "mail" with "phone", "housing grant" with "Veterans Housing Assistance" or "Room 136" with "Room 1366". Between 0.80 and 0.85 about 4 of 12 look right. The lower threshold was therefore raised to 0.80 (now the default): it removes about 44% of the judge work and mostly false merges, while 0.85 would start losing real ones.
 
 Pilot ER with the new defaults (batched v3, threshold 0.80): 508 mentions -> 423 name groups -> 382 entities. Of 259 candidate pairs, 3 were rule merges, 42 value conflicts and 214 were judged in 111 calls (52 confirmed, 11 blocked by cannot-link); 42 clusters merge differently written names. The pairwise run at 0.75 needed 371 calls for 373 entities.
 
@@ -228,4 +228,4 @@ For a ContactPoint whose evidence contains a phone number, postal address, email
 
 So the earlier "regression" was not about missing details: when the evidence has one, the model already gave a value about 95% of the time. The one consistent miss is "VA.gov profile", where the domain is the name itself, and the fallback fixes it. The lower overall rate comes from ContactPoints without any detail in their evidence ("VA benefits hotline", "Facebook" with the number in another span), which is correct under the rule.
 
-Two new regression tests check that at least 90% of the detail-bearing ContactPoints have a value in the raw output and 100% after post-processing. The test file now has 17 cases, 13 passing and 4 strict xfail: the fee table direction (still reversed), self-loops (7 of 488 raw relations, 1.4%), one stitched quote, and the fee-table enumeration, since the current run lists all 8 registration classes again. That last one was a false pass before: my check split names on spaces, so "Agricultural (AGR)" didn't match the code "AGR".
+Two new regression tests check that at least 90% of the detail-bearing ContactPoints have a value in the raw output and 100% after post-processing. The test file now has 17 cases, 13 passing and 4 strict xfail: the fee table direction (still reversed), self-loops (7 of 488 raw relations, 1.4%), one stitched quote, and the fee-table enumeration, since the current run lists all 8 registration classes again. That last one was a false pass before: the check split names on spaces, so "Agricultural (AGR)" didn't match the code "AGR".

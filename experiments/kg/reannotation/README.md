@@ -2,7 +2,7 @@
 
 Blank copies of the five sheets used to evaluate the KG extraction and entity resolution. These sheets replace the earlier labels, which had been drafted by an LLM and reviewed.
 
-To keep the labels independent, don't look at the old sheets or at the LLM drafts (`experiments/triples_draft_labels.csv`, `experiments/er_clusters_draft_labels.csv`, `experiments/kg/*_draft.csv`) while labelling.
+To keep the labels independent, the old sheets and the LLM drafts (`experiments/triples_draft_labels.csv`, `experiments/er_clusters_draft_labels.csv`, `experiments/kg/*_draft.csv`) were not consulted while labelling.
 
 ## Files and order
 
