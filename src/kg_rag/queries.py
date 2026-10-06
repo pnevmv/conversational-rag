@@ -1,5 +1,5 @@
-"""dev-500 queries and the Step 4 best retrieval (hybrid + rewrite + rerank), cached in
-experiments/kg_rag/step4_dev500.json.
+"""Queries and the Step 4 best retrieval (hybrid + rewrite + rerank) for one split, cached in
+experiments/kg_rag/step4_<split>.json (split: dev500, validation or test).
 
 The predicted domain is the majority domain of the Step 4 top-5 (there is no domain
 classifier in Step 4).
@@ -9,7 +9,7 @@ from collections import Counter
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-from src.data.loader import load_doc_domain_map, load_sections, make_section_id
+from src.data.loader import load_doc_domain_map, load_qa_pairs, load_sections, make_section_id
 from src.kg.coverage import load_examples
 from src.llm import LLMCache, LLMClient, generate_batch
 from src.rag.query_rewriter import REWRITE_PROMPT, _format_history
@@ -18,10 +18,20 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 OUT_DIR = PROJECT_ROOT / "experiments" / "kg_rag"
 LLM_CACHE_DIR = PROJECT_ROOT / "experiments" / "cache"
 RERANKER_CACHE_DIR = LLM_CACHE_DIR / "reranker"
-STEP4_CACHE = OUT_DIR / "step4_dev500.json"
+SPLITS = ("dev500", "validation", "test")
 RETRIEVE_K = 50
 TOP_K = 5
 DOMAIN_CONFIDENCE = 0.8  # 4 of the top-5 sections in one domain
+
+
+def split_examples(split: str) -> List[Dict[str, Any]]:
+    if split == "test":
+        return load_qa_pairs(split="test", max_examples=None)
+    return load_examples("dev500" if split == "dev500" else "validation")
+
+
+def step4_cache(split: str) -> Path:
+    return OUT_DIR / f"step4_{split}.json"
 
 
 def last_agent_turn(example: Dict[str, Any]) -> Optional[str]:
@@ -49,7 +59,8 @@ def rewrite_all(examples: List[Dict[str, Any]], client: Optional[LLMClient] = No
     prompts = {i: REWRITE_PROMPT.format(history=_format_history(ex["dialogue_history"]), question=ex["question"])
                for i, ex in enumerate(examples) if ex.get("dialogue_history")}
     idx = sorted(prompts)
-    answers = generate_batch(client, [prompts[i] for i in idx], cache=cache, max_workers=workers, verbose=False)
+    print(f"  rewriting {len(idx)} turns", flush=True)
+    answers = generate_batch(client, [prompts[i] for i in idx], cache=cache, max_workers=workers, verbose=len(idx) > 1000)
     out = [ex["question"] for ex in examples]
     for i, (answer, _) in zip(idx, answers):
         if answer and answer.strip():
@@ -71,7 +82,12 @@ def _step4_retrieval(rewritten: List[str]) -> List[List[Dict[str, Any]]]:
 
     retriever = HybridRetriever()
     retriever.build_index()
-    candidates = [retriever.retrieve(q, top_k=RETRIEVE_K) for q in rewritten]
+    candidates = []
+    for i, q in enumerate(rewritten, 1):
+        candidates.append(retriever.retrieve(q, top_k=RETRIEVE_K))
+        if i % 1000 == 0:
+            print(f"  hybrid retrieval {i}/{len(rewritten)}", flush=True)
+    print(f"  reranking {len(rewritten)} x {RETRIEVE_K} candidates", flush=True)
     reranker = Reranker(cache_dir=RERANKER_CACHE_DIR)
     ranked = reranker.rerank_many(rewritten, candidates, top_k=RETRIEVE_K)
     out = []
@@ -83,11 +99,12 @@ def _step4_retrieval(rewritten: List[str]) -> List[List[Dict[str, Any]]]:
     return out
 
 
-def load_step4(workers: int = 8, refresh: bool = False) -> Dict[str, Any]:
-    """{"examples": [...dev-500 in order...], "records": {example_id: {...}}, "rewrite_stats": {...}}."""
-    examples = load_examples("dev500")
-    if STEP4_CACHE.exists() and not refresh:
-        data = json.loads(STEP4_CACHE.read_text(encoding="utf-8"))
+def load_step4(split: str = "dev500", workers: int = 8, refresh: bool = False) -> Dict[str, Any]:
+    """{"examples": [...in split order...], "records": {example_id: {...}}, "rewrite_stats": {...}}."""
+    examples = split_examples(split)
+    cache_file = step4_cache(split)
+    if cache_file.exists() and not refresh:
+        data = json.loads(cache_file.read_text(encoding="utf-8"))
         return {"examples": examples, **data}
 
     rewritten, stats = rewrite_all(examples, workers=workers)
@@ -103,6 +120,6 @@ def load_step4(workers: int = 8, refresh: bool = False) -> Dict[str, Any]:
             "pred_domain": dom, "pred_domain_conf": conf, "step4_ranking": top,
         }
     data = {"records": records, "rewrite_stats": stats}
-    STEP4_CACHE.parent.mkdir(parents=True, exist_ok=True)
-    STEP4_CACHE.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+    cache_file.parent.mkdir(parents=True, exist_ok=True)
+    cache_file.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
     return {"examples": examples, **data}

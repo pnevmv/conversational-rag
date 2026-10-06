@@ -1,0 +1,139 @@
+%!TEX root = ../main.tex
+
+\chapter{Final Evaluation}\label{ch:final}
+
+The comparisons in Chapters~\ref{ch:rag} and~\ref{ch:kgret} were made on the dev-500
+subset, and several design choices were taken by looking at it: the prompt, the
+reranker, the settings of entity linking and the choice of graph retriever. Results on
+the same data that guided these choices tend to be optimistic, and small differences on
+500 questions are hard to separate from noise. The work was therefore completed in two
+further steps. First, the systems whose choice was still open were run on the full
+validation split (4{,}427 questions), where the remaining decisions were taken and the
+final systems were frozen. Second, the frozen systems were run once on the test split of
+\gls{mdd} (4{,}335 questions, 241 of them unanswerable), which had not been used before
+and was not used for any decision. The generator, the agent-style prompt, the query
+rewriter and the evaluation are the same as in the previous chapters.
+
+
+% ===========================================================================
+\section{Decisions on the Validation Split}\label{sec:final:val}
+
+Table~\ref{tab:final:val} compares the candidate systems with the best passage pipeline
+(hybrid retrieval, query rewriting and reranking, agent-style prompt) on the full
+validation split. The \gls{llm}-only baseline reaches 15.8\% \fone{} and the oracle with
+the gold sections 35.5\%.
+
+\begin{table}[ht]
+    \centering
+    \caption{Full validation split (\%, $n = 4{,}427$). $\Delta$\fone{}: paired bootstrap
+    difference to the best passage pipeline with its 95\% interval, on all questions and
+    on the answerable ones. Abstain: abstention recall on unanswerable questions / false
+    abstentions on answerable ones.}
+    \label{tab:final:val}
+    \small
+    \begin{tabular}{lrrllr}
+        \toprule
+        System & R@5 & \fone{} & $\Delta$\fone{}, all & $\Delta$\fone{}, answerable & Abstain \\
+        \midrule
+        Passage pipeline         & 63.7 & 26.9 & ---                       & ---                       & 19.5 / 4.5 \\
+        without reranker         & 59.8 & 26.5 & $-0.3$ ($-0.8$, $0.1$)    & $-0.3$ ($-0.7$, $0.0$)    & 19.5 / 4.5 \\
+        with the first prompt    & 63.7 & 27.3 & $+0.4$ ($-0.0$, $0.8$)    & $-0.4$ ($-0.7$, $-0.1$)   & 36.0 / 6.0 \\
+        A: graph to sections     & 34.0 & 23.0 & $-3.9$ ($-4.5$, $-3.4$)   &                           & 32.3 / 10.4 \\
+        B: graph facts           & 36.6 & 24.1 & $-2.7$ ($-3.3$, $-2.1$)   & $-3.4$ ($-3.9$, $-3.0$)   & 30.1 / 7.6 \\
+        E: passages + facts      & 63.7 & 27.4 & $+0.5$ ($0.1$, $0.9$)     & $+0.5$ ($0.2$, $0.8$)     & 19.0 / 3.4 \\
+        E-random                 & 63.7 & 27.4 & $+0.6$ ($0.2$, $1.0$)     & $-0.0$ ($-0.3$, $0.2$)    & 31.4 / 5.6 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+The reranker raises recall@5 by 3.9 points, while the \fone{} difference is small and not
+significant; it was kept. The first, plainer prompt appears 0.4 points better overall,
+but only because it abstains much more often (abstention recall 36\% against 20\%), which
+is rewarded on the 226 unanswerable questions; on answerable questions it is 0.4 points
+worse and gives more false abstentions, so the agent-style prompt was kept. Both
+graph-only retrievers are clearly worse than passage retrieval, with facts (B) ahead of
+sections (A). Adding graph facts to the passages (E) gains 0.5 points, also on
+answerable questions, whereas the random-facts control gains only through extra
+abstentions and nothing on answerable questions; E beats it there by 0.6 points (95\%
+interval $[0.2, 0.9]$). The systems frozen for the test split are the \gls{llm}-only
+baseline, the oracle, the passage pipeline, B, E and E-random.
+
+
+% ===========================================================================
+\section{Results on the Test Split}\label{sec:final:test}
+
+\begin{table}[ht]
+    \centering
+    \caption{Test split (\%, $n = 4{,}335$). \fone{} with its 95\% bootstrap interval;
+    \fone{} on hits and misses for answerable questions with and without a gold span in
+    the top-5.}
+    \label{tab:final:test}
+    \small
+    \begin{tabular}{lrlrrr}
+        \toprule
+        System & R@5 & \fone{} & Hit / miss & Abstain rec. & False abst. \\
+        \midrule
+        \gls{llm} only          & ---  & 15.1 ($14.7$, $15.5$) & ---           & 14.5 & 11.8 \\
+        Oracle                  & 100  & 34.2 ($33.6$, $34.9$) & 35.1 / ---    & 18.7 &  2.4 \\
+        Passage pipeline        & 66.6 & 26.9 ($26.3$, $27.5$) & 31.9 / 17.4   & 22.4 &  5.2 \\
+        B: graph facts          & 38.7 & 23.8 ($23.2$, $24.4$) & 28.6 / 19.9   & 32.0 & 10.0 \\
+        E: passages + facts     & 66.6 & 27.5 ($27.0$, $28.2$) & 32.4 / 19.0   & 19.1 &  3.3 \\
+        E-random                & 66.6 & 27.3 ($26.7$, $27.9$) & 31.8 / 17.6   & 29.9 &  6.5 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{table}[ht]
+    \centering
+    \caption{Test split: $\Delta$\fone{} against the passage pipeline (points, paired
+    bootstrap, 95\% interval).}
+    \label{tab:final:delta}
+    \small
+    \begin{tabular}{llll}
+        \toprule
+        & All & Answerable & Passages miss gold \\
+        \midrule
+        B: graph facts      & $-3.1$ ($-3.7$, $-2.5$) & $-3.8$ ($-4.3$, $-3.3$) & $+1.0$ ($0.4$, $1.8$) \\
+        E: passages + facts & $+0.6$ ($0.2$, $1.1$)   & $+0.8$ ($0.5$, $1.2$)   & $+1.6$ ($1.1$, $2.1$) \\
+        E-random            & $+0.4$ ($-0.0$, $0.8$)  & $-0.0$ ($-0.3$, $0.3$)  & $+0.2$ ($-0.1$, $0.6$) \\
+        E vs E-random       & $+0.2$ ($-0.2$, $0.7$)  & $+0.9$ ($0.6$, $1.2$)   & $+1.4$ ($0.9$, $1.9$) \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+The test results (Tables~\ref{tab:final:test} and~\ref{tab:final:delta}) reproduce the
+validation results almost exactly. The ordering of the systems is the same: the
+\gls{llm} alone reaches 15.1\% \fone{}, retrieval over the graph alone 23.8\%, passage
+retrieval 26.9\%, passages with graph facts 27.5\% and the oracle 34.2\%. Retrieval over
+the graph alone is 3.1 points worse than passage retrieval, and 3.8 points on answerable
+questions. Adding graph facts to the retrieved passages gains 0.6 points overall and 0.8
+on answerable questions, both significant, and 1.6 points on the questions where passage
+retrieval misses the gold section. On the 2{,}206 answerable questions where at least one
+graph fact comes from the gold section the gain is 1.4 points (interval $[1.0, 1.8]$),
+while on the others it is not significant. Random facts gain nothing on answerable
+questions and are beaten by the graph facts by 0.9 points; their small overall gain comes
+again from more abstentions (abstention recall 30\% against 22\%), which is rewarded on
+unanswerable questions but also produces more false abstentions.
+
+The effect of the graph facts, which was only borderline on dev-500, is therefore
+confirmed on two large sets that played no role in its design, and the random-facts
+control shows that it comes from the content of the facts rather than from the longer
+context. It is small: about half a point of \fone{}, against a gap of 7.3 points between
+the passage pipeline and the oracle. On the test split, a gold section is among the top
+five retrieved sections for 67\% of the answerable questions, with an \fone{} of 31.9\%
+on these against 17.4\% on the others, so retrieval remains the main limitation.
+
+
+% ===========================================================================
+\section{Notes on the Runs}\label{sec:final:notes}
+
+The provider's content filter blocked 8 of about 66{,}000 generated answers (7 for the
+first prompt on the validation split and 1 for the \gls{llm}-only baseline on the test
+split); these questions are left out of the scores of the two systems. During the test
+run a consistency check, which verifies that the passages in variant E are exactly those
+of the passage pipeline, revealed a race condition: when two questions led to the same
+rewriting prompt, both were sent to the model at the same time and could receive
+different rewrites, of which only one was cached. Seven test questions were affected in
+the retrieval data of the graph pipelines. Identical prompts are now sent only once, the
+affected data were rebuilt and the graph pipelines rerun; the validation split and
+dev-500 passed the same check.

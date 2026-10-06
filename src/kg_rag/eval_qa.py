@@ -16,6 +16,8 @@ from src.kg_rag.queries import OUT_DIR
 BASELINE = "rag_rewrite_rerank_v2"
 PIPELINES = {
     BASELINE: "Step 4 best: Hybrid + Rewrite + Rerank",
+    "rag_rewrite_baseline_v2": "Step 4 without reranker",
+    "rag_rewrite_rerank": "Step 4 best with the old prompt",
     "kg_sections": "A: KG -> sections",
     "kg_sections_1hop": "A: KG -> sections, 1-hop",
     "kg_facts": "B: KG facts",
@@ -46,7 +48,14 @@ def split_stats(rows: List[Dict[str, Any]]) -> Dict[str, Any]:
 
 
 def main() -> None:
-    data = {name: per_example(RESULTS_DIR / f"{name}.jsonl") for name in PIPELINES}
+    import argparse
+    from src.kg_rag.run_qa import results_dir
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("--split", choices=["dev500", "validation", "test"], default="dev500")
+    split = parser.parse_args().split
+    rdir = results_dir(split)
+    pipelines = {k: v for k, v in PIPELINES.items() if (rdir / f"{k}.jsonl").exists()}
+    data = {name: per_example(rdir / f"{name}.jsonl") for name in pipelines}
     ids = list(data[BASELINE])
     assert all(set(d) == set(ids) for d in data.values()), "pipelines cover different examples"
 
@@ -60,11 +69,11 @@ def main() -> None:
         "answerable": lambda r: not r["is_unanswerable"],
         "unanswerable": lambda r: r["is_unanswerable"],
     }
-    result: Dict[str, Any] = {"baseline": BASELINE, "pipelines": {}}
-    for name, label in PIPELINES.items():
+    result: Dict[str, Any] = {"split": split, "baseline": BASELINE, "pipelines": {}}
+    for name, label in pipelines.items():
         d = data[name]
         rows = [d[i] for i in ids]
-        _, diag = evaluate_file(RESULTS_DIR / f"{name}.jsonl")
+        _, diag = evaluate_file(rdir / f"{name}.jsonl")
         diag.pop("_per_example_f1", None)
         res = {"label": label, "diagnostics": diag,
                "recall_at_1": float(np.mean([r["recall_at_1"] for r in rows])),
@@ -79,7 +88,7 @@ def main() -> None:
             res["paired_vs_baseline"] = {
                 s: paired_bootstrap_test([d[i]["f1"] for i in ids if f(d[i])], [base[i]["f1"] for i in ids if f(d[i])])
                 for s, f in splits.items()}
-        if name == E_RANDOM:
+        if name == E_RANDOM and E in data:
             res["paired_vs_E"] = {
                 s: paired_bootstrap_test([d[i]["f1"] for i in ids if f(d[i])], [data[E][i]["f1"] for i in ids if f(d[i])])
                 for s, f in splits.items()}
@@ -109,7 +118,8 @@ def main() -> None:
             res["mean_facts"] = float(np.mean([r["n_facts"] for r in rows]))
         result["pipelines"][name] = res
 
-    (OUT_DIR / "phase2_qa.json").write_text(json.dumps(result, indent=2), encoding="utf-8")
+    out_file = OUT_DIR / "phase2_qa.json" if split == "dev500" else rdir / "kg_qa_summary.json"
+    out_file.write_text(json.dumps(result, indent=2), encoding="utf-8")
 
     def pct(x):
         return f"{x * 100:.1f}"
@@ -136,20 +146,19 @@ def main() -> None:
     print("--- by domain (F1)")
     for name, r in result["pipelines"].items():
         print(f"  {name:22} " + "  ".join(f"{d} {pct(v['f1']['mean'])}" for d, v in r["by_domain"].items()))
-    for nm in ("kg_rerank",):
-        cc = result["pipelines"][nm]["changed_context"]
-        print(f"--- {nm}: {cc['n']} examples with a different context; new sections in top-5 {cc['new_sections_in_top5']:.2f}; "
-              f"F1 {pct(cc['f1_hybrid'])} vs {pct(cc['f1_baseline'])}; R@5 {pct(cc['r5_hybrid'])} vs {pct(cc['r5_baseline'])}")
+    P = result["pipelines"]
+    for nm in ("kg_rerank", "kg_hybrid"):
+        if nm in P:
+            cc = P[nm]["changed_context"]
+            print(f"--- {nm}: {cc['n']} examples with a different context; new sections in top-5 {cc['new_sections_in_top5']:.2f}; "
+                  f"F1 {pct(cc['f1_hybrid'])} vs {pct(cc['f1_baseline'])}; R@5 {pct(cc['r5_hybrid'])} vs {pct(cc['r5_baseline'])}")
     for nm in (E, E_RANDOM):
-        print(f"--- {nm} by whether the facts reach a gold section:", json.dumps(result["pipelines"][nm]["by_facts_gold"], indent=1))
-    print("--- E-random vs E")
-    for s, t in result["pipelines"][E_RANDOM]["paired_vs_E"].items():
-        print(f"  {s:12} n={t['n_paired']:3}  Δ {t['mean_diff']*100:+.1f} [{t['ci_low']*100:.1f}, {t['ci_high']*100:.1f}]")
-    cc = result["pipelines"]["kg_hybrid"]["changed_context"]
-    print(f"--- hybrid: {cc['n']} examples with a different context; new sections in top-5 {cc['new_sections_in_top5']:.2f}; "
-          f"F1 {pct(cc['f1_hybrid'])} vs {pct(cc['f1_baseline'])}; R@5 {pct(cc['r5_hybrid'])} vs {pct(cc['r5_baseline'])}; "
-          f"paired {cc['paired']}")
-
+        if nm in P:
+            print(f"--- {nm} by whether the facts reach a gold section:", json.dumps(P[nm]["by_facts_gold"], indent=1))
+    if E_RANDOM in P and "paired_vs_E" in P[E_RANDOM]:
+        print("--- E-random vs E")
+        for s_, t in P[E_RANDOM]["paired_vs_E"].items():
+            print(f"  {s_:12} n={t['n_paired']:4}  Δ {t['mean_diff']*100:+.1f} [{t['ci_low']*100:.1f}, {t['ci_high']*100:.1f}]")
 
 if __name__ == "__main__":
     main()

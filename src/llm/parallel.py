@@ -58,6 +58,16 @@ def generate_batch(
     Returns a list of (answer, status) in the same order as prompts.
     status is one of: "cached", "success", "error: ...", "failed".
     """
+    # Identical prompts are sent once: two concurrent calls with the same prompt would both
+    # miss the cache and could get different answers from a non-deterministic model.
+    unique = list(dict.fromkeys(prompts))
+    if len(unique) < len(prompts):
+        answers = dict(zip(unique, _generate_unique(client, unique, cache, max_workers, max_retries, verbose)))
+        return [answers[p] for p in prompts]
+    return _generate_unique(client, prompts, cache, max_workers, max_retries, verbose)
+
+
+def _generate_unique(client, prompts, cache, max_workers, max_retries, verbose):
     n = len(prompts)
     results: List[Optional[Tuple]] = [None] * n
     done = [0]

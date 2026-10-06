@@ -1,11 +1,24 @@
 """Cross-encoder reranker using BAAI/bge-reranker-base."""
 import hashlib
+import time
 import json
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 RERANKER_MODEL = "BAAI/bge-reranker-base"
 MAX_TOKENS = 512
+
+
+def _release_gpu_memory() -> None:
+    """Give cached GPU memory back between chunks; on Apple MPS it otherwise grows until the
+    system starts swapping."""
+    import gc
+    import torch
+    gc.collect()
+    if torch.backends.mps.is_available():
+        torch.mps.empty_cache()
+    elif torch.cuda.is_available():
+        torch.cuda.empty_cache()
 
 
 class RerankerCache:
@@ -80,17 +93,25 @@ class Reranker:
                     all_pairs.append((query, text))
                     pair_keys.append((qi, ci))
 
-        # Batch score uncached
+        # Score uncached pairs in chunks and cache each chunk right away, so a long run
+        # can be interrupted and resumed.
         fresh: Dict[Tuple[int, int], float] = {}
-        if all_pairs:
-            raw = self.model.predict(
-                all_pairs, batch_size=batch_size, show_progress_bar=True
-            )
-            for (qi, ci), score, (query, text) in zip(pair_keys, raw, all_pairs):
+        chunk = batch_size * 8
+        start = time.time()
+        for lo in range(0, len(all_pairs), chunk):
+            pairs = all_pairs[lo:lo + chunk]
+            raw = self.model.predict(pairs, batch_size=batch_size, show_progress_bar=False)
+            for (qi, ci), score, (query, text) in zip(pair_keys[lo:lo + chunk], raw, pairs):
                 s = float(score)
                 fresh[(qi, ci)] = s
                 if self._cache:
                     self._cache.put(query, text, s)
+            _release_gpu_memory()
+            if len(all_pairs) > chunk:
+                done = min(lo + chunk, len(all_pairs))
+                rate = done / (time.time() - start)
+                print(f"  reranked {done}/{len(all_pairs)} pairs ({done / len(all_pairs):.0%}), "
+                      f"about {(len(all_pairs) - done) / rate / 60:.0f} min left", flush=True)
 
         # Build per-query results
         results: List[Tuple[List[Dict[str, Any]], float]] = []

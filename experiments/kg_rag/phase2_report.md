@@ -147,4 +147,6 @@ The weighting doesn't help; without it R@5 is 2 points higher, within noise. The
 * Adding facts to the Step 4 sections (E) gains as much as adding random facts. On answerable questions the real facts help (+0.9), and where they come from a gold section they beat random facts by 1.8 points. So the graph helps only when its facts reach the answer.
 * For Graph RAG (Step 7) this means: fewer and better-ranked facts, a matched random control, answerable and unanswerable turns reported separately, and a check beyond dev-500. Using the graph to choose sections within the linked document after a doc switch is still untested.
 
-Limitations: dev-500 only and 31 unanswerable turns; token F1 penalises the longer answers built from facts; parameters were not tuned; the graph has about 73% triple precision on unseen documents; many splits are compared without correction, so the D/E splits are exploratory; E-random uses one random draw per question.
+The main results were later confirmed on the full validation split and the held-out test split, where the gain of E on answerable questions becomes significant (`experiments/final_evaluation_report.md`).
+
+Limitations of this report: dev-500 only and 31 unanswerable turns; token F1 penalises the longer answers built from facts; parameters were not tuned; the graph has about 73% triple precision on unseen documents; many splits are compared without correction, so the D/E splits are exploratory; E-random uses one random draw per question.

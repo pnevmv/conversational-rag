@@ -49,8 +49,14 @@ def random_facts(kg: KGRetriever, pool: List[int], n: int, example_id: str) -> L
             for rank, i in enumerate(picked, start=1)]
 
 
-def retrieve_all(hybrid_base: str = "kg_sections") -> Dict[str, Any]:
-    step4 = load_step4()
+def results_dir(split: str) -> Path:
+    return RESULTS_DIR if split == "dev500" else RESULTS_DIR.parent / split
+
+
+def retrieve_all(hybrid_base: str = "kg_sections", split: str = "dev500",
+                 pipelines=PIPELINES) -> Dict[str, Any]:
+    """Retrieval for every pipeline; the cross-encoder runs only for C and D when they are requested."""
+    step4 = load_step4(split)
     examples, records = step4["examples"], step4["records"]
     linker = EntityLinker("full")
     kg = KGRetriever(linker)
@@ -106,28 +112,23 @@ def retrieve_all(hybrid_base: str = "kg_sections") -> Dict[str, Any]:
         ms["kg_hybrid"].append(link_ms + (time.time() - t) * 1000)
         out["kg_hybrid"].append({"linked": linked_c, "candidates": fused, "a_ranking": a_rank})
 
-    # C: rerank the fused candidates (batched; scores cached on disk like Step 4).
-    from src.rag import Reranker
-    reranker = Reranker(cache_dir=RERANKER_CACHE_DIR)
-    t = time.time()
-    reranked = reranker.rerank_many(queries, [o["candidates"] for o in out["kg_hybrid"]], top_k=TOP_K)
-    rerank_ms = (time.time() - t) / len(queries) * 1000
-    for ex, o, (docs, _) in zip(examples, out["kg_hybrid"], reranked):
-        o["ranking"] = docs
-        step4_top = {r["section_id"] for r in records[ex["example_id"]]["step4_ranking"][:TOP_K]}
-        o["new_vs_step4"] = sum(1 for d in docs if d["section_id"] not in step4_top)
-
-    t = time.time()
-    reranked = reranker.rerank_many(queries, [o["candidates"] for o in out["kg_rerank"]], top_k=TOP_K)
-    rerank_d_ms = (time.time() - t) / len(queries) * 1000
-    for ex, o, (docs, _) in zip(examples, out["kg_rerank"], reranked):
-        o["ranking"] = docs
-        step4_top = {r["section_id"] for r in records[ex["example_id"]]["step4_ranking"][:TOP_K]}
-        o["new_vs_step4"] = sum(1 for d in docs if d["section_id"] not in step4_top)
+    # C and D: rerank their candidates (batched; scores cached on disk like Step 4).
+    rerank_ms = {}
+    for name in ("kg_hybrid", "kg_rerank"):
+        if name not in pipelines:
+            continue
+        from src.rag import Reranker
+        reranker = Reranker(cache_dir=RERANKER_CACHE_DIR)
+        t = time.time()
+        reranked = reranker.rerank_many(queries, [o["candidates"] for o in out[name]], top_k=TOP_K)
+        rerank_ms[f"{name}_rerank"] = (time.time() - t) / len(queries) * 1000
+        for ex, o, (docs, _) in zip(examples, out[name], reranked):
+            o["ranking"] = docs
+            step4_top = {r["section_id"] for r in records[ex["example_id"]]["step4_ranking"][:TOP_K]}
+            o["new_vs_step4"] = sum(1 for d in docs if d["section_id"] not in step4_top)
 
     return {"step4": step4, "kg": kg, "out": out, "queries": queries,
-            "latency_ms": {"encode": encode_ms, **{p: float(np.mean(v)) for p, v in ms.items()},
-                           "kg_hybrid_rerank": rerank_ms, "kg_rerank_rerank": rerank_d_ms}}
+            "latency_ms": {"encode": encode_ms, **{p: float(np.mean(v)) for p, v in ms.items()}, **rerank_ms}}
 
 
 def build_records(name: str, examples, queries, results, kg: KGRetriever, ddm, template: str):
@@ -171,24 +172,31 @@ def main() -> None:
     parser.add_argument("--workers", type=int, default=8)
     parser.add_argument("--retrieval-only", action="store_true")
     parser.add_argument("--hybrid-base", choices=["kg_sections", "kg_sections_1hop"], default="kg_sections")
+    parser.add_argument("--split", choices=["dev500", "validation", "test"], default="dev500")
+    parser.add_argument("--pipelines", nargs="+", choices=PIPELINES, default=list(PIPELINES))
     args = parser.parse_args()
+    run(args.split, args.pipelines, args.workers, args.retrieval_only, args.hybrid_base)
 
+
+def run(split: str = "dev500", pipelines=PIPELINES, workers: int = 8, retrieval_only: bool = False,
+        hybrid_base: str = "kg_sections") -> None:
+    out_dir = results_dir(split)
     t0 = time.time()
-    data = retrieve_all(args.hybrid_base)
+    data = retrieve_all(hybrid_base, split, pipelines)
     step4, kg, out, queries = data["step4"], data["kg"], data["out"], data["queries"]
     examples = step4["examples"]
     ddm = load_doc_domain_map()
     template = _build_agent_prompt(_load_few_shot_examples())
 
-    summary: Dict[str, Any] = {"latency_ms": data["latency_ms"], "hybrid_base": args.hybrid_base, "pipelines": {}}
+    summary: Dict[str, Any] = {"split": split, "latency_ms": data["latency_ms"], "hybrid_base": hybrid_base, "pipelines": {}}
     all_rows = {}
-    for name in PIPELINES:
+    for name in pipelines:
         rows, prompts = build_records(name, examples, queries, out[name], kg, ddm, template)
         all_rows[name] = (rows, prompts)
-        if name in ("step4_plus_facts", "step4_plus_random_facts"):
+        if name in ("step4_plus_facts", "step4_plus_random_facts") and (out_dir / "rag_rewrite_rerank_v2.jsonl").exists():
             # The sections part must be exactly the Step 4 context.
             base = {json.loads(l)["example_id"]: json.loads(l)["context"]
-                    for l in open(RESULTS_DIR / "rag_rewrite_rerank_v2.jsonl", encoding="utf-8")}
+                    for l in open(out_dir / "rag_rewrite_rerank_v2.jsonl", encoding="utf-8")}
             bad = sum(1 for r in rows if not r["context"].startswith(base[r["example_id"]] + "\n\nFacts:\n"))
             assert bad == 0, f"{bad} contexts differ from the Step 4 context"
         s = {"recall_at_1": float(np.mean([r["recall_at_1"] for r in rows])),
@@ -204,26 +212,27 @@ def main() -> None:
               f"prompt {s['prompt_chars']:.0f} chars" + (f"  context recall {s['context_recall']:.1%}, "
                                                          f"{s['empty_context']} empty" if name == "kg_facts" else ""))
     print(f"latency (ms/question): {data['latency_ms']}")
-    if args.retrieval_only:
+    if retrieval_only:
         return
 
     cache = LLMCache(LLM_CACHE_DIR)
     client = LLMClient()
-    for name in PIPELINES:
+    for name in pipelines:
         rows, prompts = all_rows[name]
-        print(f"=== {name}: generating {len(prompts)} answers ===")
-        answers = generate_batch(client, prompts, cache=cache, max_workers=args.workers, verbose=False)
+        print(f"=== {name}: generating {len(prompts)} answers ===", flush=True)
+        answers = generate_batch(client, prompts, cache=cache, max_workers=workers, verbose=len(prompts) > 1000)
         for row, prompt, (answer, status) in zip(rows, prompts, answers):
             row.update({"prompt": prompt, "model_answer": answer,
                         "status": status if answer is not None else "error",
                         "error": None if answer is not None else status})
         n_err = sum(1 for r in rows if r["status"] == "error")
-        write_jsonl(rows, RESULTS_DIR / f"{name}.jsonl")
-        print(f"  {n_err} errors -> {RESULTS_DIR / f'{name}.jsonl'}")
+        write_jsonl(rows, out_dir / f"{name}.jsonl")
+        print(f"  {n_err} errors -> {out_dir / f'{name}.jsonl'}", flush=True)
     summary["llm"] = {"rewrite_calls_per_question": step4["rewrite_stats"]["llm_calls"] / len(examples),
                       "generation_calls_per_question": 1.0, "cache": cache.stats}
     summary["wall_time_s"] = time.time() - t0
-    (OUT_DIR / "phase2_retrieval.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
+    summary_file = OUT_DIR / "phase2_retrieval.json" if split == "dev500" else out_dir / "kg_retrieval_summary.json"
+    summary_file.write_text(json.dumps(summary, indent=2), encoding="utf-8")
     print(f"cache: {cache.stats}; wall time {summary['wall_time_s']:.0f}s")
 
 

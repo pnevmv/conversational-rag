@@ -20,7 +20,7 @@ The repository is organised as follows:
 * `src`: the source code. `llm` is the Azure OpenAI client with a parallel runner and a disk cache, `data` the MultiDoc2Dial loader, `evaluation` the metrics, `rag` the retrievers, query rewriter and reranker, `kg` the knowledge graph construction (schema, extraction, entity resolution, Neo4j loaders) and `kg_rag` the retrieval over the graph.
 * `experiments`: the scripts that run the pipelines and evaluate them, plus the reports of the KG work in `experiments/kg` and `experiments/kg_rag`.
 * `latex_report`: the written report of the research (LuaLaTeX, unipd-thesis-modern template).
-* `tests`: unit and regression tests.
+v* `tests`: unit and regression tests.
 * `data`: the dataset (not tracked), the ids of the fixed dev-500 subset and the dense index cache.
 
 Raw model outputs (`*.jsonl`) and LLM caches are not tracked; they can be regenerated with the scripts below.
@@ -37,7 +37,7 @@ Raw model outputs (`*.jsonl`) and LLM caches are not tracked; they can be regene
 | 6 | Retrieval over the knowledge graph | done |
 | 7 | Graph RAG | next |
 | 8 | Agent-based approaches | planned |
-| 9 | Evaluation and comparison | planned |
+| 9 | Evaluation and comparison | in progress (full validation and test done) |
 | 10 | Error analysis and write-up | planned |
 
 All LLM calls use an Azure OpenAI deployment of `gpt-5.4-nano`; set the deployment name in `LLM_MODEL`.
@@ -93,7 +93,37 @@ The user turn, rewritten as in Step 4, is linked to graph entities (dense + BM25
 | E: Step 4 sections + graph facts | 67.4 | **29.2** | +1.1 [-0.3, 2.5] |
 | E with random facts (control) | 67.4 | 29.1 | +1.0 [-0.3, 2.4] |
 
-Retrieval over the graph alone is worse than passage retrieval: linking works, but entity overlap cannot rank the many sections the entities point to. Adding graph facts to the Step 4 context (E) gives a small gain, but random facts from the same domain give the same overall number, mostly because the extra context makes the model abstain more. On answerable questions the real facts do help (+0.9), and where they come from the gold section they beat random facts by 1.8 points. This is the starting point for Graph RAG. Reports: `experiments/kg_rag/phase1_report.md` and `experiments/kg_rag/phase2_report.md`.
+Retrieval over the graph alone is worse than passage retrieval: linking works, but entity overlap cannot rank the many sections the entities point to. Adding graph facts to the Step 4 context (E) gives a small gain on dev-500, but random facts from the same domain give the same overall number, mostly because the extra context makes the model abstain more. On answerable questions the real facts do help, and the final evaluation below confirms it. Reports: `experiments/kg_rag/phase1_report.md` and `experiments/kg_rag/phase2_report.md`.
+
+### Final evaluation: full validation and test split
+
+The choices made on dev-500 were checked on the full validation split (4,427 questions), where the remaining open questions were settled: the reranker and the agent-style prompt are kept, B is the better graph-only option, and E is kept with its random-facts control. These six systems were then frozen and run once on the test split (4,335 questions), which had not been used for anything before.
+
+| System (token F1) | Validation | Test |
+| :--- | :---: | :---: |
+| LLM only | 15.8 | 15.1 [14.7, 15.5] |
+| Oracle (gold sections) | 35.5 | 34.2 [33.6, 34.9] |
+| Step 4 best (hybrid + rewrite + rerank) | 26.9 | 26.9 [26.3, 27.5] |
+| B: graph facts only | 24.1 | 23.8 [23.2, 24.4] |
+| E: Step 4 sections + graph facts | 27.4 | **27.5** [27.0, 28.2] |
+| E with random facts (control) | 27.4 | 27.3 [26.7, 27.9] |
+
+On the test split, graph-only retrieval is 3.1 points below passage retrieval. Graph facts added to the passages gain +0.6 overall and +0.8 on answerable questions (both significant), and +1.4 where the facts come from the gold section. Random facts gain nothing on answerable questions; their overall number only holds up because they make the model abstain more. The validation split gives the same picture, so the small effect that was borderline on dev-500 is confirmed. Details: `experiments/final_evaluation_report.md` and `latex_report/chapters/final_evaluation.tex`.
+
+---
+
+## Running a whole split
+
+The main systems can also be run on the full validation split or on the test split (about 3 hours for validation on a laptop, most of it reranking; progress is printed with timestamps and the reranker scores are cached per chunk, so an interrupted run resumes):
+
+```bash
+python experiments/run_split.py --split validation --workers 12
+python experiments/run_split.py --split test --workers 12 --systems llm_baseline oracle_context_v2 \
+    rag_rewrite_rerank_v2 kg_facts step4_plus_facts step4_plus_random_facts
+python -m src.kg_rag.eval_qa --split test
+```
+
+Results go to `experiments/results/<split>/`.
 
 ---
 
@@ -287,4 +317,4 @@ python experiments/judge_answers.py stability --other run2
 python -m pytest tests
 ```
 
-155 tests pass and 4 are expected failures that document open extraction issues. The tests in `tests/test_kg_build.py` need Neo4j and are skipped if it is not running.
+156 tests pass and 4 are expected failures that document open extraction issues. The tests in `tests/test_kg_build.py` need Neo4j and are skipped if it is not running.

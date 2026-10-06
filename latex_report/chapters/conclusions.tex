@@ -11,9 +11,13 @@
 
 This work studied retrieval-augmented generation for document-grounded \gls{cqa} on
 \gls{mdd}, and then the construction of a knowledge graph from the same documents and
-its use for retrieval. Five \gls{rag} configurations were evaluated on the full
-validation split (4{,}427 examples) and, together with the later ablations and all graph
-experiments, on a fixed subset of 500 examples.
+its use for retrieval. Most comparisons were developed on a fixed subset of 500
+validation examples; the open choices were then settled on the full validation split
+(4{,}427 examples), and the final systems were evaluated once on the test split (4{,}335
+examples), which played no role in any decision. On the test split, the \gls{llm} alone
+reaches 15.1\% \fone{}, retrieval over the knowledge graph 23.8\%, the best passage
+pipeline 26.9\%, the passage pipeline with graph facts 27.5\% and the oracle with the gold
+sections 34.2\%.
 
 Retrieval clearly helps. The \gls{llm}-only baseline reaches 15.9\% \fone{} on the full
 split, and every \gls{rag} configuration is well above it, the best one (hybrid retrieval
@@ -66,19 +70,24 @@ often as passage retrieval and lowers \fone{} by 2.7 to 4.5 points. The problem 
 ranking: entity overlap cannot order the many sections a question's entities lead to,
 while the answers are as good as with passage retrieval when the gold section is found.
 A hybrid of graph and passage retrieval matches the passage pipeline without improving
-it. Adding graph facts to the retrieved passages gains 0.9 points on answerable
-questions, and 1.8 points over the same number of random facts where the facts come from
-the section of the answer, but overall random facts gain as much, because extra context
-also makes the generator abstain more often.
+it. Adding graph facts to the retrieved passages, on the other hand, gives a small but
+real improvement. On the held-out test split it gains 0.6 points overall and 0.8 on
+answerable questions, 1.4 points where the facts come from the section of the answer and
+1.6 where passage retrieval misses that section. A control with the same number of random
+facts gains nothing on answerable questions and only appears competitive overall because
+extra context makes the generator abstain more often, which is rewarded on unanswerable
+questions. The effect, borderline on the development subset, is confirmed on both the full
+validation and the test split.
 
 
 % ===========================================================================
 \section*{Scope Limitations}
 
-All ablations (oracle, prompt v2, reranker) and all graph experiments were run on the
-dev-500 subset, so their confidence intervals are wider than on the full split and
-differences below about one point should be read with caution. Only the five base
-pipelines were evaluated on the full split.
+Many design choices were made on the dev-500 subset, and part of the analysis (the
+reranker decomposition, the error analyses and the graph variants that were not
+retained) is reported only there. The final systems were confirmed on the full
+validation and the test split, but with a single generator model; whether the small gain
+from graph facts holds for a stronger model has not been tested.
 
 The precision and recall estimates for the graph rest on small samples: the pilot on
 three documents (140 extracted and 38 missed triples) and a control sample of 30 triples
@@ -98,10 +107,10 @@ answers produced from graph facts.
 % ===========================================================================
 \section*{Future Directions}
 
-The first step is to run the hybrid pipeline with rewriting and reranking, and the v2
-prompt variants, on the full validation split to confirm the dev-500 results. For the
-reranker, combining its score with the first-stage \gls{rrf} score instead of replacing
-it might keep the previously retrieved gold sections while adding the new ones.
+For the reranker, combining its score with the first-stage \gls{rrf} score instead of
+replacing it might keep the previously retrieved gold sections while adding the new ones.
+The final systems should also be compared with a stronger generator, to see whether the
+gap to the oracle and the gain from graph facts change with the model.
 
 Token \fone{} could be complemented with a local \gls{llm} judge (for example
 Qwen2.5-14B-Instruct or Llama~3.1~8B) that rates each answer as correct, partially correct

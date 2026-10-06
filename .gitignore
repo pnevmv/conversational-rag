@@ -79,5 +79,5 @@ experiments/**/*.jsonl
 # KG retrieval caches (regenerable: python -m src.kg_rag.graph_index, src.kg_rag.queries)
 experiments/kg_rag/*.npy
 experiments/kg_rag/entities_*.json
-experiments/kg_rag/step4_dev500.json
+experiments/kg_rag/step4_*.json
 experiments/kg_rag/relations_*.json

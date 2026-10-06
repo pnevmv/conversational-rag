@@ -45,9 +45,13 @@ gold section for 70\% of the questions, but retrieving through the graph alone f
 gold section only half as often as passage retrieval and lowers \fone{} by 2.7 to 4.5
 points, mainly because entity overlap cannot rank the many sections the entities lead
 to. Combining graph and passage retrieval matches the best passage pipeline without
-improving it. Adding graph facts to the retrieved passages helps on answerable
-questions when the facts come from the section of the answer, but a control with random
-facts gives the same overall gain. The work concludes with directions for Graph \gls{rag},
-agent-based approaches and \gls{llm}-based evaluation.
+improving it, while adding graph facts to the retrieved passages gives a small but
+consistent gain. After the remaining choices were settled on the full validation split,
+the final systems were evaluated once on the held-out test split: the \gls{llm} alone
+reaches 15.1\% \fone{}, graph retrieval 23.8\%, the best passage pipeline 26.9\%, passages
+with graph facts 27.5\% and the oracle 34.2\%. A control with random facts shows that the
+gain of 0.8 points on answerable questions comes from the content of the facts, not from
+the longer context. The work concludes with directions for Graph \gls{rag}, agent-based
+approaches and \gls{llm}-based evaluation.
 
 \end{abstract}

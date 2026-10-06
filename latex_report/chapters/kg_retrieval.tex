@@ -326,5 +326,7 @@ answer. Overall, however, random facts gain as much, because the extra context a
 changes how often the model abstains. A Graph \gls{rag} pipeline built on this should use
 fewer and better-ranked facts, since E makes the prompt 2.3 times longer, and it should
 be compared with a matched random control, with answerable and unanswerable turns
-reported separately and with results beyond dev-500. Using the graph to choose sections
-within the linked document after a document switch has not been tried yet.
+reported separately and with results beyond dev-500. Chapter~\ref{ch:final} confirms the
+main results on the full validation and the held-out test split, where the gain of the
+graph facts on answerable questions becomes significant. Using the graph to choose
+sections within the linked document after a document switch has not been tried yet.

@@ -29,3 +29,22 @@ class TestLLMClient(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+def test_generate_batch_sends_identical_prompts_once():
+    """Duplicate prompts must get one call and the same answer (no race between two calls)."""
+    from src.llm.parallel import generate_batch
+
+    class Counter:
+        def __init__(self):
+            self.calls = []
+
+        def generate(self, prompt):
+            self.calls.append(prompt)
+            return f"answer {len(self.calls)}"
+
+    client = Counter()
+    out = generate_batch(client, ["a", "b", "a", "a"], max_workers=4, verbose=False)
+    assert sorted(client.calls) == ["a", "b"]
+    assert out[0] == out[2] == out[3]
+    assert out[1][0] != out[0][0]
