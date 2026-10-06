@@ -22,13 +22,23 @@ All LLM outputs are cached in `experiments/cache/` (not tracked), so a rerun on 
 
 ## 1. Before the build
 
-First, three v1 labels were corrected: t0052-t0054 ("... APPLIES_TO outside of the United States") are a place or condition, not a Role, so they are now incorrect (with a note in `annotation_sample.csv`). The gold set goes from 98 to 95 facts. Both prompt versions re-scored with the same rule:
+The decision to build with v2.1 was made on the first round of labels, which were drafted by an LLM and reviewed by me (with three v1 labels corrected: places like "outside of the United States" are not a Role). With those labels v2 looked more precise than v1 at about the same pooled recall:
 
-| | Precision | Recall (95 gold) | Pooled recall (118 facts) |
+| First labels | Precision | Recall (95 gold) | Pooled recall (118 facts) |
 | :--- | :---: | :---: | :---: |
 | v1 | 44.3% | 65.3% | 52.5% |
 | v2 | 53.7% | 43.2% | 54.2% |
 | v2, both runs agree | 72.1% | 32.6% | 35.6% |
+
+I later relabelled everything myself without the drafts (`reannotation/`), and the picture changed: v1 is the better prompt on the pilot documents.
+
+| Independent labels | Precision | Recall (114 gold) | Pooled recall (132 facts) |
+| :--- | :---: | :---: | :---: |
+| v1 | 53.6% | 65.8% | 56.8% |
+| v2 | 45.5% | 32.5% | 41.7% |
+| v2, both runs agree | 60.7% | 21.9% | 28.0% |
+
+The rest of this section describes the reasoning at the time.
 
 Prompt v2.1 (`--prompt-version v2.1`) is v2 plus a rule for contact points (phone, TTY, offices and online accounts as ContactPoints, linked with AVAILABLE_AT to the service or organisation the sentence is about) and two new examples from documents outside the pilot (a VA help line and office, a DMV use tax and fee). Its output goes through four post-filters in `src/kg/postfilter.py`: opening hours typed as TimeLimit, staff typed as Role, UI text ("Request ..." only in Title Case, because "request an appeal" is a real service), and PART_OF relations flipped when one entity is the source of several in a section.
 
@@ -164,20 +174,16 @@ The hub fix added 412 judge calls. No reasoning tokens were used. The price of t
 
 ## 8. Control sample
 
-To estimate precision on documents the prompts were not tuned on, `annotation_control.csv` has 30 triples, one from each of 30 random sections (seed 42) that have at least one loadable triple and lie outside all 8 pilot documents. The relation mix is REQUIRES 12, APPLIES_TO 5, PROVIDED_BY 4, HAS_TIME_LIMIT 4, LEADS_TO 3, DETERMINED_BY 1, EXEMPT_FROM 1. The labels were drafted with an LLM (`annotation_control_draft.csv`) and reviewed by me; six of them, all labelled correct, have a note starting with "borderline".
+To estimate precision on documents the prompts were not tuned on, `annotation_control.csv` has 30 triples, one from each of 30 random sections (seed 42) that have at least one loadable triple and lie outside all 8 pilot documents. The relation mix is REQUIRES 12, APPLIES_TO 5, PROVIDED_BY 4, HAS_TIME_LIMIT 4, LEADS_TO 3, DETERMINED_BY 1, EXEMPT_FROM 1. I labelled them myself, without automatic help.
 
-| | Correct / 30 | Precision (Wilson 95% CI) |
-| :--- | :---: | :---: |
-| Strict (borderline counted as incorrect) | 10 | 33.3% [19.2, 51.2] |
-| Lenient (labels as given) | 16 | 53.3% [36.1, 69.8] |
+22 of the 30 are correct: precision 73.3% (Wilson 95% CI [55.6, 85.8]). No label is marked borderline. By relation: REQUIRES 9/12, APPLIES_TO 4/5, HAS_TIME_LIMIT 3/4, PROVIDED_BY 2/4, LEADS_TO 2/3, DETERMINED_BY 1/1, EXEMPT_FROM 1/1.
 
-The lenient number is the same as v2 on the annotated pilot (53.7%), so the pilot estimate seems to carry over to unseen documents, but both are below the 65-70% I was aiming for. By relation (lenient): REQUIRES 8/12, APPLIES_TO 2/5, PROVIDED_BY 2/4, HAS_TIME_LIMIT 2/4, LEADS_TO 1/3, DETERMINED_BY 1/1, EXEMPT_FROM 0/1.
+The 8 errors:
 
-The 14 errors, from the notes:
+* endpoints that are not entities: "VA cover", "At a DMV office";
+* conditions or possibilities read as requirements or as applying to someone: a green card renewal that "may be necessary", "not ready to start your monthly benefits yet", a question asked conditionally;
+* a law typed as Organization ("NY State Freedom of Information Law");
+* a review period read as a time limit;
+* a relation between two names of the same thing ("TNC PROVIDED_BY rideshare company").
 
-* about 6 endpoints that are not entities at all: headings, form instructions, fragments ("VA cover", "order", "At a DMV office", "restore");
-* about 4 wrong types: a law as Organization, a service used as a Role, a target that should be an Amount;
-* about 3 wrong relations or directions: reversed beneficiaries (Camp Lejeune), APPLIES_TO where REQUIRES was meant, a waiting time as a deadline;
-* 1 relation between two names of the same thing ("TNC PROVIDED_BY rideshare company").
-
-Scores are in `control_scores.json`.
+The first round of labels (LLM drafts reviewed by me) gave only 53.3% on the same sample, or 33.3% when the six borderline cases counted as errors. The two rounds agree on 20 of the 30 triples (Cohen's kappa 0.31), so this estimate depends a lot on who labels. A second annotator would be needed to pin it down. Scores are in `control_scores.json`.

@@ -415,107 +415,105 @@ matching.
 
 All 140 loadable triples extracted from three pilot documents, one per domain for
 DMV, SSA and VA, were labelled as correct or incorrect against their source sections,
-together with the 47 entity clusters that merge differently written names. The triples
-that the sections state but the extraction missed were listed as well (33), which
-gives recall. The gold labels and the list of missed triples were first drafted by an
-\gls{llm} and then reviewed and corrected by the author; they are therefore not a fully
-independent human annotation.
+together with the 47 entity clusters that merge differently written names. The facts
+that the sections state but the extraction missed were also listed (39), which gives
+recall: the gold set has 114 facts, the 75 correct triples and the 39 missed ones. All
+labels in this chapter were made by the author without automatic help. A first round of
+labels had been drafted by an \gls{llm} and reviewed by the author; it was replaced by
+this independent annotation, for reasons discussed at the end of this section.
 
-One labelling rule was revised after the comparison in Section~\ref{sec:kg:v2}: places
-and conditions such as ``outside of the United States'' are not roles, so the three
-triples that used one as a Role were relabelled incorrect, and the gold set has 95
-facts. All figures below use the revised labels.
-
-These are \emph{pilot v1} numbers: they describe the first version of the extraction
-prompt and entity resolution on three documents, and are meant to guide the revisions
-that precede the full-corpus run. They are not an estimate of the quality of the final
-\gls{kg}. With samples of this size, the confidence intervals are wide; the values
-below are 95\% Wilson intervals.
+These are pilot numbers for the first version of the extraction prompt and entity
+resolution on three documents. They were used to guide the revisions before the
+full-corpus run and are not an estimate of the quality of the final graph, which is
+measured separately (Section~\ref{sec:kg:full}). With samples of this size the
+confidence intervals are wide; the values below are 95\% Wilson intervals.
 
 \subsection{Triple Precision and Recall}
 
-Overall precision is 44.3\% (62 of 140; 95\% CI $[36.3, 52.6]$) and recall 65.3\%
-(62 of 95 correct triples; CI $[55.3, 74.1]$), for an \fone{} of 52.8\%. The
-extraction therefore finds two thirds of the facts the sections state, but more than
-half of what it extracts is wrong. Table~\ref{tab:kg:precision} breaks the scores
-down by relation type. PROVIDED\_BY is precise, APPLIES\_TO and REQUIRES find most of
-their facts, and temporal, causal and part--whole relations are mostly wrong. The
-extraction found none of the alternatives the sections state (e.g.\ a Manufacturer's
-Statement of Origin \emph{or} Certificate of Origin) and none of the fees or taxes a
-service carries. By entity type (a triple counts for both of its endpoint types),
-precision ranges from 22\% for TimeLimit and 36\% for Outcome to 65--73\% for
-Document, Organization and ContactPoint. Across the three documents, precision
-ranges from 23\% to 64\% and recall from 53\% to 77\%. None of the missed triples lies
-in a section that was skipped as short or boilerplate.
+Overall precision is 53.6\% (75 of 140; 95\% CI $[45.3, 61.6]$) and recall 65.8\% (75
+of 114; CI $[56.7, 73.9]$), for an \fone{} of 59.1\%. The extraction finds about two
+thirds of the stated facts, and a little more than half of what it extracts is correct.
+Table~\ref{tab:kg:precision} breaks the scores down by relation. PROVIDED\_BY is the
+most precise relation and REQUIRES, APPLIES\_TO and LEADS\_TO find most of their facts,
+while part--whole relations and alternatives are never right: none of the stated
+alternatives (e.g.\ a Manufacturer's Statement of Origin \emph{or} Certificate of
+Origin) is found. By entity type (a triple counts for both of its endpoint types),
+precision goes from 45\% for Outcome and 50\% for Role to about 65\% for Document,
+Organization and ContactPoint. Across the three documents precision ranges from 44\% to
+70\% and recall from 57\% to 76\%, the VA document being the best on both. None of the
+missed facts lies in a section that was skipped as short or boilerplate.
 
 \begin{table}[ht]
     \centering
-    \caption{Precision and recall of extracted triples by relation type (three pilot
-             documents). Missed: correct triples listed by the annotator that the
-             extraction did not produce.}
+    \caption{Precision and recall of extracted triples by relation (three pilot
+             documents). Missed: facts listed by the annotator that the extraction did
+             not produce.}
     \label{tab:kg:precision}
     \begin{tabular}{lrrrrr}
         \toprule
         Relation & Correct & Labelled & Missed & Precision & Recall \\
         \midrule
-        REQUIRES        & 26 & 55 & 9 & 47.3\% & 74.3\% \\
-        APPLIES\_TO     & 12 & 26 & 3 & 46.2\% & 80.0\% \\
-        AVAILABLE\_AT   & 11 & 19 & 5 & 57.9\% & 68.8\% \\
-        LEADS\_TO       &  4 & 14 & 3 & 28.6\% & 57.1\% \\
-        HAS\_TIME\_LIMIT &  2 &  9 & 0 & 22.2\% & 100.0\% \\
-        PROVIDED\_BY    &  7 &  8 & 4 & 87.5\% & 63.6\% \\
-        PART\_OF        &  0 &  7 & 4 &  0.0\% &  0.0\% \\
-        ALTERNATIVE\_TO &  0 &  2 & 3 &  0.0\% &  0.0\% \\
-        HAS\_AMOUNT     &  0 &  0 & 2 &  ---  &  0.0\% \\
+        REQUIRES        & 32 & 55 & 11 & 58.2\% & 74.4\% \\
+        APPLIES\_TO     & 14 & 26 &  4 & 53.8\% & 77.8\% \\
+        AVAILABLE\_AT   & 11 & 19 &  9 & 57.9\% & 55.0\% \\
+        LEADS\_TO       &  7 & 14 &  2 & 50.0\% & 77.8\% \\
+        HAS\_TIME\_LIMIT &  5 &  9 &  0 & 55.6\% & 100.0\% \\
+        PROVIDED\_BY    &  6 &  8 &  3 & 75.0\% & 66.7\% \\
+        PART\_OF        &  0 &  7 &  7 &  0.0\% &  0.0\% \\
+        ALTERNATIVE\_TO &  0 &  2 &  3 &  0.0\% &  0.0\% \\
         \midrule
-        All             & 62 & 140 & 33 & 44.3\% & 65.3\% \\
+        All             & 75 & 140 & 39 & 53.6\% & 65.8\% \\
         \bottomrule
     \end{tabular}
 \end{table}
 
-The annotation notes point to a few recurring error types:
-\begin{itemize}
-    \item \textbf{Wrong entity type with consequences.} Identity documents (driver
-          licence, learner permit, non-driver ID card) were typed as services, which
-          produced reversed \textsc{requires} relations (``driver licence requires
-          proof of identity'', where the licence \emph{is} the proof) and validity
-          periods attached to services.
-    \item \textbf{Non-requirements as \textsc{requires} targets:} conditional
-          clauses, vague instructions (``bring the correct documents''), link texts
-          and helper tools.
-    \item \textbf{Locations as roles.} The list of places where an online
-          reservation is needed (New York City and six counties) became seven
-          \textsc{applies\_to} relations to ``Role'' entities.
-    \item \textbf{Relations between two names for the same thing} (a service
-          \textsc{leads\_to} or is \textsc{alternative\_to} itself under another
-          name), and part--whole relations that do not hold (an appeal as part of the
-          benefits it concerns).
-\end{itemize}
-Conversely, several triples judged correct express alternatives (``a, b \emph{or}
-c is required''), which the schema cannot represent and records as separate
-\textsc{requires} relations.
+The errors fall into a few recurring patterns. Identity documents (driver licence,
+learner permit, non-driver ID card) were typed as services, which attached validity
+periods and conditions to them as if they were procedures. Several \textsc{requires}
+targets are not requirements but conditional clauses, vague instructions (``bring the
+correct documents with you''), link texts or fragments. The list of places where an
+online reservation is needed (New York City and six counties) became seven
+\textsc{applies\_to} relations to ``Role'' entities, and ``outside of the United
+States'' was used as a role in the same way. Finally, some relations connect two names
+for the same thing (an appeal as an alternative to itself under another name) or state
+part--whole relations that do not hold (an appeal as part of the benefits it concerns).
+Thirteen labels carry a note that the case is borderline, mostly relations such as
+PROVIDED\_BY or LEADS\_TO that the text implies without stating them literally.
 
 \subsection{Precision and Run Agreement}
 
 Precision depends strongly on whether a triple is reproduced by an independent second
 extraction run (Section~\ref{sec:kg:quality}). Triples found by both runs are correct
-in 67.3\% of cases (33 of 49; CI $[53.4, 78.8]$), those found by one run only in
-31.9\% (29 of 91; CI $[23.2, 42.0]$); the intervals do not overlap. Run agreement is
-therefore a useful confidence signal: keeping only the triples that two runs agree on
-would roughly double the extraction cost and discard about two thirds of the triples,
-but raise precision by about 23 percentage points.
+in 81.6\% of cases (40 of 49; CI $[68.6, 90.0]$), those found by one run only in 38.5\%
+(35 of 91; CI $[29.1, 48.7]$). Run agreement is therefore a strong confidence signal:
+keeping only the triples that two runs agree on would double the extraction cost and
+discard about two thirds of the triples, but raise precision by about 28 points.
 
 \subsection{Entity Resolution}
 
-Of the 47 clusters that merge differently written names, 33 are correct (70.2\%;
-CI $[56.0, 81.3]$). These clusters come from the pairwise confirmation judge with a
-lower threshold of 0.75. All merges made by name normalisation (nine clusters, e.g.\
-singular and plural) and by the form-number rule (one cluster) are correct; merges
-confirmed by the \gls{llm} are correct in 23 of 37 cases (62.2\%). The wrong merges
-are of two kinds: generic terms merged with a specific one (``benefits'' with
-``retirement benefit'', ``another repayment plan'' with ``Graduated Repayment Plan'')
-and siblings that differ in one qualifier (two different counties, ``VA direct'' and
-``VA-backed'' home loans, original and new evidence).
+Of the 47 clusters that merge differently written names, 35 are correct (74.5\%; CI
+$[60.5, 84.7]$). These clusters come from the pairwise confirmation judge with a lower
+threshold of 0.75. All merges made by name normalisation (nine clusters, e.g.\ singular
+and plural) and by the form-number rule (one cluster) are correct; merges confirmed by
+the \gls{llm} are correct in 25 of 37 cases (67.6\%). The wrong merges are generic terms
+merged with a specific one (``benefits'' with ``retirement benefit'', ``another
+repayment plan'' with ``Graduated Repayment Plan''), names that combine two things with
+one of them (``disability compensation'' with ``disability compensation and pension
+benefits''), and siblings that differ in one word (two counties, ``mail'' and
+``phone'').
+
+\subsection{Agreement with the First Labels}
+
+The first round of labels, drafted by an \gls{llm} and reviewed by the author, agrees
+with the independent annotation on 85\% of the v1 triples (Cohen's $\kappa = 0.70$) and
+92\% of the entity clusters ($\kappa = 0.79$). The disagreements are not random: the
+first labels were stricter on the first prompt (17 triples judged incorrect there are
+correct in the new labels, 4 the other way round) and more lenient on the second. With
+the first labels, v1 precision was 44\% instead of 54\%, and the comparison of the two
+prompt versions in the next section came out the other way round. Whether a triple counts
+as correct is partly a matter of judgement, especially for relations the text implies
+without stating them, and with a single annotator this uncertainty is not captured by
+the confidence intervals.
 
 
 % ===========================================================================
@@ -533,68 +531,70 @@ stages of a procedure), with three worked examples taken from documents outside 
 pilot so that the evaluation is not contaminated. The first version is kept unchanged
 and both can be re-run.
 
-The three annotated documents were extracted twice with the new prompt. Labels were
-carried over to triples identical to already labelled ones, and the remaining 88 were
-labelled with the same procedure as the first version (an \gls{llm} draft reviewed by
-the author), including which gold fact each correct triple expresses.
+The three annotated documents were extracted twice with the new prompt, and all 123
+loadable triples of the first run were labelled by the author in the same way as the
+first version, including which gold fact each correct triple expresses.
 Table~\ref{tab:kg:v2} compares both versions; confidence intervals come from a paired
 bootstrap over sections (2{,}000 resamples), which accounts for triples from the same
 section not being independent.
 
 \begin{table}[ht]
     \centering
-    \small
+    \footnotesize
     \caption{Extraction prompt v1 and v2 on the three annotated pilot documents.
-             Recall against the 95 gold facts, and pooled recall against the 118 facts
+             Recall against the 114 gold facts, and pooled recall against the 132 facts
              obtained by adding the correct v2 triples outside that set. 95\% CIs from a
              paired section bootstrap.}
     \label{tab:kg:v2}
+    \setlength{\tabcolsep}{4pt}
     \begin{tabular}{lrrrr}
         \toprule
-        & Precision & Recall (95 gold) & Recall (pooled) & \fone{} (95 gold) \\
+        & Precision & Recall (114 gold) & Recall (pooled) & \fone{} (114 gold) \\
         \midrule
-        v1, single run           & 44.3 $[32.3, 56.8]$ & 65.3 $[52.1, 79.4]$ & 52.5 & 52.8 \\
-        v2, single run           & 53.7 $[37.9, 69.9]$ & 43.2 $[25.5, 58.0]$ & 54.2 & 47.8 \\
-        v2, both runs agree      & 72.1                & 32.6                & 35.6 & --- \\
+        v1, single run           & 53.6 $[40.9, 67.4]$ & 65.8 $[53.6, 79.8]$ & 56.8 & 59.1 \\
+        v2, single run           & 45.5 $[31.2, 65.7]$ & 32.5 $[19.0, 48.2]$ & 41.7 & 37.9 \\
+        v2, both runs agree      & 60.7                & 21.9                & 28.0 & --- \\
         \midrule
-        v2 $-$ v1 (single run)   & $+9.4$ $[-7.0, 27.2]$ & $-22.1$ $[-44.4, -2.2]$ & $+1.7$ & $-4.9$ \\
+        v2 $-$ v1                & $-8.0$ $[-25.4, 14.7]$ & $-33.3$ $[-51.4, -13.1]$ & $-15.1$ & $-21.2$ $[-35.7, -3.2]$ \\
         \bottomrule
     \end{tabular}
 \end{table}
 
-Precision rises by nine points, which is not significant on three documents, and the
-target of 65--70\% is not reached by a single run. The recall against the fixed gold
-set falls by a fifth, but this comparison favours the first version: the gold set
-was built from its own output plus the facts it missed, while 23 correct triples of
-the second version lie outside it. Against the pooled set, recall is unchanged or
-slightly higher (54.2\% against 52.5\%; 56.6\% against 50.4\% when the social-media
-links, which the entity layer drops by design, are excluded). The relation-level picture is mixed:
-alternatives are now found (ALTERNATIVE\_TO precision 75\%, recall 67\%, from none),
-and \textsc{requires} precision rises from 47\% to 55\%, but contact points are largely
-lost (AVAILABLE\_AT recall from 69\% to 6\%) and fees are still never extracted. The
-DMV document improves on every measure (precision from 40\% to 74\%, recall from 56\%
-to 65\%), while the SSA and VA documents lose recall, partly in a long section that is
-split into two chunks. The new rule against places as roles initially conflicted with
-three first-version labels (services available to people ``outside of the United
-States''); those labels were corrected (Section~\ref{sec:kg:eval}), and the figures
-above use the corrected labels. Some errors persist, such as opening hours extracted
-as time limits.
+The revision did not work as intended. Precision is eight points lower, which is not
+significant on three documents, and recall falls by a third, which is: the second
+version extracts fewer triples and misses many facts the first one found. Part of the
+recall loss is an artefact, since the gold set was built from the first version's output
+plus the facts it missed, while 18 correct triples of the second version lie outside it,
+but the pooled recall, which counts them, is also 15 points lower (41.7\% against
+56.8\%; 43.3\% against 55.1\% without the social-media links that the entity layer drops
+by design). Alternatives are now found (all three gold alternatives, at a precision of
+38\%), but contact points are almost entirely lost (AVAILABLE\_AT recall from 55\% to
+5\%), and \textsc{requires} precision falls from 58\% to 48\%. Some errors persist, such
+as opening hours extracted as time limits.
 
 Run agreement remains the strongest precision signal. Triples produced by both runs of
-the second version are correct in 72.1\% of cases (44 of 61; Wilson CI
-$[59.8, 81.8]$), those produced by one run only in 35.5\% (22 of 62; CI
-$[24.7, 47.9]$). Keeping only the triples both runs agree on would meet the precision
-target, but at the cost of about a third of the facts (pooled recall 35.6\%) and twice
-the extraction calls. For question answering, missing facts cannot be recovered later,
-whereas noisy ones can still be filtered at retrieval time, so the full build uses a
-single run.
+the second version are correct in 60.7\% of cases (37 of 61; Wilson CI $[48.1,
+71.9]$), those produced by one run only in 30.6\% (19 of 62; CI $[20.6, 43.0]$). Keeping
+only the agreed triples would raise precision, but at the cost of most of the facts
+(pooled recall 28.0\%) and twice the extraction calls. For question answering, missing
+facts cannot be recovered later, whereas noisy ones can still be filtered at retrieval
+time, so the full build uses a single run.
 
-The generic-versus-specific rule for entity resolution was evaluated by re-running the
-pairwise judge, with all its decisions cached, on the clusters labelled in
-Section~\ref{sec:kg:eval}. It splits 7 of the 14 wrong clusters and 2 of the 33 correct
-ones, and saves 61 of 374 \gls{llm} confirmations. A broader rule that also separated a
-name from any longer name containing its words (``loans'' and ``student loans'') would
-have split 15 of the 33 correct clusters and was rejected.
+The decision to continue with the revised prompt (in its version 2.1, next section) was
+taken on the first round of labels, under which the second version was nine points more
+precise than the first at about the same pooled recall. The independent labels do not
+support that conclusion. The control sample of the full build
+(Section~\ref{sec:kg:full}) shows that the graph built with v2.1 is nevertheless
+reasonably precise on unseen documents, but a full build with the first prompt might have
+had a higher recall.
+
+The generic-versus-specific rule for entity resolution was evaluated by replaying the
+pairwise judge's logged decisions on the labelled clusters of
+Section~\ref{sec:kg:eval}: a cluster counts as split if the rule rejects the merges that
+connect it. It splits 5 of the 12 wrong clusters and 4 of the 35 correct ones, and saves
+61 of 374 \gls{llm} confirmations. A broader rule that also separated a name from any
+longer name containing its words (``loans'' and ``student loans'') split 15 of the 33
+correct clusters under the first labels and was rejected.
 
 
 % ===========================================================================
@@ -614,8 +614,8 @@ that are interface text (``sign in'', button labels); and when one entity is the
 of several PART\_OF relations in a section, it is taken to be the parent and the
 relations are reversed.
 
-On the three annotated documents, checked without new labels by carrying the existing
-ones over, v2.1 extracts about as many contact points as the first version, but often
+On the three annotated documents, checked without new labels by carrying over those of
+the first round, v2.1 extracts about as many contact points as the first version, but often
 attaches them to a different service than the annotator did, so their correctness could
 not be confirmed automatically; overall recall stays within the run-to-run variation of
 v2. The post-filters removed only relations that were labelled incorrect or were
@@ -680,14 +680,17 @@ resolution 29 minutes.
 \subsection{Control Evaluation}
 
 Thirty triples, each from a different random section outside all eight pilot documents,
-were labelled to estimate the precision of the full graph on unseen documents. Six
-labels were marked as borderline. Counting them as correct, precision is 53.3\% (16 of
-30; Wilson CI $[36.1, 69.8]$), in line with the pilot estimate for v2; counting them as
-incorrect, it is 33.3\% (10 of 30; CI $[19.2, 51.2]$). \textsc{requires}, the most
-frequent relation, is correct in 8 of 12 cases. The main remaining errors are endpoints
-that are not entities at all (headings, form-filling instructions, fragments), wrong
-entity types (a law typed as an organisation, a service used as a role), and occasional
-reversed or misnamed relations.
+were labelled by the author to estimate the precision of the full graph on unseen
+documents. 22 of them are correct, a precision of 73.3\% (Wilson CI $[55.6, 85.8]$); no
+label was marked as borderline. \textsc{requires}, the most frequent relation, is correct
+in 9 of 12 cases. The eight errors are endpoints that are not entities (``VA cover'',
+``At a DMV office''), conditions or possibilities read as requirements (a green card
+renewal that ``may be necessary''), a law typed as an organisation, a review period read
+as a time limit, and a relation between two names of the same thing (a
+transportation network company ``provided by'' a rideshare company). With the first,
+\gls{llm}-drafted labels the same sample had given only 53\% (33\% when borderline cases
+counted as errors); the two rounds agree on 20 of the 30 triples ($\kappa = 0.31$), so the
+estimate depends noticeably on the annotator.
 
 
 % ===========================================================================
@@ -696,9 +699,10 @@ reversed or misnamed relations.
 A knowledge graph of the full corpus is built and loaded in Neo4j: 14{,}731 entities and
 13{,}277 relations, each traceable to the sentence it was extracted from, on top of the
 document structure shared with the retrieval index. The pilot evaluation guided two
-prompt revisions and several entity-resolution safeguards; the final extraction finds
-about half of the stated facts with a precision of about one half on unseen documents,
-and agreement between two independent runs is the strongest available precision
-signal. The graph covers the gold sections of almost all dev-500 questions. The next
+prompt revisions and several entity-resolution safeguards. On the pilot documents the
+first prompt finds about two thirds of the stated facts with a precision of about one
+half, and the revised prompt did not improve on it; on unseen documents the final graph
+has a precision of about three quarters. Agreement between two independent runs is the
+strongest available precision signal. The graph covers the gold sections of almost all dev-500 questions. The next
 step, question answering over the graph, is the subject of Chapter~\ref{ch:kgret};
 there, noisy triples can still be filtered by the retriever or the answering model.

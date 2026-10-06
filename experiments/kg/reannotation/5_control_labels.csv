@@ -1,0 +1,31 @@
+triple_id,label,note
+control_001,incorrect,"the evidence states that VA will pay the full-time rate, but 'VA cover' is not a clearly established Outcome entity"
+control_002,correct,
+control_003,correct,
+control_004,correct,
+control_005,correct,
+control_006,correct,
+control_007,correct,
+control_008,incorrect,"'not ready to start your monthly Social Security benefits yet' is a condition for using the application, not an explicit requirement of the application"
+control_009,correct,
+control_010,correct,
+control_011,incorrect,"the six-to-18-month period is the review timeframe, not a time limit on 'benefits will continue'"
+control_012,correct,
+control_013,correct,
+control_014,correct,
+control_015,correct,
+control_016,correct,
+control_017,incorrect,"the evidence defines TNC as a type of business also known as a rideshare company; it does not state that the TNC service is provided by a rideshare company"
+control_018,incorrect,"'NY State Freedom of Information Law' is a law, not an Organization, and the evidence says the law provides access rather than that it provides the FOIL service"
+control_019,correct,
+control_020,correct,
+control_021,correct,
+control_022,correct,
+control_023,incorrect,"the evidence says renewing the green card may be necessary; it does not explicitly state that the 'renew the card' service requires the green card"
+control_024,correct,
+control_025,correct,
+control_026,correct,
+control_027,correct,
+control_028,correct,
+control_029,incorrect,"the evidence only poses the question conditionally and does not establish that dropping off a passenger applies to an authorized TNC driver"
+control_030,incorrect,"'At a DMV office' is a location/context fragment, not a valid Service entity that requires the minimum amount"

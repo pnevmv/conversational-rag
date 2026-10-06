@@ -48,13 +48,14 @@ available model is not deterministic, and two runs with the same settings share 
 than half of their triples. Embedding similarity alone cannot decide merges: even above
 a cosine of 0.95, about half of the candidate pairs are different entities that differ
 in one qualifier, so merges go through rules or an \gls{llm} judge. A pilot annotation of
-140 triples (drafted by an \gls{llm} and reviewed by the author) gives 44\% precision and
-65\% recall for a single run, and 67\% precision for triples that two runs agree on;
-70\% of the reviewed entity merges are correct. A revised prompt raised precision to 54\%
-without losing pooled recall. The final graph, built with a single run over the whole
-corpus, has 14{,}731 entities and 13{,}277 relations, covers the gold section of 96.6\% of
-the dev-500 questions and has a precision of 53\% on a control sample from unseen
-documents (33\% if borderline cases are counted as errors).
+140 triples by the author gives 54\% precision and 66\% recall for a single run, and 82\%
+precision for triples that two runs agree on; 75\% of the entity merges are correct. A
+revised prompt did not improve on the first one: its precision was not higher and its
+recall was clearly lower. The final graph, built with a single run over the whole corpus,
+has 14{,}731 entities and 13{,}277 relations, covers the gold section of 96.6\% of the
+dev-500 questions and has a precision of 73\% on a control sample from unseen documents.
+These estimates changed noticeably when the first, \gls{llm}-drafted labels were replaced
+by an independent annotation, which shows how much they depend on the annotator.
 
 Retrieval over the graph alone did not beat passage retrieval. Linking the rewritten
 user turn to entities reaches an entity of the gold section for 70\% of the dev-500
@@ -80,10 +81,12 @@ differences below about one point should be read with caution. Only the five bas
 pipelines were evaluated on the full split.
 
 The precision and recall estimates for the graph rest on small samples: the pilot on
-three documents (140 extracted and 33 missed triples) and a control sample of 30 triples
-from the full graph, with intervals of about $\pm$17 points. The labels were drafted by
-an \gls{llm} and reviewed by the author, and the recall of the full graph was not
-measured outside the pilot documents.
+three documents (140 extracted and 39 missed triples) and a control sample of 30 triples
+from the full graph, with intervals of about $\pm$15 points. They come from a single
+annotator, the author; an earlier \gls{llm}-drafted round of labels agreed with it only
+moderately on the control sample ($\kappa = 0.31$), so a second annotator would be needed
+to separate the quality of the graph from the strictness of the labels. The recall of the
+full graph was not measured outside the pilot documents.
 
 Token \fone{} is the only generation metric. As discussed in Chapter~\ref{ch:rag}, the
 reference answers are extracts from the source documents while the model paraphrases, so

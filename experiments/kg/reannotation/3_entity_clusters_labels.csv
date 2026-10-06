@@ -1,0 +1,48 @@
+entity_id,label,note
+E00007,correct,
+E00009,correct,
+E00011,correct,
+E00021,correct,
+E00024,correct,
+E00048,correct,
+E00065,correct,
+E00075,correct,
+E00083,correct,
+E00130,incorrect,"borderline: 'this plan may be right for you' is too underspecified to establish identity with 'repayment plans you may be eligible for'"
+E00146,correct,
+E00148,correct,
+E00160,incorrect,"'evidence submitted used in the original determination' and 'new evidence' are different evidence concepts"
+E00173,incorrect,"'income increase steadily over time' is a different condition from 'income is low now'/'low income'"
+E00195,incorrect,"'phone' and 'mail' are distinct contact methods"
+E00203,correct,
+E00212,correct,
+E00220,correct,
+E00222,correct,
+E00224,correct,
+E00239,correct,
+E00242,incorrect,"Nassau County and Suffolk County are different counties"
+E00244,incorrect,"'surviving spouse or child' is broader than 'surviving spouses' and includes a different beneficiary category"
+E00247,incorrect,"'Veteran you care about' identifies a veteran as the person being cared about; it is not the same entity as the broader 'Veteran or Servicemember' role"
+E00248,correct,
+E00261,correct,
+E00264,correct,
+E00265,correct,
+E00270,incorrect,"'disability compensation and pension benefits' combines two benefit types; disability compensation alone is not the same entity"
+E00271,correct,
+E00277,correct,
+E00284,incorrect,"the cluster combines the Graduated Repayment Plan with generic repayment plans, monthly payments, and a generic 'another repayment plan'"
+E00287,correct,
+E00290,correct,
+E00294,correct,
+E00314,correct,
+E00316,correct,
+E00318,incorrect,"'benefits'/'retirement benefit' are broader or different from the specific combined 'retirement or spouses benefits'"
+E00319,correct,
+E00324,correct,
+E00327,correct,
+E00334,incorrect,"'change your address on file with VA' is different from changing VA direct deposit information"
+E00335,correct,
+E00338,correct,
+E00343,correct,
+E00344,incorrect,"'Grants' and 'housing grant' are generic/broader than the specific Veterans Housing Assistance Grants entity"
+E00345,correct,

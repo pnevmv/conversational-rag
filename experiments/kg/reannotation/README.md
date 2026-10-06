@@ -1,6 +1,6 @@
 # Re-annotation sheets
 
-Blank copies of the five sheets used to evaluate the KG extraction and entity resolution. The old labels stay where they were (`experiments/kg/annotation_*.csv`, `er_pilot_clusters.csv`) until these sheets are done; then the scoring scripts are pointed at the new labels and the numbers are recomputed.
+Blank copies of the five sheets used to evaluate the KG extraction and entity resolution. These sheets replace the earlier labels, which had been drafted by an LLM and reviewed.
 
 To keep the labels independent, don't look at the old sheets or at the LLM drafts (`experiments/triples_draft_labels.csv`, `experiments/er_clusters_draft_labels.csv`, `experiments/kg/*_draft.csv`) while labelling.
 
@@ -54,6 +54,6 @@ Each row is one entity that merged several differently written names (`surface_n
 
 For a correct v2 triple, `gold_id` says which gold fact it expresses: the `triple_id` of a correct triple in sheet 1 (`t0001`, ...) or a missing fact of sheet 2 (`m01`, ...). Leave it empty if the triple is correct but expresses a fact that isn't in the gold set; it then counts for precision but not for recall.
 
-## After labelling
+## Status
 
-Tell me when the sheets are done. The scores to recompute are the pilot precision and recall, entity-cluster precision, the v1 vs v2 comparison and the control precision, and then the numbers in the README, the reports and the LaTeX report.
+Done (October 2026). The labelled files are `1_triples_v1_labeled.csv`, `2_missing_v1.csv`, `3_entity_clusters_labels.csv`, `4_triples_v2.csv` and `5_control_labels.csv`; `2_review.md` and `4_review.md` were the helper pages used while labelling. The labels were copied into the files the scoring scripts read (`annotation_sample.csv`, `annotation_missing.csv`, `er_pilot_clusters.csv`, `annotation_v2.csv`, `annotation_control.csv`), `gold_v1.csv` was rebuilt (114 facts) and all scores were recomputed. The previous labels are in the git history.

@@ -4,45 +4,45 @@ E00009,Amount,dmv,payment in the amount of $2.50 per vehicle,$2.50 per vehicle |
 E00011,Amount,studentaid,the amount of interest that accrues between your payments,amount of interest that accrues between your payments | the amount of interest that accrues between your payments,2,2,1,,correct,
 E00021,ContactPoint,va,Call us at 800 - 827 - 1000,800 - 827 - 1000 | Call us at 800 - 827 - 1000,2,2,1,llm x1,correct,
 E00024,ContactPoint,dmv,DMV office,DMV office | local DMV office,3,3,1,llm x1,correct,
-E00048,Document,dmv,digital electronic NY State Insurance ID Card,current NY State Insurance ID card | digital electronic NY State Insurance ID Card | NY State Insurance ID Card | NY State Insurance ID cards,4,3,2,llm x3,correct,"paper vs digital card, same document"
-E00065,Document,dmv,Manufacturer's Certificate of Origin (MCO),Manufacturer's Certificate of Origin (MCO) | Manufacturers Statement of Origin (MSO),2,1,1,llm x1,correct,MCO and MSO are synonyms
-E00075,Document,dmv,Schedule A & C pdf,IRP-6 | Schedule A & C pdf | Schedule A / C IRP6 | Schedule A&C [2] IRP-6,6,3,1,form_number x3; llm x2,correct,IRP-6 form variants
+E00048,Document,dmv,digital electronic NY State Insurance ID Card,current NY State Insurance ID card | digital electronic NY State Insurance ID Card | NY State Insurance ID Card | NY State Insurance ID cards,4,3,2,llm x3,correct,
+E00065,Document,dmv,Manufacturer's Certificate of Origin (MCO),Manufacturer's Certificate of Origin (MCO) | Manufacturers Statement of Origin (MSO),2,1,1,llm x1,correct,
+E00075,Document,dmv,Schedule A & C pdf,IRP-6 | Schedule A & C pdf | Schedule A / C IRP6 | Schedule A&C [2] IRP-6,6,3,1,form_number x3; llm x2,correct,
 E00083,Organization,studentaid,college financial aid office,college financial aid office | financial aid office,2,2,1,llm x1,correct,
-E00130,Outcome,studentaid,repayment plans you may be eligible for,repayment plans you may be eligible for | this plan may be right for you,2,2,1,llm x1,incorrect,different statements
+E00130,Outcome,studentaid,repayment plans you may be eligible for,repayment plans you may be eligible for | this plan may be right for you,2,2,1,llm x1,incorrect,borderline: 'this plan may be right for you' is too underspecified to establish identity with 'repayment plans you may be eligible for'
 E00146,Requirement,va,bank's routing number,bank's routing number | routing number,2,2,1,llm x1,correct,
-E00148,Requirement,dmv,bring the correct documents with you,bring the correct documents with you | Find your proofs,2,1,1,llm x1,incorrect,two different junk requirements
-E00160,Requirement,ssa,evidence submitted used in the original determination,evidence submitted used in the original determination | new evidence,2,1,1,llm x1,incorrect,original vs new evidence
-E00173,Requirement,studentaid,income increase steadily over time,income increase steadily over time | income is low now | low income,3,1,1,llm x2,incorrect,income increasing vs low income
-E00195,Requirement,va,phone,mail | phone,2,1,1,llm x1,incorrect,mail vs phone
-E00203,Requirement,dmv,"proof of sales tax payment, sales tax exemption, or purchase price","Proof of sales tax payment | proof of sales tax payment, sales tax exemption, or purchase price",2,2,1,llm x1,correct,paraphrase / broader name of same thing
-E00212,Requirement,va,sign in to change your direct deposit information,sign in | sign in to change your direct deposit information,2,2,1,llm x1,correct,paraphrase / broader name of same thing
-E00220,Requirement,va,updating your VA.gov profile,update your information | updating your VA.gov profile,2,2,1,llm x1,correct,paraphrase / broader name of same thing
-E00222,Requirement,dmv,You can't make changes to your IRP registrations at a DMV local office.,You can't make changes to your IRP registrations at a DMV local office. | Your local DMV office cannot amend an IRP registration.,2,2,1,llm x1,correct,paraphrase / broader name of same thing
+E00148,Requirement,dmv,bring the correct documents with you,bring the correct documents with you | Find your proofs,2,1,1,llm x1,correct,
+E00160,Requirement,ssa,evidence submitted used in the original determination,evidence submitted used in the original determination | new evidence,2,1,1,llm x1,incorrect,'evidence submitted used in the original determination' and 'new evidence' are different evidence concepts
+E00173,Requirement,studentaid,income increase steadily over time,income increase steadily over time | income is low now | low income,3,1,1,llm x2,incorrect,'income increase steadily over time' is a different condition from 'income is low now'/'low income'
+E00195,Requirement,va,phone,mail | phone,2,1,1,llm x1,incorrect,'phone' and 'mail' are distinct contact methods
+E00203,Requirement,dmv,"proof of sales tax payment, sales tax exemption, or purchase price","Proof of sales tax payment | proof of sales tax payment, sales tax exemption, or purchase price",2,2,1,llm x1,correct,
+E00212,Requirement,va,sign in to change your direct deposit information,sign in | sign in to change your direct deposit information,2,2,1,llm x1,correct,
+E00220,Requirement,va,updating your VA.gov profile,update your information | updating your VA.gov profile,2,2,1,llm x1,correct,
+E00222,Requirement,dmv,You can't make changes to your IRP registrations at a DMV local office.,You can't make changes to your IRP registrations at a DMV local office. | Your local DMV office cannot amend an IRP registration.,2,2,1,llm x1,correct,
 E00224,Requirement,ssa,your initial enrollment period for Medicare Part B,initial enrollment period for Medicare Part B | your initial enrollment period for Medicare Part B,2,1,1,,correct,
 E00239,Role,va,service members,service member | service members,2,2,1,,correct,
-E00242,Role,dmv,Suffolk County,Nassau County | Suffolk County,2,1,1,llm x1,incorrect,different counties
-E00244,Role,va,surviving spouse or child,surviving spouse or child | surviving spouses,2,2,1,llm x1,incorrect,"""or child"" not included in surviving spouses"
-E00247,Role,va,Veteran or Servicemember,Veteran or Servicemember | Veteran you care about,2,2,1,llm x1,incorrect,different roles
+E00242,Role,dmv,Suffolk County,Nassau County | Suffolk County,2,1,1,llm x1,incorrect,Nassau County and Suffolk County are different counties
+E00244,Role,va,surviving spouse or child,surviving spouse or child | surviving spouses,2,2,1,llm x1,incorrect,'surviving spouse or child' is broader than 'surviving spouses' and includes a different beneficiary category
+E00247,Role,va,Veteran or Servicemember,Veteran or Servicemember | Veteran you care about,2,2,1,llm x1,incorrect,'Veteran you care about' identifies a veteran as the person being cared about; it is not the same entity as the broader 'Veteran or Servicemember' role
 E00248,Role,va,Veterans,Veteran | Veterans,2,2,1,,correct,
 E00261,Service,studentaid,consolidation loans,consolidation loan | consolidation loans,2,2,1,,correct,
 E00264,Service,studentaid,Direct Consolidation Loans,Direct Consolidation Loan | Direct Consolidation Loans,4,3,1,,correct,
 E00265,Service,va,direct deposit payments,direct deposit feature | direct deposit payments,2,2,1,llm x1,correct,
-E00270,Service,va,disability compensation,disability compensation | disability compensation and pension benefits,4,4,1,llm x1,incorrect,pension benefits are a different service
-E00271,Service,va,Disability Compensation Pay,Disability Compensation Pay | VA disability compensation,2,2,2,llm x1,correct,paraphrase / broader name of same thing
+E00270,Service,va,disability compensation,disability compensation | disability compensation and pension benefits,4,4,1,llm x1,incorrect,'disability compensation and pension benefits' combines two benefit types; disability compensation alone is not the same entity
+E00271,Service,va,Disability Compensation Pay,Disability Compensation Pay | VA disability compensation,2,2,2,llm x1,correct,
 E00277,Service,studentaid,FFEL Consolidation Loans,FFEL Consolidation Loan | FFEL Consolidation Loans,4,3,1,,correct,
-E00284,Service,studentaid,Graduated Repayment Plan,another repayment plan | Graduated Plan | Graduated Repayment Plan | Graduated repayment plan | monthly payments | Monthly Payments for Federal Education Loans Except Consolidation Loans,8,5,1,llm x5,incorrect,"generic ""another repayment plan""/""monthly payments"" merged into Graduated plan"
+E00284,Service,studentaid,Graduated Repayment Plan,another repayment plan | Graduated Plan | Graduated Repayment Plan | Graduated repayment plan | monthly payments | Monthly Payments for Federal Education Loans Except Consolidation Loans,8,5,1,llm x5,incorrect,"the cluster combines the Graduated Repayment Plan with generic repayment plans, monthly payments, and a generic 'another repayment plan'"
 E00287,Service,ssa,Hearing by an administrative law judge,hearing | Hearing by an administrative law judge,2,2,1,llm x1,correct,
 E00290,Service,dmv,IRP registration,IRP registration | IRP registrations,7,7,1,,correct,
 E00294,Service,ssa,Medical insurance Part B,Medical insurance Part B | Medicare supplementary medical insurance Part B,3,3,1,llm x1,correct,
-E00314,Service,ssa,Request a Hearing for a Non-Medical Determination Online,appeal | non - medical appeal online | Request a Hearing for a Non-Medical Determination Online,3,3,1,llm x2,incorrect,generic appeal + reconsideration + hearing merged
+E00314,Service,ssa,Request a Hearing for a Non-Medical Determination Online,appeal | non - medical appeal online | Request a Hearing for a Non-Medical Determination Online,3,3,1,llm x2,correct,
 E00316,Service,ssa,Request a Reconsideration Online for a Non-Medical Determination,Request a Reconsideration Online for a Non-Medical Determination | Request Non - Medical Reconsideration,2,1,1,llm x1,correct,
-E00318,Service,ssa,retirement or spouses benefits,benefits | retirement benefit | retirement or spouses benefits,3,3,1,llm x2,incorrect,"generic ""benefits"" merged"
+E00318,Service,ssa,retirement or spouses benefits,benefits | retirement benefit | retirement or spouses benefits,3,3,1,llm x2,incorrect,'benefits'/'retirement benefit' are broader or different from the specific combined 'retirement or spouses benefits'
 E00319,Service,ssa,Review by the Appeals Council,Appeals Council review | Review by the Appeals Council,2,2,1,llm x1,correct,
 E00324,Service,ssa,Special Enrollment Period (SEP),Special Enrollment Period | Special Enrollment Period (SEP),2,2,1,,correct,
 E00327,Service,studentaid,student loans,loans | student loans,2,2,1,llm x1,correct,
-E00334,Service,va,VA direct deposit information,change your address on file with VA | Change Your VA Direct Deposit Information | Change your VA direct deposit information | VA direct deposit information,7,7,1,llm x2,incorrect,"""change your address"" merged with direct deposit"
-E00335,Service,va,VA direct or VA - backed home loan,VA - backed home loan | VA direct home loan | VA direct or VA - backed home loan,3,1,1,llm x3,incorrect,VA direct and VA-backed are distinct loan types (sibling merge)
+E00334,Service,va,VA direct deposit information,change your address on file with VA | Change Your VA Direct Deposit Information | Change your VA direct deposit information | VA direct deposit information,7,7,1,llm x2,incorrect,'change your address on file with VA' is different from changing VA direct deposit information
+E00335,Service,va,VA direct or VA - backed home loan,VA - backed home loan | VA direct home loan | VA direct or VA - backed home loan,3,1,1,llm x3,correct,
 E00338,Service,va,VA Home Loan Benefits,VA home loan | VA home loan benefit | VA Home Loan Benefits,3,2,1,llm x1,correct,
 E00343,Service,va,Veterans Housing Assistance,VA housing assistance | Veterans Housing Assistance,2,2,1,llm x1,correct,
-E00344,Service,va,Veterans Housing Assistance Grants,Grants | housing grant | Veterans Housing Assistance Grants,3,2,1,llm x3,correct,paraphrase / broader name of same thing
+E00344,Service,va,Veterans Housing Assistance Grants,Grants | housing grant | Veterans Housing Assistance Grants,3,2,1,llm x3,incorrect,'Grants' and 'housing grant' are generic/broader than the specific Veterans Housing Assistance Grants entity
 E00345,Service,va,Vocational Rehabilitation and Employment (VR&E),Vocational Rehabilitation & Employment (VR&E) | Vocational Rehabilitation and Employment (VR&E),3,3,2,llm x1,correct,

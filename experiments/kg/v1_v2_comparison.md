@@ -1,52 +1,51 @@
 # Extraction prompt v1 vs v2 (3 annotated pilot documents)
 
-Paired section bootstrap, B = 2,000, 95% percentile CIs in brackets. Recall is against the same 95 gold triples for both versions.
+Paired section bootstrap, B = 2,000, 95% percentile CIs in brackets. Recall is against the same 114 gold triples for both versions.
 
 | | v1 | v2 | v2 − v1 |
 |---|---|---|---|
-| Precision | 44.3 [32.3, 56.8] | 53.7 [37.9, 69.9] | +9.4 [-7.0, +27.2] |
-| Recall | 65.3 [52.1, 79.4] | 43.2 [25.5, 58.0] | -22.1 [-44.4, -2.2] |
-| F1 | 52.8 [41.9, 63.4] | 47.8 [31.1, 62.2] | -4.9 [-22.2, +11.4] |
-| Labelled triples (correct) | 140 (62) | 123 (66) | |
-| Gold facts found (of 95) | 62 | 41 | |
-| Correct triples outside the gold set | 0 | 23 | |
+| Precision | 53.6 [40.9, 67.4] | 45.5 [31.2, 65.7] | -8.0 [-25.4, +14.7] |
+| Recall | 65.8 [53.6, 79.8] | 32.5 [19.0, 48.2] | -33.3 [-51.4, -13.1] |
+| F1 | 59.1 [48.0, 70.7] | 37.9 [25.1, 53.2] | -21.2 [-35.7, -3.2] |
+| Labelled triples (correct) | 140 (75) | 123 (56) | |
+| Gold facts found (of 114) | 75 | 37 | |
+| Correct triples outside the gold set | 0 | 18 | |
 
 ## By relation
 
 | Relation | v1 P | v2 P | v1 R | v2 R | v1 F1 | v2 F1 | labelled v1 / v2 | gold |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|
-| ALTERNATIVE_TO | 0.0 | 75.0 | 0.0 | 66.7 | 0.0 | 70.6 | 2 / 8 | 3 |
-| APPLIES_TO | 46.2 | 66.7 | 80.0 | 53.3 | 58.5 | 59.3 | 26 / 15 | 15 |
-| AVAILABLE_AT | 57.9 | 28.6 | 68.8 | 6.2 | 62.9 | 10.3 | 19 / 7 | 16 |
+| ALTERNATIVE_TO | 0.0 | 37.5 | 0.0 | 100.0 | 0.0 | 54.5 | 2 / 8 | 3 |
+| APPLIES_TO | 53.8 | 73.3 | 77.8 | 22.2 | 63.6 | 34.1 | 26 / 15 | 18 |
+| AVAILABLE_AT | 57.9 | 28.6 | 55.0 | 5.0 | 56.4 | 8.5 | 19 / 7 | 20 |
 | EXEMPT_FROM | — | 0.0 | — | — | — | — | 0 / 1 | 0 |
-| HAS_AMOUNT | — | — | 0.0 | 0.0 | — | — | 0 / 0 | 2 |
-| HAS_TIME_LIMIT | 22.2 | 20.0 | 100.0 | 50.0 | 36.4 | 28.6 | 9 / 5 | 2 |
-| LEADS_TO | 28.6 | 36.4 | 57.1 | 42.9 | 38.1 | 39.3 | 14 / 11 | 7 |
-| PART_OF | 0.0 | 28.6 | 0.0 | 0.0 | 0.0 | 0.0 | 7 / 7 | 4 |
-| PROVIDED_BY | 87.5 | 81.8 | 63.6 | 45.5 | 73.7 | 58.4 | 8 / 11 | 11 |
-| REQUIRES | 47.3 | 55.2 | 74.3 | 60.0 | 57.8 | 57.5 | 55 / 58 | 35 |
+| HAS_TIME_LIMIT | 55.6 | 40.0 | 100.0 | 20.0 | 71.4 | 26.7 | 9 / 5 | 5 |
+| LEADS_TO | 50.0 | 36.4 | 77.8 | 33.3 | 60.9 | 34.8 | 14 / 11 | 9 |
+| PART_OF | 0.0 | 28.6 | 0.0 | 0.0 | 0.0 | 0.0 | 7 / 7 | 7 |
+| PROVIDED_BY | 75.0 | 36.4 | 66.7 | 44.4 | 70.6 | 40.0 | 8 / 11 | 9 |
+| REQUIRES | 58.2 | 48.3 | 74.4 | 48.8 | 65.3 | 48.6 | 55 / 58 | 43 |
 
 ## By document
 
 | Document | v1 P | v2 P | v1 R | v2 R | v1 F1 | v2 F1 |
 |---|---|---|---|---|---|---|
-| DMV leased vehicle | 39.6 [9.1, 100.0] | 73.5 [51.9, 100.0] | 55.9 [36.4, 100.0] | 64.7 [0.0, 81.8] | 46.3 [16.7, 61.5] | 68.8 [0.0, 90.0] |
-| SSA appeal | 23.1 [10.9, 37.0] | 25.7 [9.1, 41.9] | 52.9 [26.7, 100.0] | 23.5 [0.0, 69.2] | 32.1 [15.9, 47.8] | 24.6 [0.0, 51.3] |
-| VA housing | 64.2 [45.8, 87.5] | 53.8 [31.7, 88.5] | 77.3 [54.5, 92.7] | 34.1 [12.1, 56.9] | 70.1 [53.0, 85.2] | 41.7 [18.4, 65.3] |
+| DMV leased vehicle | 43.8 [0.0, 100.0] | 51.0 [22.2, 100.0] | 56.8 [36.4, 80.0] | 48.6 [28.6, 81.8] | 49.4 [22.7, 61.5] | 49.8 [25.0, 90.0] |
+| SSA appeal | 43.6 [25.6, 60.4] | 28.6 [9.4, 53.6] | 60.7 [31.2, 100.0] | 32.1 [10.5, 71.4] | 50.7 [29.0, 73.2] | 30.3 [10.2, 59.0] |
+| VA housing | 69.8 [49.1, 93.0] | 53.8 [38.5, 83.3] | 75.5 [59.1, 91.9] | 20.4 [6.1, 37.7] | 72.5 [55.4, 89.7] | 29.6 [10.8, 46.2] |
 
 ## v2 precision by run agreement (run-1 triples)
 
 | | Correct / labelled | Precision (Wilson 95% CI) |
 |---|---:|---|
-| both runs | 44 / 61 | 72.1 [59.8, 81.8] |
-| run1 only | 22 / 62 | 35.5 [24.7, 47.9] |
+| both runs | 37 / 61 | 60.7 [48.1, 71.9] |
+| run1 only | 19 / 62 | 30.6 [20.6, 43.0] |
 
 ## Recall variants and the two-run intersection
 
-The fixed gold set (95) was built from v1's output plus the facts v1 missed, so it favours v1. Pooled: gold extended with v2's 23 correct triples outside it (118 facts). No social: without the 5 social-media links the KG layer drops by design.
+The fixed gold set (114) was built from v1's output plus the facts v1 missed, so it favours v1. Pooled: gold extended with v2's 18 correct triples outside it (132 facts). No social: without the 5 social-media links the KG layer drops by design.
 
-| | Precision | Recall (fixed 95) | Recall (fixed, no social) | Recall (pooled) | Recall (pooled, no social) |
+| | Precision | Recall (fixed 114) | Recall (fixed, no social) | Recall (pooled) | Recall (pooled, no social) |
 |---|---:|---:|---:|---:|---:|
-| v1 | 44.3 | 65.3 | 63.3 | 52.5 | 50.4 |
-| v2 | 53.7 | 43.2 | 45.6 | 54.2 | 56.6 |
-| v2 intersection | 72.1 | 32.6 | 34.4 | 35.6 | 37.2 |
+| v1 | 53.6 | 65.8 | 64.2 | 56.8 | 55.1 |
+| v2 | 45.5 | 32.5 | 33.9 | 41.7 | 43.3 |
+| v2 intersection | 60.7 | 21.9 | 22.9 | 28.0 | 29.1 |

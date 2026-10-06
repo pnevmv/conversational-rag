@@ -1,8 +1,8 @@
 {
   "overall": {
-    "correct": 33,
+    "correct": 35,
     "labelled": 47,
-    "precision": 0.7021276595744681
+    "precision": 0.7446808510638298
   },
   "by_type": {
     "Amount": {
@@ -31,9 +31,9 @@
       "precision": 0.0
     },
     "Requirement": {
-      "correct": 6,
+      "correct": 7,
       "labelled": 10,
-      "precision": 0.6
+      "precision": 0.7
     },
     "Role": {
       "correct": 2,
@@ -41,9 +41,9 @@
       "precision": 0.4
     },
     "Service": {
-      "correct": 16,
+      "correct": 17,
       "labelled": 22,
-      "precision": 0.7272727272727273
+      "precision": 0.7727272727272727
     }
   },
   "by_evidence": {
@@ -58,9 +58,9 @@
       "precision": 1.0
     },
     "llm": {
-      "correct": 23,
+      "correct": 25,
       "labelled": 37,
-      "precision": 0.6216216216216216
+      "precision": 0.6756756756756757
     }
   },
   "unlabelled": 0

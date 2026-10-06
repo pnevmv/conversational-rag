@@ -36,9 +36,9 @@ We then build a knowledge graph from the corpus, with three layers for the docum
 structure, the extracted mentions and the resolved entities. Extraction turns out to be
 noisy: two runs with the same settings share fewer than half of their triples, and
 embedding similarity alone is not enough to decide which entities to merge. On a small
-annotated sample a single extraction run has 44\% precision and 65\% recall. The final
+annotated sample a single extraction run has 54\% precision and 66\% recall. The final
 graph has 14{,}731 entities and 13{,}277 relations, covers the gold section of 96.6\% of
-the diagnostic questions, and has a precision of 53\% on a control sample.
+the diagnostic questions, and has a precision of 73\% on a control sample.
 
 Using the graph for retrieval, the rewritten user turn can be linked to an entity of the
 gold section for 70\% of the questions, but retrieving through the graph alone finds the

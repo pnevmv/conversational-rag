@@ -65,7 +65,7 @@ The graph is stored in Neo4j in three layers: a structural layer (domain, docume
 A few things learned on the way:
 
 * extraction is not deterministic: two runs with the same settings share only 44-48% of their triples;
-* on a pilot annotation of 3 documents, one run with the first prompt has 44% precision and 65% recall (67% precision for the triples two runs agree on); the second prompt raises precision to about 54%;
+* on a pilot annotation of 3 documents, one run with the first prompt has 54% precision and 66% recall (82% precision for the triples two runs agree on); the second prompt was not more precise (46%) and found far fewer facts (recall 33%);
 * embedding similarity is not enough to merge entities (about half of the pairs above cosine 0.95 are different entities), so merges go through rules or a batched LLM judge, with a guard against generic "hub" names.
 
 | Full graph (prompt v2.1) | |
@@ -73,10 +73,10 @@ A few things learned on the way:
 | Entities | 14,731 (from 28,782 mentions) |
 | Entity relations | 13,277 |
 | dev-500 gold sections with an entity | 96.6% |
-| Precision on a control sample (30 triples) | 53% (33% strict) |
+| Precision on a control sample (30 triples, unseen documents) | 73% [56, 86] |
 | Cost | 12,970 LLM calls, about 1 hour |
 
-The labels of the annotations were drafted with an LLM and reviewed by me. Details are in `latex_report/chapters/kg_construction.tex` and `experiments/kg/full_build_report.md`.
+All annotations were done by me, without automatic help (`experiments/kg/reannotation/`). They replace a first round of labels that were drafted by an LLM and reviewed by me; with those, the graph looked less precise (53% on the control sample) and the second prompt looked better than the first. Details are in `latex_report/chapters/kg_construction.tex` and `experiments/kg/full_build_report.md`.
 
 ### Step 6: Retrieval over the knowledge graph
 
