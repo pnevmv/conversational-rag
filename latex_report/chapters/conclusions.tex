@@ -48,7 +48,7 @@ available model is not deterministic, and two runs with the same settings share 
 than half of their triples. Embedding similarity alone cannot decide merges: even above
 a cosine of 0.95, about half of the candidate pairs are different entities that differ
 in one qualifier, so merges go through rules or an \gls{llm} judge. A pilot annotation of
-140 triples by the author gives 54\% precision and 66\% recall for a single run, and 82\%
+140 triples by the author gives 51\% precision and 66\% recall for a single run, and 76\%
 precision for triples that two runs agree on; 75\% of the entity merges are correct. A
 revised prompt did not improve on the first one: its precision was not higher and its
 recall was clearly lower. The final graph, built with a single run over the whole corpus,
@@ -81,7 +81,7 @@ differences below about one point should be read with caution. Only the five bas
 pipelines were evaluated on the full split.
 
 The precision and recall estimates for the graph rest on small samples: the pilot on
-three documents (140 extracted and 39 missed triples) and a control sample of 30 triples
+three documents (140 extracted and 38 missed triples) and a control sample of 30 triples
 from the full graph, with intervals of about $\pm$15 points. They come from a single
 annotator, the author; an earlier \gls{llm}-drafted round of labels agreed with it only
 moderately on the control sample ($\kappa = 0.31$), so a second annotator would be needed

@@ -416,8 +416,8 @@ matching.
 All 140 loadable triples extracted from three pilot documents, one per domain for
 DMV, SSA and VA, were labelled as correct or incorrect against their source sections,
 together with the 47 entity clusters that merge differently written names. The facts
-that the sections state but the extraction missed were also listed (39), which gives
-recall: the gold set has 114 facts, the 75 correct triples and the 39 missed ones. All
+that the sections state but the extraction missed were also listed (38), which gives
+recall: the gold set has 110 facts, the 72 correct triples and the 38 missed ones. All
 labels in this chapter were made by the author without automatic help. A first round of
 labels had been drafted by an \gls{llm} and reviewed by the author; it was replaced by
 this independent annotation, for reasons discussed at the end of this section.
@@ -430,17 +430,17 @@ confidence intervals are wide; the values below are 95\% Wilson intervals.
 
 \subsection{Triple Precision and Recall}
 
-Overall precision is 53.6\% (75 of 140; 95\% CI $[45.3, 61.6]$) and recall 65.8\% (75
-of 114; CI $[56.7, 73.9]$), for an \fone{} of 59.1\%. The extraction finds about two
-thirds of the stated facts, and a little more than half of what it extracts is correct.
+Overall precision is 51.4\% (72 of 140; 95\% CI $[43.2, 59.6]$) and recall 65.5\% (72
+of 110; CI $[56.2, 73.7]$), for an \fone{} of 57.6\%. The extraction finds about two
+thirds of the stated facts, and about half of what it extracts is correct.
 Table~\ref{tab:kg:precision} breaks the scores down by relation. PROVIDED\_BY is the
 most precise relation and REQUIRES, APPLIES\_TO and LEADS\_TO find most of their facts,
 while part--whole relations and alternatives are never right: none of the stated
 alternatives (e.g.\ a Manufacturer's Statement of Origin \emph{or} Certificate of
 Origin) is found. By entity type (a triple counts for both of its endpoint types),
-precision goes from 45\% for Outcome and 50\% for Role to about 65\% for Document,
-Organization and ContactPoint. Across the three documents precision ranges from 44\% to
-70\% and recall from 57\% to 76\%, the VA document being the best on both. None of the
+precision goes from 45--50\% for Outcome, Requirement, Service and Role to about 65\% for
+Document, Organization and ContactPoint. Across the three documents precision ranges from
+38\% to 70\% and recall from 53\% to 77\%, the VA document being the best on both. None of the
 missed facts lies in a section that was skipped as short or boilerplate.
 
 \begin{table}[ht]
@@ -453,8 +453,8 @@ missed facts lies in a section that was skipped as short or boilerplate.
         \toprule
         Relation & Correct & Labelled & Missed & Precision & Recall \\
         \midrule
-        REQUIRES        & 32 & 55 & 11 & 58.2\% & 74.4\% \\
-        APPLIES\_TO     & 14 & 26 &  4 & 53.8\% & 77.8\% \\
+        REQUIRES        & 29 & 55 & 11 & 52.7\% & 72.5\% \\
+        APPLIES\_TO     & 14 & 26 &  3 & 53.8\% & 82.4\% \\
         AVAILABLE\_AT   & 11 & 19 &  9 & 57.9\% & 55.0\% \\
         LEADS\_TO       &  7 & 14 &  2 & 50.0\% & 77.8\% \\
         HAS\_TIME\_LIMIT &  5 &  9 &  0 & 55.6\% & 100.0\% \\
@@ -462,14 +462,16 @@ missed facts lies in a section that was skipped as short or boilerplate.
         PART\_OF        &  0 &  7 &  7 &  0.0\% &  0.0\% \\
         ALTERNATIVE\_TO &  0 &  2 &  3 &  0.0\% &  0.0\% \\
         \midrule
-        All             & 75 & 140 & 39 & 53.6\% & 65.8\% \\
+        All             & 72 & 140 & 38 & 51.4\% & 65.5\% \\
         \bottomrule
     \end{tabular}
 \end{table}
 
 The errors fall into a few recurring patterns. Identity documents (driver licence,
-learner permit, non-driver ID card) were typed as services, which attached validity
-periods and conditions to them as if they were procedures. Several \textsc{requires}
+learner permit, non-driver ID card) were typed as services, which reversed
+\textsc{requires} relations (``driver licence requires proof of identity and age'', where
+the licence \emph{is} the proof) and attached validity periods and conditions to them as
+if they were procedures. Several \textsc{requires}
 targets are not requirements but conditional clauses, vague instructions (``bring the
 correct documents with you''), link texts or fragments. The list of places where an
 online reservation is needed (New York City and six counties) became seven
@@ -484,10 +486,10 @@ PROVIDED\_BY or LEADS\_TO that the text implies without stating them literally.
 
 Precision depends strongly on whether a triple is reproduced by an independent second
 extraction run (Section~\ref{sec:kg:quality}). Triples found by both runs are correct
-in 81.6\% of cases (40 of 49; CI $[68.6, 90.0]$), those found by one run only in 38.5\%
+in 75.5\% of cases (37 of 49; CI $[61.9, 85.4]$), those found by one run only in 38.5\%
 (35 of 91; CI $[29.1, 48.7]$). Run agreement is therefore a strong confidence signal:
 keeping only the triples that two runs agree on would double the extraction cost and
-discard about two thirds of the triples, but raise precision by about 28 points.
+discard about two thirds of the triples, but raise precision by about 24 points.
 
 \subsection{Entity Resolution}
 
@@ -505,11 +507,11 @@ benefits''), and siblings that differ in one word (two counties, ``mail'' and
 \subsection{Agreement with the First Labels}
 
 The first round of labels, drafted by an \gls{llm} and reviewed by the author, agrees
-with the independent annotation on 85\% of the v1 triples (Cohen's $\kappa = 0.70$) and
+with the independent annotation on 87\% of the v1 triples (Cohen's $\kappa = 0.74$) and
 92\% of the entity clusters ($\kappa = 0.79$). The disagreements are not random: the
-first labels were stricter on the first prompt (17 triples judged incorrect there are
+first labels were stricter on the first prompt (14 triples judged incorrect there are
 correct in the new labels, 4 the other way round) and more lenient on the second. With
-the first labels, v1 precision was 44\% instead of 54\%, and the comparison of the two
+the first labels, v1 precision was 44\% instead of 51\%, and the comparison of the two
 prompt versions in the next section came out the other way round. Whether a triple counts
 as correct is partly a matter of judgement, especially for relations the text implies
 without stating them, and with a single annotator this uncertainty is not captured by
@@ -542,41 +544,41 @@ section not being independent.
     \centering
     \footnotesize
     \caption{Extraction prompt v1 and v2 on the three annotated pilot documents.
-             Recall against the 114 gold facts, and pooled recall against the 132 facts
+             Recall against the 110 gold facts, and pooled recall against the 121 facts
              obtained by adding the correct v2 triples outside that set. 95\% CIs from a
              paired section bootstrap.}
     \label{tab:kg:v2}
     \setlength{\tabcolsep}{4pt}
     \begin{tabular}{lrrrr}
         \toprule
-        & Precision & Recall (114 gold) & Recall (pooled) & \fone{} (114 gold) \\
+        & Precision & Recall (110 gold) & Recall (pooled) & \fone{} (110 gold) \\
         \midrule
-        v1, single run           & 53.6 $[40.9, 67.4]$ & 65.8 $[53.6, 79.8]$ & 56.8 & 59.1 \\
-        v2, single run           & 45.5 $[31.2, 65.7]$ & 32.5 $[19.0, 48.2]$ & 41.7 & 37.9 \\
-        v2, both runs agree      & 60.7                & 21.9                & 28.0 & --- \\
+        v1, single run           & 51.4 $[39.4, 66.4]$ & 65.5 $[52.7, 80.2]$ & 59.5 & 57.6 \\
+        v2, single run           & 45.5 $[31.2, 65.7]$ & 38.2 $[25.6, 52.1]$ & 43.8 & 41.5 \\
+        v2, both runs agree      & 60.7                & 26.4                & 28.9 & --- \\
         \midrule
-        v2 $-$ v1                & $-8.0$ $[-25.4, 14.7]$ & $-33.3$ $[-51.4, -13.1]$ & $-15.1$ & $-21.2$ $[-35.7, -3.2]$ \\
+        v2 $-$ v1                & $-5.9$ $[-22.2, 14.9]$ & $-27.3$ $[-44.6, -9.5]$ & $-15.7$ & $-16.1$ $[-30.7, 0.4]$ \\
         \bottomrule
     \end{tabular}
 \end{table}
 
-The revision did not work as intended. Precision is eight points lower, which is not
-significant on three documents, and recall falls by a third, which is: the second
-version extracts fewer triples and misses many facts the first one found. Part of the
+The revision did not work as intended. Precision is six points lower, which is not
+significant on three documents, and recall falls by more than a quarter, which is: the
+second version extracts fewer triples and misses many facts the first one found. Part of the
 recall loss is an artefact, since the gold set was built from the first version's output
-plus the facts it missed, while 18 correct triples of the second version lie outside it,
-but the pooled recall, which counts them, is also 15 points lower (41.7\% against
-56.8\%; 43.3\% against 55.1\% without the social-media links that the entity layer drops
+plus the facts it missed, while 11 correct triples of the second version lie outside it,
+but the pooled recall, which counts them, is also 16 points lower (43.8\% against
+59.5\%; 45.7\% against 57.8\% without the social-media links that the entity layer drops
 by design). Alternatives are now found (all three gold alternatives, at a precision of
 38\%), but contact points are almost entirely lost (AVAILABLE\_AT recall from 55\% to
-5\%), and \textsc{requires} precision falls from 58\% to 48\%. Some errors persist, such
+5\%), and \textsc{requires} precision falls from 53\% to 48\%. Some errors persist, such
 as opening hours extracted as time limits.
 
 Run agreement remains the strongest precision signal. Triples produced by both runs of
 the second version are correct in 60.7\% of cases (37 of 61; Wilson CI $[48.1,
 71.9]$), those produced by one run only in 30.6\% (19 of 62; CI $[20.6, 43.0]$). Keeping
 only the agreed triples would raise precision, but at the cost of most of the facts
-(pooled recall 28.0\%) and twice the extraction calls. For question answering, missing
+(pooled recall 28.9\%) and twice the extraction calls. For question answering, missing
 facts cannot be recovered later, whereas noisy ones can still be filtered at retrieval
 time, so the full build uses a single run.
 

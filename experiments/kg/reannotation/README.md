@@ -56,4 +56,6 @@ For a correct v2 triple, `gold_id` says which gold fact it expresses: the `tripl
 
 ## Status
 
-Done (October 2026). The labelled files are `1_triples_v1_labeled.csv`, `2_missing_v1.csv`, `3_entity_clusters_labels.csv`, `4_triples_v2.csv` and `5_control_labels.csv`; `2_review.md` and `4_review.md` were the helper pages used while labelling. The labels were copied into the files the scoring scripts read (`annotation_sample.csv`, `annotation_missing.csv`, `er_pilot_clusters.csv`, `annotation_v2.csv`, `annotation_control.csv`), `gold_v1.csv` was rebuilt (114 facts) and all scores were recomputed. The previous labels are in the git history.
+Done (October 2026). The labelled files are `1_triples_v1_labeled.csv`, `2_missing_v1.csv`, `3_entity_clusters_labels.csv`, `4_triples_v2.csv` and `5_control_labels.csv`; `2_review.md` and `4_review.md` were the helper pages used while labelling. The labels were copied into the files the scoring scripts read (`annotation_sample.csv`, `annotation_missing.csv`, `er_pilot_clusters.csv`, `annotation_v2.csv`, `annotation_control.csv`), `gold_v1.csv` was rebuilt (110 facts) and all scores were recomputed. The previous labels are in the git history.
+
+After a consistency check, three v1 labels were corrected (t0028-t0030: the licence is the proof of identity, so REQUIRES is reversed), a duplicate missing fact was removed (the old m31, same as m27), and seven correct v2 triples got the gold id of the fact they state.

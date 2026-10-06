@@ -32,11 +32,11 @@ The decision to build with v2.1 was made on the first round of labels, which wer
 
 I later relabelled everything myself without the drafts (`reannotation/`), and the picture changed: v1 is the better prompt on the pilot documents.
 
-| Independent labels | Precision | Recall (114 gold) | Pooled recall (132 facts) |
+| Independent labels | Precision | Recall (110 gold) | Pooled recall (121 facts) |
 | :--- | :---: | :---: | :---: |
-| v1 | 53.6% | 65.8% | 56.8% |
-| v2 | 45.5% | 32.5% | 41.7% |
-| v2, both runs agree | 60.7% | 21.9% | 28.0% |
+| v1 | 51.4% | 65.5% | 59.5% |
+| v2 | 45.5% | 38.2% | 43.8% |
+| v2, both runs agree | 60.7% | 26.4% | 28.9% |
 
 The rest of this section describes the reasoning at the time.
 

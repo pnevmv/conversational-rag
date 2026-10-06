@@ -65,7 +65,7 @@ The graph is stored in Neo4j in three layers: a structural layer (domain, docume
 A few things learned on the way:
 
 * extraction is not deterministic: two runs with the same settings share only 44-48% of their triples;
-* on a pilot annotation of 3 documents, one run with the first prompt has 54% precision and 66% recall (82% precision for the triples two runs agree on); the second prompt was not more precise (46%) and found far fewer facts (recall 33%);
+* on a pilot annotation of 3 documents, one run with the first prompt has 51% precision and 66% recall (76% precision for the triples two runs agree on); the second prompt was not more precise (46%) and found far fewer facts (recall 38%);
 * embedding similarity is not enough to merge entities (about half of the pairs above cosine 0.95 are different entities), so merges go through rules or a batched LLM judge, with a guard against generic "hub" names.
 
 | Full graph (prompt v2.1) | |

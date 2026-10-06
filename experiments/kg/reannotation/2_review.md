@@ -1,6 +1,6 @@
 # Sections with their v1 triples
 
-For each section: the text, then the triples prompt v1 extracted from it (with your label). Facts that are stated in the text but have no correct triple below go into `2_missing_v1.csv`.
+For each section: the text, then the triples prompt v1 extracted from it (with the label). Facts that are stated in the text but have no correct triple below go into `2_missing_v1.csv`.
 
 
 ## Register a leased vehicle#1
@@ -52,9 +52,9 @@ For each section: the text, then the triples prompt v1 extracted from it (with y
 - [incorrect] t0025: NY State Insurance ID cards (Document) -PROVIDED_BY-> DMV (Organization)
 - [incorrect] t0026: electronic notice of insurance coverage (Document) -AVAILABLE_AT-> DMV (Organization)
 - [incorrect] t0027: register your vehicle (Service) -LEADS_TO-> proof of ownership (Outcome)
-- [correct] t0028: NY State Driver License (Service) -REQUIRES-> proof of both identity and age (Requirement)
-- [correct] t0029: Learner Permit (Service) -REQUIRES-> proof of both identity and age (Requirement)
-- [correct] t0030: Non - Driver ID card (Service) -REQUIRES-> proof of both identity and age (Requirement)
+- [incorrect] t0028: NY State Driver License (Service) -REQUIRES-> proof of both identity and age (Requirement)
+- [incorrect] t0029: Learner Permit (Service) -REQUIRES-> proof of both identity and age (Requirement)
+- [incorrect] t0030: Non - Driver ID card (Service) -REQUIRES-> proof of both identity and age (Requirement)
 - [incorrect] t0031: NY State Driver License (Service) -HAS_TIME_LIMIT-> 2 years (TimeLimit)
 - [incorrect] t0032: Learner Permit (Service) -HAS_TIME_LIMIT-> 2 years (TimeLimit)
 - [incorrect] t0033: Non - Driver ID card (Service) -HAS_TIME_LIMIT-> 2 years (TimeLimit)
