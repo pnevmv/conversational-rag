@@ -2,55 +2,43 @@
 
 \begin{abstract}
 
-Conversational question answering over document collections poses several challenges
-that distinguish it from standard open-domain \gls{qa}: answers must be grounded in a
-specific corpus, questions are often decontextualised across multiple dialogue turns,
-and some questions lack supporting evidence and must be identified as unanswerable.
-This work presents a systematic empirical evaluation of approaches to this
-problem, using \gls{mdd} as the primary benchmark --- a dataset of goal-oriented
-dialogues grounded in government-service documents spanning four domains.
+Question answering over documents in a dialogue is harder than answering single
+questions: the answers have to come from the documents, follow-up questions depend on
+earlier turns, and some questions cannot be answered from the documents at all. This
+work compares several approaches to this task on \gls{mdd}, a dataset of goal-oriented
+dialogues about US government services in four domains.
 
-The work starts from a simple \gls{llm}-only baseline and progressively develops a full
-\gls{rag} pipeline, evaluating each design choice in terms of generation quality,
-retrieval precision, and abstention calibration.
-Starting from a parametric-memory baseline of 15.9\% token \fone{} on the full
-validation split, incorporating retrieved context raises performance to
-26.8\% (\fone) with hybrid sparse--dense retrieval and conversational query rewriting
---- with query rewriting alone contributing a statistically significant
-$+2.0$~pp over hybrid retrieval (paired bootstrap, $p < 0.001$).
-An oracle experiment, in which the model is given gold supporting sections directly,
-establishes a generation ceiling of 36.1\% \fone{}, revealing that approximately two
-thirds of the gap between the best \gls{rag} system and the oracle is attributable to
-retrieval failures rather than generation deficiencies.
+The work starts from an \gls{llm} used alone and adds retrieval step by step. The
+\gls{llm} alone reaches 15.9\% token \fone{} on the validation split. Retrieval-augmented
+generation with hybrid sparse and dense retrieval and an \gls{llm} rewriting of the
+follow-up questions reaches 26.8\%, and query rewriting is the only change with a clearly
+significant effect ($+2.0$ points over hybrid retrieval, $p < 0.001$). When the model is
+given the correct sections directly, it reaches 36.1\%, and about two thirds of the gap
+to this oracle comes from retrieval errors. A cross-encoder reranker raises \ratk{5} from
+61.2\% to 67.4\% on a 500-question development subset, but the answers do not improve
+significantly: the reranker finds new gold sections but also pushes others out of the
+top five.
 
-Two targeted interventions are also evaluated: an agent-style generation
-prompt with few-shot examples drawn from the training split, and a cross-encoder
-reranker that expands retrieval to the top 50 candidates before selecting the final
-five. The reranker increases \ratk{5} by 6.2 percentage points (61.2\% to 67.4\%)
-but does not produce a statistically significant \fone{} improvement. A per-example
-analysis shows that the generator fully exploits the newly retrieved gold sections,
-but that the gain is largely offset by gold sections the reranker displaces from
-the top five.
+A knowledge graph is then built from the corpus with an \gls{llm}, with three layers for
+the document structure, the extracted mentions and the resolved entities. The extraction
+is noisy and not deterministic (two runs with the same settings share fewer than half of
+their triples), and embedding similarity alone is not enough to decide which entities to
+merge. On a small annotated sample a single extraction run has 51\% precision and 66\%
+recall. The final graph has 14{,}731 entities and 13{,}277 relations, covers the gold
+section of 96.6\% of the development questions, and has a precision of 73\% on a control
+sample.
 
-A knowledge graph is then built from the corpus, with three layers for the document
-structure, the extracted mentions and the resolved entities. Extraction turns out to be
-noisy: two runs with the same settings share fewer than half of their triples, and
-embedding similarity alone is not enough to decide which entities to merge. On a small
-annotated sample a single extraction run has 51\% precision and 66\% recall. The final
-graph has 14{,}731 entities and 13{,}277 relations, covers the gold section of 96.6\% of
-the diagnostic questions, and has a precision of 73\% on a control sample.
-
-Using the graph for retrieval, the rewritten user turn can be linked to an entity of the
-gold section for 70\% of the questions, but retrieving through the graph alone finds the
-gold section only half as often as passage retrieval and lowers \fone{} by 2.7 to 4.5
-points, mainly because entity overlap cannot rank the many sections the entities lead
-to. Combining graph and passage retrieval matches the best passage pipeline without
-improving it, while adding graph facts to the retrieved passages gives a small but
-consistent gain. After the remaining choices were settled on the full validation split,
-the final systems were evaluated once on the held-out test split: the \gls{llm} alone
-reaches 15.1\% \fone{}, graph retrieval 23.8\%, the best passage pipeline 26.9\%, passages
-with graph facts 27.5\% and the oracle 34.2\%. A control with random facts shows that the
-gain of 0.8 points on answerable questions comes from the content of the facts, not from
-the longer context.
+For retrieval, the rewritten user turn is linked to graph entities, which reaches an
+entity of the gold section for 70\% of the questions. Retrieval over the graph alone,
+however, finds the gold section only half as often as passage retrieval, mainly because
+entity overlap cannot rank the many sections the linked entities lead to. Combining
+graph and passage retrieval matches the passage pipeline without improving it, while
+adding graph facts to the retrieved passages gives a small but consistent gain. The
+remaining choices were settled on the full validation split, and the final systems were
+run once on the test split: the \gls{llm} alone reaches 15.1\% \fone{}, graph retrieval
+23.8\%, the best passage pipeline 26.9\%, passages with graph facts 27.5\% and the oracle
+34.2\%. A control with the same number of random facts shows that the gain of 0.8 points
+on answerable questions comes from the content of the facts and not from the longer
+context.
 
 \end{abstract}

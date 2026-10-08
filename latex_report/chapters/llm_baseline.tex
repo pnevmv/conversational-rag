@@ -18,8 +18,7 @@ using the \texttt{gpt-5.4-nano} model series. The model receives each prompt as 
 single user turn and returns a text completion, using the deployment's default
 sampling parameters; reproducibility of reported results is ensured by the response
 cache described below. The \gls{api} client is implemented in
-\texttt{src/llm/client.py} and is shared across all pipelines; no second inference
-client is introduced at any point.
+\texttt{src/llm/client.py} and is shared by all pipelines.
 
 To avoid redundant \gls{api} calls during iterative development, all prompt-response
 pairs are cached on disk keyed by the SHA-256 hash of the prompt string, in
@@ -113,11 +112,10 @@ low recall comes at the cost of some incorrect abstentions on answerable questio
 
 The 16.3\% \fone{} establishes that the model possesses some relevant knowledge
 about government services from its pre-training data, but is far from reliable for
-this task. The low abstain recall (19.4\%) confirms that without a retrieval signal
+this task. The low abstain recall (19.4\%) shows that without a retrieval signal
 providing an empty or irrelevant context, the model will almost always attempt an
-answer. This is consistent with findings from the broader \gls{rag} literature:
-parametric models tend to confabulate rather than abstain when queried outside
-their confident knowledge range.
+answer: without documents, the model prefers to guess rather than to say that it does
+not know.
 
 The relatively high confidence-interval width for abstain recall (CI width 29.0~pp)
 reflects the small number of unanswerable examples in the dev-500 subset ($n = 31$),

@@ -2,77 +2,66 @@
 
 \chapter{Dataset and Evaluation Framework}\label{ch:dataset}
 
-This chapter describes the benchmark dataset used throughout this work, the
-evaluation metrics, and the construction of a fixed diagnostic subset used for
-ablation studies.
+This chapter describes the dataset used in all experiments, the evaluation metrics, and
+the fixed subset of 500 examples that was used for most comparisons during development.
 
 
 % ===========================================================================
 \section{MultiDoc2Dial}\label{sec:dataset:mdd}
 
-\Gls{mdd}~\cite{feng2021multidoc2dial} is a dataset of goal-oriented dialogues in
-which each agent turn is grounded in one or more spans from a collection of
-government-service documents. It was designed to study the ability of systems to
-retrieve and use multi-document evidence in conversational settings.
+\Gls{mdd}~\cite{feng2021multidoc2dial} is a dataset of goal-oriented dialogues in which
+each agent turn is grounded in one or more spans of a collection of government-service
+documents. It was created to study how systems retrieve and use evidence from several
+documents during a conversation.
 
 \subsection{Corpus}
 
-The document corpus covers four United States government-service domains:
+The documents come from four US government-service websites: the New York Department of
+Motor Vehicles (DMV: driver's licences, vehicle registration, traffic tickets), the
+Social Security Administration (SSA: retirement, disability and survivor benefits),
+Federal Student Aid (StudentAid: financial aid and student loans) and Veterans Affairs
+(VA: health care and benefits for veterans).
 
-\begin{itemize}
-    \item \textbf{DMV} --- motor vehicle services (driver's licences, vehicle
-          registration, traffic violations);
-    \item \textbf{SSA} --- Social Security Administration benefits;
-    \item \textbf{StudentAid} --- Federal Student Aid programmes and loan policies;
-    \item \textbf{VA} --- Veterans Affairs healthcare and benefits.
-\end{itemize}
-
-The corpus contains 488 documents (35{,}659 annotated spans), preprocessed into
-4{,}114 sections.
-Each section is a contiguous block of text associated with a section heading; it is
-the unit of retrieval used throughout this work.
+The corpus has 488 documents with 35{,}659 annotated spans, which were grouped into
+4{,}114 sections. A section is a heading together with the text that follows it, and it
+is the retrieval unit in all experiments.
 
 \subsection{Dialogues and Annotations}
 
-Each dialogue consists of alternating user and agent turns. Dialogues were
-collected via crowd-sourcing, with annotators instructed to pose realistic questions
-that a citizen might ask a government-service agent, and to ground agent answers in
-specific document spans. Table~\ref{tab:dataset:split} summarises the split sizes
-and key properties.
+The dialogues alternate between a user and an agent. They were collected through
+crowd-sourcing: annotators asked the kind of questions a citizen would ask a
+government-service agent, and the agent answers were grounded in specific document spans.
+Table~\ref{tab:dataset:split} gives the size of the three splits.
 
 \begin{table}[ht]
     \centering
-    \caption{MultiDoc2Dial dataset statistics.}
+    \caption{MultiDoc2Dial splits.}
     \label{tab:dataset:split}
     \begin{tabular}{lrrrr}
         \toprule
-        Split & Dialogues & QA pairs & Unanswerable & Doc-switch \\
+        Split & Dialogues & Questions & Unanswerable & Doc switch \\
         \midrule
-        Train      & 3{,}474 & 22{,}806 &  --- &  --- \\
-        Validation &   661   &  4{,}427 & 226 (5.1\%) & 905 (20.4\%) \\
+        Train      & 3{,}474 & 22{,}806 & 1{,}355 (5.9\%) & 4{,}392 (19.3\%) \\
+        Validation &   661   &  4{,}427 &   226 (5.1\%)   &   905 (20.4\%) \\
+        Test       &   661   &  4{,}335 &   241 (5.6\%)   &   736 (17.0\%) \\
         \bottomrule
     \end{tabular}
 \end{table}
 
-Each agent turn is annotated with \emph{grounding spans}: the specific document
-sections from which the answer was derived. These annotations support both
-retrieval evaluation (Recall@$K$) and the identification of unanswerable turns,
-which are those with an empty grounding annotation.
+Each agent turn is annotated with its \emph{grounding spans}, the parts of the documents
+the answer comes from. These annotations are used to measure retrieval (Recall@$K$) and to
+identify unanswerable turns. No model is trained in this work; the training split is only
+used to select the few-shot examples of the generation prompt.
 
-\subsection{Dialogue Characteristics}
+\subsection{Unanswerable and Document-Switch Turns}
 
-Two properties of the dataset are particularly relevant to the evaluation:
-
-\textbf{Unanswerable questions.} Approximately 5.1\% of validation turns have no
-supporting span in the corpus. These represent questions that fall outside the
-scope of the available documents or that the agent explicitly declines to answer.
-
-\textbf{Document-switch turns.} A turn is labelled as a \emph{document switch} when
-the gold source document differs from that of the preceding agent turn within the
-same dialogue. Such turns (20.4\% of the validation set) require the retriever
-to shift its attention from the document that dominated the recent dialogue context
-to a new one. This is a harder retrieval scenario than same-document follow-ups,
-and is evaluated separately in Section~\ref{sec:rag:fullsplit}.
+Two kinds of turns are evaluated separately. About 5\% of the questions are
+\emph{unanswerable}: the documents do not contain the answer, and the reference answer is
+a refusal. A turn is a \emph{document switch} when its gold document differs from the one
+of the previous agent turn in the same dialogue; this is the case for about a fifth of
+the validation questions. These turns are harder for retrieval, because the recent
+dialogue is about a different document than the question. They are analysed separately
+in Section~\ref{sec:rag:fullsplit}.
 
 
 % ===========================================================================
@@ -80,81 +69,61 @@ and is evaluated separately in Section~\ref{sec:rag:fullsplit}.
 
 \subsection{Token F1}
 
-The primary generation metric is \emph{token \fone{}}, computed between the model's
-answer and the reference answer after lowercasing and removing punctuation and
-articles (following the SQuAD convention~\cite{rajpurkar2016squad}):
+Answers are evaluated with \emph{token \fone{}} against the reference answer, after
+lowercasing and removing punctuation and articles, as in SQuAD~\cite{rajpurkar2016squad}:
 \begin{equation}
     \fone = 2 \cdot \frac{\text{precision} \cdot \text{recall}}
                          {\text{precision} + \text{recall}},
 \end{equation}
-where precision and recall are computed over the token overlap between prediction
-and reference. Token \fone{} is tolerant of paraphrase in a way that exact match
-(\gls{em}) is not, making it more appropriate for open-ended generation.
+where precision and recall are computed over the words the answer and the reference have
+in common. Token \fone{} gives partial credit for partly matching answers, unlike exact
+match (\gls{em}), but it still only measures word overlap: a correct answer worded
+differently from the reference gets a low score.
 
 \subsection{Recall@K}
 
-Retrieval quality is measured by \emph{Recall@$K$}: the fraction of gold grounding
-spans that appear in the top-$K$ retrieved sections. Formally, for a question with
-grounding set $G$,
+Retrieval is measured by \emph{Recall@$K$}, the fraction of gold grounding spans that are
+contained in the top-$K$ retrieved sections. For a question with grounding set $G$,
 \begin{equation}
     \ratk{K} = \frac{|\{g \in G : g \in \text{top-}K\}|}{|G|}.
 \end{equation}
-$\ratk{1}$ and $\ratk{5}$ are reported throughout. In all experiments $K = 5$
-sections are passed to the generator, so $\ratk{5}$ measures whether the model
-has access to the relevant content.
+$\ratk{1}$ and $\ratk{5}$ are reported. Since five sections are given to the generator in
+all experiments, $\ratk{5}$ says whether the model had access to the relevant text.
 
 \subsection{Abstention Metrics}
 
-For the unanswerable subset ($n = 226$ in the full validation split), three
-complementary metrics are reported:
-\begin{itemize}
-    \item \textbf{Abstain recall} --- fraction of unanswerable questions on which
-          the model abstains, i.e.\ produces the abstention phrase
-          \emph{``Unfortunately, no relevant information is found.''}
-          (detected as any answer containing ``no relevant information'';
-          see Appendix~\ref{ax:log:pilot} for the earlier exact-match criterion).
-    \item \textbf{False-abstention rate} (false abstain, FA) --- fraction of
-          answerable questions on which the model incorrectly abstains.
-    \item \textbf{Abstain precision} --- fraction of all abstentions that
-          correspond to genuinely unanswerable questions.
-\end{itemize}
-
-A well-calibrated system should maximise abstain recall while keeping the
-false-abstention rate low. The two are in tension: a model that always abstains
-achieves 100\% abstain recall but a high false-abstention rate.
+The model is instructed to answer ``Unfortunately, no relevant information is found.''
+when the context does not contain the answer, and any answer containing ``no relevant
+information'' counts as an abstention (see Appendix~\ref{ax:log:pilot} for an earlier,
+stricter criterion). Three metrics describe how well this works. Abstain recall is the
+fraction of unanswerable questions on which the model abstains, the false-abstention rate
+is the fraction of answerable questions on which it abstains, and abstain precision is the
+fraction of abstentions that fall on unanswerable questions. A good system has high
+abstain recall and a low false-abstention rate; the two pull in opposite directions, since
+a model that always abstains has perfect abstain recall but answers nothing.
 
 
 % ===========================================================================
-\section{Dev-500 Diagnostic Subset}\label{sec:dataset:dev500}
+\section{Dev-500 Subset}\label{sec:dataset:dev500}
 
-The full validation split (4{,}427 examples) requires several hours of \gls{llm}
-calls per pipeline, making it impractical for rapid ablation studies. A fixed 500-example subset (\emph{dev-500}) was therefore built for diagnostic experiments.
+Running one pipeline on the full validation split (4{,}427 questions) takes several hours
+of \gls{llm} calls, which is too slow for the many comparisons needed during development.
+A fixed subset of 500 validation questions, called \emph{dev-500}, was therefore used for
+most experiments.
 
-\subsection{Sampling Procedure}
-
-The subset is constructed to be domain-balanced and to contain a representative
-number of unanswerable and document-switch examples:
-
-\begin{enumerate}
-    \item \textbf{Domain balance.} 125 examples are sampled uniformly at random
-          from each of the four domains, using \texttt{random.Random(seed=42)}.
-    \item \textbf{Unanswerable floor.} At least 30 unanswerable examples are
-          required. The natural draw of 125 per domain yields 31 unanswerable
-          examples (above the threshold), so no supplementation is needed.
-    \item \textbf{Fixed ordering.} The 500 selected example IDs are sorted
-          lexicographically and stored in \texttt{data/dev\_500\_ids.json} to
-          ensure bit-for-bit reproducibility across sessions.
-\end{enumerate}
-
-\subsection{Subset Composition}
+The subset is balanced across domains: 125 questions were drawn at random from each
+domain with \texttt{random.Random(seed=42)}. At least 30 unanswerable questions were
+required, and the random draw already contained 31, so nothing had to be added. The ids
+are stored in \texttt{data/dev\_500\_ids.json}, so every experiment uses exactly the same
+questions. Table~\ref{tab:dataset:dev500} shows its composition.
 
 \begin{table}[ht]
     \centering
-    \caption{Composition of the dev-500 diagnostic subset.}
+    \caption{Composition of the dev-500 subset.}
     \label{tab:dataset:dev500}
     \begin{tabular}{lrrr}
         \toprule
-        Domain & Examples & Unanswerable & Doc-switch \\
+        Domain & Questions & Unanswerable & Doc switch \\
         \midrule
         DMV          & 125 &  4 & 21 \\
         SSA          & 125 &  9 & 18 \\
@@ -166,8 +135,9 @@ number of unanswerable and document-switch examples:
     \end{tabular}
 \end{table}
 
-The dev-500 subset is used for all ablation experiments described in
-Sections~\ref{sec:rag:prompt} and~\ref{sec:rag:reranker}, and for the oracle
-upper-bound analysis in Section~\ref{sec:rag:oracle}. Results on the full
-validation split are reported for the five original pipelines in
-Section~\ref{sec:rag:fullsplit}.
+Dev-500 is used for the prompt and reranker experiments
+(Sections~\ref{sec:rag:prompt} and~\ref{sec:rag:reranker}), the oracle analysis
+(Section~\ref{sec:rag:oracle}) and all knowledge-graph retrieval experiments. The five
+base pipelines are also reported on the full validation split
+(Section~\ref{sec:rag:fullsplit}), and the final systems on the full validation and the
+test split (Chapter~\ref{ch:final}).

@@ -22,18 +22,17 @@ model dependencies between all positions in a sequence regardless of distance.
 
 After pre-training, \glspl{llm} are commonly adapted through \emph{instruction
 tuning}: fine-tuning on a curated collection of (instruction, response) pairs,
-optionally followed by reinforcement learning from human feedback. This process
-instils an ability to follow natural-language instructions, produce well-formatted
-answers, and to a limited extent express uncertainty.
+optionally followed by reinforcement learning from human feedback. This teaches the model to follow instructions, produce well-formatted
+answers and, to some extent, express uncertainty.
 
 \subsection{In-context Learning and Few-Shot Prompting}
 
-A notable property of large-scale \glspl{llm} is \emph{in-context learning}: the
+An important property of large \glspl{llm} is \emph{in-context learning}: the
 model's behaviour can be steered at inference time by providing a few
 (input, output) examples in the prompt, without any gradient updates. This
-\emph{few-shot prompting} approach is used extensively in this work to shape
-the model's output format --- requiring plain-text, second-person responses of
-one to two sentences --- and to demonstrate correct abstention behaviour.
+\emph{few-shot prompting} approach is used in this work to make the model answer in
+plain text, in the second person and in one or two sentences, and to show it when to
+abstain.
 
 \subsection{Limitations}
 

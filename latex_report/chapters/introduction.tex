@@ -4,134 +4,101 @@
 \markboth{Introduction}{}
 \addcontentsline{toc}{chapter}{Introduction}
 
-The ability to answer questions over a corpus of documents, while maintaining a
-coherent multi-turn dialogue, is one of the central challenges of applied natural
-language processing. Unlike single-turn open-domain \gls{qa}, where a model may
-draw on broad world knowledge to answer an isolated question, \emph{document-grounded
-conversational \gls{qa}} requires that every answer be traceable to a specific
-document source, that anaphoric and elliptical references across dialogue turns be
-resolved, and that questions for which no supporting evidence exists be correctly
-identified as unanswerable rather than answered with plausible-sounding but
-unsupported content.
+This work deals with question answering over a collection of documents in a dialogue,
+where a user asks several questions in a row and every answer has to come from the
+documents. Compared with open-domain \gls{qa}, where a model can use its general
+knowledge to answer a single question, this setting adds three difficulties: answers
+must be traceable to a specific document, follow-up questions often refer back to
+earlier turns (``what about the deadline?''), and some questions cannot be answered from
+the documents at all, in which case the system should say so instead of inventing an
+answer.
 
-These requirements are particularly relevant in enterprise and public-sector
-settings, where users interact with chatbots to navigate complex regulatory or
-procedural documents. A government-services assistant, for example, must ground its
-replies in official policy documents, avoid hallucinating eligibility conditions or
-deadlines, and acknowledge when a query falls outside its knowledge base rather than
-fabricating an answer.
+A typical example is an assistant for public services, which has to answer from official
+documents and should not make up eligibility conditions or deadlines.
 
 \section*{Motivation}
 
-Recent advances in \glspl{llm} --- transformer-based models trained on large text
-corpora and fine-tuned for instruction following --- have made it possible to produce
-fluent, contextually appropriate responses to a wide range of questions. However,
-\glspl{llm} alone rely on parametric knowledge encoded during training, which is
-static, domain-agnostic, and prone to hallucination when queried about specific
-documents or recent facts.
+\Glspl{llm} produce fluent answers to many kinds of questions, but on their own they
+can only use what they learned during training. This knowledge is fixed, not specific to
+a given set of documents, and leads to hallucinated answers when the model is asked
+about details it has never seen.
 
-\Gls{rag}~\cite{lewis2020rag} addresses this limitation by conditioning the model's
-generation on passages retrieved at query time from an external document store.
-This grounds the response in the current corpus, reduces hallucination, and makes
-the model's knowledge updatable without retraining. Yet \gls{rag} introduces its own
-challenges: retrieval must be accurate enough to find the relevant passage within
-a fixed budget of retrieved context, the model must learn to faithfully compress
-multi-passage context into a concise answer, and the pipeline must signal when
-retrieval finds no supporting evidence.
+\Gls{rag}~\cite{lewis2020rag} reduces this problem by retrieving passages from the
+documents at question time and giving them to the model together with the question.
+The answer can then be based on the actual documents, and the documents can change
+without retraining the model. However, the retrieval has to find the right passage
+among only a few, the model has to turn several passages into a short answer, and the
+system has to notice when none of the passages contains the answer.
 
-Conversational settings add a further layer of difficulty. When a user's question is
-elliptical or co-referential (e.g.\ ``What about the deadlines?'' following a prior
-exchange about an application procedure), a standard retrieval query built from the
-bare question text will fail. The pipeline must decontextualise the question with
-respect to the dialogue history before retrieval.
+In a dialogue there is one more problem: a follow-up question such as ``What about the
+deadlines?'' does not contain enough information to retrieve anything by itself. It has
+to be rewritten using the earlier turns before retrieval.
 
 \section*{Scope and Research Questions}
 
-This work presents a progressive empirical investigation of approaches to
-document-grounded \gls{cqa}, guided by the following research questions:
+The work compares several approaches to this task, starting from a simple baseline and
+adding one component at a time. The research questions are:
 
 \begin{enumerate}
-    \item How much does \gls{rag} improve over a \gls{llm}-only baseline on a
-          multi-document conversational \gls{qa} benchmark, and what fraction of
-          the remaining gap to an oracle upper bound is due to retrieval versus
-          generation?
+    \item How much does \gls{rag} improve over an \gls{llm} used alone, and how much of
+          the remaining gap to an oracle that receives the correct passages comes from
+          retrieval and how much from generation?
 
-    \item Among sparse, dense, and hybrid retrieval strategies, which provides the
-          best trade-off between retrieval recall and answer quality, and how much
-          does conversational query rewriting contribute?
+    \item Which retrieval method (sparse, dense or hybrid) works best, and how much does
+          rewriting the conversational question help?
 
-    \item Do targeted refinements --- a cross-encoder reranker and an agent-style
-          generation prompt --- yield statistically significant improvements, and
-          where does the bottleneck lie once basic retrieval is strong?
+    \item Do a cross-encoder reranker and a different generation prompt give significant
+          improvements, and where is the bottleneck once retrieval works reasonably well?
 
-    \item Can a knowledge graph built from the same documents by an \gls{llm} serve as a
-          retrieval source, on its own or together with passage retrieval?
+    \item Can a knowledge graph built from the same documents by an \gls{llm} be used as
+          a retrieval source, on its own or together with passage retrieval?
 \end{enumerate}
 
-The investigation uses \gls{mdd}~\cite{feng2021multidoc2dial} as the primary
-benchmark --- a publicly available dataset of goal-oriented dialogues grounded in
-United States government-service documents --- and evaluates each pipeline with token
-\fone{}, Recall@$K$, and abstention calibration metrics.
+All experiments use \gls{mdd}~\cite{feng2021multidoc2dial}, a public dataset of
+goal-oriented dialogues about US government services, grounded in the pages of four
+public websites. Answers are evaluated with token \fone{}, retrieval with Recall@$K$,
+and the handling of unanswerable questions with abstention metrics.
 
 \section*{Contributions}
 
-The main contributions of this work are:
+The main results of the work are:
 
 \begin{itemize}
-    \item A modular, reproducible evaluation infrastructure for \gls{rag} pipelines
-          on \gls{mdd}, including a fixed 500-example diagnostic subset and
-          parallel \gls{llm} generation with disk caching.
+    \item an evaluation setup for \gls{rag} pipelines on \gls{mdd}, with a fixed
+          500-example development subset, cached parallel \gls{llm} calls, bootstrap
+          confidence intervals and paired significance tests;
 
-    \item A systematic comparison of five retrieval strategies (LLM-only, BM25,
-          dense, hybrid, hybrid with query rewriting) on both a diagnostic subset
-          and the full 4{,}427-example validation split, with bootstrap 95\%
-          confidence intervals.
+    \item a comparison of an \gls{llm}-only baseline with BM25, dense, hybrid and
+          rewritten-query retrieval, and an oracle experiment that sets the ceiling for
+          generation and separates retrieval errors from generation errors;
 
-    \item An oracle experiment that establishes the generation ceiling
-          ($\fone = 36.1\%$) and quantifies the retrieval versus generation
-          contribution to the performance gap.
+    \item the finding that query rewriting is the only change with a clearly
+          significant gain in \fone{}, while the reranker improves retrieval without a
+          significant gain in the answers, together with an analysis of why;
 
-    \item Paired bootstrap tests showing that conversational query rewriting
-          provides the only statistically significant \fone{} improvement
-          among the evaluated interventions ($\Delta = {+}1.94$~pp, $p = 0.017$
-          on dev-500; $\Delta = {+}2.03$~pp, $p < 0.001$ on the full split),
-          while a cross-encoder reranker improves retrieval precision
-          (${\Delta}\ratk{5} = {+}6.2$~pp) without yielding a significant
-          generation gain, together with a per-example analysis explaining why.
+    \item a knowledge graph of the whole corpus (14{,}731 entities) built with an
+          \gls{llm}, with a closed schema derived from a pilot, entity resolution, and
+          an evaluation of extraction quality and stability on manually labelled samples;
 
-    \item An analysis of abstention calibration, identifying the trade-off between
-          unanswerable recall and false abstention rate across retrieval strategies.
+    \item a comparison of retrieval over the graph with passage retrieval, which shows
+          that the graph alone is clearly worse, while facts from the graph added to the
+          retrieved passages give a small but significant gain;
 
-    \item A three-layer \gls{kg} construction pipeline for \gls{mdd} (structural
-          layer, metagraph of extracted mentions, resolved entities) with a closed
-          schema derived from an open-extraction pilot, regression tests for known
-          extraction errors, a measurement of run-to-run extraction stability, an
-          entity resolution procedure calibrated against \gls{llm} judgments, and a
-          pilot precision and recall evaluation of the extracted triples and of the
-          entity merges, and a graph of the full corpus with 14{,}731 entities.
+    \item a final evaluation of the chosen systems on the full validation split and on
+          the held-out test split.
 \end{itemize}
 
 \section*{Structure of the Report}
 
-The remainder of the report is organised as follows.
+Part~\ref{prt:foundations} gives the background. Chapter~\ref{ch:background} reviews
+\glspl{llm}, \gls{rag} and conversational \gls{qa}, and briefly introduces knowledge
+graphs. Chapter~\ref{ch:dataset} describes \gls{mdd}, the evaluation metrics and the
+dev-500 subset.
 
-\textbf{Part~\ref{prt:foundations} --- Foundations} provides the background
-knowledge required to situate the experimental work. Chapter~\ref{ch:background}
-reviews \glspl{llm}, \gls{rag}, and conversational \gls{qa}, and briefly introduces
-knowledge graphs.
-Chapter~\ref{ch:dataset} describes the \gls{mdd} benchmark, the evaluation metrics
-used throughout, and the construction of the fixed dev-500 diagnostic subset.
-
-\textbf{Part~\ref{prt:experiments} --- Experiments} presents the empirical results.
-Chapter~\ref{ch:llm_baseline} establishes the \gls{llm}-only baseline.
-Chapter~\ref{ch:rag} introduces the \gls{rag} pipeline, describes each retrieval and
-reranking strategy, and presents results on both the full validation split and the
-dev-500 subset. Chapter~\ref{ch:kg} describes the construction of a \gls{kg} from the
-corpus: its design, schema, extraction pipeline, quality checks and entity
-resolution. Chapter~\ref{ch:kgret} uses the graph for question answering: it links
-the conversation to graph entities and compares graph-based retrievers with passage
-retrieval. Chapter~\ref{ch:final} settles the remaining design choices on the full
-validation split and reports the final systems on the held-out test split.
-
-The report closes with Chapter~\ref{ch:conclusions}, which summarises the findings and
-states the scope limitations.
+Part~\ref{prt:experiments} contains the experiments. Chapter~\ref{ch:llm_baseline}
+presents the \gls{llm}-only baseline and Chapter~\ref{ch:rag} the \gls{rag} pipeline
+with its retrieval and reranking variants. Chapter~\ref{ch:kg} describes how the
+knowledge graph was built and evaluated, and Chapter~\ref{ch:kgret} how it was used for
+retrieval. Chapter~\ref{ch:final} takes the remaining design decisions on the full
+validation split and reports the final systems on the test split.
+Chapter~\ref{ch:conclusions} summarises the findings and the limitations of the work.

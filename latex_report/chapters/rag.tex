@@ -19,22 +19,14 @@ preliminary iterations on a 50-example development set; this history, including
 the move from span-level to section-level indexing, is documented in
 Appendix~\ref{ax:log}.
 
-The \gls{rag} pipeline consists of three sequential stages:
-
-\begin{enumerate}
-    \item \textbf{Query preparation.} The raw question is optionally rewritten
-          into a self-contained form using the dialogue history
-          (Section~\ref{sec:rag:rewrite}).
-    \item \textbf{Retrieval.} The (rewritten) query is used to retrieve the
-          top-$K$ document sections from the indexed corpus
-          (Section~\ref{sec:rag:retrieval}). Optionally, the top-$K'$ retrieved
-          candidates are reranked by a cross-encoder and truncated to the top-$K$
-          (Section~\ref{sec:rag:reranker}).
-    \item \textbf{Generation.} The retrieved sections are formatted as a context
-          block and appended to the generation prompt together with the original
-          question; the \gls{llm} produces the final answer
-          (Section~\ref{sec:rag:generation}).
-\end{enumerate}
+The pipeline has three stages. First, the question can be rewritten into a
+self-contained query using the dialogue history (Section~\ref{sec:rag:rewrite}). Then
+the query is used to retrieve the top-$K$ sections of the corpus
+(Section~\ref{sec:rag:retrieval}); optionally, a larger set of $K'$ candidates is
+retrieved and reranked by a cross-encoder, and the top $K$ are kept
+(Section~\ref{sec:rag:reranker}). Finally, the retrieved sections are put into the
+generation prompt together with the original question, and the \gls{llm} writes the
+answer (Section~\ref{sec:rag:generation}).
 
 \subsection{Section-Level Indexing}
 
@@ -92,7 +84,7 @@ $\sum_i 1/(k_{\mathrm{rrf}} + \mathrm{rank}_i)$ over the rankers that retrieved 
 To give fusion a meaningful candidate pool, each ranker retrieves $3K = 15$
 candidates, and the fused list is truncated to the top-$K$ sections. The RRF formula down-weights sections that rank poorly in either
 list while rewarding those that rank highly in both, producing a fused ranking
-that is more robust than either individual retriever.
+that works better than either retriever alone.
 
 \subsection{Query Rewriting for Conversational Input}\label{sec:rag:rewrite}
 
@@ -143,7 +135,7 @@ Cross-encoder scores for each (query, text) pair are cached on disk
 (keyed by SHA-256 of the concatenation), so subsequent runs with the same rewritten
 queries are fully cached.
 
-\textbf{Truncation.} The cross-encoder truncates inputs exceeding 512 tokens.
+The cross-encoder truncates inputs longer than 512 tokens.
 In the first run on dev-500, 1{,}924 of 25{,}000 (query, section) pairs exceeded
 this limit; on subsequent cached runs, truncation counts are not recomputed.
 
@@ -381,9 +373,9 @@ coverage therefore remains the primary lever for improving answer quality.
 
 Query rewriting produces the largest single improvement across all evaluated
 interventions: $+1.94$~pp \fone{} ($p = 0.017$) on dev-500 and $+2.03$~pp
-($p < 0.001$) on the full validation split. More strikingly, \ratk{5} rises from 43.2\% (Hybrid, no
-rewrite) to 61.2\% ($+18$~pp), and domain recall rises to 92.5\% --- the rewriter
-effectively anchors retrieval to the correct domain in almost all cases.
+($p < 0.001$) on the full validation split. The effect on retrieval is larger: \ratk{5}
+rises from 43.2\% (hybrid, no rewrite) to 61.2\% ($+18$~pp), and domain recall rises to
+92.5\%, so with the rewrite retrieval almost always stays in the right domain.
 
 The improvement is concentrated on same-document follow-up questions, where the
 decontextualised rewrite provides the exact vocabulary of the target document
@@ -443,15 +435,15 @@ first-stage RRF score rather than replacing it).
 The v2 prompt produces no statistically significant change in \fone{} on either the
 oracle or the Hybrid+Rewrite system. However, it consistently reduces the
 false-abstention rate: from 4.1\% to 1.9\% on Oracle, and from 7.0\% to 4.9\% on
-Hybrid+Rewrite. The model becomes more conservative --- it abstains less frequently
-overall but more accurately. The tradeoff is a reduction in abstain recall (Oracle:
+Hybrid+Rewrite. The model abstains less often, and when it does, it is more often
+right. The tradeoff is a reduction in abstain recall (Oracle:
 25.8\% $\to$ 16.1\%; Hybrid+Rewrite: 35.5\% $\to$ 29.0\%).
 
 \subsection{Abstention Calibration}
 
 Among the five original retrieval strategies, Dense achieves the highest abstain
-recall (83.9\%) but at the cost of a 22.1\% false-abstention rate --- it abstains
-on far too many answerable questions. Its abstain precision (20.2\%) is no higher
+recall (83.9\%) but also a false-abstention rate of 22.1\%, so it abstains on far too
+many answerable questions. Its abstain precision (20.2\%) is no higher
 than Hybrid's, which indicates that Dense does not identify unanswerable questions
 more accurately; it simply abstains more often overall. A plausible explanation is
 that dense retrieval returns topically related but non-answering sections more

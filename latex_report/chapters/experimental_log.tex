@@ -90,25 +90,17 @@ say so briefly.'') was used for the v2 runs in Table~\ref{tab:log:v2}.
 
 \subsection{Pipeline Fixes and the Balanced Pilot (v3/v4)}
 
-Analysis of the v2 runs led to five fixes:
-\begin{enumerate}
-    \item \textbf{Balanced domain sampling.} The loader iterated over domains in
-          sorted order and reached the 50-example cap before leaving DMV, so the v2
-          set was entirely DMV. Round-robin sampling across domains fixed this
-          (DMV~13, SSA~13, StudentAid~12, VA~12).
-    \item \textbf{Agent-voice prompt.} About two thirds of v2 \gls{rag} answers
-          contained phrases such as ``the context doesn't say'', bold text, or
-          bullet lists. This motivated the agent-voice few-shot prompt of
-          Section~\ref{sec:rag:generation}, with a fixed abstention phrase; the
-          \gls{llm}-only baseline adopted the same voice without context.
-    \item \textbf{Unanswerable tagging.} Each example is tagged
-          \texttt{is\_unanswerable}; answerable and unanswerable \fone{} and the
-          abstain rate are reported separately.
-    \item \textbf{Domain Recall@$K$.} Introduced after VA, SSA and StudentAid pages
-          were observed among the results for DMV questions.
-    \item \textbf{Evaluation labelling.} The evaluation script had hard-coded the
-          experiment name, mislabelling every output file.
-\end{enumerate}
+Looking at the v2 runs led to five fixes. The loader went through the domains in
+sorted order and reached the 50-example limit before leaving DMV, so the v2 set was
+entirely DMV; sampling the domains in turn fixed this (DMV~13, SSA~13, StudentAid~12,
+VA~12). About two thirds of the v2 \gls{rag} answers contained phrases such as ``the
+context doesn't say'', bold text or bullet lists, which led to the agent-voice few-shot
+prompt of Section~\ref{sec:rag:generation} with a fixed abstention phrase; the
+\gls{llm}-only baseline uses the same voice without context. Each example is now tagged
+as answerable or unanswerable, and \fone{} and the abstain rate are reported separately
+for the two groups. Domain Recall@$K$ was added after pages from VA, SSA and StudentAid
+were seen among the results for DMV questions. Finally, the evaluation script had the
+experiment name hard-coded, so every output file had the wrong label.
 
 The v3 run applied these fixes; v4 re-ran the same set after adding the
 document-switch tag and the logging of top retrieval scores
