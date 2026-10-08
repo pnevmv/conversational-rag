@@ -317,4 +317,4 @@ python experiments/judge_answers.py stability --other run2
 python -m pytest tests
 ```
 
-156 tests pass and 4 are expected failures that document open extraction issues. The tests in `tests/test_kg_build.py` need Neo4j and are skipped if it is not running.
+156 tests pass. Four more are marked as known issues of the model's extraction output (expected failures, e.g. a reversed relation in a fee table); they are kept so that a fix in a later prompt or model shows up. The tests in `tests/test_kg_build.py` need Neo4j and are skipped if it is not running.
