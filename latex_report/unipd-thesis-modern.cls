@@ -644,6 +644,12 @@
     \phantomsection
     \addcontentsline{toc}{chapter}{\bibname}
     \printbibliography
+  
+    % acknowledgments
+    \cleardoublepage
+    \phantomsection
+    \addcontentsline{toc}{chapter}{\UPD@acknowledgments}
+    \acknowledgments
 }
 \makeatother
 
