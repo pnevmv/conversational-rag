@@ -64,8 +64,8 @@ document-grounded \gls{cqa}, guided by the following research questions:
           generation prompt --- yield statistically significant improvements, and
           where does the bottleneck lie once basic retrieval is strong?
 
-    \item What are the prospects for knowledge graph construction and graph-augmented
-          retrieval as next steps beyond conventional \gls{rag}?
+    \item Can a knowledge graph built from the same documents by an \gls{llm} serve as a
+          retrieval source, on its own or together with passage retrieval?
 \end{enumerate}
 
 The investigation uses \gls{mdd}~\cite{feng2021multidoc2dial} as the primary
@@ -133,6 +133,5 @@ the conversation to graph entities and compares graph-based retrievers with pass
 retrieval. Chapter~\ref{ch:final} settles the remaining design choices on the full
 validation split and reports the final systems on the held-out test split.
 
-The report closes with Chapter~\ref{ch:conclusions}, which summarises the findings,
-states the scope limitations, and outlines the planned continuation of the work
-toward graph-based retrieval and agent-based architectures.
+The report closes with Chapter~\ref{ch:conclusions}, which summarises the findings and
+states the scope limitations.

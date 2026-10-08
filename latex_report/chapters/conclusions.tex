@@ -99,36 +99,7 @@ full graph was not measured outside the pilot documents.
 
 Token \fone{} is the only generation metric. As discussed in Chapter~\ref{ch:rag}, the
 reference answers are extracts from the source documents while the model paraphrases, so
-correct paraphrases can get a low score. An \gls{llm} judge of semantic correctness would
-give a more reliable signal, especially for the prompt comparison and for the longer
-answers produced from graph facts.
-
-
-% ===========================================================================
-\section*{Future Directions}
-
-For the reranker, combining its score with the first-stage \gls{rrf} score instead of
-replacing it might keep the previously retrieved gold sections while adding the new ones.
-The final systems should also be compared with a stronger generator, to see whether the
-gap to the oracle and the gain from graph facts change with the model.
-
-Token \fone{} could be complemented with a local \gls{llm} judge (for example
-Qwen2.5-14B-Instruct or Llama~3.1~8B) that rates each answer as correct, partially correct
-or incorrect given the question, context and reference, with its agreement with human
-judgements reported as a check.
-
-For the knowledge graph, the next step is a Graph~\gls{rag} pipeline that adds a small
-number of well-ranked facts to the retrieved passages, evaluated against a matched
-random-facts control and separately on answerable and unanswerable turns. The graph may
-also help after a document switch, where passage retrieval still misses a third of the
-gold sections. Its precision could be raised by filtering endpoints that are not
-entities (headings, instructions) and by a second extraction run on the most frequently
-used sections.
-
-Beyond fixed pipelines, an agent could use the \gls{llm} as a planner and choose between
-tools such as passage retrieval, graph queries and code execution for numerical
-questions, refining its retrieval based on what it finds.
-
-Finally, with only 31 unanswerable examples in dev-500 (226 in the full split),
-abstention metrics are noisy. More unanswerable examples, or a dedicated benchmark,
-would be needed to draw firm conclusions about abstention.
+correct paraphrases can get a low score; this affects in particular the prompt comparison
+and the longer answers produced from graph facts. Abstention metrics rest on few examples
+(31 unanswerable questions in dev-500, 226 in the validation and 241 in the test split)
+and are correspondingly noisy.

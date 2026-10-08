@@ -308,16 +308,3 @@ which cross-encoder scoring of the 25{,}000 (query, section) pairs took
 are cached separately, keyed by a SHA-256 hash of the query and section text.
 Building the dense index (4{,}114 sections) takes about 15--30~seconds on Apple MPS
 and is cached on disk.
-
-
-% ===========================================================================
-\section{Planned LLM-Judge Evaluation}\label{ax:log:judge}
-
-The planned judge (Chapter~\ref{ch:conclusions}) would run an open-weight model
-locally (Qwen2.5-14B-Instruct on a single 24\,GB GPU with int4 quantisation, or the
-smaller Llama~3.1~8B~Instruct on 16\,GB). Running it locally keeps evaluation free
-and separates the judge from the system under evaluation, which uses the Azure
-endpoint. Each (question, context, reference, prediction) tuple would receive a
-binary correctness label with a short rationale, or a 0--3 graded score if finer
-discrimination is needed. Judge outputs would be stored separately from the raw
-result files, so that \fone{}-only evaluation stays reproducible without the judge.
