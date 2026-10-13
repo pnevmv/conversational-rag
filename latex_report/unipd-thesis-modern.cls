@@ -47,6 +47,10 @@
   prefix=unipd@
 }
 \DeclareStringOption[english]{language}
+% PDF/A output through pdfx, only when the class option `pdfa` is given. Some TeX Live
+% versions of pdfx and xcolor do not work together ("Undefined color model rgb:Hsb"),
+% so by default hyperref is loaded directly.
+\DeclareBoolOption[false]{pdfa}
 
 \ProcessKeyvalOptions*
 
@@ -662,12 +666,17 @@
 % -- EXPORT --
 
 \RequirePackage{etoolbox}
-% The warning "Package pdfx Warning: Setting all color commands to rgb, consistent with the Color Model for PDF/A on input line 3126." is expected in pdfLaTeX 2025, so I will suppress it:
-\RequirePackage{silence}
-\WarningFilter{pdfx}{Setting all color commands to rgb}
-%
-\RequirePackage[a-2b]{pdfx}   % for PDF/A
-% change hypersetup settings after loading it in pdfx
+\makeatletter
+\ifunipd@pdfa
+  % The warning "Package pdfx Warning: Setting all color commands to rgb, consistent with the Color Model for PDF/A on input line 3126." is expected in pdfLaTeX 2025, so it is suppressed:
+  \RequirePackage{silence}
+  \WarningFilter{pdfx}{Setting all color commands to rgb}
+  \RequirePackage[a-2b]{pdfx}   % for PDF/A (loads hyperref)
+\else
+  \RequirePackage{hyperref}
+\fi
+\makeatother
+% change hypersetup settings after loading hyperref
 
 % -- LINKS SETUP --
 \hypersetup{

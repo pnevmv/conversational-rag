@@ -1,0 +1,805 @@
+% Schematic report: compile with pdflatex (two runs).
+\documentclass[11pt,a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[a4paper,margin=2.2cm]{geometry}
+\usepackage{microtype}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{amsmath}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,fit,calc,backgrounds}
+\usepackage{listings}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true,linkcolor=black,urlcolor=black}
+
+\setlist{nosep,leftmargin=*}
+\captionsetup{font=small,labelfont=bf}
+\setlength{\parskip}{3pt}
+\setlength{\emergencystretch}{3em}
+
+% Colours (RGB only)
+\definecolor{llmc}{RGB}{250,222,190}
+\definecolor{retc}{RGB}{205,224,247}
+\definecolor{kgc}{RGB}{208,236,208}
+\definecolor{datc}{RGB}{238,238,238}
+\definecolor{promptc}{RGB}{255,248,214}
+\definecolor{codebg}{RGB}{247,247,247}
+
+\tikzset{
+  box/.style={draw, rounded corners=2pt, align=center, font=\scriptsize, minimum height=7mm, inner sep=2.5pt},
+  llm/.style={box, fill=llmc},
+  ret/.style={box, fill=retc},
+  kg/.style={box, fill=kgc},
+  dat/.style={box, fill=datc, rounded corners=0pt},
+  prm/.style={box, fill=promptc, rounded corners=0pt},
+  arr/.style={-{Stealth[length=1.6mm]}, semithick},
+  lab/.style={font=\tiny, midway, fill=white, inner sep=1pt},
+}
+
+\lstset{
+  basicstyle=\ttfamily\scriptsize,
+  breaklines=true,
+  breakatwhitespace=false,
+  columns=fullflexible,
+  keepspaces=true,
+  frame=single,
+  rulecolor=\color{black!30},
+  backgroundcolor=\color{codebg},
+  xleftmargin=2pt, xrightmargin=2pt,
+  literate={—}{{---}}1 {–}{{--}}1 {’}{{'}}1 {‘}{{`}}1 {“}{{``}}1 {”}{{''}}1 {…}{{...}}1,
+}
+
+\newcommand{\sys}[1]{\textsf{#1}}
+\newcommand{\gen}{\texttt{gpt-5.4-nano}}
+
+\title{Schematic report\\[2pt]\large Conversational QA on MultiDoc2Dial with passages and a knowledge graph}
+\author{Danil Smirnov (2142049)}
+\date{October 2026}
+
+\begin{document}
+\maketitle
+
+\noindent This report answers the questions about the project in order, with figures first and
+short text. All facts were checked against the code in the repository (file names are given in
+\texttt{typewriter}); all examples are real outputs on the validation split. The numbering of
+the sections follows the numbering of the questions.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[node distance=3mm]
+  \node[box, fill=llmc] (a) {LLM call};
+  \node[box, fill=retc, right=of a] (b) {passage retrieval / reranking};
+  \node[box, fill=kgc, right=of b] (c) {knowledge graph};
+  \node[box, fill=datc, rounded corners=0pt, right=of c] (d) {data};
+  \node[box, fill=promptc, rounded corners=0pt, right=of d] (e) {generation prompt};
+\end{tikzpicture}
+\caption*{Colour legend used in all diagrams. The generator is always \gen{} (Azure OpenAI
+Responses API, deployment set in \texttt{src/llm/client.py}).}
+\end{figure}
+
+\tableofcontents
+
+% =====================================================================
+\section{Data: one real conversation}\label{sec:data}
+
+MultiDoc2Dial has 488 documents from four websites (DMV, SSA, StudentAid, VA), split into 4,114
+sections (heading + text), which are the retrieval unit. Each agent turn is grounded in one or more
+spans of the documents. The excerpt below is dialogue \texttt{e0a50eea\ldots} of the validation
+split (DMV domain, 9 query turns), turns 5 to 13. The turn ids are the dataset ids (user turns are
+odd, the reference answer is the next agent turn). Turn 5 is unanswerable.
+
+The \emph{gold section} is the section that contains the grounding span of the reference answer.
+\sys{Best RAG} is the best passage pipeline (rewrite + hybrid retrieval + reranker, Section~\ref{sec:arch}),
+\sys{E} is the same pipeline plus graph facts. F1 is token F1 against the reference
+(Section~\ref{sec:f1}).
+
+\begin{table}[H]
+\centering\footnotesize
+\renewcommand{\arraystretch}{1.15}
+\begin{tabularx}{\linewidth}{@{}p{1.6cm}X@{}}
+\toprule
+\multicolumn{2}{@{}l}{\textbf{Turn 5} (unanswerable). Gold section: \emph{Traffic Violations Bureau\#3 -- What To Do If You Receive A Traffic Ticket}}\\
+\midrule
+User & No. \quad (answer to the agent asking whether the ticket was issued in New York City)\\
+Reference & Unfortunately, no relevant information is found.\\
+LLM only & Please contact your local government office or the service provider directly to confirm what help you need, since ``No'' doesn't specify the service or issue. [\ldots] \hfill F1 0.00\\
+Best RAG & If you have a DMV Traffic Violations Bureau ticket issued in the five boroughs of New York City, you can answer most TVB tickets online [\ldots] \hfill F1 0.00\\
+E & Unfortunately, no relevant information is found. \hfill F1 1.00\\
+\midrule
+\multicolumn{2}{@{}l}{\textbf{Turn 9}. Gold section: \emph{Traffic Violations Bureau\#3 -- ATTEND YOUR HEARING}}\\
+\midrule
+User & what if i please guilty?\\
+Reference & you will be notified that you must got to the tvb to answer the charge in person.\\
+LLM only & If you plead guilty, the court will enter a guilty finding and proceed to sentencing without a trial [\ldots] \hfill F1 0.23\\
+Best RAG & If you plead guilty to a TVB ticket, you must pay the fine and surcharge, and you can't plead guilty by mail if the conviction would result in a license or registration suspension or revocation. [\ldots] \hfill F1 0.18\\
+E & If you plead guilty, you must pay all fines, fees, and surcharges that result from the plea, and you can only plead guilty by mail if the conviction will not result in a license or registration suspension or revocation. If it would, you will be notified that you must go to the TVB to answer the charge in person. \hfill F1 0.41\\
+\midrule
+\multicolumn{2}{@{}l}{\textbf{Turn 11}. Gold section: \emph{Traffic Violations Bureau\#3 -- ATTEND YOUR HEARING}}\\
+\midrule
+User & how do i plead guilty?\\
+Reference & you can easily fill in the request information, sign it and either mail it with your payment to the albany address listed on the ticket or bring your payment to any tvb office :)\\
+LLM only & To plead guilty, you typically enter a guilty plea in court on your scheduled date [\ldots] \hfill F1 0.28\\
+Best RAG & To plead guilty, use the Traffic Ticket Pleas, Hearings and Payments online transaction or read the instructions and check the ``guilty'' box on the back of your ticket, then fill in the requested information, sign it, and mail it with your payment to the Albany address listed on the ticket or bring your payment to any TVB office. \hfill F1 0.62\\
+E & You can plead guilty by using the [\ldots] online transaction, or by [\ldots] checking the ``guilty'' box, filling in the requested information, [\ldots] If your charge could result in a license or registration suspension [\ldots] you must go to the TVB to answer the charge in person. \hfill F1 0.39\\
+\midrule
+\multicolumn{2}{@{}l}{\textbf{Turn 13}. Gold section: \emph{Traffic Violations Bureau\#3 -- APPEALS}}\\
+\midrule
+User & what if im a holder of a junior license?\\
+Reference & you can not plead by mail or online. you still must appear for a hearing in a tvb office.\\
+LLM only & If you hold a junior license, you must follow the restrictions and requirements that come with that license while driving [\ldots] \hfill F1 0.17\\
+Best RAG & If you're a holder of a probationary/junior license or learner permit and you're charged with a cell phone/texting violation on or after July 1, 2013, you cannot plead by mail or online and you must appear for a hearing in a TVB office. \hfill F1 0.51\\
+E & If you are a holder of a probationary/junior license or a learner permit, you cannot plead by mail or online. You must appear for a hearing in a TVB office. \hfill F1 0.67\\
+\bottomrule
+\end{tabularx}
+\caption{Validation dialogue \texttt{e0a50eea76d8e6f19f09fd33ccb65aef}, turns 5--13 (turn 7 left
+out for space). Answers are cut with [\ldots] only where they continue in the same way.
+The dialogue was chosen because it has an unanswerable turn and turns where E and the
+passage pipeline differ, so it is not a random sample: on the full validation split E is only
+0.5 F1 points above the best passage pipeline.}
+\label{tab:example}
+\end{table}
+
+What the example shows:
+\begin{itemize}
+\item Without documents the model gives generic advice (``the court'', ``your country/state'').
+\item In turn 13 both retrieval pipelines find the gold section (rank 1). E's answer is closer to
+  the reference because one graph fact states exactly this rule (fact [5] in
+  Figure~\ref{fig:prompt-real}).
+\item In turn 11 the facts make the answer longer and F1 goes down, although the content is right.
+\item Turn 5 (``No.'') is unanswerable. Best RAG answers from the retrieved sections, E abstains
+  and gets F1 = 1 (Section~\ref{sec:f1} explains why).
+\end{itemize}
+
+% =====================================================================
+\section{Architectures}\label{sec:arch}
+
+All systems use the same generator and, except LLM only, the same generation prompt
+(\texttt{\_build\_agent\_prompt} in \texttt{experiments/run\_dev\_subset.py}): instructions, 3
+few-shot examples from the train split, the context, then \texttt{Customer: $q_t$ / Agent:}.
+Two things are common to all diagrams:
+\begin{itemize}
+\item The generation prompt contains only the \emph{current} user turn $q_t$, not the dialogue
+  history. The history is used only by the query rewriter, and the rewritten query $q'_t$ is used
+  only for retrieval.
+\item All systems except LLM only and the oracle start with the same rewrite and use the same
+  $q'_t$ (cached once per split, \texttt{src/kg\_rag/queries.py}).
+\end{itemize}
+
+\begin{figure}[H]
+\centering
+\textbf{(a) LLM only}\\[2pt]
+\begin{tikzpicture}[node distance=5mm]
+  \node[dat] (q) {user turn $q_t$};
+  \node[prm, right=of q] (p) {prompt: instructions + $q_t$\\no context, no examples};
+  \node[llm, right=of p] (g) {\gen};
+  \node[dat, right=of g] (a) {answer};
+  \draw[arr] (q) -- (p); \draw[arr] (p) -- (g); \draw[arr] (g) -- (a);
+\end{tikzpicture}
+
+\vspace{4mm}\textbf{(b) Oracle}\\[2pt]
+\begin{tikzpicture}[node distance=5mm]
+  \node[dat] (q) {user turn $q_t$};
+  \node[dat, below=3mm of q] (gs) {gold sections\\(from the annotation)};
+  \node[prm, right=12mm of q, yshift=-5mm] (p) {agent prompt\\examples + gold sections + $q_t$};
+  \node[llm, right=of p] (g) {\gen};
+  \node[dat, right=of g] (a) {answer};
+  \draw[arr] (q) -- (p); \draw[arr] (gs) -- (p); \draw[arr] (p) -- (g); \draw[arr] (g) -- (a);
+\end{tikzpicture}
+
+\vspace{4mm}\textbf{(c) Passage RAG, best pipeline (``Step 4 best'')}\\[2pt]
+\begin{tikzpicture}[node distance=4mm]
+  \node[dat] (h) {last 6 turns\\+ $q_t$};
+  \node[llm, right=of h] (rw) {rewriter\\\gen};
+  \node[dat, right=of rw] (qq) {$q'_t$};
+  \node[ret, right=8mm of qq, yshift=5mm] (bm) {BM25\\top 150};
+  \node[ret, right=8mm of qq, yshift=-5mm] (de) {bge-small\\top 150};
+  \node[ret, right=8mm of bm, yshift=-5mm] (rrf) {RRF, $k{=}60$\\top 50};
+  \node[ret, right=of rrf] (rr) {bge-reranker-base\\top 5 sections};
+  \draw[arr] (h) -- (rw); \draw[arr] (rw) -- (qq);
+  \draw[arr] (qq) -- (bm); \draw[arr] (qq) -- (de);
+  \draw[arr] (bm) -- (rrf); \draw[arr] (de) -- (rrf); \draw[arr] (rrf) -- (rr);
+  \node[prm, below=6mm of rr] (p) {agent prompt\\5 sections + $q_t$};
+  \node[llm, left=of p] (g) {\gen};
+  \node[dat, left=of g] (a) {answer};
+  \draw[arr] (rr) -- (p); \draw[arr] (p) -- (g); \draw[arr] (g) -- (a);
+\end{tikzpicture}
+
+\vspace{4mm}\textbf{(d) A: graph $\to$ sections}\\[2pt]
+\begin{tikzpicture}[node distance=4mm]
+  \node[dat] (qq) {$q'_t$};
+  \node[kg, right=of qq] (lk) {entity linker\\BM25 + bge-small\\over entity names, RRF\\top 10 entities};
+  \node[kg, right=of lk] (w) {weight\\$w(e)=\text{link}(e)\cdot\text{idf}(e)$};
+  \node[kg, right=of w] (s) {section score\\$\sum w(e)$ of the linked\\entities it mentions\\top 5 sections};
+  \node[prm, right=of s] (p) {agent prompt\\5 sections + $q_t$};
+  \node[llm, below=5mm of p] (g) {\gen};
+  \draw[arr] (qq) -- (lk); \draw[arr] (lk) -- (w); \draw[arr] (w) -- (s); \draw[arr] (s) -- (p); \draw[arr] (p) -- (g);
+\end{tikzpicture}
+
+\vspace{4mm}\textbf{(e) B: graph facts only}\\[2pt]
+\begin{tikzpicture}[node distance=4mm]
+  \node[dat] (qq) {$q'_t$};
+  \node[kg, right=of qq] (lk) {entity linker\\top 10 entities};
+  \node[kg, right=of lk] (adj) {all relations touching\\a linked entity (1 hop)};
+  \node[kg, right=of adj] (rk) {rank by RRF of\\link weight and\\$\cos(q'_t,\text{fact})$\\top 30 facts};
+  \node[prm, right=of rk] (p) {agent prompt\\30 facts + $q_t$\\(no sections)};
+  \node[llm, below=5mm of p] (g) {\gen};
+  \draw[arr] (qq) -- (lk); \draw[arr] (lk) -- (adj); \draw[arr] (adj) -- (rk); \draw[arr] (rk) -- (p); \draw[arr] (p) -- (g);
+\end{tikzpicture}
+\caption{Architectures, part 1. Hybrid pools are $3\times$ the requested depth
+(\texttt{src/rag/hybrid\_retriever.py}); the reranker reads the rewritten query and the first 512
+tokens of each section. All graph pipelines use the rewritten query from (c).}
+\label{fig:arch1}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\textbf{(f) C: hybrid, graph and passages fused before the reranker}\\[2pt]
+\begin{tikzpicture}[node distance=4mm]
+  \node[dat] (qq) {$q'_t$};
+  \node[kg, right=of qq, yshift=6mm] (lk) {linker, domain filter\\if $\ge$4 of the Step 4\\top 5 share a domain};
+  \node[kg, right=of lk] (a) {A ranking\\top 50};
+  \node[ret, right=of qq, yshift=-8mm, minimum width=36mm] (s4) {Step 4 ranking (c), top 50};
+  \node[ret, right=6mm of a, yshift=-7mm] (rrf) {RRF\\top 50};
+  \node[ret, right=of rrf] (rr) {bge-reranker\\top 5};
+  \node[prm, right=of rr] (p) {prompt\\5 sections + $q_t$};
+  \draw[arr] (qq) -- (lk); \draw[arr] (lk) -- (a); \draw[arr] (qq) |- (s4);
+  \draw[arr] (a) -- (rrf); \draw[arr] (s4) -| (rrf); \draw[arr] (rrf) -- (rr); \draw[arr] (rr) -- (p);
+\end{tikzpicture}
+
+\vspace{4mm}\textbf{(g) D: graph as candidate generator for the reranker}\\[2pt]
+\begin{tikzpicture}[node distance=4mm]
+  \node[dat] (qq) {$q'_t$};
+  \node[kg, right=of qq] (lk) {linker\\top 10};
+  \node[kg, right=of lk] (a) {A ranking\\top 50};
+  \node[ret, right=of a] (rr) {bge-reranker\\top 5};
+  \node[prm, right=of rr] (p) {prompt\\5 sections + $q_t$};
+  \node[llm, right=of p] (g) {\gen};
+  \draw[arr] (qq) -- (lk); \draw[arr] (lk) -- (a); \draw[arr] (a) -- (rr); \draw[arr] (rr) -- (p); \draw[arr] (p) -- (g);
+\end{tikzpicture}
+
+\vspace{4mm}\textbf{(h) E: passages + graph facts, and the E-random control}\\[2pt]
+\begin{tikzpicture}[node distance=4mm]
+  \node[dat] (qq) {$q'_t$};
+  \node[ret, right=of qq, yshift=6mm, minimum width=40mm] (s4) {Step 4 pipeline (c): top 5 sections};
+  \node[kg, right=of qq, yshift=-6mm, minimum width=40mm] (b) {B (e): top 30 facts};
+  \node[kg, below=3mm of b, dashed, minimum width=40mm] (rnd) {E-random: same number of facts,\\random from the same domain, seed 42};
+  \node[prm, right=10mm of s4, yshift=-6mm] (p) {prompt\\Context: 5 sections\\Facts: $\le$30 facts\\Customer: $q_t$};
+  \node[llm, right=of p] (g) {\gen};
+  \draw[arr] (qq) |- (s4); \draw[arr] (qq) |- (b);
+  \draw[arr] (s4) -- (p); \draw[arr] (b) -- (p); \draw[arr, dashed] (rnd.east) -- (p);
+  \draw[arr] (p) -- (g);
+\end{tikzpicture}
+\caption{Architectures, part 2 (\texttt{src/kg\_rag/run\_qa.py}). C and D were run on the
+500-question development subset only and dropped there; E and E-random were run on the full
+validation and test splits. In E the sections part of the context is checked to be identical to
+the Step 4 context, so the only difference is the facts block.}
+\label{fig:arch2}
+\end{figure}
+
+\clearpage
+% =====================================================================
+\section{Graph schema}\label{sec:schema}
+
+The graph is stored in Neo4j in three layers (Figure~\ref{fig:layers}). The structure layer is
+built from the dataset without an LLM. The mention layer holds what the LLM extracted from each
+section (one call per section or group of short sections, closed schema, JSON output). The entity
+layer is the result of entity resolution: mentions with the same meaning are merged into one
+entity and the relations are lifted to the entities. Retrieval only uses the entity layer, plus
+the section ids stored on each entity and relation.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}
+  \node[dat, minimum width=17mm] (dom) at (0,0) {Domain\\4};
+  \node[dat, minimum width=17mm] (doc) at (3.9,0) {Document\\488};
+  \node[dat, minimum width=17mm] (sec) at (7.8,0) {Section\\4,114};
+  \node[dat, minimum width=17mm] (sp) at (11.6,0) {Span\\35,659};
+  \draw[arr] (dom) -- node[font=\tiny, above] {HAS\_DOCUMENT} (doc);
+  \draw[arr] (doc) -- node[font=\tiny, above] {HAS\_SECTION} (sec);
+  \draw[arr] (sec) -- node[font=\tiny, above] {HAS\_SPAN} (sp);
+  \draw[arr] (sec.north east) to[out=70, in=110, looseness=1.2] node[font=\tiny, above] {NEXT} (sec.north west);
+  \node[box, fill=llmc, minimum width=17mm] (m1) at (7.8,-2) {Mention\\28,782};
+  \node[box, fill=llmc, minimum width=17mm] (m2) at (11.6,-2) {Mention};
+  \draw[arr] (sec) -- node[font=\tiny, left] {MENTIONS} (m1);
+  \draw[arr] (m1) -- node[font=\tiny, above, align=center] {REL\\\{type, evidence\}} (m2);
+  \node[kg, minimum width=17mm] (e1) at (7.8,-4) {Entity\\14,731};
+  \node[kg, minimum width=17mm] (e2) at (11.6,-4) {Entity};
+  \draw[arr] (m1) -- node[font=\tiny, left] {RESOLVES\_TO} (e1);
+  \draw[arr] (m2) -- node[font=\tiny, right] {RESOLVES\_TO} (e2);
+  \draw[arr] (e1) -- node[font=\tiny, above] {REQUIRES, \ldots} (e2);
+  \node[font=\scriptsize\bfseries, rotate=90] at (-1.4,0) {structure};
+  \node[font=\scriptsize\bfseries, rotate=90] at (-1.4,-2) {mentions};
+  \node[font=\scriptsize\bfseries, rotate=90] at (-1.4,-4) {entities};
+  \draw[black!25] (-1.7,-1) -- (13,-1); \draw[black!25] (-1.7,-3) -- (13,-3);
+  \node[font=\scriptsize, align=left, text width=5.2cm] at (2.2,-2) {LLM extraction per section,\\16,947 REL edges (type rules checked)};
+  \node[font=\scriptsize, align=left, text width=5.2cm] at (2.2,-4) {entity resolution; 13,277 typed\\relations of 11 types, each with\\support, section ids and evidence};
+\end{tikzpicture}
+\caption{The three layers and their sizes in the final build (extraction prompt v2.1, see
+the full build report in \texttt{experiments/kg/}). The structure-layer ids are the same as in the
+passage index, so a retrieved section and a graph section are the same object.}
+\label{fig:layers}
+\end{figure}
+
+\begin{table}[H]
+\centering\footnotesize
+\begin{tabularx}{\linewidth}{@{}lXl@{}}
+\toprule
+Entity type & Definition (from \texttt{src/kg/schema.py}) & value \\
+\midrule
+Service & something a citizen can apply for, receive or complete (benefit, program, licence, loan, test, procedure, \ldots) & -- \\
+Organization & agency, office, school, loan servicer, dealer, \ldots & -- \\
+Document & form, certificate, proof, card, letter or notice & -- \\
+Requirement & condition or obligation: eligibility criterion, something to present or do, restriction & -- \\
+Amount & fee, tax, premium, benefit amount, income or earnings limit & yes \\
+TimeLimit & deadline, duration, frequency or waiting period & yes \\
+Role & category of person: applicant group, status, relative, official & -- \\
+Outcome & result or consequence of an action or condition & -- \\
+ContactPoint & phone number, website, account, office location, information page & yes \\
+\bottomrule
+\end{tabularx}
+
+\vspace{3mm}
+\begin{tabularx}{\linewidth}{@{}l>{\raggedright}p{4.3cm}>{\raggedright\arraybackslash}X@{}}
+\toprule
+Relation & Source types & Target types \\
+\midrule
+REQUIRES & Service, Document, Role & Requirement, Document, Service; also Requirement$\to$Document \\
+PROVIDED\_BY & Service, Document, Amount & Organization \\
+HAS\_AMOUNT & Service, Document & Amount \\
+HAS\_TIME\_LIMIT & Service, Requirement, Document & TimeLimit \\
+APPLIES\_TO & Service, Requirement, Amount, TimeLimit & Role, Service \\
+LEADS\_TO & Service, Requirement, Outcome & Outcome, Service \\
+EXEMPT\_FROM & Role, Service, Document & Requirement, Amount, Service \\
+DETERMINED\_BY & Amount, Service, Outcome & Requirement, Role, Amount \\
+AVAILABLE\_AT & Service, Document & ContactPoint, Organization; also Organization$\to$ContactPoint \\
+PART\_OF & Service, Document, Amount & Service, Document, Amount \\
+ALTERNATIVE\_TO & Service, Document, Requirement & Service, Document, Requirement (symmetric) \\
+\bottomrule
+\end{tabularx}
+\caption{The closed schema: 9 entity types and 11 relations. A triple is allowed when its source
+type is in the source list and its target type in the target list, or it is one of the two extra
+pairs (\texttt{is\_valid\_triple}). Entities with a \emph{value} carry the literal (``\$30'',
+``18 months''); Service, Organization, Amount and ContactPoint also have a \emph{kind}
+(e.g.\ Service: benefit, licence, test, appeal, online\_tool, \ldots). 16.2\% of the extracted
+relations broke these rules and were not loaded.}
+\label{tab:schema}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[every node/.style={font=\scriptsize}]
+  \node[kg, minimum width=26mm] (fa) at (0,0) {filing an appeal\\\textit{Service}};
+  \node[kg] (ab) at (-3.6,1.8) {DMV Appeals Board\\\textit{Organization}};
+  \node[kg] (dec) at (3.6,1.8) {ALJ's decision was incorrect\\based on the facts and the law\\\textit{Requirement}};
+  \node[kg] (form) at (-5.2,0) {Traffic Violations Bureau\\Appeal form \textit{(Document)}};
+  \node[kg] (must) at (5.2,0) {appeal must be filed\\\textit{Requirement}};
+  \node[kg] (web) at (-2.4,-2) {DMV web site\\\textit{ContactPoint}};
+  \node[kg] (tvb) at (2.4,-2) {TVB office\\\textit{ContactPoint}};
+  \draw[arr] (fa) -- node[lab] {PROVIDED\_BY} (ab);
+  \draw[arr] (fa) -- node[lab] {REQUIRES} (dec);
+  \draw[arr] (fa) -- node[lab] {REQUIRES} (form);
+  \draw[arr] (fa) -- node[lab] {REQUIRES} (must);
+  \draw[arr] (fa) -- node[lab] {AVAILABLE\_AT} (web);
+  \draw[arr] (fa) -- node[lab] {AVAILABLE\_AT} (tvb);
+  \draw[arr] (form.south) |- node[lab, pos=0.3] {AVAILABLE\_AT} (web.west);
+  \draw[arr] ([xshift=-6mm]form.south) .. controls (-5.8,-3.2) and (2.4,-3.4) .. node[lab, pos=0.55] {AVAILABLE\_AT} (tvb.south);
+  \draw[black!25, dashed] (-7,-3.75) -- (7,-3.75);
+  \node[kg] (jr) at (-3.4,-4.6) {probationary / junior license\\or learner permit \textit{(Role)}};
+  \node[kg] (pm) at (3.4,-4.6) {plead by mail or online\\\textit{(Service)}};
+  \draw[arr] (jr) -- node[lab, above=1pt] {EXEMPT\_FROM} (pm);
+  \node[dat, font=\tiny] at (0,-5.5) {evidence: ``you cannot plead by mail or online''};
+\end{tikzpicture}
+\caption{Real subgraph: the relations whose evidence comes from section \emph{Traffic Violations
+Bureau\#3 -- APPEALS} (the gold section of turn 13 in Table~\ref{tab:example}); 9 of the 20
+relations attached to that section are shown. Two of them show typical extraction noise: ``filing an
+appeal REQUIRES appeal must be filed'' is circular, and the junior-licence rule is stored as
+EXEMPT\_FROM although the text says the opposite (these drivers \emph{cannot} plead by mail or
+online). The evidence quote still carries the right meaning, which is why the facts are always
+given to the model together with the quote.}
+\label{fig:subgraph}
+\end{figure}
+
+\clearpage
+% =====================================================================
+\section{How the LLM uses the graph}\label{sec:usage}
+
+The graph is used in three steps (\texttt{src/kg\_rag/linker.py}, \texttt{retrievers.py}):
+
+\begin{enumerate}
+\item \textbf{Entity linking.} The rewritten query $q'_t$ is matched against all entity names and
+  aliases with BM25 and with bge-small cosine, the two rankings (top 100 each) are fused by RRF
+  ($k=60$) and the top 10 entities are kept. Hubs (very frequent entities) are kept, and there is
+  no domain filter (except in C).
+\item \textbf{From entities to sections or facts.} Each linked entity gets a weight
+  $w(e) = \text{RRF}(e) \cdot \log(1 + N/\text{sections}(e))$ with $N = 3{,}355$ sections that
+  have at least one entity. A ranks sections by the sum of $w(e)$ over the linked entities they
+  mention. B and E take all relations that touch a linked entity (1 hop), rank them by RRF of the
+  endpoint weight and the cosine between $q'_t$ and the fact text, and keep the top 30.
+\item \textbf{Prompt.} The selected sections and/or facts are written as text into the same
+  agent prompt (Figure~\ref{fig:prompt-layout}). The model never sees the graph structure itself,
+  only these text lines.
+\end{enumerate}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[every node/.style={font=\scriptsize}]
+  \node[prm, minimum width=0.8\linewidth, align=left, text width=0.78\linewidth] (i) {\textbf{Instructions}: ``You are a government services agent. Answer [\ldots] in 1--2 short, plain sentences using only the context below [\ldots] If the context does not contain the answer, reply exactly: Unfortunately, no relevant information is found.''};
+  \node[dat, below=1mm of i, minimum width=0.8\linewidth, align=left, text width=0.78\linewidth] (e) {\textbf{Examples}: 3 fixed Customer/Agent pairs from the train split (DMV, SSA, VA; seed 42)};
+  \node[ret, below=1mm of e, minimum width=0.8\linewidth, align=left, text width=0.78\linewidth] (c) {\textbf{Context}: 5 sections, each as \texttt{[rank] document title --- section heading} + full section text};
+  \node[kg, below=1mm of c, minimum width=0.8\linewidth, align=left, text width=0.78\linewidth] (f) {\textbf{Facts} (E and E-random only): up to 30 lines \texttt{[i] Source (Type) relation Target (Type)} + an indented \texttt{Evidence: "quote" (title --- heading)} line};
+  \node[dat, below=1mm of f, minimum width=0.8\linewidth, align=left, text width=0.78\linewidth] (q) {\texttt{Customer: $q_t$} (the original user turn) / \texttt{Agent:}};
+  \node[right=2mm of c, align=left] {A, C, D, Step 4:\\sections only};
+  \node[right=2mm of f, align=left] {B: this block\\replaces Context};
+\end{tikzpicture}
+\caption{Layout of the generation prompt, top to bottom. LLM only uses a shorter prompt with no
+examples and no context. Average prompt length on validation: Step 4 about 6,400 characters, E
+about 14,900.}
+\label{fig:prompt-layout}
+\end{figure}
+
+\begin{figure}[H]
+\begin{lstlisting}
+[...instructions and 3 examples...]
+
+Context:
+[1] Traffic Violations Bureau#3 — APPEALS
+APPEALS If you believe the ALJ's decision was incorrect based on the facts and the law , you may file an appeal. [...] If you are a holder of a probationary / junior license or learner permit and you are charged with a cell phone / texting violation on or after July 1 , 2013 , you cannot plead by mail or online. You must appear for a hearing in a TVB office. [...]
+
+[2] Appeal a TVB ticket conviction#1 — Appeal a TVB ticket conviction[1]
+Appeal a TVB ticket conviction[1]
+
+[3] Tickets received in New York City#3 — How do I answer a TVB ticket?
+[...]
+[5] Traffic Violations Bureau#3 — INTRODUCTION
+[...]
+
+Facts:
+[1] change your plea to Guilty (Service) available at TVB office (ContactPoint; TVB offices)
+    Evidence: "You must appear at a TVB office." (Plead to or pay TVB tickets#1 — I am an attorney. How can I schedule TVB hearings for my clients?)
+[2] change your plea to Guilty (Service) requires You must appear at a TVB office (Requirement)
+    Evidence: "You must appear at a TVB office." (Plead to or pay TVB tickets#1 — I am an attorney. How can I schedule TVB hearings for my clients?)
+[...]
+[5] probationary / junior license or learner permit (Role) exempt from plead by mail or online (Service)
+    Evidence: "you cannot plead by mail or online" (Traffic Violations Bureau#3 — APPEALS)
+[...]
+[30] class D or M license (Service) requires junior driver license (Document)
+    Evidence: "Class D or M if you have a junior driver license or limited junior driver license" (The Graduated License Law and Restrictions for Drivers under 18#1 — Can I get a class D or M license if I am under 18?)
+
+Customer: what if im a holder of a junior license?
+Agent:
+\end{lstlisting}
+\caption{The real E prompt for turn 13 of Table~\ref{tab:example}, shortened with [\ldots]. The
+10 linked entities for $q'_t$ = ``What happens if I plead guilty with a junior license in TVB?''
+were: Traffic Ticket Pleas, Hearings and Payments online transaction; junior driver license;
+plead `Not Guilty' and schedule a TVB hearing [\ldots]; change your plea to Guilty; your junior
+learner permit or junior driver license could be suspended or revoked; Plead to or pay TVB
+tickets online; TVB conviction; plead guilty to a violation that results in 5 or more points;
+regional junior learner permit and junior driver license restrictions; probationary / junior
+license or learner permit. Many of the 30 facts are about attorneys or points, which shows how
+loose the 1-hop neighbourhood is.}
+\label{fig:prompt-real}
+\end{figure}
+
+\clearpage
+% =====================================================================
+\section{Is the graph used as a reranker signal?}\label{sec:rerank}
+
+\textbf{No.} The cross-encoder (bge-reranker-base) only sees pairs (rewritten query, section text).
+No graph feature enters its score. The graph only changes \emph{which sections are given to the
+reranker}:
+\begin{itemize}
+\item In \textbf{C} the graph ranking A (top 50) and the Step 4 ranking (top 50) are fused by RRF,
+  and the fused top 50 are then scored by the cross-encoder; the top 5 by cross-encoder score are
+  kept. The RRF score is not used after this point.
+\item In \textbf{D} the graph ranking A (top 50) is the only candidate list for the cross-encoder.
+\end{itemize}
+On the development subset C was the same as Step 4 (F1 $-0.5$ $[-1.2, 0.1]$): the cross-encoder
+picked a graph-only section for 0.12 of the 5 slots on average, and the context changed for only
+62 of 500 questions. D was worse ($-1.6$ $[-2.9, -0.4]$), because A's candidate list misses the
+gold section more often.
+
+Using graph evidence as a \emph{feature} in the final ranking (for example a learned or weighted
+combination of the cross-encoder score with the entity-overlap score $\sum w(e)$, or a boost for
+sections that contain the evidence of the top facts) has not been tried. It is a possible next
+experiment, and it would be cheap because all the scores are already computed and cached.
+
+% =====================================================================
+\section{What ``adding graph facts'' means}\label{sec:facts}
+
+\begin{itemize}
+\item \textbf{Which facts.} The relations of the entity layer that have a linked entity as source
+  or target (the 1-hop neighbourhood of the 10 linked entities). Each relation is one fact.
+\item \textbf{Ranking and number.} The candidates are ranked twice: by the larger link weight
+  $w(e)$ of their two endpoints (ties by support), and by cosine between $q'_t$ and the text
+  ``source relation target: evidence'' (bge-small). The two rankings are fused by RRF and the top
+  30 are kept. 30 is a cap: on validation the mean is 26.1 facts per question (min 3), and 1,536 of
+  the 4,427 questions get fewer than 30 because the linked entities have fewer relations.
+\item \textbf{Format.} One line per fact, then the first evidence quote on an indented line:
+\begin{lstlisting}[frame=none,backgroundcolor=\color{white}]
+[5] probationary / junior license or learner permit (Role) exempt from plead by mail or online (Service)
+    Evidence: "you cannot plead by mail or online" (Traffic Violations Bureau#3 — APPEALS)
+\end{lstlisting}
+  The relation name is lowercased with spaces. Type and, if different from the name, the value of
+  each entity are in brackets. The source of the evidence is printed as document title and
+  section heading; the internal section id (e.g.\ \texttt{Traffic Violations Bureau\#3\_0::85}) is
+  stored with the fact but \emph{not} printed in the prompt (\texttt{format\_facts}).
+\item \textbf{Position.} After the 5 sections, under a separate \texttt{Facts:} header, and before
+  the customer turn (Figure~\ref{fig:prompt-layout}). The instructions are not changed, so the
+  model is not told what the facts are or how to use them.
+\item \textbf{Control.} E-random uses the same number of facts, drawn at random from all facts of
+  the question's domain (\texttt{random.Random("42:"+example\_id)}), in the same format and
+  position.
+\end{itemize}
+On validation at least one fact comes from a gold section for 48.8\% of the questions.
+
+% =====================================================================
+\section{What 4,427 counts, and how F1 is computed}\label{sec:f1}
+
+\paragraph{Counting.} \texttt{src/data/loader.py} pairs every user turn with the agent turn that
+follows it (both non-empty). Each pair is one \emph{question}: the user utterance is the question,
+the agent utterance is the reference, and all earlier turns are the history. So 4,427 is the
+number of user$\to$agent pairs (query turns) of the validation split, not of conversations:
+
+\begin{center}\small
+\begin{tabular}{lrrrrr}
+\toprule
+Split & Conversations & Questions & per conversation & Unanswerable & Doc switch \\
+\midrule
+Validation & 661 & 4,427 & 4--10, mean 6.70 & 226 & 905 \\
+Test & 661 & 4,335 & & 241 & 736 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+A question is \emph{unanswerable} when its reference is exactly ``Unfortunately, no relevant
+information is found.'' (the dataset's own refusal string). It is a \emph{doc switch} when its
+gold document differs from that of the previous question in the dialogue.
+
+\paragraph{F1} (\texttt{src/evaluation/metrics.py}), for one question:
+\begin{enumerate}
+\item normalise answer and reference: lowercase, remove all ASCII punctuation, remove the words
+  \emph{a, an, the}, collapse whitespace;
+\item split on whitespace and count common tokens as a multiset (\texttt{Counter} intersection);
+\item $P = \text{common}/|\text{answer}|$, $R = \text{common}/|\text{reference}|$,
+  $F1 = 2PR/(P+R)$; 0 if there is no common token; 1 if both are empty.
+\end{enumerate}
+The system F1 is the plain mean over questions (macro over turns). Conversations are not
+averaged separately, so a conversation with 10 turns weighs 2.5 times one with 4. Confidence
+intervals are bootstrap intervals over questions, and system comparisons use a paired bootstrap
+over the same questions. Answers that are missing because of an API error (Azure content filter)
+are left out; on validation this happened only for the old prompt (7 questions), none of the
+systems in this report.
+
+\paragraph{Abstentions and unanswerable questions.} There is no special case in F1. An answer
+counts as an abstention when it contains ``no relevant information'' (used only for the
+abstention metrics). Because the prompt asks for exactly the dataset's refusal string:
+\begin{itemize}
+\item on an \emph{unanswerable} question, an exact abstention gets F1 = 1 and any real answer gets
+  F1 close to 0;
+\item on an \emph{answerable} question, an abstention gets F1 close to 0.
+\end{itemize}
+So abstaining is strongly rewarded on 5\% of the questions. This is why F1 is always reported
+also on answerable questions only, together with abstain recall and the false-abstention rate.
+
+\paragraph{EM and SacreBLEU.} The original MultiDoc2Dial paper evaluates agent-response
+generation with token F1 and SacreBLEU, and grounding-span prediction with EM and F1. Here:
+\begin{itemize}
+\item \textbf{EM} (exact match after the same normalisation) is implemented in
+  \texttt{compute\_metrics} and was printed in the first LLM-only runs, but it is not in the main
+  tables. Computed for this report on validation it is 0.9--1.6\% for every system, and almost
+  all of it comes from abstentions on unanswerable questions (EM on answerable questions:
+  0.00\% LLM only, 0.02\% Step 4, 0.05\% E, 0.29\% oracle). With free-form answers EM does not
+  separate the systems.
+\item \textbf{SacreBLEU} is not computed anywhere in the code, so it is not reported.
+\item The F1 here follows the SQuAD normalisation above; it was not checked against the official
+  MultiDoc2Dial evaluation script, so the numbers are not directly comparable with the paper.
+\end{itemize}
+
+\setcounter{section}{9}
+% =====================================================================
+\section{Query rewriting}\label{sec:rewrite}
+
+\begin{center}
+\begin{tikzpicture}[node distance=4mm]
+  \node[dat] (h) {history: last 6 turns\\(reference utterances)};
+  \node[dat, below=2mm of h] (q) {current user turn $q_t$};
+  \node[llm, right=8mm of h, yshift=-4mm] (rw) {\gen\\\texttt{REWRITE\_PROMPT}};
+  \node[dat, right=of rw] (qq) {$q'_t$};
+  \node[ret, right=of qq, yshift=4mm] (r) {BM25, bge-small, reranker};
+  \node[kg, right=of qq, yshift=-4mm] (k) {entity linking, fact cosine};
+  \draw[arr] (h) -- (rw); \draw[arr] (q) -- (rw); \draw[arr] (rw) -- (qq); \draw[arr] (qq) -- (r); \draw[arr] (qq) -- (k);
+\end{tikzpicture}
+\end{center}
+
+\begin{itemize}
+\item \textbf{Model}: the same deployment as the generator (\gen, default settings).
+\item \textbf{Input}: the last 6 turns of the history (\texttt{HISTORY\_WINDOW = 6}, so normally 3
+  user and 3 agent turns) as \texttt{User:}/\texttt{Agent:} lines, plus the current message. The
+  agent turns in the history are the \emph{reference} answers from the dataset, not the system's
+  own earlier answers, as in the standard MultiDoc2Dial setup.
+\item \textbf{When}: once per question, before retrieval. First turns have no history and are not
+  rewritten (660 of 4,427 on validation, so 3,767 rewrite calls).
+\item \textbf{Where the output goes}: only into retrieval (BM25, dense, reranker, entity linking,
+  fact ranking). The generation prompt gets the original $q_t$.
+\end{itemize}
+
+\begin{lstlisting}
+You are a search query assistant. Given a conversation history and the current user message, rewrite the current message as a short, self-contained search query that can be understood without the conversation context.
+
+Rules:
+- Output ONLY the rewritten query, nothing else. No explanation, no quotes.
+- Resolve all pronouns and references ("that", "it", "there", "those") using the conversation history.
+- If the current message is already self-contained, return it unchanged.
+- Keep it concise — one sentence or a short phrase.
+
+Conversation history:
+User: do i have to attend my hearing?
+Agent: hearings are open to the public. you may go to any tvb office to watch hearings so you know what to expect at yours.
+User: what if i please guilty?
+Agent: you will be notified that you must got to the tvb to answer the charge in person.
+User: how do i plead guilty?
+Agent: you can easily fill in the request information, sign it and either mail it with your payment to the albany address listed on the ticket or bring your payment to any tvb office :)
+
+Current message: what if im a holder of a junior license?
+
+Rewritten query:
+\end{lstlisting}
+
+\begin{center}\footnotesize
+\begin{tabularx}{\linewidth}{@{}l>{\raggedright}p{4.2cm}X@{}}
+\toprule
+Turn & Before ($q_t$) & After ($q'_t$) \\
+\midrule
+13 & what if im a holder of a junior license? & What happens if I plead guilty with a junior license in TVB? \\
+9 & what if i please guilty? & What if I plead guilty for a non-criminal moving traffic violation in NYC TVB? \\
+3 & yes & what do i do if i receive a traffic ticket? \\
+5 (unanswerable) & No. & What to do if you receive a traffic ticket in the five boroughs of New York City for a noncriminal moving violation? \\
+\bottomrule
+\end{tabularx}
+\end{center}
+Turns 13 and 9 are good rewrites (the typo ``please'' is also fixed). Turn 5 shows a side effect:
+a short reply like ``No.'' becomes a full query about the previous topic, retrieval then finds
+relevant-looking sections and the model answers instead of abstaining.
+
+% =====================================================================
+\section{The graph retrieval step (Step 6), plainly}\label{sec:step6}
+
+\paragraph{What is retrieved.} For each question: 10 graph entities that match the rewritten
+query; from them either sections of the corpus (A) or facts of the graph with their evidence
+quotes (B), or the facts added to the normal passage context (E).
+
+\paragraph{How.} Linking by name similarity (BM25 + embeddings), sections by the weighted count of
+linked entities they mention, facts by link weight and query similarity
+(Section~\ref{sec:usage}). Nothing is trained; all parameters (10 entities, 30 facts, pools of 50,
+1-hop decay 0.5) were fixed before the runs.
+
+\paragraph{How it is evaluated.}
+\begin{itemize}
+\item \textbf{Linking recall}: share of questions where at least one of the 10 linked entities is
+  mentioned in a gold section. 66.5\% on validation (70.4\% on the 500-question subset).
+\item \textbf{Section Recall@5}: share of gold spans whose section is among the 5 sections given
+  to the model. For B the sections are those the facts come from.
+\item \textbf{F1}, compared with the Step 4 pipeline by a paired bootstrap on the same questions.
+\item \textbf{Random-facts control} (E-random): checks whether a gain of E comes from the content
+  of the facts or only from a longer context.
+\item \textbf{Answerable vs unanswerable} reported separately, because abstaining on the 226
+  unanswerable questions changes the overall F1 a lot (Section~\ref{sec:f1}).
+\end{itemize}
+
+\begin{table}[H]
+\centering\small
+\begin{tabular}{lcccccc}
+\toprule
+ & R@5 & F1 all & F1 answerable & F1 unanswerable & abstain recall & false abstention \\
+\midrule
+LLM only & -- & 15.8 & & & 17.3 & 8.1 \\
+Step 4 best & 63.7 & 26.9 & 27.2 & 20.2 & 19.5 & 4.5 \\
+A: graph sections & 34.0 & 23.0 & 22.4 & 32.5 & 32.3 & 10.4 \\
+B: graph facts & 36.6 & 24.1 & 23.8 & 30.6 & 30.1 & 7.6 \\
+E: Step 4 + facts & 63.7 & 27.4 & 27.7 & 20.1 & 19.0 & 3.4 \\
+E-random & 63.7 & 27.4 & 27.2 & 31.9 & 31.4 & 5.6 \\
+Oracle & 100 & 35.5 & & & 15.5 & 2.0 \\
+\bottomrule
+\end{tabular}
+\caption{Full validation split (4,427 questions, 226 unanswerable), in \%. Paired differences
+against Step 4: E $+0.5$ $[0.1, 0.9]$ overall and $+0.5$ $[0.2, 0.8]$ on answerable questions;
+E-random $+0.6$ overall but $0.0$ on answerable questions (its gain comes only from more
+abstentions); E vs E-random on answerable questions $+0.6$ $[0.2, 0.9]$. On the test split
+(run once, after freezing): Step 4 26.9, E 27.5, E-random 27.3, B 23.8, LLM only 15.1,
+oracle 34.2.}
+\label{tab:step6}
+\end{table}
+
+In short: the graph alone is clearly worse than passages, because entity overlap cannot rank the
+many sections a typical question links to (A's top 50 contains the gold section for 68.8\% of the
+development questions, its top 5 only for 34.6\%). Facts added to good passages give a small gain
+on answerable questions that random facts do not give.
+
+% =====================================================================
+\section{Cost}\label{sec:cost}
+
+Token usage of the generation and rewrite calls was \emph{not recorded}: the cache stores the
+prompt and the answer text, not the usage. The numbers below are therefore estimates, made by
+tokenising the stored prompts, answers and rewrite prompts with the \texttt{o200k\_base} tokenizer
+(\texttt{experiments/estimate\_tokens.py}, output in \texttt{docs/schematic/}). Two limits:
+\begin{itemize}
+\item the generation client does not set a reasoning effort, so the deployment default applies,
+  and any hidden reasoning tokens (billed as output) are missing; output is a lower bound;
+\item C and D exist only on the 500-question subset, so their per-conversation values are the
+  per-turn value times 6.70.
+\end{itemize}
+Exact recording per call, per turn and per conversation is the first item of Part 2.
+
+\begin{table}[H]
+\centering\small
+\begin{tabular}{lcrrrr}
+\toprule
+System & LLM calls / turn & in / turn & out / turn & in / conv. & out / conv. \\
+\midrule
+LLM only & 1.00 & 66 & 50 & 441 & 337 \\
+Oracle & 1.00 & 448 & 51 & 3,000 & 344 \\
+Passage RAG (Step 4 best) & 1.85 & 1,487 & 69 & 9,962 & 460 \\
+A: graph sections & 1.85 & 1,718 & 65 & 11,505 & 433 \\
+B: graph facts & 1.85 & 2,241 & 57 & 15,009 & 385 \\
+C: hybrid (dev subset) & 1.87 & 1,548 & 68 & $\approx$10,370 & $\approx$460 \\
+D: graph + reranker (dev subset) & 1.87 & 1,623 & 68 & $\approx$10,870 & $\approx$450 \\
+E: Step 4 + facts & 1.85 & 3,291 & 67 & 22,042 & 449 \\
+E-random & 1.85 & 3,324 & 66 & 22,265 & 443 \\
+\bottomrule
+\end{tabular}
+\caption{Estimated tokens on the validation split (mean over 4,427 turns and 661 conversations).
+The 0.85 extra call per turn is the rewrite (227 input and 16 output tokens on average); the
+rest is one generation call. Retrieval, linking and reranking run locally and use no LLM
+tokens. E doubles the input of Step 4 because of the 30 facts with their quotes.}
+\label{tab:tokens}
+\end{table}
+
+\paragraph{Extrapolation to other models.} With prices $p_\text{in}$ and $p_\text{out}$ in \$ per
+million tokens, the cost of one conversation is
+\[
+  C = \frac{T_\text{in}\, p_\text{in} + T_\text{out}\, p_\text{out}}{10^6},
+\]
+assuming a larger model writes answers of similar length (it is told to answer in 1--2
+sentences). Table~\ref{tab:cost} evaluates this for four price levels. The levels are
+parameters chosen to span the range of small to large hosted models; they are not the price of
+any specific deployment, and the actual price list should be put in their place.
+
+\begin{table}[H]
+\centering\small
+\begin{tabular}{lrrrr}
+\toprule
+$p_\text{in}$ / $p_\text{out}$ (\$ per 1M tokens) & 0.10 / 0.40 & 0.50 / 2.00 & 2.50 / 10.00 & 10.00 / 40.00 \\
+\midrule
+LLM only & 0.18 & 0.90 & 4.48 & 17.91 \\
+Oracle & 0.44 & 2.19 & 10.94 & 43.75 \\
+Passage RAG (Step 4 best) & 1.18 & 5.90 & 29.50 & 118.00 \\
+A: graph sections & 1.32 & 6.62 & 33.10 & 132.38 \\
+B: graph facts & 1.65 & 8.27 & 41.37 & 165.47 \\
+C: hybrid & 1.22 & 6.10 & 30.51 & 122.04 \\
+D: graph + reranker & 1.27 & 6.34 & 31.71 & 126.83 \\
+E: Step 4 + facts & 2.38 & 11.92 & 59.59 & 238.36 \\
+E-random & 2.40 & 12.02 & 60.10 & 240.38 \\
+\bottomrule
+\end{tabular}
+\caption{Estimated cost in \$ per 1,000 conversations (6.70 turns each). Input is 95--98\% of the
+tokens of the RAG systems and, even with output four times as expensive, 84--92\% of their cost,
+so the input price matters most. E costs about twice as much as Step 4
+for $+0.5$ F1 on validation.}
+\label{tab:cost}
+\end{table}
+
+\paragraph{One-off cost of the graph.} Building the graph was recorded exactly: 12,970 LLM calls
+(3,559 extraction calls including retries, 9,411 entity-resolution calls), 22.21\,M input and
+3.93\,M output tokens, no reasoning tokens (reasoning effort \texttt{none}), about one hour of run
+time. At the four price levels above this is about \$3.8, \$19, \$95 and \$380. For comparison,
+answering the whole validation split once with E takes about 14.6\,M input and 0.3\,M output
+tokens.
+
+\end{document}

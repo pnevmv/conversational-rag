@@ -1,0 +1,90 @@
+{
+  "split": "validation",
+  "tokenizer": "o200k_base",
+  "systems": {
+    "llm_baseline": {
+      "label": "LLM only",
+      "turns": 4427,
+      "conversations": 661,
+      "calls_per_turn": 1.0,
+      "in_per_turn": 65.87711768692117,
+      "out_per_turn": 50.38829907386492,
+      "in_per_conversation": 441.2072617246596,
+      "out_per_conversation": 337.47201210287443,
+      "in_total": 291638,
+      "out_total": 223069
+    },
+    "oracle_context_v2": {
+      "label": "Oracle",
+      "turns": 4427,
+      "conversations": 661,
+      "calls_per_turn": 1.0,
+      "in_per_turn": 448.0063248249379,
+      "out_per_turn": 51.32188841201717,
+      "in_per_conversation": 3000.4901664145236,
+      "out_per_conversation": 343.7246596066566,
+      "in_total": 1983324,
+      "out_total": 227202
+    },
+    "rag_rewrite_rerank_v2": {
+      "label": "Passage RAG (best)",
+      "turns": 4427,
+      "conversations": 661,
+      "calls_per_turn": 1.8509148407499436,
+      "in_per_turn": 1487.4219561779987,
+      "out_per_turn": 68.60944206008584,
+      "in_per_conversation": 9961.901664145234,
+      "out_per_conversation": 459.50680786686837,
+      "in_total": 6584817,
+      "out_total": 303734
+    },
+    "kg_sections": {
+      "label": "A: graph sections",
+      "turns": 4427,
+      "conversations": 661,
+      "calls_per_turn": 1.8509148407499436,
+      "in_per_turn": 1717.856562005873,
+      "out_per_turn": 64.69414953693246,
+      "in_per_conversation": 11505.220877458396,
+      "out_per_conversation": 433.2844175491679,
+      "in_total": 7604951,
+      "out_total": 286401
+    },
+    "kg_facts": {
+      "label": "B: graph facts",
+      "turns": 4427,
+      "conversations": 661,
+      "calls_per_turn": 1.8509148407499436,
+      "in_per_turn": 2240.9893833295687,
+      "out_per_turn": 57.41495369324599,
+      "in_per_conversation": 15008.865355521937,
+      "out_per_conversation": 384.5325264750378,
+      "in_total": 9920860,
+      "out_total": 254176
+    },
+    "step4_plus_facts": {
+      "label": "E: passages + facts",
+      "turns": 4427,
+      "conversations": 661,
+      "calls_per_turn": 1.8509148407499436,
+      "in_per_turn": 3291.075446126045,
+      "out_per_turn": 66.96995708154506,
+      "in_per_conversation": 22041.741301059003,
+      "out_per_conversation": 448.52647503782146,
+      "in_total": 14569591,
+      "out_total": 296476
+    },
+    "step4_plus_random_facts": {
+      "label": "E-random",
+      "turns": 4427,
+      "conversations": 661,
+      "calls_per_turn": 1.8509148407499436,
+      "in_per_turn": 3324.4707476846625,
+      "out_per_turn": 66.1680596340637,
+      "in_per_conversation": 22265.40393343419,
+      "out_per_conversation": 443.15582450832073,
+      "in_total": 14717432,
+      "out_total": 292926
+    }
+  }
+}

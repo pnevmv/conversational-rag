@@ -6,4 +6,5 @@ tqdm>=4.66.0
 rank-bm25>=0.2.2
 sentence-transformers>=3.0.0
 neo4j>=5.20
+tiktoken>=0.7
 pytest>=8

@@ -34,6 +34,8 @@ logs/
 # Allow template and asset PDFs tracked in the repo
 !latex_report/template/*.pdf
 !latex_report/img/*.pdf
+!latex_report/main.pdf
+!docs/schematic_report.pdf
 
 # LaTeX build artifacts
 *.aux
