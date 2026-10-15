@@ -172,6 +172,15 @@ Two things are common to all diagrams:
   $q'_t$ (cached once per split, \texttt{src/kg\_rag/queries.py}).
 \end{itemize}
 
+\paragraph{Known limitation.} In all results of this report the generator sees only the current
+user turn $q_t$ and the retrieved context. It sees neither the dialogue history nor the rewritten
+query $q'_t$, so a follow-up such as ``and how do I renew it?'' is answered without knowing what
+``it'' refers to, unless the retrieved sections make it clear. The query rewriter is the only
+component that sees the history, and the history it gets is the gold one (the reference agent
+turns of the dataset, not the system's own earlier answers), which is the standard turn-level
+evaluation protocol of MultiDoc2Dial. The next experiment gives the generator the rewritten query
+and/or the last turns of the dialogue, with retrieval unchanged.
+
 \begin{figure}[H]
 \centering
 \textbf{(a) LLM only}\\[2pt]
@@ -628,7 +637,8 @@ EM and SacreBLEU. Here:
 \item \textbf{When}: once per question, before retrieval. First turns have no history and are not
   rewritten (660 of 4,427 on validation, so 3,767 rewrite calls).
 \item \textbf{Where the output goes}: only into retrieval (BM25, dense, reranker, entity linking,
-  fact ranking). The generation prompt gets the original $q_t$.
+  fact ranking). The generation prompt gets the original $q_t$ only, without the history and
+  without $q'_t$ (the known limitation of Section~\ref{sec:arch}).
 \end{itemize}
 
 \begin{lstlisting}
