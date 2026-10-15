@@ -135,11 +135,16 @@ def evaluate(split: str, k: str) -> None:
     examples = {ex["example_id"]: ex for ex in load_qa_pairs(split="validation" if split == "dev500" else split,
                                                              max_examples=None)}
     d = split_dir(split) / "generator_input"
-    variants = ["G0", "G1", f"G2_k{k}", f"G3_k{k}"]
+    g2 = f"G2_k{k}"
+    combo = f"G2_k{k}+abstain(G0)"
+    variants = ["G0", "G1", g2, f"G3_k{k}", combo]
     summary: Dict[str, Any] = {"split": split, "k": k, "pipelines": {}}
     lines = [f"# Generator input variants ({split}, k = {k})", ""]
     for base, label in PIPELINES.items():
-        data = {v: [json.loads(l) for l in open(d / f"{base}__{v}.jsonl", encoding="utf-8")] for v in variants}
+        data = {v: [json.loads(l) for l in open(d / f"{base}__{v}.jsonl", encoding="utf-8")]
+                for v in variants if v != combo}
+        # G2 with G0's abstention decision: abstain when G0 abstains, else answer with G2. Needs both calls.
+        data[combo] = [a if is_abstention(a["model_answer"] or "") else b for a, b in zip(data["G0"], data[g2])]
         ids = [r["example_id"] for r in data["G0"]]
         valid = [all(data[v][i]["model_answer"] is not None for v in variants) for i in range(len(ids))]
         meta = data["G0"]
@@ -158,7 +163,12 @@ def evaluate(split: str, k: str) -> None:
 
         f1 = {v: np.array([compute_metrics(r["model_answer"] or "", r["reference_answer"])["f1"] for r in data[v]]) for v in variants}
         abst = {v: np.array([is_abstention(r["model_answer"] or "") for r in data[v]]) for v in variants}
-        tok = {v: float(np.mean([len(enc.encode(r["prompt"], disallowed_special=())) for r in data[v]])) for v in variants}
+        tok = {v: float(np.mean([len(enc.encode(r["prompt"], disallowed_special=())) for r in data[v]]))
+               for v in variants if v != combo}
+        # G0 always runs; G2 only when G0 did not abstain.
+        tok[combo] = tok["G0"] + float(np.mean([0 if is_abstention(r0["model_answer"] or "") else
+                                                len(enc.encode(r2["prompt"], disallowed_special=()))
+                                                for r0, r2 in zip(data["G0"], data[g2])]))
         unans = np.array(groups["unanswerable"])
         s = {"n_errors": int(len(ids) - sum(valid)), "variants": {}}
         for v in variants:
@@ -198,9 +208,34 @@ def evaluate(split: str, k: str) -> None:
         lines.append("| generation input tokens / turn | " + " | ".join(
             f"{s['variants'][v]['input_tokens_per_turn']:.0f}" for v in variants) + " |")
         lines.append("")
+        if base == "rag_rewrite_rerank_v2":
+            write_examples(d, data["G0"], data[g2], examples, das)
+    lines.append(f"{combo}: the G0 answer when G0 abstains, else the G2 answer (G0 always runs and G2 only when G0 "
+                 "does not abstain, so its input tokens include both calls). It abstains when either G0 or the G2 "
+                 "answer abstains.")
     (d / "summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
     (d / "summary.md").write_text("\n".join(lines), encoding="utf-8")
     print("\n".join(lines))
+
+
+def write_examples(d: Path, g0: List[Dict], g2: List[Dict], examples: Dict[str, Dict], das: Dict, n: int = 10) -> None:
+    """Unanswerable turns where G0 abstained and G2 answered (Step 4 pipeline), n drawn with seed 42."""
+    import random
+    cand = [(a, b) for a, b in zip(g0, g2) if a["is_unanswerable"] and is_abstention(a["model_answer"] or "")
+            and not is_abstention(b["model_answer"] or "")]
+    picked = sorted(random.Random(42).sample(cand, min(n, len(cand))), key=lambda ab: ab[0]["example_id"])
+    lines = ["# Unanswerable turns: G0 abstains, G2 answers (Step 4 best, validation)", "",
+             f"{len(cand)} unanswerable turns have this pattern; {len(picked)} drawn at random (seed 42). "
+             "The reference of every one is \"Unfortunately, no relevant information is found.\"", ""]
+    for i, (a, b) in enumerate(picked, 1):
+        ex = examples[a["example_id"]]
+        lines += [f"## {i}. {a['example_id']} ({a['domain']}, user act: {das[a['example_id']]['user_da']})", "",
+                  "Last turns of the history:", ""]
+        lines += [f"> {'Customer' if t['role'] == 'user' else 'Agent'}: {t['utterance'].strip()}  "
+                  for t in ex["dialogue_history"][-4:]]
+        lines += ["", f"**Customer:** {a['question']}", "", f"**Rewritten query:** {a['rewritten_query']}", "",
+                  f"**G2 answer:** {b['model_answer']}", ""]
+    (d / "unanswerable_examples.md").write_text("\n".join(lines), encoding="utf-8")
 
 
 def main() -> None:

@@ -178,8 +178,8 @@ query $q'_t$, so a follow-up such as ``and how do I renew it?'' is answered with
 ``it'' refers to, unless the retrieved sections make it clear. The query rewriter is the only
 component that sees the history, and the history it gets is the gold one (the reference agent
 turns of the dataset, not the system's own earlier answers), which is the standard turn-level
-evaluation protocol of MultiDoc2Dial. The next experiment gives the generator the rewritten query
-and/or the last turns of the dialogue, with retrieval unchanged.
+evaluation protocol of MultiDoc2Dial. A first experiment that gives the generator the rewritten
+query and/or the dialogue, with retrieval unchanged, is in Section~\ref{sec:conv}.
 
 \begin{figure}[H]
 \centering
@@ -821,5 +821,61 @@ in 1--2 sentences) and ignoring reasoning tokens.
 time. With the derived prices this is EUR 5.1 ($r=1$) to EUR 7.2 ($r=8$), about 15--21\% of the
 project total. For comparison, answering the whole validation split once with E takes about
 14.6\,M input and 0.3\,M output tokens, EUR 2.3--2.9.
+
+% =====================================================================
+\section{Conversational generator}\label{sec:conv}
+
+To address the limitation of Section~\ref{sec:arch}, four generator inputs were compared on the
+full validation split with retrieval unchanged (same five sections, and the same facts for E);
+only the end of the generation prompt changes (\texttt{experiments/generator\_input.py}):
+\begin{itemize}
+\item G0: the current user turn (all results above);
+\item G1: the rewritten query instead of the user turn;
+\item G2: the gold dialogue history under a \texttt{Conversation so far:} header, then the user
+  turn. The history length $k$ was chosen on dev-500 among 2, 4 and all turns; all turns was best
+  by 0.1 F1 and was kept;
+\item G3: G2 plus the rewritten query after the user turn.
+\end{itemize}
+G1 and G3 are worse than G0 (about $-1.5$ and $-0.5$ F1). G2, called the \emph{conversational
+generator} from here on, is the only useful variant: it gains on answerable questions, mostly on
+turns that cannot be understood alone (user replies ``yes'' to a question of the agent: $+3.7$
+F1 for Step 4, $+3.2$ for E).
+
+\begin{table}[H]
+\centering\small
+\begin{tabular}{llccccc}
+\toprule
+ & & \multicolumn{3}{c}{F1} & abstain recall / & input tokens \\
+ & & all & answerable & unanswerable & false abstention & per turn \\
+\midrule
+Step 4 & G0 & 26.8 & 27.2 & 19.7 & 19.0 / 4.5 & 1,294 \\
+ & G2 & 27.2 & 28.1 & 10.6 & \phantom{0}9.7 / 2.8 & 1,415 \\
+ & G2 + abstain(G0) & 27.5 & 27.6 & 24.6 & 24.3 / 5.6 & 2,637 \\
+\midrule
+E & G0 & 27.4 & 27.7 & 20.1 & 19.0 / 3.5 & 3,098 \\
+ & G2 & 27.7 & 28.5 & 12.9 & 11.9 / 2.5 & 3,219 \\
+ & G2 + abstain(G0) & 28.0 & 28.2 & 24.5 & 23.5 / 4.6 & 6,186 \\
+\bottomrule
+\end{tabular}
+\caption{Generator inputs on validation (4,427 questions). Paired differences against G0, all
+questions: G2 $+0.3$ $[-0.0, 0.7]$ for Step 4 and $+0.3$ $[-0.0, 0.7]$ for E; on answerable
+questions $+0.8$ $[0.5, 1.1]$ and $+0.7$ $[0.4, 1.0]$. G2 + abstain(G0) gives the G0 answer when G0
+abstains and the G2 answer otherwise: $+0.6$ $[0.4, 0.9]$ and $+0.7$ $[0.4, 1.0]$ on all
+questions. Its tokens count both calls (G0 always, G2 only when G0 did not abstain). The full
+table with the dialogue-act breakdown is in
+\texttt{experiments/results/validation/generator\_input/summary.md}.}
+\label{tab:conv}
+\end{table}
+
+\paragraph{Abstention needs a separate decision step.} With the history in the prompt the model
+abstains about half as often, so most of the gain on answerable questions is lost on the 226
+unanswerable ones. In the 33 unanswerable turns where G0 abstains and G2 answers (Step 4; 26 for E), the user turn is
+always a negative reply (``no'', ``do not'') to a condition question of the agent; the dataset
+expects a refusal, while G2 continues the conversation, often with a reasonable answer (10 examples
+in \texttt{unanswerable\_examples.md} next to the summary). Deciding whether to answer and
+generating the answer are therefore two different problems. Taking the abstention decision from
+G0 and the answer from G2 recovers the unanswerable turns and gives the best overall F1, at about
+twice the input tokens. A cheaper decision step (a classifier or a short LLM call on the user turn
+and the retrieved context) has not been tried.
 
 \end{document}
