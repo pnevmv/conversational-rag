@@ -70,6 +70,7 @@
 \author{Danil Smirnov (2142049)}
 \date{October 2026}
 
+
 \begin{document}
 \maketitle
 
@@ -82,25 +83,18 @@
   \node[box, fill=promptc, rounded corners=0pt, right=of d] (e) {generation prompt};
 \end{tikzpicture}
 \\[2pt]
-{\small Colour legend used in all diagrams. The generator is always \gen{} (Azure OpenAI
-Responses API, deployment set in \texttt{src/llm/client.py}).}
+{\small Colour legend used in all diagrams. The generator is always \gen{} (Azure OpenAI).}
 \end{center}
 
-\tableofcontents
+\noindent One section per question: a short answer in bold, the diagram, and a few lines. All
+details, full tables and verbatim prompts are in the appendix, in the same order.
 
 % =====================================================================
 \section{Data: one real conversation (Q1)}\label{sec:data}
 
-MultiDoc2Dial has 488 documents from four websites (DMV, SSA, StudentAid, VA), split into 4,114
-sections (heading + text), which are the retrieval unit. Each agent turn is grounded in one or more
-spans of the documents. The excerpt below is from a validation dialogue (DMV domain, 9 user turns),
-turns 5 to 13. The turn ids are the dataset ids (user turns are
-odd, the reference answer is the next agent turn). Turn 5 is unanswerable.
-
-The \emph{gold section} is the section that contains the grounding span of the reference answer.
-\sys{Best RAG} is the best passage pipeline (rewrite + hybrid retrieval + reranker, Section~\ref{sec:arch}),
-\sys{E} is the same pipeline plus graph facts. F1 is token F1 against the reference
-(Section~\ref{sec:f1}).
+\textbf{MultiDoc2Dial: 488 government-service documents (4,114 sections) and dialogues in which
+every agent answer is grounded in the documents; about 5\% of the user questions cannot be
+answered from them.}
 
 \begin{table}[H]
 \centering\footnotesize
@@ -111,25 +105,9 @@ The \emph{gold section} is the section that contains the grounding span of the r
 \midrule
 User & No. \quad (answer to the agent asking whether the ticket was issued in New York City)\\
 Reference & Unfortunately, no relevant information is found.\\
-LLM only & Please contact your local government office or the service provider directly to confirm what help you need, since ``No'' doesn't specify the service or issue. [\ldots] \hfill F1 0.00\\
+LLM only & Please contact your local government office or the service provider directly [\ldots] \hfill F1 0.00\\
 Best RAG & If you have a DMV Traffic Violations Bureau ticket issued in the five boroughs of New York City, you can answer most TVB tickets online [\ldots] \hfill F1 0.00\\
 E & Unfortunately, no relevant information is found. \hfill F1 1.00\\
-\midrule
-\multicolumn{2}{@{}l}{\textbf{Turn 9}. Gold section: \emph{Traffic Violations Bureau -- ATTEND YOUR HEARING}}\\
-\midrule
-User & what if i please guilty?\\
-Reference & you will be notified that you must got to the tvb to answer the charge in person.\\
-LLM only & If you plead guilty, the court will enter a guilty finding and proceed to sentencing without a trial [\ldots] \hfill F1 0.23\\
-Best RAG & If you plead guilty to a TVB ticket, you must pay the fine and surcharge, and you can't plead guilty by mail if the conviction would result in a license or registration suspension or revocation. [\ldots] \hfill F1 0.18\\
-E & If you plead guilty, you must pay all fines, fees, and surcharges that result from the plea, and you can only plead guilty by mail if the conviction will not result in a license or registration suspension or revocation. If it would, you will be notified that you must go to the TVB to answer the charge in person. \hfill F1 0.41\\
-\midrule
-\multicolumn{2}{@{}l}{\textbf{Turn 11}. Gold section: \emph{Traffic Violations Bureau -- ATTEND YOUR HEARING}}\\
-\midrule
-User & how do i plead guilty?\\
-Reference & you can easily fill in the request information, sign it and either mail it with your payment to the albany address listed on the ticket or bring your payment to any tvb office :)\\
-LLM only & To plead guilty, you typically enter a guilty plea in court on your scheduled date [\ldots] \hfill F1 0.28\\
-Best RAG & To plead guilty, use the Traffic Ticket Pleas, Hearings and Payments online transaction or read the instructions and check the ``guilty'' box on the back of your ticket, then fill in the requested information, sign it, and mail it with your payment to the Albany address listed on the ticket or bring your payment to any TVB office. \hfill F1 0.62\\
-E & You can plead guilty by using the [\ldots] online transaction, or by [\ldots] checking the ``guilty'' box, filling in the requested information, [\ldots] If your charge could result in a license or registration suspension [\ldots] you must go to the TVB to answer the charge in person. \hfill F1 0.39\\
 \midrule
 \multicolumn{2}{@{}l}{\textbf{Turn 13}. Gold section: \emph{Traffic Violations Bureau -- APPEALS}}\\
 \midrule
@@ -140,48 +118,24 @@ Best RAG & If you're a holder of a probationary/junior license or learner permit
 E & If you are a holder of a probationary/junior license or a learner permit, you cannot plead by mail or online. You must appear for a hearing in a TVB office. \hfill F1 0.67\\
 \bottomrule
 \end{tabularx}
-\caption{A validation dialogue (DMV domain, 9 user turns), turns 5--13 (turn 7 left
-out for space). Answers are cut with [\ldots] only where they continue in the same way.
-The dialogue was chosen because it has an unanswerable turn and turns where E and the
-passage pipeline differ, so it is not a random sample: on the full validation split E is only
-0.5 F1 points above the best passage pipeline.}
-\label{tab:example}
+\caption{Two turns of a validation dialogue, DMV domain. Best RAG is the best passage pipeline,
+E the same pipeline plus graph facts.}
+\label{tab:twoturns}
 \end{table}
 
-What the example shows:
 \begin{itemize}
-\item Without documents the model gives generic advice (``the court'', ``your country/state'').
-\item In turn 13 both retrieval pipelines find the gold section (rank 1). E's answer is closer to
-  the reference because one graph fact states exactly this rule (fact [5] in
-  Figure~\ref{fig:prompt-real}).
-\item In turn 11 the facts make the answer longer and F1 goes down, although the content is right.
-\item Turn 5 (``No.'') is unanswerable. Best RAG answers from the retrieved sections, E abstains
-  and gets F1 = 1 (Section~\ref{sec:f1} explains why).
+\item Without documents the model gives generic advice; with retrieval it quotes the right rule.
+\item Turn 13: E is closest to the reference because one graph fact states exactly this rule.
+\item Turn 5 (``No.'') is unanswerable: the passage pipeline answers anyway, E abstains.
+\item Details: Appendix~\ref{app:data} (turns 5--13, all three systems).
 \end{itemize}
 
 % =====================================================================
 \section{Architectures (Q2)}\label{sec:arch}
 
-All systems use the same generator and, except LLM only, the same generation prompt
-(\texttt{experiments/run\_dev\_subset.py}): instructions, 3
-few-shot examples from the train split, the context, then \texttt{Customer: $q_t$ / Agent:}.
-Two things are common to all diagrams:
-\begin{itemize}
-\item The generation prompt contains only the \emph{current} user turn $q_t$, not the dialogue
-  history. The history is used only by the query rewriter, and the rewritten query $q'_t$ is used
-  only for retrieval.
-\item All systems except LLM only and the oracle start with the same rewrite and use the same
-  $q'_t$ (cached once per split, \texttt{src/kg\_rag/queries.py}).
-\end{itemize}
-
-\paragraph{Known limitation.} In all results except Section~\ref{sec:conv} the generator sees only the current
-user turn $q_t$ and the retrieved context. It sees neither the dialogue history nor the rewritten
-query $q'_t$, so a follow-up such as ``and how do I renew it?'' is answered without knowing what
-``it'' refers to, unless the retrieved sections make it clear. The query rewriter is the only
-component that sees the history, and the history it gets is the gold one (the reference agent
-turns of the dataset, not the system's own earlier answers), which is the standard turn-level
-evaluation protocol of MultiDoc2Dial. A first experiment that gives the generator the rewritten
-query and/or the dialogue, with retrieval unchanged, is in Section~\ref{sec:conv}.
+\textbf{All systems use the same generator (\gen) and prompt; they differ only in what is put in
+the context: nothing, the gold sections, retrieved passages, graph sections or facts, or passages
+plus graph facts.}
 
 \begin{figure}[H]
 \centering
@@ -247,9 +201,7 @@ query and/or the dialogue, with retrieval unchanged, is in Section~\ref{sec:conv
   \draw[arr] (g) -- (an);
   \draw[arr] (qq) -- (lk); \draw[arr] (lk) -- (adj); \draw[arr] (adj) -- (rk); \draw[arr] (rk) -- (p); \draw[arr] (p) -- (g);
 \end{tikzpicture}
-\caption{Architectures, part 1. Hybrid pools are $3\times$ the requested depth
-(\texttt{src/rag/hybrid\_retriever.py}); the reranker reads the rewritten query and the first 512
-tokens of each section. All graph pipelines use the rewritten query from (c).}
+\caption{Architectures, part 1. All graph pipelines use the rewritten query $q'_t$ from (c).}
 \label{fig:arch1}
 \end{figure}
 
@@ -297,22 +249,24 @@ tokens of each section. All graph pipelines use the rewritten query from (c).}
   \node[dat, right=of g] (an) {answer};
   \draw[arr] (p) -- (g); \draw[arr] (g) -- (an);
 \end{tikzpicture}
-\caption{Architectures, part 2 (\texttt{src/kg\_rag/run\_qa.py}). C and D were run on the
-500-question development subset only and dropped there; E and E-random were run on the full
-validation and test splits. In E the sections part of the context is checked to be identical to
-the Step 4 context, so the only difference is the facts block.}
+\caption{Architectures, part 2. C and D were tried on a 500-question development subset and
+dropped; E and E-random were run on the full validation and test splits.}
 \label{fig:arch2}
 \end{figure}
+
+\begin{itemize}
+\item The query rewriter is the only part that sees the dialogue history; its output is used only
+  for retrieval.
+\item In all results except Section~\ref{sec:conv} the generator sees only the current user turn
+  and the retrieved context.
+\item Details: Appendix~\ref{app:arch}.
+\end{itemize}
 
 % =====================================================================
 \section{Graph schema (Q3)}\label{sec:schema}
 
-The graph is stored in Neo4j in three layers (Figure~\ref{fig:layers}). The structure layer is
-built from the dataset without an LLM. The mention layer holds what the LLM extracted from each
-section (one call per section or group of short sections, closed schema, JSON output). The entity
-layer is the result of entity resolution: mentions with the same meaning are merged into one
-entity and the relations are lifted to the entities. Retrieval only uses the entity layer, plus
-the section ids stored on each entity and relation.
+\textbf{A closed schema of 9 entity types and 11 relations, stored in three layers: the document
+structure, the mentions extracted by the LLM, and the resolved entities with typed relations.}
 
 \begin{figure}[H]
 \centering
@@ -341,11 +295,304 @@ the section ids stored on each entity and relation.
   \node[font=\scriptsize, align=left, text width=5.2cm] at (1.9,-2) {LLM extraction per section,\\16,947 REL edges (type rules checked)};
   \node[font=\scriptsize, align=left, text width=5.2cm] at (1.9,-4) {entity resolution; 13,277 typed\\relations of 11 types, each with\\support, section ids and evidence};
 \end{tikzpicture}
-\caption{The three layers and their sizes in the final build (extraction prompt v2.1, see
-the full build report in \texttt{experiments/kg/}). The structure-layer ids are the same as in the
-passage index, so a retrieved section and a graph section are the same object.}
+\caption{The three layers of the graph and their sizes. A retrieved section and a graph
+section are the same object.}
 \label{fig:layers}
 \end{figure}
+
+\begin{itemize}
+\item Entity types: Service, Organization, Document, Requirement, Amount, TimeLimit, Role, Outcome,
+  ContactPoint.
+\item Relations: REQUIRES, PROVIDED\_BY, HAS\_AMOUNT, HAS\_TIME\_LIMIT, APPLIES\_TO, LEADS\_TO,
+  EXEMPT\_FROM, DETERMINED\_BY, AVAILABLE\_AT, PART\_OF, ALTERNATIVE\_TO, each with allowed type
+  pairs.
+\item Details: Appendix~\ref{app:schema} (allowed pairs, a real extracted subgraph).
+\end{itemize}
+
+% =====================================================================
+\section{How the LLM uses the graph (Q4)}\label{sec:usage}
+
+\textbf{The LLM never calls the graph. The retriever queries it, and the LLM only sees the facts
+(or sections) as text lines in its prompt.}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[every node/.style={font=\scriptsize}]
+  \node[prm, minimum width=0.8\linewidth, align=left, text width=0.78\linewidth] (i) {\textbf{Instructions}: ``You are a government services agent. Answer [\ldots] in 1--2 short, plain sentences using only the context below [\ldots] If the context does not contain the answer, reply exactly: Unfortunately, no relevant information is found.''};
+  \node[dat, below=1mm of i, minimum width=0.8\linewidth, align=left, text width=0.78\linewidth] (e) {\textbf{Examples}: 3 fixed Customer/Agent pairs from the train split (DMV, SSA, VA; seed 42)};
+  \node[ret, below=1mm of e, minimum width=0.8\linewidth, align=left, text width=0.78\linewidth] (c) {\textbf{Context}: 5 sections, each as \texttt{[rank] document title --- section heading} + full section text};
+  \node[kg, below=1mm of c, minimum width=0.8\linewidth, align=left, text width=0.78\linewidth] (f) {\textbf{Facts} (E and E-random only): up to 30 lines \texttt{[i] Source (Type) relation Target (Type)} + an indented \texttt{Evidence: "quote" (title --- heading)} line};
+  \node[dat, below=1mm of f, minimum width=0.8\linewidth, align=left, text width=0.78\linewidth] (q) {\texttt{Customer: $q_t$} (the original user turn) / \texttt{Agent:}};
+  \node[right=2mm of c, align=left] {A, C, D, Step 4:\\sections only};
+  \node[right=2mm of f, align=left] {B: this block\\replaces Context};
+\end{tikzpicture}
+\caption{Layout of the generation prompt, top to bottom. LLM only uses a shorter prompt with no
+examples and no context. Average prompt length on validation: Step 4 about 6,400 characters, E
+about 14,900.}
+\label{fig:prompt-layout}
+\end{figure}
+
+\begin{itemize}
+\item Entity linking: the rewritten query is matched to 10 entities by name (BM25 + embeddings).
+\item From the entities: their sections (A), or their relations as facts, top 30 (B, E).
+\item Details: Appendix~\ref{app:usage} (weights, the real E prompt of turn 13).
+\end{itemize}
+
+% =====================================================================
+\section{Is the graph used as a reranker signal? (Q5)}\label{sec:rerank}
+
+\textbf{No. The graph only changes which sections the reranker sees; no graph score enters the
+ranking.}
+
+\begin{itemize}
+\item C: graph ranking and passage ranking are fused (RRF), then the cross-encoder picks the top 5
+  (Figure~\ref{fig:arch2}f). D: the graph ranking alone feeds the cross-encoder.
+\item Development subset: C $-0.5$ F1 (not significant), D $-1.6$; both dropped.
+\item A graph score as a feature inside the ranking is a possible next experiment.
+\item Details: Appendix~\ref{app:rerank}.
+\end{itemize}
+
+% =====================================================================
+\section{What ``adding graph facts'' means (Q6)}\label{sec:facts}
+
+\textbf{Up to 30 relations of the linked entities, one line each (triple + evidence quote +
+document and section heading), in a separate Facts block after the 5 passages.}
+
+\begin{lstlisting}[frame=none,backgroundcolor=\color{white}]
+[5] probationary / junior license or learner permit (Role) exempt from plead by mail or online (Service)
+    Evidence: "you cannot plead by mail or online" (Traffic Violations Bureau — APPEALS)
+\end{lstlisting}
+
+\begin{itemize}
+\item 26 facts per question on average; at least one comes from a gold section in 49\% of them.
+\item Control E-random: the same number of random facts from the same domain.
+\item Details: Appendix~\ref{app:facts}.
+\end{itemize}
+
+% =====================================================================
+\section{What 4,427 counts, and how F1 is computed (Q7)}\label{sec:f1}
+
+\textbf{4,427 = user questions (turns), not conversations; F1 is computed per question and
+averaged over questions.}
+
+\begin{itemize}
+\item Validation: 661 conversations with 4--10 questions each (mean 6.7); 226 unanswerable.
+\item F1: token overlap with the reference after SQuAD normalisation; an exact refusal on an
+  unanswerable question scores 1.
+\item EM is about 1\% for every system and not reported; SacreBLEU is not implemented.
+\item Details: Appendix~\ref{app:f1}.
+\end{itemize}
+
+% =====================================================================
+\section{Query rewriting (Q10)}\label{sec:rewrite}
+
+\textbf{One extra \gen{} call per follow-up turn turns the user message plus the last 6 turns
+of the gold history into a self-contained search query, used only for retrieval.}
+
+\begin{center}
+\begin{tikzpicture}[node distance=4mm]
+  \node[dat] (h) {history: last 6 turns\\(reference utterances)};
+  \node[dat, below=2mm of h] (q) {current user turn $q_t$};
+  \node[llm, right=8mm of h, yshift=-4mm] (rw) {rewriter\\\gen};
+  \node[dat, right=of rw] (qq) {$q'_t$};
+  \node[ret, right=of qq, yshift=4mm] (r) {BM25, bge-small, reranker};
+  \node[kg, right=of qq, yshift=-4mm] (k) {entity linking, fact cosine};
+  \draw[arr] (h) -- (rw); \draw[arr] (q) -- (rw); \draw[arr] (rw) -- (qq); \draw[arr] (qq) -- (r); \draw[arr] (qq) -- (k);
+\end{tikzpicture}
+\end{center}
+
+\begin{itemize}
+\item Example: ``what if im a holder of a junior license?'' $\to$ ``What happens if I plead guilty
+  with a junior license in TVB?''
+\item First turns are not rewritten (3,767 rewrite calls for 4,427 questions).
+\item Details: Appendix~\ref{app:rewrite} (prompt, more examples).
+\end{itemize}
+
+% =====================================================================
+\section{The graph retrieval step (Step 6), plainly (Q11)}\label{sec:step6}
+
+\textbf{The question is linked to 10 graph entities, which give sections (A), facts (B), or facts
+added to the normal passages (E). The graph alone is clearly worse than passages; facts added to
+passages give a small gain on answerable questions that random facts do not give.}
+
+\begin{table}[H]
+\centering\small
+\begin{tabular}{lccc}
+\toprule
+ & \multicolumn{3}{c}{F1 (\%)} \\
+System & all & answerable & unanswerable \\
+\midrule
+LLM only & 15.8 & 15.7 & 18.4 \\
+Step 4 best (passages) & 26.9 & 27.2 & 20.2 \\
+A: graph sections & 23.0 & 22.4 & 32.5 \\
+B: graph facts & 24.1 & 23.8 & 30.6 \\
+E: passages + facts & 27.4 & 27.7 & 20.1 \\
+E-random (control) & 27.4 & 27.2 & 31.9 \\
+Oracle (gold sections) & 35.5 & 36.5 & 15.9 \\
+\midrule
+Step 4 + G2 + abstain(G0) & 27.5 & 27.6 & 25.0 \\
+E + G2 + abstain(G0) & 28.0 & 28.2 & 24.5 \\
+\bottomrule
+\end{tabular}
+\caption{Full validation split (4,427 questions, 226 unanswerable). The last two rows use the
+conversational generator of Section~\ref{sec:conv}. Test split, run once: Step 4 26.9, E 27.5,
+E-random 27.3, B 23.8, LLM only 15.1, oracle 34.2.}
+\label{tab:main}
+\end{table}
+
+\begin{itemize}
+\item Evaluated by linking recall (66.5\%), section Recall@5, F1 with paired bootstrap, the
+  random-facts control, answerable and unanswerable separately.
+\item E vs Step 4: $+0.5$ F1 on answerable questions; E vs E-random: $+0.6$.
+\item Details: Appendix~\ref{app:step6} (Recall@5, abstention, confidence intervals).
+\end{itemize}
+
+% =====================================================================
+\section{Cost (Q12)}\label{sec:cost}
+
+\textbf{The whole project cost EUR 34.56 on Azure (164.6\,M input and 11.6\,M output tokens).
+Per 1,000 conversations: about EUR 2 for Step 4 and EUR 3.5--4.4 for E.}
+
+\begin{itemize}
+\item Per-turn tokens are estimated from the stored prompts and answers; exact recording per call
+  is an open item.
+\item Building the graph once cost about EUR 5--7.
+\item Details: Appendix~\ref{app:cost}.
+\end{itemize}
+
+% =====================================================================
+\section{Conversational generator (new experiment)}\label{sec:conv}
+
+\textbf{Giving the generator the whole conversation (G2) helps on answerable questions ($+0.8$ F1)
+but halves abstention. Taking the abstain decision from the current prompt (G2 + abstain(G0))
+gives the best overall F1 ($+0.6$ to $+0.7$), at twice the input tokens.}
+
+\begin{itemize}
+\item The rewritten query in the prompt (G1, G3) makes results worse.
+\item Cheaper abstention decisions both lose: a yes/no classifier call ($-1.3$ / $-1.0$) and a
+  reranker-score threshold ($-0.6$).
+\item Details: Appendix~\ref{app:conv}.
+\end{itemize}
+
+% =====================================================================
+\section*{Open items}
+\begin{itemize}
+\item Q8, PDF and Overleaf: in progress; this report and the full report are sent as PDF with
+  Overleaf zips, and the template compiles with pdflatex.
+\item Q9, extraction precision with entities and relations evaluated separately on documents
+  annotated by hand: planned.
+\item Q12, exact token usage per call, turn and conversation, and gpt-5-nano as a second
+  generator: in progress (deployment configured, usage recording not yet in the code).
+\item Q13, the source section shown with each answer and whether it is a gold section: planned.
+\item Q14, when the graph helps (by question type) and an oracle router as upper bound: planned.
+\end{itemize}
+
+% =====================================================================
+\clearpage
+\appendix
+\section*{Appendix}
+
+
+\section{Data (Q1)}\label{app:data}
+MultiDoc2Dial has 488 documents from four websites (DMV, SSA, StudentAid, VA), split into 4,114
+sections (heading + text), which are the retrieval unit. Each agent turn is grounded in one or more
+spans of the documents. The excerpt below is from a validation dialogue (DMV domain, 9 user turns),
+turns 5 to 13. The turn ids are the dataset ids (user turns are odd, the reference answer is the
+next agent turn). Turn 5 is unanswerable. The \emph{gold section} is the section that contains the
+grounding span of the reference answer.
+
+\begin{table}[H]
+\centering\scriptsize
+\renewcommand{\arraystretch}{1.15}
+\begin{tabularx}{\linewidth}{@{}p{1.6cm}X@{}}
+\toprule
+\multicolumn{2}{@{}l}{\textbf{Turn 5} (unanswerable). Gold section: \emph{Traffic Violations Bureau -- What To Do If You Receive A Traffic Ticket}}\\
+\midrule
+User & No. \quad (answer to the agent asking whether the ticket was issued in New York City)\\
+Reference & Unfortunately, no relevant information is found.\\
+LLM only & Please contact your local government office or the service provider directly to confirm what help you need, since ``No'' doesn't specify the service or issue. [\ldots] \hfill F1 0.00\\
+Best RAG & If you have a DMV Traffic Violations Bureau ticket issued in the five boroughs of New York City, you can answer most TVB tickets online [\ldots] \hfill F1 0.00\\
+E & Unfortunately, no relevant information is found. \hfill F1 1.00\\
+\midrule
+\multicolumn{2}{@{}l}{\textbf{Turn 9}. Gold section: \emph{Traffic Violations Bureau -- ATTEND YOUR HEARING}}\\
+\midrule
+User & what if i please guilty?\\
+Reference & you will be notified that you must got to the tvb to answer the charge in person.\\
+LLM only & If you plead guilty, the court will enter a guilty finding and proceed to sentencing without a trial [\ldots] \hfill F1 0.23\\
+Best RAG & If you plead guilty to a TVB ticket, you must pay the fine and surcharge, and you can't plead guilty by mail if the conviction would result in a license or registration suspension or revocation. [\ldots] \hfill F1 0.18\\
+E & If you plead guilty, you must pay all fines, fees, and surcharges that result from the plea, and you can only plead guilty by mail if the conviction will not result in a license or registration suspension or revocation. If it would, you will be notified that you must go to the TVB to answer the charge in person. \hfill F1 0.41\\
+\midrule
+\multicolumn{2}{@{}l}{\textbf{Turn 11}. Gold section: \emph{Traffic Violations Bureau -- ATTEND YOUR HEARING}}\\
+\midrule
+User & how do i plead guilty?\\
+Reference & you can easily fill in the request information, sign it and either mail it with your payment to the albany address listed on the ticket or bring your payment to any tvb office :)\\
+LLM only & To plead guilty, you typically enter a guilty plea in court on your scheduled date [\ldots] \hfill F1 0.28\\
+Best RAG & To plead guilty, use the Traffic Ticket Pleas, Hearings and Payments online transaction or read the instructions and check the ``guilty'' box on the back of your ticket, then fill in the requested information, sign it, and mail it with your payment to the Albany address listed on the ticket or bring your payment to any TVB office. \hfill F1 0.62\\
+E & You can plead guilty by using the [\ldots] online transaction, or by [\ldots] checking the ``guilty'' box, filling in the requested information, [\ldots] If your charge could result in a license or registration suspension [\ldots] you must go to the TVB to answer the charge in person. \hfill F1 0.39\\
+\midrule
+\multicolumn{2}{@{}l}{\textbf{Turn 13}. Gold section: \emph{Traffic Violations Bureau -- APPEALS}}\\
+\midrule
+User & what if im a holder of a junior license?\\
+Reference & you can not plead by mail or online. you still must appear for a hearing in a tvb office.\\
+LLM only & If you hold a junior license, you must follow the restrictions and requirements that come with that license while driving [\ldots] \hfill F1 0.17\\
+Best RAG & If you're a holder of a probationary/junior license or learner permit and you're charged with a cell phone/texting violation on or after July 1, 2013, you cannot plead by mail or online and you must appear for a hearing in a TVB office. \hfill F1 0.51\\
+E & If you are a holder of a probationary/junior license or a learner permit, you cannot plead by mail or online. You must appear for a hearing in a TVB office. \hfill F1 0.67\\
+\bottomrule
+\end{tabularx}
+\caption{A validation dialogue (DMV domain, 9 user turns), turns 5--13 (turn 7 left
+out for space). Answers are cut with [\ldots] only where they continue in the same way.
+The dialogue was chosen because it has an unanswerable turn and turns where E and the
+passage pipeline differ, so it is not a random sample: on the full validation split E is only
+0.5 F1 points above the best passage pipeline.}
+\label{tab:example}
+\end{table}
+
+What the example shows:
+\begin{itemize}
+\item Without documents the model gives generic advice (``the court'', ``your country/state'').
+\item In turn 13 both retrieval pipelines find the gold section (rank 1). E's answer is closer to
+  the reference because one graph fact states exactly this rule (fact [5] in
+  Figure~\ref{fig:prompt-real}).
+\item In turn 11 the facts make the answer longer and F1 goes down, although the content is right.
+\item Turn 5 (``No.'') is unanswerable. Best RAG answers from the retrieved sections, E abstains
+  and gets F1 = 1 (Appendix~\ref{app:f1} explains why).
+\end{itemize}
+
+\section{Architectures (Q2)}\label{app:arch}
+All systems use the same generator and, except LLM only, the same generation prompt
+(\texttt{experiments/run\_dev\_subset.py}): instructions, 3
+few-shot examples from the train split, the context, then \texttt{Customer: $q_t$ / Agent:}.
+Two things are common to all diagrams:
+\begin{itemize}
+\item The generation prompt contains only the \emph{current} user turn $q_t$, not the dialogue
+  history. The history is used only by the query rewriter, and the rewritten query $q'_t$ is used
+  only for retrieval.
+\item All systems except LLM only and the oracle start with the same rewrite and use the same
+  $q'_t$ (cached once per split, \texttt{src/kg\_rag/queries.py}).
+\end{itemize}
+
+\paragraph{Known limitation.} In all results except Section~\ref{sec:conv} and Appendix~\ref{app:conv} the generator sees only the current
+user turn $q_t$ and the retrieved context. It sees neither the dialogue history nor the rewritten
+query $q'_t$, so a follow-up such as ``and how do I renew it?'' is answered without knowing what
+``it'' refers to, unless the retrieved sections make it clear. The query rewriter is the only
+component that sees the history, and the history it gets is the gold one (the reference agent
+turns of the dataset, not the system's own earlier answers), which is the standard turn-level
+evaluation protocol of MultiDoc2Dial. A first experiment that gives the generator the rewritten
+query and/or the dialogue, with retrieval unchanged, is in Section~\ref{sec:conv}.
+
+File paths: the generator deployment is set in \texttt{src/llm/client.py}; hybrid retrieval in \texttt{src/rag/hybrid\_retriever.py} (pools are $3\times$ the
+requested depth); the reranker reads the rewritten query and the first 512 tokens of each section;
+graph pipelines in \texttt{src/kg\_rag/run\_qa.py}. In E the sections part of the context is
+checked to be identical to the Step 4 context, so the only difference is the facts block. The
+graph build is described in \texttt{experiments/kg/} (extraction prompt v2.1).
+
+\section{Graph schema (Q3)}\label{app:schema}
+The graph is stored in Neo4j in three layers (Figure~\ref{fig:layers}). The structure layer is
+built from the dataset without an LLM. The mention layer holds what the LLM extracted from each
+section (one call per section or group of short sections, closed schema, JSON output). The entity
+layer is the result of entity resolution: mentions with the same meaning are merged into one
+entity and the relations are lifted to the entities. Retrieval only uses the entity layer, plus
+the section ids stored on each entity and relation.
 
 \begin{table}[H]
 \centering\footnotesize
@@ -426,9 +673,7 @@ given to the model together with the quote.}
 \label{fig:subgraph}
 \end{figure}
 
-% =====================================================================
-\section{How the LLM uses the graph (Q4)}\label{sec:usage}
-
+\section{How the LLM uses the graph (Q4)}\label{app:usage}
 The graph is used in three steps (\texttt{src/kg\_rag/linker.py}, \texttt{retrievers.py}):
 
 \begin{enumerate}
@@ -445,23 +690,6 @@ The graph is used in three steps (\texttt{src/kg\_rag/linker.py}, \texttt{retrie
   agent prompt (Figure~\ref{fig:prompt-layout}). The model never sees the graph structure itself,
   only these text lines.
 \end{enumerate}
-
-\begin{figure}[H]
-\centering
-\begin{tikzpicture}[every node/.style={font=\scriptsize}]
-  \node[prm, minimum width=0.8\linewidth, align=left, text width=0.78\linewidth] (i) {\textbf{Instructions}: ``You are a government services agent. Answer [\ldots] in 1--2 short, plain sentences using only the context below [\ldots] If the context does not contain the answer, reply exactly: Unfortunately, no relevant information is found.''};
-  \node[dat, below=1mm of i, minimum width=0.8\linewidth, align=left, text width=0.78\linewidth] (e) {\textbf{Examples}: 3 fixed Customer/Agent pairs from the train split (DMV, SSA, VA; seed 42)};
-  \node[ret, below=1mm of e, minimum width=0.8\linewidth, align=left, text width=0.78\linewidth] (c) {\textbf{Context}: 5 sections, each as \texttt{[rank] document title --- section heading} + full section text};
-  \node[kg, below=1mm of c, minimum width=0.8\linewidth, align=left, text width=0.78\linewidth] (f) {\textbf{Facts} (E and E-random only): up to 30 lines \texttt{[i] Source (Type) relation Target (Type)} + an indented \texttt{Evidence: "quote" (title --- heading)} line};
-  \node[dat, below=1mm of f, minimum width=0.8\linewidth, align=left, text width=0.78\linewidth] (q) {\texttt{Customer: $q_t$} (the original user turn) / \texttt{Agent:}};
-  \node[right=2mm of c, align=left] {A, C, D, Step 4:\\sections only};
-  \node[right=2mm of f, align=left] {B: this block\\replaces Context};
-\end{tikzpicture}
-\caption{Layout of the generation prompt, top to bottom. LLM only uses a shorter prompt with no
-examples and no context. Average prompt length on validation: Step 4 about 6,400 characters, E
-about 14,900.}
-\label{fig:prompt-layout}
-\end{figure}
 
 \begin{figure}[H]
 \begin{lstlisting}
@@ -506,9 +734,7 @@ loose the 1-hop neighbourhood is.}
 \label{fig:prompt-real}
 \end{figure}
 
-% =====================================================================
-\section{Is the graph used as a reranker signal? (Q5)}\label{sec:rerank}
-
+\section{Graph and reranker (Q5)}\label{app:rerank}
 \textbf{No.} The cross-encoder (bge-reranker-base) only sees pairs (rewritten query, section text).
 No graph feature enters its score. The graph only changes \emph{which sections are given to the
 reranker}:
@@ -528,9 +754,7 @@ combination of the cross-encoder score with the entity-overlap score $\sum w(e)$
 sections that contain the evidence of the top facts) has not been tried. It is a possible next
 experiment, and it would be cheap because all the scores are already computed and cached.
 
-% =====================================================================
-\section{What ``adding graph facts'' means (Q6)}\label{sec:facts}
-
+\section{Graph facts (Q6)}\label{app:facts}
 \begin{itemize}
 \item \textbf{Which facts.} The relations of the entity layer that have a linked entity as source
   or target (the 1-hop neighbourhood of the 10 linked entities). Each relation is one fact.
@@ -557,9 +781,7 @@ experiment, and it would be cheap because all the scores are already computed an
 \end{itemize}
 On validation at least one fact comes from a gold section for 48.8\% of the questions.
 
-% =====================================================================
-\section{What 4,427 counts, and how F1 is computed (Q7)}\label{sec:f1}
-
+\section{Counting and F1 (Q7)}\label{app:f1}
 \needspace{14\baselineskip}
 \paragraph{Counting.} \texttt{src/data/loader.py} pairs every user turn with the agent turn that
 follows it (both non-empty). Each pair is one \emph{question}: the user utterance is the question,
@@ -622,21 +844,7 @@ EM and SacreBLEU. Here:
   MultiDoc2Dial evaluation script, so the numbers are not directly comparable with the paper.
 \end{itemize}
 
-% =====================================================================
-\section{Query rewriting (Q10)}\label{sec:rewrite}
-
-\begin{center}
-\begin{tikzpicture}[node distance=4mm]
-  \node[dat] (h) {history: last 6 turns\\(reference utterances)};
-  \node[dat, below=2mm of h] (q) {current user turn $q_t$};
-  \node[llm, right=8mm of h, yshift=-4mm] (rw) {rewriter\\\gen};
-  \node[dat, right=of rw] (qq) {$q'_t$};
-  \node[ret, right=of qq, yshift=4mm] (r) {BM25, bge-small, reranker};
-  \node[kg, right=of qq, yshift=-4mm] (k) {entity linking, fact cosine};
-  \draw[arr] (h) -- (rw); \draw[arr] (q) -- (rw); \draw[arr] (rw) -- (qq); \draw[arr] (qq) -- (r); \draw[arr] (qq) -- (k);
-\end{tikzpicture}
-\end{center}
-
+\section{Query rewriting (Q10)}\label{app:rewrite}
 \begin{itemize}
 \item \textbf{Model}: the same deployment as the generator (\gen, default settings).
 \item \textbf{Input}: the last 6 turns of the history (so normally 3
@@ -647,7 +855,7 @@ EM and SacreBLEU. Here:
   rewritten (660 of 4,427 on validation, so 3,767 rewrite calls).
 \item \textbf{Where the output goes}: only into retrieval (BM25, dense, reranker, entity linking,
   fact ranking). The generation prompt gets the original $q_t$ only, without the history and
-  without $q'_t$ (the known limitation of Section~\ref{sec:arch}).
+  without $q'_t$ (the known limitation of Appendix~\ref{app:arch}).
 \end{itemize}
 
 \begin{lstlisting}
@@ -688,16 +896,14 @@ Turns 13 and 9 are good rewrites (the typo ``please'' is also fixed). Turn 5 sho
 a short reply like ``No.'' becomes a full query about the previous topic, retrieval then finds
 relevant-looking sections and the model answers instead of abstaining.
 
-% =====================================================================
-\section{The graph retrieval step (Step 6), plainly (Q11)}\label{sec:step6}
-
+\section{Graph retrieval step (Q11)}\label{app:step6}
 \paragraph{What is retrieved.} For each question: 10 graph entities that match the rewritten
 query; from them either sections of the corpus (A) or facts of the graph with their evidence
 quotes (B), or the facts added to the normal passage context (E).
 
 \paragraph{How.} Linking by name similarity (BM25 + embeddings), sections by the weighted count of
 linked entities they mention, facts by link weight and query similarity
-(Section~\ref{sec:usage}). Nothing is trained; all parameters (10 entities, 30 facts, pools of 50)
+(Appendix~\ref{app:usage}). Nothing is trained; all parameters (10 entities, 30 facts, pools of 50)
 were fixed before the runs.
 
 \paragraph{How it is evaluated.}
@@ -710,7 +916,7 @@ were fixed before the runs.
 \item \textbf{Random-facts control} (E-random): checks whether a gain of E comes from the content
   of the facts or only from a longer context.
 \item \textbf{Answerable vs unanswerable} reported separately, because abstaining on the 226
-  unanswerable questions changes the overall F1 a lot (Section~\ref{sec:f1}).
+  unanswerable questions changes the overall F1 a lot (Appendix~\ref{app:f1}).
 \end{itemize}
 
 \begin{table}[H]
@@ -742,9 +948,7 @@ many sections a typical question links to (A's top 50 contains the gold section 
 development questions, its top 5 only for 34.6\%). Facts added to good passages give a small gain
 on answerable questions that random facts do not give.
 
-% =====================================================================
-\section{Cost (Q12)}\label{sec:cost}
-
+\section{Cost (Q12)}\label{app:cost}
 Token usage of the generation and rewrite calls was \emph{not recorded}: the cache stores the
 prompt and the answer text, not the usage. The numbers below are therefore estimates, made by
 tokenising the stored prompts, answers and rewrite prompts with the \texttt{o200k\_base} tokenizer
@@ -831,10 +1035,8 @@ time. With the derived prices this is EUR 5.1 ($r=1$) to EUR 7.2 ($r=8$), about 
 project total. For comparison, answering the whole validation split once with E takes about
 14.6\,M input and 0.3\,M output tokens, EUR 2.3--2.9.
 
-% =====================================================================
-\section{Conversational generator (new experiment)}\label{sec:conv}
-
-To address the limitation of Section~\ref{sec:arch}, four generator inputs were compared on the
+\section{Conversational generator}\label{app:conv}
+To address the limitation described in Appendix~\ref{app:arch}, four generator inputs were compared on the
 full validation split with retrieval unchanged (same five sections, and the same facts for E);
 only the end of the generation prompt changes (\texttt{experiments/generator\_input.py}):
 \begin{itemize}
@@ -903,19 +1105,5 @@ reranker score chosen on dev-500 (0.303). Both lose against G2 + abstain(G0): th
 1.3 F1 for Step 4 and 1.0 for E, because it says no on about 20\% of the turns and refuses
 18--20\% of the answerable questions; the threshold by 0.6 for both, because it abstains on only
 3\% of the turns. G2 + abstain(G0) therefore stays the best combination.
-
-% =====================================================================
-\section*{Open items}
-\addcontentsline{toc}{section}{Open items}
-\begin{itemize}
-\item Q8, PDF and Overleaf: in progress; this report and the full report are sent as PDF with
-  Overleaf zips, and the template compiles with pdflatex.
-\item Q9, extraction precision with entities and relations evaluated separately on documents
-  annotated by hand: planned.
-\item Q12, exact token usage per call, turn and conversation, and gpt-5-nano as a second
-  generator: in progress (deployment configured, usage recording not yet in the code).
-\item Q13, the source section shown with each answer and whether it is a gold section: planned.
-\item Q14, when the graph helps (by question type) and an oracle router as upper bound: planned.
-\end{itemize}
 
 \end{document}
