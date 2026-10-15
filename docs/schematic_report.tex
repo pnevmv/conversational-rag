@@ -833,7 +833,9 @@ only the end of the generation prompt changes (\texttt{experiments/generator\_in
 \item G1: the rewritten query instead of the user turn;
 \item G2: the gold dialogue history under a \texttt{Conversation so far:} header, then the user
   turn. The history length $k$ was chosen on dev-500 among 2, 4 and all turns; all turns was best
-  by 0.1 F1 and was kept;
+  by 0.1 F1 and was kept. So in G2 (and G3) the generator sees the \emph{whole conversation} up to
+  the current turn: every earlier user and agent turn, where the agent turns are the reference
+  answers of the dataset (gold history), not the system's own earlier answers;
 \item G3: G2 plus the rewritten query after the user turn.
 \end{itemize}
 G1 and G3 are worse than G0 (about $-1.5$ and $-0.5$ F1). G2, called the \emph{conversational
