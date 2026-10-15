@@ -15,6 +15,7 @@
 \usepackage{listings}
 \usepackage{caption}
 \usepackage{float}
+\usepackage{needspace}
 \usepackage{enumitem}
 \usepackage{hyperref}
 \hypersetup{colorlinks=true,linkcolor=black,urlcolor=black}
@@ -92,8 +93,8 @@ Responses API, deployment set in \texttt{src/llm/client.py}).}
 
 MultiDoc2Dial has 488 documents from four websites (DMV, SSA, StudentAid, VA), split into 4,114
 sections (heading + text), which are the retrieval unit. Each agent turn is grounded in one or more
-spans of the documents. The excerpt below is dialogue \texttt{e0a50eea\ldots} of the validation
-split (DMV domain, 9 query turns), turns 5 to 13. The turn ids are the dataset ids (user turns are
+spans of the documents. The excerpt below is from a validation dialogue (DMV domain, 9 user turns),
+turns 5 to 13. The turn ids are the dataset ids (user turns are
 odd, the reference answer is the next agent turn). Turn 5 is unanswerable.
 
 The \emph{gold section} is the section that contains the grounding span of the reference answer.
@@ -101,12 +102,12 @@ The \emph{gold section} is the section that contains the grounding span of the r
 \sys{E} is the same pipeline plus graph facts. F1 is token F1 against the reference
 (Section~\ref{sec:f1}).
 
-\begin{table}[htbp]
+\begin{table}[H]
 \centering\footnotesize
 \renewcommand{\arraystretch}{1.15}
 \begin{tabularx}{\linewidth}{@{}p{1.6cm}X@{}}
 \toprule
-\multicolumn{2}{@{}l}{\textbf{Turn 5} (unanswerable). Gold section: \emph{Traffic Violations Bureau\#3 -- What To Do If You Receive A Traffic Ticket}}\\
+\multicolumn{2}{@{}l}{\textbf{Turn 5} (unanswerable). Gold section: \emph{Traffic Violations Bureau -- What To Do If You Receive A Traffic Ticket}}\\
 \midrule
 User & No. \quad (answer to the agent asking whether the ticket was issued in New York City)\\
 Reference & Unfortunately, no relevant information is found.\\
@@ -114,7 +115,7 @@ LLM only & Please contact your local government office or the service provider d
 Best RAG & If you have a DMV Traffic Violations Bureau ticket issued in the five boroughs of New York City, you can answer most TVB tickets online [\ldots] \hfill F1 0.00\\
 E & Unfortunately, no relevant information is found. \hfill F1 1.00\\
 \midrule
-\multicolumn{2}{@{}l}{\textbf{Turn 9}. Gold section: \emph{Traffic Violations Bureau\#3 -- ATTEND YOUR HEARING}}\\
+\multicolumn{2}{@{}l}{\textbf{Turn 9}. Gold section: \emph{Traffic Violations Bureau -- ATTEND YOUR HEARING}}\\
 \midrule
 User & what if i please guilty?\\
 Reference & you will be notified that you must got to the tvb to answer the charge in person.\\
@@ -122,7 +123,7 @@ LLM only & If you plead guilty, the court will enter a guilty finding and procee
 Best RAG & If you plead guilty to a TVB ticket, you must pay the fine and surcharge, and you can't plead guilty by mail if the conviction would result in a license or registration suspension or revocation. [\ldots] \hfill F1 0.18\\
 E & If you plead guilty, you must pay all fines, fees, and surcharges that result from the plea, and you can only plead guilty by mail if the conviction will not result in a license or registration suspension or revocation. If it would, you will be notified that you must go to the TVB to answer the charge in person. \hfill F1 0.41\\
 \midrule
-\multicolumn{2}{@{}l}{\textbf{Turn 11}. Gold section: \emph{Traffic Violations Bureau\#3 -- ATTEND YOUR HEARING}}\\
+\multicolumn{2}{@{}l}{\textbf{Turn 11}. Gold section: \emph{Traffic Violations Bureau -- ATTEND YOUR HEARING}}\\
 \midrule
 User & how do i plead guilty?\\
 Reference & you can easily fill in the request information, sign it and either mail it with your payment to the albany address listed on the ticket or bring your payment to any tvb office :)\\
@@ -130,7 +131,7 @@ LLM only & To plead guilty, you typically enter a guilty plea in court on your s
 Best RAG & To plead guilty, use the Traffic Ticket Pleas, Hearings and Payments online transaction or read the instructions and check the ``guilty'' box on the back of your ticket, then fill in the requested information, sign it, and mail it with your payment to the Albany address listed on the ticket or bring your payment to any TVB office. \hfill F1 0.62\\
 E & You can plead guilty by using the [\ldots] online transaction, or by [\ldots] checking the ``guilty'' box, filling in the requested information, [\ldots] If your charge could result in a license or registration suspension [\ldots] you must go to the TVB to answer the charge in person. \hfill F1 0.39\\
 \midrule
-\multicolumn{2}{@{}l}{\textbf{Turn 13}. Gold section: \emph{Traffic Violations Bureau\#3 -- APPEALS}}\\
+\multicolumn{2}{@{}l}{\textbf{Turn 13}. Gold section: \emph{Traffic Violations Bureau -- APPEALS}}\\
 \midrule
 User & what if im a holder of a junior license?\\
 Reference & you can not plead by mail or online. you still must appear for a hearing in a tvb office.\\
@@ -139,7 +140,7 @@ Best RAG & If you're a holder of a probationary/junior license or learner permit
 E & If you are a holder of a probationary/junior license or a learner permit, you cannot plead by mail or online. You must appear for a hearing in a TVB office. \hfill F1 0.67\\
 \bottomrule
 \end{tabularx}
-\caption{Validation dialogue \texttt{e0a50eea76d8e6f19f09fd33ccb65aef}, turns 5--13 (turn 7 left
+\caption{A validation dialogue (DMV domain, 9 user turns), turns 5--13 (turn 7 left
 out for space). Answers are cut with [\ldots] only where they continue in the same way.
 The dialogue was chosen because it has an unanswerable turn and turns where E and the
 passage pipeline differ, so it is not a random sample: on the full validation split E is only
@@ -182,7 +183,7 @@ turns of the dataset, not the system's own earlier answers), which is the standa
 evaluation protocol of MultiDoc2Dial. A first experiment that gives the generator the rewritten
 query and/or the dialogue, with retrieval unchanged, is in Section~\ref{sec:conv}.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \textbf{(a) LLM only}\\[2pt]
 \begin{tikzpicture}[node distance=5mm]
@@ -252,7 +253,7 @@ tokens of each section. All graph pipelines use the rewritten query from (c).}
 \label{fig:arch1}
 \end{figure}
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \textbf{(f) C: hybrid, graph and passages fused before the reranker}\\[2pt]
 \begin{tikzpicture}[node distance=4mm]
@@ -313,7 +314,7 @@ layer is the result of entity resolution: mentions with the same meaning are mer
 entity and the relations are lifted to the entities. Retrieval only uses the entity layer, plus
 the section ids stored on each entity and relation.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \begin{tikzpicture}
   \node[dat, minimum width=17mm] (dom) at (-0.6,0) {Domain\\4};
@@ -346,7 +347,7 @@ passage index, so a retrieved section and a graph section are the same object.}
 \label{fig:layers}
 \end{figure}
 
-\begin{table}[htbp]
+\begin{table}[H]
 \centering\footnotesize
 \begin{tabularx}{\linewidth}{@{}lXl@{}}
 \toprule
@@ -391,7 +392,7 @@ relations broke these rules and were not loaded.}
 \label{tab:schema}
 \end{table}
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \begin{tikzpicture}[every node/.style={font=\scriptsize}]
   \node[kg, minimum width=26mm] (fa) at (0,0) {filing an appeal\\\textit{Service}};
@@ -416,7 +417,7 @@ relations broke these rules and were not loaded.}
   \node[dat, font=\tiny] at (0,-5.5) {evidence: ``you cannot plead by mail or online''};
 \end{tikzpicture}
 \caption{Real subgraph: the relations whose evidence comes from section \emph{Traffic Violations
-Bureau\#3 -- APPEALS} (the gold section of turn 13 in Table~\ref{tab:example}); 9 of the 20
+Bureau -- APPEALS} (the gold section of turn 13 in Table~\ref{tab:example}); 9 of the 20
 relations attached to that section are shown. Two of them show typical extraction noise: ``filing an
 appeal REQUIRES appeal must be filed'' is circular, and the junior-licence rule is stored as
 EXEMPT\_FROM although the text says the opposite (these drivers \emph{cannot} plead by mail or
@@ -445,7 +446,7 @@ The graph is used in three steps (\texttt{src/kg\_rag/linker.py}, \texttt{retrie
   only these text lines.
 \end{enumerate}
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \begin{tikzpicture}[every node/.style={font=\scriptsize}]
   \node[prm, minimum width=0.8\linewidth, align=left, text width=0.78\linewidth] (i) {\textbf{Instructions}: ``You are a government services agent. Answer [\ldots] in 1--2 short, plain sentences using only the context below [\ldots] If the context does not contain the answer, reply exactly: Unfortunately, no relevant information is found.''};
@@ -462,7 +463,7 @@ about 14,900.}
 \label{fig:prompt-layout}
 \end{figure}
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \begin{lstlisting}
 [...instructions and 3 examples...]
 
@@ -541,11 +542,11 @@ experiment, and it would be cheap because all the scores are already computed an
 \item \textbf{Format.} One line per fact, then the first evidence quote on an indented line:
 \begin{lstlisting}[frame=none,backgroundcolor=\color{white}]
 [5] probationary / junior license or learner permit (Role) exempt from plead by mail or online (Service)
-    Evidence: "you cannot plead by mail or online" (Traffic Violations Bureau#3 — APPEALS)
+    Evidence: "you cannot plead by mail or online" (Traffic Violations Bureau — APPEALS)
 \end{lstlisting}
   The relation name is lowercased with spaces. Type and, if different from the name, the value of
   each entity are in brackets. The source of the evidence is printed as document title and
-  section heading; the internal section id (e.g.\ \texttt{Traffic Violations Bureau\#3\_0::85}) is
+  section heading; the internal section id is
   stored with the fact but \emph{not} printed in the prompt (\texttt{src/kg\_rag/retrievers.py}).
 \item \textbf{Position.} After the 5 sections, under a separate \texttt{Facts:} header, and before
   the customer turn (Figure~\ref{fig:prompt-layout}). The instructions are not changed, so the
@@ -559,6 +560,7 @@ On validation at least one fact comes from a gold section for 48.8\% of the ques
 % =====================================================================
 \section{What 4,427 counts, and how F1 is computed (Q7)}\label{sec:f1}
 
+\needspace{14\baselineskip}
 \paragraph{Counting.} \texttt{src/data/loader.py} pairs every user turn with the agent turn that
 follows it (both non-empty). Each pair is one \emph{question}: the user utterance is the question,
 the agent utterance is the reference, and all earlier turns are the history. So 4,427 is the
@@ -711,7 +713,7 @@ were fixed before the runs.
   unanswerable questions changes the overall F1 a lot (Section~\ref{sec:f1}).
 \end{itemize}
 
-\begin{table}[htbp]
+\begin{table}[H]
 \centering\small
 \begin{tabular}{lcccccc}
 \toprule
@@ -755,7 +757,7 @@ tokenising the stored prompts, answers and rewrite prompts with the \texttt{o200
 \end{itemize}
 Exact recording per call, per turn and per conversation is not in the code yet.
 
-\begin{table}[htbp]
+\begin{table}[H]
 \centering\small
 \begin{tabular}{lcrrrr}
 \toprule
@@ -792,7 +794,7 @@ input and EUR 1.075 output. Table~\ref{tab:cost} gives the cost per 1,000 conver
 ends of this range. Since the bill includes the reasoning tokens, the derived prices already
 account for them, while the token estimates of Table~\ref{tab:tokens} do not.
 
-\begin{table}[htbp]
+\begin{table}[H]
 \centering\small
 \begin{tabular}{lrr}
 \toprule
@@ -850,7 +852,7 @@ generator} from here on, is the only useful variant: it gains on answerable ques
 turns that cannot be understood alone (user replies ``yes'' to a question of the agent: $+3.7$
 F1 for Step 4, $+3.2$ for E).
 
-\begin{table}[htbp]
+\begin{table}[H]
 \centering\small
 \begin{tabular}{llccccc}
 \toprule
