@@ -588,8 +588,9 @@ abstention metrics). Because the prompt asks for exactly the dataset's refusal s
 So abstaining is strongly rewarded on 5\% of the questions. This is why F1 is always reported
 also on answerable questions only, together with abstain recall and the false-abstention rate.
 
-\paragraph{EM and SacreBLEU.} The original MultiDoc2Dial paper evaluates agent-response
-generation with token F1 and SacreBLEU, and grounding-span prediction with EM and F1. Here:
+\paragraph{EM and SacreBLEU.} The MultiDoc2Dial paper (Feng et al., 2021, Sec.~4.4.1) evaluates
+the generated text of both tasks (grounding generation and response generation) with token F1,
+EM and SacreBLEU. Here:
 \begin{itemize}
 \item \textbf{EM} (exact match after the same normalisation) is implemented in
   \texttt{compute\_metrics} and was printed in the first LLM-only runs, but it is not in the main
@@ -597,7 +598,7 @@ generation with token F1 and SacreBLEU, and grounding-span prediction with EM an
   all of it comes from abstentions on unanswerable questions (EM on answerable questions:
   0.00\% LLM only, 0.02\% Step 4, 0.05\% E, 0.29\% oracle). With free-form answers EM does not
   separate the systems.
-\item \textbf{SacreBLEU} is not computed anywhere in the code, so it is not reported.
+\item \textbf{SacreBLEU} is not implemented in the code, so no BLEU numbers are reported.
 \item The F1 here follows the SQuAD normalisation above; it was not checked against the official
   MultiDoc2Dial evaluation script, so the numbers are not directly comparable with the paper.
 \end{itemize}
@@ -735,7 +736,7 @@ tokenising the stored prompts, answers and rewrite prompts with the \texttt{o200
 \item C and D exist only on the 500-question subset, so their per-conversation values are the
   per-turn value times 6.70.
 \end{itemize}
-Exact recording per call, per turn and per conversation is the first item of Part 2.
+Exact recording per call, per turn and per conversation is not in the code yet.
 
 \begin{table}[H]
 \centering\small
@@ -761,45 +762,54 @@ tokens. E doubles the input of Step 4 because of the 30 facts with their quotes.
 \label{tab:tokens}
 \end{table}
 
-\paragraph{Extrapolation to other models.} With prices $p_\text{in}$ and $p_\text{out}$ in \$ per
-million tokens, the cost of one conversation is
+\paragraph{Actual cost of \gen.} The Azure bill for the whole project is EUR 34.56 for
+164.62\,M input and 11.56\,M output tokens. This covers every call made with the deployment: the
+graph build and its pilots, all runs on the development subset, validation and test, and the
+rewrites. The bill gives one total, not separate input and output prices, so the price per token
+is derived from it under an assumption on the ratio $r = p_\text{out}/p_\text{in}$:
 \[
-  C = \frac{T_\text{in}\, p_\text{in} + T_\text{out}\, p_\text{out}}{10^6},
+  p_\text{in} = \frac{34.56}{164.62 + 11.56\,r}\ \text{EUR per 1M tokens}, \qquad p_\text{out} = r\,p_\text{in}.
 \]
-assuming a larger model writes answers of similar length (it is told to answer in 1--2
-sentences). Table~\ref{tab:cost} evaluates this for four price levels. The levels are
-parameters chosen to span the range of small to large hosted models; they are not the price of
-any specific deployment, and the actual price list should be put in their place.
+With $r = 1$ (one blended rate) this is EUR 0.196 per 1M tokens; with $r = 8$ it is EUR 0.134
+input and EUR 1.075 output. Table~\ref{tab:cost} gives the cost per 1,000 conversations for both
+ends of this range. Since the bill includes the reasoning tokens, the derived prices already
+account for them, while the token estimates of Table~\ref{tab:tokens} do not.
 
 \begin{table}[H]
 \centering\small
-\begin{tabular}{lrrrr}
+\begin{tabular}{lrr}
 \toprule
-$p_\text{in}$ / $p_\text{out}$ (\$ per 1M tokens) & 0.10 / 0.40 & 0.50 / 2.00 & 2.50 / 10.00 & 10.00 / 40.00 \\
+EUR per 1,000 conversations & $r = 1$ & $r = 8$ \\
 \midrule
-LLM only & 0.18 & 0.90 & 4.48 & 17.91 \\
-Oracle & 0.44 & 2.19 & 10.94 & 43.75 \\
-Passage RAG (Step 4 best) & 1.18 & 5.90 & 29.50 & 118.00 \\
-A: graph sections & 1.32 & 6.62 & 33.10 & 132.38 \\
-B: graph facts & 1.65 & 8.27 & 41.37 & 165.47 \\
-C: hybrid & 1.22 & 6.10 & 30.51 & 122.04 \\
-D: graph + reranker & 1.27 & 6.34 & 31.71 & 126.83 \\
-E: Step 4 + facts & 2.38 & 11.92 & 59.59 & 238.36 \\
-E-random & 2.40 & 12.02 & 60.10 & 240.38 \\
+LLM only & 0.15 & 0.42 \\
+Oracle & 0.66 & 0.77 \\
+Passage RAG (Step 4 best) & 2.04 & 1.83 \\
+A: graph sections & 2.34 & 2.01 \\
+B: graph facts & 3.02 & 2.43 \\
+C: hybrid & 2.12 & 1.89 \\
+D: graph + reranker & 2.22 & 1.95 \\
+E: Step 4 + facts & 4.41 & 3.45 \\
+E-random & 4.45 & 3.47 \\
 \bottomrule
 \end{tabular}
-\caption{Estimated cost in \$ per 1,000 conversations (6.70 turns each). Input is 95--98\% of the
-tokens of the RAG systems and, even with output four times as expensive, 84--92\% of their cost,
-so the input price matters most. E costs about twice as much as Step 4
-for $+0.5$ F1 on validation.}
+\caption{Cost of \gen{} per 1,000 conversations (6.70 turns each), from the token estimates of
+Table~\ref{tab:tokens} and the prices derived from the Azure bill. Input is 95--98\% of the
+tokens of the RAG systems, so the result depends little on $r$. E costs about twice as much as
+Step 4 for $+0.5$ F1 on validation.}
 \label{tab:cost}
 \end{table}
+
+\paragraph{Larger models.} No prices of other models are used here. For any model with published
+prices $p_\text{in}$ and $p_\text{out}$, the cost of one conversation is
+$(T_\text{in}\,p_\text{in} + T_\text{out}\,p_\text{out})/10^6$ with the token counts of
+Table~\ref{tab:tokens}, assuming the model writes answers of similar length (it is told to answer
+in 1--2 sentences) and ignoring reasoning tokens.
 
 \paragraph{One-off cost of the graph.} Building the graph was recorded exactly: 12,970 LLM calls
 (3,559 extraction calls including retries, 9,411 entity-resolution calls), 22.21\,M input and
 3.93\,M output tokens, no reasoning tokens (reasoning effort \texttt{none}), about one hour of run
-time. At the four price levels above this is about \$3.8, \$19, \$95 and \$380. For comparison,
-answering the whole validation split once with E takes about 14.6\,M input and 0.3\,M output
-tokens.
+time. With the derived prices this is EUR 5.1 ($r=1$) to EUR 7.2 ($r=8$), about 15--21\% of the
+project total. For comparison, answering the whole validation split once with E takes about
+14.6\,M input and 0.3\,M output tokens, EUR 2.3--2.9.
 
 \end{document}
