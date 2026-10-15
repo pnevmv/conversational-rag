@@ -23,6 +23,12 @@
 \captionsetup{font=small,labelfont=bf}
 \setlength{\parskip}{3pt}
 \setlength{\emergencystretch}{3em}
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\bottomfraction}{0.8}
+\renewcommand{\textfraction}{0.07}
+\renewcommand{\floatpagefraction}{0.85}
+\setcounter{topnumber}{3}
+\setcounter{totalnumber}{5}
 
 % Colours (RGB only)
 \definecolor{llmc}{RGB}{250,222,190}
@@ -66,13 +72,7 @@
 \begin{document}
 \maketitle
 
-\noindent This report answers the questions about the project in order, with figures first and
-short text. All facts were checked against the code in the repository (file names are given in
-\texttt{typewriter}); all examples are real outputs on the validation split. The numbering of
-the sections follows the numbering of the questions.
-
-\begin{figure}[H]
-\centering
+\begin{center}
 \begin{tikzpicture}[node distance=3mm]
   \node[box, fill=llmc] (a) {LLM call};
   \node[box, fill=retc, right=of a] (b) {passage retrieval / reranking};
@@ -80,14 +80,15 @@ the sections follows the numbering of the questions.
   \node[box, fill=datc, rounded corners=0pt, right=of c] (d) {data};
   \node[box, fill=promptc, rounded corners=0pt, right=of d] (e) {generation prompt};
 \end{tikzpicture}
-\caption*{Colour legend used in all diagrams. The generator is always \gen{} (Azure OpenAI
+\\[2pt]
+{\small Colour legend used in all diagrams. The generator is always \gen{} (Azure OpenAI
 Responses API, deployment set in \texttt{src/llm/client.py}).}
-\end{figure}
+\end{center}
 
 \tableofcontents
 
 % =====================================================================
-\section{Data: one real conversation}\label{sec:data}
+\section{Data: one real conversation (Q1)}\label{sec:data}
 
 MultiDoc2Dial has 488 documents from four websites (DMV, SSA, StudentAid, VA), split into 4,114
 sections (heading + text), which are the retrieval unit. Each agent turn is grounded in one or more
@@ -100,7 +101,7 @@ The \emph{gold section} is the section that contains the grounding span of the r
 \sys{E} is the same pipeline plus graph facts. F1 is token F1 against the reference
 (Section~\ref{sec:f1}).
 
-\begin{table}[H]
+\begin{table}[htbp]
 \centering\footnotesize
 \renewcommand{\arraystretch}{1.15}
 \begin{tabularx}{\linewidth}{@{}p{1.6cm}X@{}}
@@ -158,10 +159,10 @@ What the example shows:
 \end{itemize}
 
 % =====================================================================
-\section{Architectures}\label{sec:arch}
+\section{Architectures (Q2)}\label{sec:arch}
 
 All systems use the same generator and, except LLM only, the same generation prompt
-(\texttt{\_build\_agent\_prompt} in \texttt{experiments/run\_dev\_subset.py}): instructions, 3
+(\texttt{experiments/run\_dev\_subset.py}): instructions, 3
 few-shot examples from the train split, the context, then \texttt{Customer: $q_t$ / Agent:}.
 Two things are common to all diagrams:
 \begin{itemize}
@@ -172,7 +173,7 @@ Two things are common to all diagrams:
   $q'_t$ (cached once per split, \texttt{src/kg\_rag/queries.py}).
 \end{itemize}
 
-\paragraph{Known limitation.} In all results of this report the generator sees only the current
+\paragraph{Known limitation.} In all results except Section~\ref{sec:conv} the generator sees only the current
 user turn $q_t$ and the retrieved context. It sees neither the dialogue history nor the rewritten
 query $q'_t$, so a follow-up such as ``and how do I renew it?'' is answered without knowing what
 ``it'' refers to, unless the retrieved sections make it clear. The query rewriter is the only
@@ -181,7 +182,7 @@ turns of the dataset, not the system's own earlier answers), which is the standa
 evaluation protocol of MultiDoc2Dial. A first experiment that gives the generator the rewritten
 query and/or the dialogue, with retrieval unchanged, is in Section~\ref{sec:conv}.
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \textbf{(a) LLM only}\\[2pt]
 \begin{tikzpicture}[node distance=5mm]
@@ -192,7 +193,7 @@ query and/or the dialogue, with retrieval unchanged, is in Section~\ref{sec:conv
   \draw[arr] (q) -- (p); \draw[arr] (p) -- (g); \draw[arr] (g) -- (a);
 \end{tikzpicture}
 
-\vspace{4mm}\textbf{(b) Oracle}\\[2pt]
+\vspace{2mm}\textbf{(b) Oracle}\\[2pt]
 \begin{tikzpicture}[node distance=5mm]
   \node[dat] (q) {user turn $q_t$};
   \node[dat, below=3mm of q] (gs) {gold sections\\(from the annotation)};
@@ -202,7 +203,7 @@ query and/or the dialogue, with retrieval unchanged, is in Section~\ref{sec:conv
   \draw[arr] (q) -- (p); \draw[arr] (gs) -- (p); \draw[arr] (p) -- (g); \draw[arr] (g) -- (a);
 \end{tikzpicture}
 
-\vspace{4mm}\textbf{(c) Passage RAG, best pipeline (``Step 4 best'')}\\[2pt]
+\vspace{2mm}\textbf{(c) Passage RAG, best pipeline (``Step 4 best'')}\\[2pt]
 \begin{tikzpicture}[node distance=4mm]
   \node[dat] (h) {last 6 turns\\+ $q_t$};
   \node[llm, right=of h] (rw) {rewriter\\\gen};
@@ -220,7 +221,7 @@ query and/or the dialogue, with retrieval unchanged, is in Section~\ref{sec:conv
   \draw[arr] (rr) -- (p); \draw[arr] (p) -- (g); \draw[arr] (g) -- (a);
 \end{tikzpicture}
 
-\vspace{4mm}\textbf{(d) A: graph $\to$ sections}\\[2pt]
+\vspace{2mm}\textbf{(d) A: graph $\to$ sections}\\[2pt]
 \begin{tikzpicture}[node distance=4mm]
   \node[dat] (qq) {$q'_t$};
   \node[kg, right=of qq] (lk) {entity linker\\BM25 + bge-small\\over entity names, RRF\\top 10 entities};
@@ -228,10 +229,12 @@ query and/or the dialogue, with retrieval unchanged, is in Section~\ref{sec:conv
   \node[kg, right=of w] (s) {section score\\$\sum w(e)$ of the linked\\entities it mentions\\top 5 sections};
   \node[prm, right=of s] (p) {agent prompt\\5 sections + $q_t$};
   \node[llm, below=5mm of p] (g) {\gen};
+  \node[dat, left=of g] (an) {answer};
   \draw[arr] (qq) -- (lk); \draw[arr] (lk) -- (w); \draw[arr] (w) -- (s); \draw[arr] (s) -- (p); \draw[arr] (p) -- (g);
+  \draw[arr] (g) -- (an);
 \end{tikzpicture}
 
-\vspace{4mm}\textbf{(e) B: graph facts only}\\[2pt]
+\vspace{2mm}\textbf{(e) B: graph facts only}\\[2pt]
 \begin{tikzpicture}[node distance=4mm]
   \node[dat] (qq) {$q'_t$};
   \node[kg, right=of qq] (lk) {entity linker\\top 10 entities};
@@ -239,6 +242,8 @@ query and/or the dialogue, with retrieval unchanged, is in Section~\ref{sec:conv
   \node[kg, right=of adj] (rk) {rank by RRF of\\link weight and\\$\cos(q'_t,\text{fact})$\\top 30 facts};
   \node[prm, right=of rk] (p) {agent prompt\\30 facts + $q_t$\\(no sections)};
   \node[llm, below=5mm of p] (g) {\gen};
+  \node[dat, left=of g] (an) {answer};
+  \draw[arr] (g) -- (an);
   \draw[arr] (qq) -- (lk); \draw[arr] (lk) -- (adj); \draw[arr] (adj) -- (rk); \draw[arr] (rk) -- (p); \draw[arr] (p) -- (g);
 \end{tikzpicture}
 \caption{Architectures, part 1. Hybrid pools are $3\times$ the requested depth
@@ -247,7 +252,7 @@ tokens of each section. All graph pipelines use the rewritten query from (c).}
 \label{fig:arch1}
 \end{figure}
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \textbf{(f) C: hybrid, graph and passages fused before the reranker}\\[2pt]
 \begin{tikzpicture}[node distance=4mm]
@@ -258,11 +263,14 @@ tokens of each section. All graph pipelines use the rewritten query from (c).}
   \node[ret, right=6mm of a, yshift=-7mm] (rrf) {RRF\\top 50};
   \node[ret, right=of rrf] (rr) {bge-reranker\\top 5};
   \node[prm, right=of rr] (p) {prompt\\5 sections + $q_t$};
+  \node[llm, below=5mm of p] (g) {\gen};
+  \node[dat, left=of g] (an) {answer};
+  \draw[arr] (p) -- (g); \draw[arr] (g) -- (an);
   \draw[arr] (qq) -- (lk); \draw[arr] (lk) -- (a); \draw[arr] (qq) |- (s4);
   \draw[arr] (a) -- (rrf); \draw[arr] (s4) -| (rrf); \draw[arr] (rrf) -- (rr); \draw[arr] (rr) -- (p);
 \end{tikzpicture}
 
-\vspace{4mm}\textbf{(g) D: graph as candidate generator for the reranker}\\[2pt]
+\vspace{2mm}\textbf{(g) D: graph as candidate generator for the reranker}\\[2pt]
 \begin{tikzpicture}[node distance=4mm]
   \node[dat] (qq) {$q'_t$};
   \node[kg, right=of qq] (lk) {linker\\top 10};
@@ -270,10 +278,12 @@ tokens of each section. All graph pipelines use the rewritten query from (c).}
   \node[ret, right=of a] (rr) {bge-reranker\\top 5};
   \node[prm, right=of rr] (p) {prompt\\5 sections + $q_t$};
   \node[llm, right=of p] (g) {\gen};
+  \node[dat, right=of g] (an) {answer};
+  \draw[arr] (g) -- (an);
   \draw[arr] (qq) -- (lk); \draw[arr] (lk) -- (a); \draw[arr] (a) -- (rr); \draw[arr] (rr) -- (p); \draw[arr] (p) -- (g);
 \end{tikzpicture}
 
-\vspace{4mm}\textbf{(h) E: passages + graph facts, and the E-random control}\\[2pt]
+\vspace{2mm}\textbf{(h) E: passages + graph facts, and the E-random control}\\[2pt]
 \begin{tikzpicture}[node distance=4mm]
   \node[dat] (qq) {$q'_t$};
   \node[ret, right=of qq, yshift=6mm, minimum width=40mm] (s4) {Step 4 pipeline (c): top 5 sections};
@@ -283,7 +293,8 @@ tokens of each section. All graph pipelines use the rewritten query from (c).}
   \node[llm, right=of p] (g) {\gen};
   \draw[arr] (qq) |- (s4); \draw[arr] (qq) |- (b);
   \draw[arr] (s4) -- (p); \draw[arr] (b) -- (p); \draw[arr, dashed] (rnd.east) -- (p);
-  \draw[arr] (p) -- (g);
+  \node[dat, right=of g] (an) {answer};
+  \draw[arr] (p) -- (g); \draw[arr] (g) -- (an);
 \end{tikzpicture}
 \caption{Architectures, part 2 (\texttt{src/kg\_rag/run\_qa.py}). C and D were run on the
 500-question development subset only and dropped there; E and E-random were run on the full
@@ -292,9 +303,8 @@ the Step 4 context, so the only difference is the facts block.}
 \label{fig:arch2}
 \end{figure}
 
-\clearpage
 % =====================================================================
-\section{Graph schema}\label{sec:schema}
+\section{Graph schema (Q3)}\label{sec:schema}
 
 The graph is stored in Neo4j in three layers (Figure~\ref{fig:layers}). The structure layer is
 built from the dataset without an LLM. The mention layer holds what the LLM extracted from each
@@ -303,11 +313,11 @@ layer is the result of entity resolution: mentions with the same meaning are mer
 entity and the relations are lifted to the entities. Retrieval only uses the entity layer, plus
 the section ids stored on each entity and relation.
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \begin{tikzpicture}
-  \node[dat, minimum width=17mm] (dom) at (0,0) {Domain\\4};
-  \node[dat, minimum width=17mm] (doc) at (3.9,0) {Document\\488};
+  \node[dat, minimum width=17mm] (dom) at (-0.6,0) {Domain\\4};
+  \node[dat, minimum width=17mm] (doc) at (3.6,0) {Document\\488};
   \node[dat, minimum width=17mm] (sec) at (7.8,0) {Section\\4,114};
   \node[dat, minimum width=17mm] (sp) at (11.6,0) {Span\\35,659};
   \draw[arr] (dom) -- node[font=\tiny, above] {HAS\_DOCUMENT} (doc);
@@ -323,12 +333,12 @@ the section ids stored on each entity and relation.
   \draw[arr] (m1) -- node[font=\tiny, left] {RESOLVES\_TO} (e1);
   \draw[arr] (m2) -- node[font=\tiny, right] {RESOLVES\_TO} (e2);
   \draw[arr] (e1) -- node[font=\tiny, above] {REQUIRES, \ldots} (e2);
-  \node[font=\scriptsize\bfseries, rotate=90] at (-1.4,0) {structure};
-  \node[font=\scriptsize\bfseries, rotate=90] at (-1.4,-2) {mentions};
-  \node[font=\scriptsize\bfseries, rotate=90] at (-1.4,-4) {entities};
-  \draw[black!25] (-1.7,-1) -- (13,-1); \draw[black!25] (-1.7,-3) -- (13,-3);
-  \node[font=\scriptsize, align=left, text width=5.2cm] at (2.2,-2) {LLM extraction per section,\\16,947 REL edges (type rules checked)};
-  \node[font=\scriptsize, align=left, text width=5.2cm] at (2.2,-4) {entity resolution; 13,277 typed\\relations of 11 types, each with\\support, section ids and evidence};
+  \node[font=\scriptsize\bfseries, rotate=90] at (-2.1,0) {structure};
+  \node[font=\scriptsize\bfseries, rotate=90] at (-2.1,-2) {mentions};
+  \node[font=\scriptsize\bfseries, rotate=90] at (-2.1,-4) {entities};
+  \draw[black!25] (-2.4,-1) -- (13,-1); \draw[black!25] (-2.4,-3) -- (13,-3);
+  \node[font=\scriptsize, align=left, text width=5.2cm] at (1.9,-2) {LLM extraction per section,\\16,947 REL edges (type rules checked)};
+  \node[font=\scriptsize, align=left, text width=5.2cm] at (1.9,-4) {entity resolution; 13,277 typed\\relations of 11 types, each with\\support, section ids and evidence};
 \end{tikzpicture}
 \caption{The three layers and their sizes in the final build (extraction prompt v2.1, see
 the full build report in \texttt{experiments/kg/}). The structure-layer ids are the same as in the
@@ -336,7 +346,7 @@ passage index, so a retrieved section and a graph section are the same object.}
 \label{fig:layers}
 \end{figure}
 
-\begin{table}[H]
+\begin{table}[htbp]
 \centering\footnotesize
 \begin{tabularx}{\linewidth}{@{}lXl@{}}
 \toprule
@@ -374,14 +384,14 @@ ALTERNATIVE\_TO & Service, Document, Requirement & Service, Document, Requiremen
 \end{tabularx}
 \caption{The closed schema: 9 entity types and 11 relations. A triple is allowed when its source
 type is in the source list and its target type in the target list, or it is one of the two extra
-pairs (\texttt{is\_valid\_triple}). Entities with a \emph{value} carry the literal (``\$30'',
+pairs. Entities with a \emph{value} carry the literal (``\$30'',
 ``18 months''); Service, Organization, Amount and ContactPoint also have a \emph{kind}
 (e.g.\ Service: benefit, licence, test, appeal, online\_tool, \ldots). 16.2\% of the extracted
 relations broke these rules and were not loaded.}
 \label{tab:schema}
 \end{table}
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \begin{tikzpicture}[every node/.style={font=\scriptsize}]
   \node[kg, minimum width=26mm] (fa) at (0,0) {filing an appeal\\\textit{Service}};
@@ -415,9 +425,8 @@ given to the model together with the quote.}
 \label{fig:subgraph}
 \end{figure}
 
-\clearpage
 % =====================================================================
-\section{How the LLM uses the graph}\label{sec:usage}
+\section{How the LLM uses the graph (Q4)}\label{sec:usage}
 
 The graph is used in three steps (\texttt{src/kg\_rag/linker.py}, \texttt{retrievers.py}):
 
@@ -436,7 +445,7 @@ The graph is used in three steps (\texttt{src/kg\_rag/linker.py}, \texttt{retrie
   only these text lines.
 \end{enumerate}
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \begin{tikzpicture}[every node/.style={font=\scriptsize}]
   \node[prm, minimum width=0.8\linewidth, align=left, text width=0.78\linewidth] (i) {\textbf{Instructions}: ``You are a government services agent. Answer [\ldots] in 1--2 short, plain sentences using only the context below [\ldots] If the context does not contain the answer, reply exactly: Unfortunately, no relevant information is found.''};
@@ -453,7 +462,7 @@ about 14,900.}
 \label{fig:prompt-layout}
 \end{figure}
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \begin{lstlisting}
 [...instructions and 3 examples...]
 
@@ -496,9 +505,8 @@ loose the 1-hop neighbourhood is.}
 \label{fig:prompt-real}
 \end{figure}
 
-\clearpage
 % =====================================================================
-\section{Is the graph used as a reranker signal?}\label{sec:rerank}
+\section{Is the graph used as a reranker signal? (Q5)}\label{sec:rerank}
 
 \textbf{No.} The cross-encoder (bge-reranker-base) only sees pairs (rewritten query, section text).
 No graph feature enters its score. The graph only changes \emph{which sections are given to the
@@ -520,7 +528,7 @@ sections that contain the evidence of the top facts) has not been tried. It is a
 experiment, and it would be cheap because all the scores are already computed and cached.
 
 % =====================================================================
-\section{What ``adding graph facts'' means}\label{sec:facts}
+\section{What ``adding graph facts'' means (Q6)}\label{sec:facts}
 
 \begin{itemize}
 \item \textbf{Which facts.} The relations of the entity layer that have a linked entity as source
@@ -538,18 +546,18 @@ experiment, and it would be cheap because all the scores are already computed an
   The relation name is lowercased with spaces. Type and, if different from the name, the value of
   each entity are in brackets. The source of the evidence is printed as document title and
   section heading; the internal section id (e.g.\ \texttt{Traffic Violations Bureau\#3\_0::85}) is
-  stored with the fact but \emph{not} printed in the prompt (\texttt{format\_facts}).
+  stored with the fact but \emph{not} printed in the prompt (\texttt{src/kg\_rag/retrievers.py}).
 \item \textbf{Position.} After the 5 sections, under a separate \texttt{Facts:} header, and before
   the customer turn (Figure~\ref{fig:prompt-layout}). The instructions are not changed, so the
   model is not told what the facts are or how to use them.
 \item \textbf{Control.} E-random uses the same number of facts, drawn at random from all facts of
-  the question's domain (\texttt{random.Random("42:"+example\_id)}), in the same format and
+  the question's domain (fixed seed 42 per question), in the same format and
   position.
 \end{itemize}
 On validation at least one fact comes from a gold section for 48.8\% of the questions.
 
 % =====================================================================
-\section{What 4,427 counts, and how F1 is computed}\label{sec:f1}
+\section{What 4,427 counts, and how F1 is computed (Q7)}\label{sec:f1}
 
 \paragraph{Counting.} \texttt{src/data/loader.py} pairs every user turn with the agent turn that
 follows it (both non-empty). Each pair is one \emph{question}: the user utterance is the question,
@@ -575,7 +583,7 @@ gold document differs from that of the previous question in the dialogue.
 \begin{enumerate}
 \item normalise answer and reference: lowercase, remove all ASCII punctuation, remove the words
   \emph{a, an, the}, collapse whitespace;
-\item split on whitespace and count common tokens as a multiset (\texttt{Counter} intersection);
+\item split on whitespace and count common tokens as a multiset;
 \item $P = \text{common}/|\text{answer}|$, $R = \text{common}/|\text{reference}|$,
   $F1 = 2PR/(P+R)$; 0 if there is no common token; 1 if both are empty.
 \end{enumerate}
@@ -602,7 +610,7 @@ the generated text of both tasks (grounding generation and response generation) 
 EM and SacreBLEU. Here:
 \begin{itemize}
 \item \textbf{EM} (exact match after the same normalisation) is implemented in
-  \texttt{compute\_metrics} and was printed in the first LLM-only runs, but it is not in the main
+  \texttt{src/evaluation/metrics.py} and was printed in the first LLM-only runs, but it is not in the main
   tables. Computed for this report on validation it is 0.9--1.6\% for every system, and almost
   all of it comes from abstentions on unanswerable questions (EM on answerable questions:
   0.00\% LLM only, 0.02\% Step 4, 0.05\% E, 0.29\% oracle). With free-form answers EM does not
@@ -612,15 +620,14 @@ EM and SacreBLEU. Here:
   MultiDoc2Dial evaluation script, so the numbers are not directly comparable with the paper.
 \end{itemize}
 
-\setcounter{section}{9}
 % =====================================================================
-\section{Query rewriting}\label{sec:rewrite}
+\section{Query rewriting (Q10)}\label{sec:rewrite}
 
 \begin{center}
 \begin{tikzpicture}[node distance=4mm]
   \node[dat] (h) {history: last 6 turns\\(reference utterances)};
   \node[dat, below=2mm of h] (q) {current user turn $q_t$};
-  \node[llm, right=8mm of h, yshift=-4mm] (rw) {\gen\\\texttt{REWRITE\_PROMPT}};
+  \node[llm, right=8mm of h, yshift=-4mm] (rw) {rewriter\\\gen};
   \node[dat, right=of rw] (qq) {$q'_t$};
   \node[ret, right=of qq, yshift=4mm] (r) {BM25, bge-small, reranker};
   \node[kg, right=of qq, yshift=-4mm] (k) {entity linking, fact cosine};
@@ -630,7 +637,7 @@ EM and SacreBLEU. Here:
 
 \begin{itemize}
 \item \textbf{Model}: the same deployment as the generator (\gen, default settings).
-\item \textbf{Input}: the last 6 turns of the history (\texttt{HISTORY\_WINDOW = 6}, so normally 3
+\item \textbf{Input}: the last 6 turns of the history (so normally 3
   user and 3 agent turns) as \texttt{User:}/\texttt{Agent:} lines, plus the current message. The
   agent turns in the history are the \emph{reference} answers from the dataset, not the system's
   own earlier answers, as in the standard MultiDoc2Dial setup.
@@ -680,7 +687,7 @@ a short reply like ``No.'' becomes a full query about the previous topic, retrie
 relevant-looking sections and the model answers instead of abstaining.
 
 % =====================================================================
-\section{The graph retrieval step (Step 6), plainly}\label{sec:step6}
+\section{The graph retrieval step (Step 6), plainly (Q11)}\label{sec:step6}
 
 \paragraph{What is retrieved.} For each question: 10 graph entities that match the rewritten
 query; from them either sections of the corpus (A) or facts of the graph with their evidence
@@ -688,8 +695,8 @@ quotes (B), or the facts added to the normal passage context (E).
 
 \paragraph{How.} Linking by name similarity (BM25 + embeddings), sections by the weighted count of
 linked entities they mention, facts by link weight and query similarity
-(Section~\ref{sec:usage}). Nothing is trained; all parameters (10 entities, 30 facts, pools of 50,
-1-hop decay 0.5) were fixed before the runs.
+(Section~\ref{sec:usage}). Nothing is trained; all parameters (10 entities, 30 facts, pools of 50)
+were fixed before the runs.
 
 \paragraph{How it is evaluated.}
 \begin{itemize}
@@ -704,19 +711,19 @@ linked entities they mention, facts by link weight and query similarity
   unanswerable questions changes the overall F1 a lot (Section~\ref{sec:f1}).
 \end{itemize}
 
-\begin{table}[H]
+\begin{table}[htbp]
 \centering\small
 \begin{tabular}{lcccccc}
 \toprule
  & R@5 & F1 all & F1 answerable & F1 unanswerable & abstain recall & false abstention \\
 \midrule
-LLM only & -- & 15.8 & & & 17.3 & 8.1 \\
+LLM only & -- & 15.8 & 15.7 & 18.4 & 17.3 & 8.1 \\
 Step 4 best & 63.7 & 26.9 & 27.2 & 20.2 & 19.5 & 4.5 \\
 A: graph sections & 34.0 & 23.0 & 22.4 & 32.5 & 32.3 & 10.4 \\
 B: graph facts & 36.6 & 24.1 & 23.8 & 30.6 & 30.1 & 7.6 \\
 E: Step 4 + facts & 63.7 & 27.4 & 27.7 & 20.1 & 19.0 & 3.4 \\
 E-random & 63.7 & 27.4 & 27.2 & 31.9 & 31.4 & 5.6 \\
-Oracle & 100 & 35.5 & & & 15.5 & 2.0 \\
+Oracle & 100 & 35.5 & 36.5 & 15.9 & 15.5 & 2.0 \\
 \bottomrule
 \end{tabular}
 \caption{Full validation split (4,427 questions, 226 unanswerable), in \%. Paired differences
@@ -734,7 +741,7 @@ development questions, its top 5 only for 34.6\%). Facts added to good passages 
 on answerable questions that random facts do not give.
 
 % =====================================================================
-\section{Cost}\label{sec:cost}
+\section{Cost (Q12)}\label{sec:cost}
 
 Token usage of the generation and rewrite calls was \emph{not recorded}: the cache stores the
 prompt and the answer text, not the usage. The numbers below are therefore estimates, made by
@@ -748,7 +755,7 @@ tokenising the stored prompts, answers and rewrite prompts with the \texttt{o200
 \end{itemize}
 Exact recording per call, per turn and per conversation is not in the code yet.
 
-\begin{table}[H]
+\begin{table}[htbp]
 \centering\small
 \begin{tabular}{lcrrrr}
 \toprule
@@ -785,7 +792,7 @@ input and EUR 1.075 output. Table~\ref{tab:cost} gives the cost per 1,000 conver
 ends of this range. Since the bill includes the reasoning tokens, the derived prices already
 account for them, while the token estimates of Table~\ref{tab:tokens} do not.
 
-\begin{table}[H]
+\begin{table}[htbp]
 \centering\small
 \begin{tabular}{lrr}
 \toprule
@@ -823,7 +830,7 @@ project total. For comparison, answering the whole validation split once with E 
 14.6\,M input and 0.3\,M output tokens, EUR 2.3--2.9.
 
 % =====================================================================
-\section{Conversational generator}\label{sec:conv}
+\section{Conversational generator (new experiment)}\label{sec:conv}
 
 To address the limitation of Section~\ref{sec:arch}, four generator inputs were compared on the
 full validation split with retrieval unchanged (same five sections, and the same facts for E);
@@ -843,7 +850,7 @@ generator} from here on, is the only useful variant: it gains on answerable ques
 turns that cannot be understood alone (user replies ``yes'' to a question of the agent: $+3.7$
 F1 for Step 4, $+3.2$ for E).
 
-\begin{table}[H]
+\begin{table}[htbp]
 \centering\small
 \begin{tabular}{llccccc}
 \toprule
@@ -852,20 +859,30 @@ F1 for Step 4, $+3.2$ for E).
 \midrule
 Step 4 & G0 & 26.8 & 27.2 & 19.7 & 19.0 / 4.5 & 1,294 \\
  & G2 & 27.2 & 28.1 & 10.6 & \phantom{0}9.7 / 2.8 & 1,415 \\
- & G2 + abstain(G0) & 27.5 & 27.6 & 24.6 & 24.3 / 5.6 & 2,637 \\
+ & G2 + abstain(G0) & 27.5 & 27.6 & 25.0 & 24.3 / 5.6 & 2,637 \\
+ & G2 + classifier & 26.2 & 24.8 & 50.7 & 50.0 / 20.0 & 2,368 \\
+ & G2 + reranker threshold & 26.9 & 27.5 & 14.5 & 13.7 / 5.4 & 1,374 \\
 \midrule
 E & G0 & 27.4 & 27.7 & 20.1 & 19.0 / 3.5 & 3,098 \\
  & G2 & 27.7 & 28.5 & 12.9 & 11.9 / 2.5 & 3,219 \\
  & G2 + abstain(G0) & 28.0 & 28.2 & 24.5 & 23.5 / 4.6 & 6,186 \\
+ & G2 + classifier & 27.0 & 25.7 & 51.2 & 50.9 / 17.7 & 5,667 \\
+ & G2 + reranker threshold & 27.4 & 27.9 & 17.3 & 16.4 / 5.2 & 3,132 \\
 \bottomrule
 \end{tabular}
-\caption{Generator inputs on validation (4,427 questions). Paired differences against G0, all
-questions: G2 $+0.3$ $[-0.0, 0.7]$ for Step 4 and $+0.3$ $[-0.0, 0.7]$ for E; on answerable
-questions $+0.8$ $[0.5, 1.1]$ and $+0.7$ $[0.4, 1.0]$. G2 + abstain(G0) gives the G0 answer when G0
-abstains and the G2 answer otherwise: $+0.6$ $[0.4, 0.9]$ and $+0.7$ $[0.4, 1.0]$ on all
-questions. Its tokens count both calls (G0 always, G2 only when G0 did not abstain). The full
-table with the dialogue-act breakdown is in
-\texttt{experiments/results/validation/generator\_input/summary.md}.}
+\caption{Generator inputs and abstention decisions on validation (4,427 questions). Paired
+differences against G0, all questions: G2 $+0.3$ $[-0.0, 0.7]$ for Step 4 and $+0.3$ $[-0.0, 0.7]$
+for E; on answerable questions $+0.8$ $[0.5, 1.1]$ and $+0.7$ $[0.4, 1.0]$. G2 + abstain(G0) gives
+the refusal when G0 abstains and the G2 answer otherwise: $+0.6$ $[0.4, 0.9]$ and $+0.7$
+$[0.4, 1.0]$ on all questions. When a decision step abstains, the exact refusal string is written
+(keeping G0's own refusal text instead gives 24.6 on unanswerable questions for Step 4). Input
+tokens per turn count the generation calls and the decision call only, not the rewrite (about 190
+tokens per turn on average, the difference to the 1,487 of Table~\ref{tab:tokens}); a decision
+row counts its decision call always and G2 only when it answers. G0 differs slightly from
+Table~\ref{tab:step6} (Step 4 26.8 vs 26.9, E false abstention 3.5 vs 3.4): in the original run,
+identical prompts sent at the same time sometimes got different answers and only one was cached;
+here every variant uses the cached answer (17 Step 4 and 13 E answers differ). The full table with
+the dialogue-act breakdown is in \texttt{experiments/results/validation/generator\_input/}.}
 \label{tab:conv}
 \end{table}
 
@@ -877,7 +894,26 @@ expects a refusal, while G2 continues the conversation, often with a reasonable 
 in \texttt{unanswerable\_examples.md} next to the summary). Deciding whether to answer and
 generating the answer are therefore two different problems. Taking the abstention decision from
 G0 and the answer from G2 recovers the unanswerable turns and gives the best overall F1, at about
-twice the input tokens. A cheaper decision step (a classifier or a short LLM call on the user turn
-and the retrieved context) has not been tried.
+twice the input tokens. Two cheaper decision steps were tried with the same generator
+(Table~\ref{tab:conv}): a short yes/no sufficiency call to \gen{} on the retrieved context, the
+history and the current turn (reasoning off, about 5 output tokens), and a threshold on the top-1
+reranker score chosen on dev-500 (0.303). Both lose against G2 + abstain(G0): the classifier by
+1.3 F1 for Step 4 and 1.0 for E, because it says no on about 20\% of the turns and refuses
+18--20\% of the answerable questions; the threshold by 0.6 for both, because it abstains on only
+3\% of the turns. G2 + abstain(G0) therefore stays the best combination.
+
+% =====================================================================
+\section*{Open items}
+\addcontentsline{toc}{section}{Open items}
+\begin{itemize}
+\item Q8, PDF and Overleaf: in progress; this report and the full report are sent as PDF with
+  Overleaf zips, and the template compiles with pdflatex.
+\item Q9, extraction precision with entities and relations evaluated separately on documents
+  annotated by hand: planned.
+\item Q12, exact token usage per call, turn and conversation, and gpt-5-nano as a second
+  generator: in progress (deployment configured, usage recording not yet in the code).
+\item Q13, the source section shown with each answer and whether it is a gold section: planned.
+\item Q14, when the graph helps (by question type) and an oracle router as upper bound: planned.
+\end{itemize}
 
 \end{document}
