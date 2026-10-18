@@ -1,320 +1,106 @@
 # Conversational RAG and Knowledge Graphs
 
-This repository contains the code, experiments and write-up of a research project on conversational question answering over document collections, starting from Retrieval-Augmented Generation (RAG) and moving towards Knowledge Graphs (KGs), Graph RAG and agent-based approaches.
+A conversational question-answering system over the [MultiDoc2Dial](https://doc2dial.github.io/multidoc2dial/) documents (US government services: DMV, SSA, VA, StudentAid). It answers each user turn from retrieved passages and from facts of a knowledge graph built from the same documents, and abstains when the documents do not contain the answer. Research project in the [Master Degree in Computer Engineering](https://degrees.dei.unipd.it/master-degrees/computer-engineering/), [University of Padua](https://www.unipd.it/en/); supervisor Prof. Gianmaria Silvello.
 
-The work is carried out within the
+Author: Danil Smirnov - danil.smirnov@studenti.unipd.it
 
-* [Master Degree in Computer Engineering](https://degrees.dei.unipd.it/master-degrees/computer-engineering/) of the [Department of Information Engineering](https://www.dei.unipd.it/en/), [University of Padua](https://www.unipd.it/en/), Italy.
-
-Supervisor: Prof. Gianmaria Silvello.
-
-The main benchmark is [MultiDoc2Dial](https://doc2dial.github.io/multidoc2dial/), a dataset of goal-oriented dialogues grounded in government-service documents from four domains (DMV, SSA, VA, StudentAid). EnronQA and MTRAG are kept as secondary datasets. The methodology follows *Knowledge Graphs and LLMs in Action* (Negro et al., Manning), mostly Parts 1, 3, 5 and 6.
-
-## Author
-- Danil Smirnov - danil.smirnov@studenti.unipd.it
-
-## Organisation of the repository
-
-The repository is organised as follows:
-
-* `src`: the source code. `llm` is the Azure OpenAI client with a parallel runner and a disk cache, `data` the MultiDoc2Dial loader, `evaluation` the metrics, `rag` the retrievers, query rewriter and reranker, `kg` the knowledge graph construction (schema, extraction, entity resolution, Neo4j loaders) and `kg_rag` the retrieval over the graph.
-* `experiments`: the scripts that run the pipelines and evaluate them, plus the reports of the KG work in `experiments/kg` and `experiments/kg_rag`.
-* `latex_report`: the written report of the research (LuaLaTeX, unipd-thesis-modern template).
-v* `tests`: unit and regression tests.
-* `data`: the dataset (not tracked), the ids of the fixed dev-500 subset and the dense index cache.
-
-Raw model outputs (`*.jsonl`) and LLM caches are not tracked; they can be regenerated with the scripts below.
-
-## Current status
-
-| Step | Topic | Status |
-| :--- | :--- | :--- |
-| 1 | Background study | done |
-| 2 | Dataset analysis | done |
-| 3 | LLM-only baseline and evaluation | done |
-| 4 | Retrieval and RAG | done |
-| 5 | Knowledge graph construction | done |
-| 6 | Retrieval over the knowledge graph | done |
-| 7 | Graph RAG | next |
-| 8 | Agent-based approaches | planned |
-| 9 | Evaluation and comparison | in progress (full validation and test done) |
-| 10 | Error analysis and write-up | planned |
-
-All LLM calls use an Azure OpenAI deployment of `gpt-5.4-nano`; set the deployment name in `LLM_MODEL`.
-
-### Steps 3-4: LLM baseline and RAG
-
-Documents are split into sections (a heading plus the following spans, 4,114 sections from 488 documents). Retrieval uses BM25, dense embeddings (`BAAI/bge-small-en-v1.5`) and a hybrid of the two with Reciprocal Rank Fusion. Follow-up questions are rewritten by the LLM into standalone queries, and a cross-encoder (`BAAI/bge-reranker-base`) can rerank the top 50 sections. Ablations are run on a fixed subset of 500 validation examples (125 per domain, seed 42).
-
-Token F1 on the full validation split (4,427 examples, 95% bootstrap CI):
-
-| System | Token F1 | Recall@5 | Domain Recall@5 |
-| :--- | :---: | :---: | :---: |
-| LLM only | 15.9 [15.5, 16.3] | - | - |
-| BM25 | 24.1 [23.5, 24.8] | 40.6 | 66.0 |
-| Dense | 24.6 [23.9, 25.3] | 41.0 | 70.5 |
-| Hybrid | 24.8 [24.1, 25.4] | 44.7 | 69.4 |
-| Hybrid + query rewriting | **26.8** [26.2, 27.5] | **59.5** | **92.5** |
-
-Query rewriting is the only change with a significant F1 gain (+2.0 points over hybrid, p < 0.001). On dev-500 the oracle (gold sections given to the model) reaches 36.1 F1, and about two thirds of the gap to the best pipeline comes from retrieval misses. The reranker raises Recall@5 from 61.2 to 67.4 but not F1 (28.2 vs 28.0). More in `latex_report/chapters/rag.tex`.
-
-### Step 5: Knowledge graph construction
-
-The graph is stored in Neo4j in three layers: a structural layer (domain, document, section, span), a metagraph with the mentions extracted by the LLM, and an entity layer obtained by entity resolution. Extraction uses a closed schema with 9 entity types and 11 relation types, designed after a small open-extraction pilot.
-
-A few things learned on the way:
-
-* extraction is not deterministic: two runs with the same settings share only 44-48% of their triples;
-* on a pilot annotation of 3 documents, one run with the first prompt has 51% precision and 66% recall (76% precision for the triples two runs agree on); the second prompt was not more precise (46%) and found far fewer facts (recall 38%);
-* embedding similarity is not enough to merge entities (about half of the pairs above cosine 0.95 are different entities), so merges go through rules or a batched LLM judge, with a guard against generic "hub" names.
-
-| Full graph (prompt v2.1) | |
-| :--- | :--- |
-| Entities | 14,731 (from 28,782 mentions) |
-| Entity relations | 13,277 |
-| dev-500 gold sections with an entity | 96.6% |
-| Precision on a control sample (30 triples, unseen documents) | 73% [56, 86] |
-| Cost | 12,970 LLM calls, about 1 hour |
-
-All annotations were made by hand, without automatic help (`experiments/kg/reannotation/`). They replace a first round of labels that were drafted by an LLM and then reviewed; with those, the graph looked less precise (53% on the control sample) and the second prompt looked better than the first. Details are in `latex_report/chapters/kg_construction.tex` and `experiments/kg/full_build_report.md`.
-
-### Step 6: Retrieval over the knowledge graph
-
-The user turn, rewritten as in Step 4, is linked to graph entities (dense + BM25 over entity names). The top-10 entities include an entity of the gold section for 70% of the dev-500 questions. Starting from the linked entities, several retrievers were compared with the best Step 4 pipeline, using the same generator and prompt:
-
-| Pipeline (dev-500) | Recall@5 | Token F1 | ΔF1 vs Step 4 [95% CI] |
-| :--- | :---: | :---: | :---: |
-| Step 4 best (hybrid + rewrite + rerank) | 67.4 | 28.0 | - |
-| A: sections reached through entities | 34.6 | 24.5 | -3.5 [-5.1, -1.9] |
-| A with 1-hop expansion | 36.6 | 23.5 | -4.5 [-6.3, -2.8] |
-| B: graph facts only | 37.2 | 25.4 | -2.7 [-4.4, -0.8] |
-| C: A fused with Step 4, reranked | 67.6 | 27.6 | -0.5 [-1.2, 0.1] |
-| D: A's candidates reranked | 58.8 | 26.4 | -1.6 [-2.9, -0.4] |
-| E: Step 4 sections + graph facts | 67.4 | **29.2** | +1.1 [-0.3, 2.5] |
-| E with random facts (control) | 67.4 | 29.1 | +1.0 [-0.3, 2.4] |
-
-Retrieval over the graph alone is worse than passage retrieval: linking works, but entity overlap cannot rank the many sections the entities point to. Adding graph facts to the Step 4 context (E) gives a small gain on dev-500, but random facts from the same domain give the same overall number, mostly because the extra context makes the model abstain more. On answerable questions the real facts do help, and the final evaluation below confirms it. Reports: `experiments/kg_rag/phase1_report.md` and `experiments/kg_rag/phase2_report.md`.
-
-### Final evaluation: full validation and test split
-
-The choices made on dev-500 were checked on the full validation split (4,427 questions), where the remaining open questions were settled: the reranker and the agent-style prompt are kept, B is the better graph-only option, and E is kept with its random-facts control. These six systems were then frozen and run once on the test split (4,335 questions), which had not been used for anything before.
-
-| System (token F1) | Validation | Test |
-| :--- | :---: | :---: |
-| LLM only | 15.8 | 15.1 [14.7, 15.5] |
-| Oracle (gold sections) | 35.5 | 34.2 [33.6, 34.9] |
-| Step 4 best (hybrid + rewrite + rerank) | 26.9 | 26.9 [26.3, 27.5] |
-| B: graph facts only | 24.1 | 23.8 [23.2, 24.4] |
-| E: Step 4 sections + graph facts | 27.4 | **27.5** [27.0, 28.2] |
-| E with random facts (control) | 27.4 | 27.3 [26.7, 27.9] |
-
-On the test split, graph-only retrieval is 3.1 points below passage retrieval. Graph facts added to the passages gain +0.6 overall and +0.8 on answerable questions (both significant), and +1.4 where the facts come from the gold section. Random facts gain nothing on answerable questions; their overall number only holds up because they make the model abstain more. The validation split gives the same picture, so the small effect that was borderline on dev-500 is confirmed. Details: `experiments/final_evaluation_report.md` and `latex_report/chapters/final_evaluation.tex`.
-
----
-
-## Running a whole split
-
-The main systems can also be run on the full validation split or on the test split (about 3 hours for validation on a laptop, most of it reranking; progress is printed with timestamps and the reranker scores are cached per chunk, so an interrupted run resumes):
-
-```bash
-python experiments/run_split.py --split validation --workers 12
-python experiments/run_split.py --split test --workers 12 --systems llm_baseline oracle_context_v2 \
-    rag_rewrite_rerank_v2 kg_facts step4_plus_facts step4_plus_random_facts
-python -m src.kg_rag.eval_qa --split test
-```
-
-Results go to `experiments/results/<split>/`.
-
----
-
-## Quickstart - RAG on dev-500
-
-You need Python 3 (developed with 3.14) and access to an Azure OpenAI deployment.
-
-### 1. Set up the environment
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-```
-
-### 2. Download the data
-
-Download MultiDoc2Dial v1.0 from the [project page](https://doc2dial.github.io/multidoc2dial/) and unpack it into `data/multidoc2dial/`, so that the folder contains:
+## Architecture
 
 ```text
-data/multidoc2dial/multidoc2dial_doc.json
-data/multidoc2dial/multidoc2dial_dial_train.json
-data/multidoc2dial/multidoc2dial_dial_validation.json
-data/multidoc2dial/multidoc2dial_dial_test.json
+dialogue history + user turn
+        |
+  query rewriter ............ src/rag/query_rewriter.py   (LLM, self-contained search query)
+        |
+  passage retriever ......... src/rag/                    (BM25 + bge-small dense, fused by RRF, top 50)
+        |
+  reranker .................. src/rag/reranker.py         (bge-reranker-base cross-encoder, top 5)
+        |
+  knowledge graph ........... src/kg/                     (extraction with a closed schema, entity resolution, Neo4j)
+    entity linking, facts ... src/kg_rag/                 (link the query to entities, rank their 1-hop facts)
+        |
+  generator ................. src/llm/, experiments/      (passages + facts in one prompt, dialogue history, abstention)
+        |
+      answer
 ```
 
-The ids of the dev-500 subset are already in `data/dev_500_ids.json`.
+All LLM calls (rewriting, extraction, entity resolution, generation) go to one Azure OpenAI deployment of `gpt-5.4-nano`. Data loading is in `src/data`, metrics and the LLM judge in `src/evaluation`.
 
-### 3. Configure
+## Configurations evaluated
+
+All use the same generator and prompt; they differ in what the context contains.
+
+* **LLM only**: no context.
+* **Passages**: the top 5 sections from the rewriter, retriever and reranker.
+* **Graph sections**: the sections reached through the linked entities.
+* **Graph facts**: up to 30 facts of the linked entities, each with an evidence quote.
+* **Passages + graph facts**: the top 5 sections plus the graph facts in a separate block.
+* **Passages + random facts** (control): the same number of random facts from the same domain.
+* **Oracle**: the gold sections of the question.
+
+## Results
+
+Token F1 (%), all questions / answerable questions only. Validation: 4,427 questions; test: 4,335, run once with the frozen systems.
+
+| Configuration | Validation | Test |
+| :--- | :---: | :---: |
+| LLM only | 15.8 / 15.7 | 15.1 / 15.0 |
+| Passages | 26.9 / 27.2 | 26.9 / 27.1 |
+| Graph sections | 23.0 / 22.4 | - |
+| Graph facts | 24.1 / 23.8 | 23.8 / 23.3 |
+| Passages + graph facts | 27.4 / 27.7 | **27.5 / 28.0** |
+| Passages + random facts | 27.4 / 27.2 | 27.3 / 27.1 |
+| Oracle | 35.5 / 36.5 | 34.2 / 35.1 |
+
+The graph alone is worse than passage retrieval; its facts added to the passages give a small, significant gain on answerable questions that random facts do not give. Giving the generator the dialogue history, with the abstention decision taken without it, raises validation F1 to 27.5 (passages) and 28.0 (passages + graph facts).
+
+## Quick start
 
 ```bash
-cp .env.example .env
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env        # then fill in the values
 ```
 
-Then set in `.env`:
+Variables in `.env`: `AZURE_OPENAI_API_KEY`, `AZURE_OPENAI_BASE_URL`, `LLM_MODEL` (generator); `NEO4J_URI`, `NEO4J_USER`, `NEO4J_PASSWORD` (graph); `HF_TOKEN`, `JUDGE_MODEL` (LLM judge, optional); `AZURE_FOUNDRY_ENDPOINT`, `AZURE_FOUNDRY_KEY`, `AZURE_FOUNDRY_DEPLOYMENT` (second generator, optional).
 
-```env
-AZURE_OPENAI_API_KEY=<your key>
-AZURE_OPENAI_BASE_URL=https://<your resource>.services.ai.azure.com/openai/v1
-LLM_MODEL=gpt-5.4-nano
-```
-
-### 4. Run the pipelines
+Put MultiDoc2Dial v1.0 into `data/multidoc2dial/`. The passage index (BM25 and dense embeddings, cached in `data/cache/`) is built on the first run of any pipeline.
 
 ```bash
-python experiments/run_dev_subset.py --workers 12 \
-  --pipelines llm oracle_v2 rewrite_v2 rewrite_rerank_v2
-```
+# passage pipelines on the 500-question development subset
+python experiments/run_dev_subset.py --workers 12 --pipelines llm oracle_v2 rewrite_v2 rewrite_rerank_v2
 
-The first run downloads bge-small and builds the dense index in `data/cache/` (about half a minute). LLM answers are cached in `experiments/cache/`, so re-runs are free. Results are written to `experiments/results/dev_500/`.
-
-### 5. Evaluate
-
-```bash
-python experiments/evaluate_diagnostics.py \
-  --inputs experiments/results/dev_500/*.jsonl
-```
-
-Expected token F1 for `rag_rewrite_rerank_v2`: ~28.0.
-
-The single pipelines on the full validation split can be run with `experiments/llm_baseline.py`, `experiments/rag_baseline.py`, `experiments/rag_dense_baseline.py`, `experiments/rag_hybrid_baseline.py`, `experiments/rag_rewrite_baseline.py` and `experiments/oracle_context.py`.
-
----
-
-## Knowledge graph
-
-### Neo4j
-
-The graph is stored in Neo4j 5 Community, run with Docker. Add the connection settings to `.env`:
-
-```env
-NEO4J_URI=bolt://localhost:7687
-NEO4J_USER=neo4j
-NEO4J_PASSWORD=<at least 8 characters>
-```
-
-and start the container:
-
-```bash
+# knowledge graph (Neo4j in Docker)
 docker compose up -d neo4j
-```
-
-The browser is at http://localhost:7474.
-
-### Building the full graph
-
-Run all commands from the repository root.
-
-1. Load the structural layer (domains, documents, sections, spans):
-
-```bash
 python -m src.kg.structure
-```
-
-2. Extract entities and relations from the whole corpus (about 3,500 LLM calls, cached):
-
-```bash
-python -m src.kg.extract_closed --all --prompt-version v2.1 \
-  --output experiments/kg/full_v21_extraction.jsonl
-```
-
-3. Resolve the entities:
-
-```bash
-python -m src.kg.resolve run \
-  --input experiments/kg/full_v21_extraction.jsonl --prefix er_full
-```
-
-4. Load mentions and entities into Neo4j:
-
-```bash
+python -m src.kg.extract_closed --all --prompt-version v2.1 --output experiments/kg/full_v21_extraction.jsonl
+python -m src.kg.resolve run --input experiments/kg/full_v21_extraction.jsonl --prefix er_full
 python -m src.kg.load_neo4j --scope full --run-id full_v21 \
-  --extraction experiments/kg/full_v21_extraction.jsonl \
-  --resolution experiments/kg/er_full_mentions.jsonl
-```
-
-5. Check the result:
-
-```bash
-python -m src.kg.stats --scope full
-python -m src.kg.coverage --scope full
-```
-
-Expected: 14,731 entities and 13,277 entity relations (the exact numbers change if the extraction is not served from the cache).
-
-The pilot experiments (open extraction, prompt comparison, annotation) have their own commands; see the docstrings of `src/kg/extract.py`, `src/kg/annotation.py` and `src/kg/compare_prompts.py`.
-
----
-
-## Retrieval over the graph
-
-This needs the full graph in Neo4j and the Step 4 results (the rewrites and reranker scores are read from the cache).
-
-1. Export entities and relations from Neo4j:
-
-```bash
+  --extraction experiments/kg/full_v21_extraction.jsonl --resolution experiments/kg/er_full_mentions.jsonl
 python -m src.kg_rag.graph_index --scope full
-```
 
-2. Evaluate entity linking:
-
-```bash
-python -m src.kg_rag.eval_linking
-```
-
-3. Run the graph pipelines (A-E and the random control) and evaluate them:
-
-```bash
-python -m src.kg_rag.run_qa --workers 12
-python -m src.kg_rag.eval_qa
-```
-
-Expected token F1: ~24.5 for A, ~29.2 for E.
-
----
-
-## LLM judge
-
-Token F1 only counts word overlap with the reference, so correct paraphrases get low scores. `experiments/judge_answers.py` re-scores the cached answers with an LLM judge from a different model family, called through the [Hugging Face inference router](https://huggingface.co/docs/inference-providers). The judge sees the last turns of the dialogue, the question, the reference answer, the gold section and the context the model was given. It rates each answer as correct, partial or incorrect, and separately says whether the answer is supported by the section or the context. Abstentions are scored by rule (correct only on unanswerable turns), without a call.
-
-1. Add your token to `.env` (and optionally another model):
-
-```env
-HF_TOKEN=<your Hugging Face token>
-JUDGE_MODEL=meta-llama/Llama-3.3-70B-Instruct
-```
-
-2. Try it on a few answers, then run it on all dev-500 pipelines (about 4,300 calls, 8M input tokens; cached, so reruns are free):
-
-```bash
-python experiments/judge_answers.py run --limit 10
-python experiments/judge_answers.py run --workers 8
-```
-
-The summary is written to `experiments/results/judge/<model>/summary.md`.
-
-3. Check the judge against human labels on 100 answers, and against a second run of itself:
-
-```bash
-python experiments/judge_answers.py export --n 100      # fill `label` in experiments/results/judge/human_labels.csv
-python experiments/judge_answers.py agreement
-python experiments/judge_answers.py run --run-id run2
-python experiments/judge_answers.py stability --other run2
-```
-
----
-
-## Tests
-
-```bash
+# evaluation on a full split (validation or test)
+python experiments/run_split.py --split validation --workers 12
+python -m src.kg_rag.run_qa --split validation --workers 12
+python -m src.kg_rag.eval_qa --split validation
 python -m pytest tests
 ```
 
-156 tests pass. Four more are marked as known issues of the model's extraction output (expected failures, e.g. a reversed relation in a fee table); they are kept so that a fix in a later prompt or model shows up. The tests in `tests/test_kg_build.py` need Neo4j and are skipped if it is not running.
+LLM answers are cached in `experiments/cache/`, so reruns are free. The full list of commands is in [docs/experiment_log.md](docs/experiment_log.md).
+
+## Repository map
+
+* `src/`: the system (`data`, `llm`, `rag`, `kg`, `kg_rag`, `evaluation`).
+* `experiments/`: run and evaluation scripts, result summaries (`results/`) and the reports of the graph work (`kg/`, `kg_rag/`).
+* `docs/`: the schematic report and the experiment log.
+* `latex_report/`: the full report (unipd-thesis-modern template).
+* `tests/`: unit and regression tests.
+* `data/`: the dataset (not tracked), the development subset ids and the index cache.
+
+Raw outputs (`*.jsonl`) and LLM caches are not tracked.
+
+## Reports and documentation
+
+* [Schematic report](docs/schematic_report.pdf): one short answer per question, with diagrams.
+* [Full report](latex_report/main.pdf), source in [latex_report/](latex_report/).
+* [Evaluation report](experiments/final_evaluation_report.md): full validation and test split.
+* [Experiment log](docs/experiment_log.md): the work in the order it was done, with intermediate results and the old step names.
