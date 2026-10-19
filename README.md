@@ -61,7 +61,7 @@ pip install -r requirements.txt
 cp .env.example .env        # then fill in the values
 ```
 
-Variables in `.env`: `AZURE_OPENAI_API_KEY`, `AZURE_OPENAI_BASE_URL`, `LLM_MODEL` (generator); `NEO4J_URI`, `NEO4J_USER`, `NEO4J_PASSWORD` (graph); `HF_TOKEN`, `JUDGE_MODEL` (LLM judge, optional); `AZURE_FOUNDRY_ENDPOINT`, `AZURE_FOUNDRY_KEY`, `AZURE_FOUNDRY_DEPLOYMENT` (second generator, optional).
+Variables in `.env`: `AZURE_OPENAI_API_KEY`, `AZURE_OPENAI_BASE_URL`, `LLM_MODEL` (generator); `NEO4J_URI`, `NEO4J_USER`, `NEO4J_PASSWORD` (graph); `HF_TOKEN`, `JUDGE_MODEL` (LLM judge, optional); `AZURE_FOUNDRY_ENDPOINT`, `AZURE_FOUNDRY_KEY`, `AZURE_FOUNDRY_DEPLOYMENT` (gpt-5-nano) and `AZURE_LUNA_ENDPOINT`, `AZURE_LUNA_KEY`, `AZURE_LUNA_DEPLOYMENT` (gpt-6-luna), both optional.
 
 Put MultiDoc2Dial v1.0 into `data/multidoc2dial/`. The passage index (BM25 and dense embeddings, cached in `data/cache/`) is built on the first run of any pipeline.
 
