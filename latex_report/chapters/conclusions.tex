@@ -79,6 +79,18 @@ extra context makes the generator abstain more often, which is rewarded on unans
 questions. The effect, borderline on the development subset, is confirmed on both the full
 validation and the test split.
 
+The generator first saw only the current user turn. Giving it the whole dialogue history
+improves the answers to answerable questions by 0.7 to 0.8 points, most of all on turns
+that cannot be understood alone, but it makes the model abstain about half as often.
+Deciding whether to abstain without the history and answering with it gives the best
+validation results, 27.5\% with passages and 28.0\% with passages and graph facts; a short
+yes/no classifier call and a threshold on the reranker score were both worse decisions.
+Two newer generator models, \texttt{gpt-5-nano} and \texttt{gpt-6-luna}, reach the same
+\fone{} as \texttt{gpt-5.4-nano} on the questions all three answer, but refuse 12 to 17\% of
+the answerable questions and are 1.0 to 1.8 points worse on them. \texttt{gpt-5-nano} spends
+about 1{,}400 hidden reasoning tokens per turn, so its low price per token does not make it
+cheaper; \texttt{gpt-6-luna} costs about half as much as \texttt{gpt-5.4-nano}.
+
 
 % ===========================================================================
 \section*{Scope Limitations}
@@ -86,8 +98,9 @@ validation and the test split.
 Many design choices were made on the dev-500 subset, and part of the analysis (the
 reranker decomposition, the error analyses and the graph variants that were not
 retained) is reported only there. The final systems were confirmed on the full
-validation and the test split, but with a single generator model; whether the small gain
-from graph facts holds for a stronger model has not been tested.
+validation and the test split with a single generator model. Two other models were compared
+on validation only, with the default reasoning settings, and the conversational generator
+has not been run on the test split.
 
 The precision and recall estimates for the graph rest on small samples: the pilot on
 three documents (140 extracted and 38 missed triples) and a control sample of 30 triples

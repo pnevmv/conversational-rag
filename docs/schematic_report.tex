@@ -442,8 +442,9 @@ E-random 27.3, B 23.8, LLM only 15.1, oracle 34.2.}
 Per 1,000 conversations: about EUR 2 for Step 4 and EUR 3.5--4.4 for E.}
 
 \begin{itemize}
-\item Per-turn tokens are estimated from the stored prompts and answers; exact recording per call
-  is an open item.
+\item These per-turn numbers are estimated from the stored prompts and answers; usage is now
+  recorded per call (input, cached input, output, reasoning tokens), and the measured numbers are
+  in Section~\ref{sec:models}.
 \item Building the graph once cost about EUR 5--7.
 \end{itemize}
 
@@ -461,12 +462,46 @@ gives the best overall F1 ($+0.6$ to $+0.7$), at twice the input tokens.}
 \end{itemize}
 
 % =====================================================================
+\section{Generator models (Q12, new experiment)}\label{sec:models}
+
+\textbf{gpt-5.4-nano stays the generator. gpt-5-nano and gpt-6-luna answer as well when they
+answer, but refuse more answerable questions; gpt-5-nano spends many hidden reasoning tokens, and
+gpt-6-luna is the cheapest.}
+
+\begin{table}[H]
+\centering\small
+\begin{tabular}{llccccc}
+\toprule
+ & & \multicolumn{2}{c}{F1} & false & tokens / turn & USD per 1,000 \\
+ & Model & all & answerable & abstention & in / out (reasoning) & conversations \\
+\midrule
+Passages & gpt-5.4-nano & 27.6 & 27.6 & \phantom{0}5.7 & 2,492 / 108 (0) & 3.91 \\
+ & gpt-5-nano & 27.6 & 26.5 & 12.5 & 2,394 / 1,569 (1,425) & 4.95 \\
+ & gpt-6-luna & 26.8 & 25.8 & 17.3 & 2,348 / 151 (80) & 1.96 \\
+\midrule
+Passages & gpt-5.4-nano & 28.1 & 28.4 & \phantom{0}3.9 & 5,793 / 106 (0) & 7.30 \\
++ facts & gpt-5-nano & 28.1 & 26.8 & 11.6 & 5,532 / 1,578 (1,435) & 5.94 \\
+ & gpt-6-luna & 27.3 & 26.6 & 14.2 & 5,511 / 176 (102) & 3.89 \\
+\bottomrule
+\end{tabular}
+\caption{Generator models on validation, with dialogue history and the abstention decision of
+Section~\ref{sec:conv}; only the generator changes model. Tokens are the recorded usage of the
+generator calls. Cost at USD list prices (Azure Retail Prices API, Global Standard, East US 2,
+21 October 2026; the deployment type is not confirmed).}
+\label{tab:models}
+\end{table}
+
+\begin{itemize}
+\item On the answerable questions all three models answer, F1 is the same (about 31); the newer
+  models lose 1.0--1.8 points on answerable questions only through extra refusals.
+\item Abstention from gpt-5.4-nano with answers from a newer model gives no gain.
+\end{itemize}
+
+% =====================================================================
 \section*{Open items (Planned)}
 \begin{itemize}
 \item Q9, extraction precision with entities and relations evaluated separately on documents
   annotated by hand.
-\item Q12, exact token usage per call, turn and conversation, and gpt-5-nano as a second
-  generator: in progress (deployment configured, usage recording not yet in the code).
 \item Q13, the source section shown with each answer and whether it is a gold section.
 \item Q14, when the graph helps (by question type) and an oracle router as upper bound.
 \end{itemize}

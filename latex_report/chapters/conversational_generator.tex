@@ -1,0 +1,197 @@
+%!TEX root = ../main.tex
+
+\chapter{Conversational Generator and Generator Models}\label{ch:convgen}
+
+In all systems of the previous chapters the generator sees only the current user turn
+and the retrieved context. The dialogue history reaches only the query rewriter, and the
+rewritten query is used only for retrieval, so a follow-up such as ``and how do I renew
+it?'' is answered without knowing what ``it'' refers to, unless the retrieved sections
+make it clear. The history given to the rewriter is the gold one (the reference agent
+turns of the dataset, not the system's own answers), which is the standard turn-level
+protocol of \gls{mdd}. This chapter gives the generator the dialogue, studies how the
+decision to abstain should then be taken, and compares three generator models on the
+resulting system. All experiments use the full validation split only; the test split was
+not used. Retrieval, the graph facts and the contexts are the same as in
+Chapter~\ref{ch:final}; only the end of the generation prompt and the generator model
+change.
+
+
+% ===========================================================================
+\section{What the Generator Sees}\label{sec:convgen:input}
+
+Four generator inputs were compared, for the passage pipeline and for passages with graph
+facts (E):
+\begin{description}
+    \item[G0] the current user turn, as in all previous chapters;
+    \item[G1] the rewritten query instead of the user turn;
+    \item[G2] the gold dialogue history, under a ``Conversation so far'' header, followed by
+        the user turn;
+    \item[G3] G2 plus the rewritten query after the user turn.
+\end{description}
+On first turns there is no history and the rewrite equals the user turn, so all four
+inputs give the same prompt. The length of the history in G2 was chosen on dev-500 among
+2, 4 and all turns; the mean \fone{} of the two pipelines was 28.8, 29.0 and 29.1, and the
+whole history was kept. In G2 and G3 the generator therefore sees every earlier user and
+agent turn of the dialogue.
+
+\begin{table}[ht]
+    \centering
+    \caption{Generator inputs on the full validation split (\%, $n = 4{,}427$, 226
+    unanswerable). $\Delta$: paired bootstrap difference to G0 with its 95\% interval.
+    Abstain: abstention recall / false abstentions. G2 + abstain(G0) is introduced in
+    Section~\ref{sec:convgen:abstain}.}
+    \label{tab:convgen:input}
+    \small
+    \begin{tabular}{llrrrlr}
+        \toprule
+        & Input & \fone{} & answerable & unanswerable & $\Delta$\fone{}, all & Abstain \\
+        \midrule
+        Passages & G0 & 26.8 & 27.2 & 19.7 & ---                     & 19.0 / 4.5 \\
+                 & G1 & 25.4 & 26.3 &  9.6 & $-1.4$ ($-1.8$, $-1.0$) &  8.8 / 3.3 \\
+                 & G2 & 27.2 & 28.1 & 10.6 & $+0.3$ ($-0.0$, $0.7$)  &  9.7 / 2.8 \\
+                 & G3 & 26.3 & 27.2 &  9.8 & $-0.5$ ($-0.9$, $-0.2$) &  8.8 / 3.2 \\
+                 & G2 + abstain(G0) & 27.5 & 27.6 & 25.0 & $+0.6$ ($0.4$, $0.9$) & 24.3 / 5.6 \\
+        \midrule
+        Passages + facts & G0 & 27.4 & 27.7 & 20.1 & ---                    & 19.0 / 3.5 \\
+                 & G1 & 25.8 & 26.7 &  8.8 & $-1.6$ ($-2.0$, $-1.1$) &  7.5 / 2.6 \\
+                 & G2 & 27.7 & 28.5 & 12.9 & $+0.3$ ($-0.0$, $0.7$)  & 11.9 / 2.5 \\
+                 & G3 & 26.7 & 27.5 & 12.0 & $-0.6$ ($-1.0$, $-0.2$) & 10.6 / 2.5 \\
+                 & G2 + abstain(G0) & 28.0 & 28.2 & 24.5 & $+0.7$ ($0.4$, $1.0$) & 23.5 / 4.6 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Table~\ref{tab:convgen:input} shows the results. The rewritten query in the prompt makes
+the answers worse, alone (G1) or added to the history (G3). The history alone (G2) gains
+on answerable questions, $+0.8$ points (95\% interval $[0.5, 1.1]$) with passages and
+$+0.7$ ($[0.4, 1.0]$) with passages and facts, but the model abstains about half as often,
+so most of the gain is lost on the unanswerable questions and the overall difference is
+not significant. The gain is largest where the user turn cannot be understood alone: on
+replies of the form ``yes'' to a question of the agent (531 turns) G2 gains 3.7 points with
+passages and 3.2 with facts, and on turns where the reference agent asks a clarifying
+question it gains 0.9 and 0.7 points. On negative replies (``no'', ``do not'', 488 turns)
+it loses 2.8 and 2.4 points.
+
+The G0 numbers differ slightly from Table~\ref{tab:final:val} (26.8 against 26.9 for the
+passage pipeline). In the original run, identical prompts sent at the same time sometimes
+received different answers and only one of them was cached; here every input uses the
+cached answer, which changes 17 answers of the passage pipeline and 13 of E.
+
+
+% ===========================================================================
+\section{The Abstention Decision}\label{sec:convgen:abstain}
+
+In the unanswerable turns where G0 abstains and G2 answers (33 with passages, 26 with
+facts), the user turn is always a negative reply to a condition question of the agent,
+for example ``do not'' after ``Have you moved to New York State and become a resident?''.
+The dataset expects a refusal, while G2 continues the conversation, sometimes with an
+answer that is reasonable for the dialogue (``If you haven't become a New York State
+resident, you don't need to exchange your out-of-state driver license''). Deciding
+whether to answer and writing the answer are therefore two different problems.
+
+Taking the decision from G0 and the answer from G2 (G2 + abstain(G0): the refusal when G0
+abstains, the G2 answer otherwise) recovers the unanswerable turns and gives the best
+overall \fone{}: 27.5 with passages and 28.0 with passages and facts, $+0.6$ and $+0.7$
+points over G0 (Table~\ref{tab:convgen:input}). It needs two generation calls for most
+turns, which roughly doubles the input tokens of the generator.
+
+Two cheaper decisions were tried with the same generator. The first is a short call that
+sees the retrieved context, the history and the current turn and answers only ``yes'' or
+``no'' (reasoning disabled, about five output tokens). It says no on about 20\% of the
+turns: it catches half of the unanswerable questions but refuses 18 to 20\% of the
+answerable ones, and loses 1.3 points with passages and 1.0 with facts against
+G2 + abstain(G0). The second is a threshold on the score of the top section given by the
+cross-encoder, chosen on dev-500 (0.303). It abstains on only 3\% of the turns and loses
+0.6 points in both pipelines: the reranker usually finds a relevant-looking section even
+when the answer is not in it. G2 + abstain(G0) is therefore kept as the conversational
+system.
+
+
+% ===========================================================================
+\section{Token Usage}\label{sec:convgen:tokens}
+
+The usage reported by the API was not stored in the first experiments: the client kept
+only the answer text, and the cost estimates of the earlier systems were obtained by
+counting the tokens of the stored prompts and answers. The client was then changed to
+record, for every call, the input tokens, the cached input tokens, the output tokens and
+the hidden reasoning tokens, together with the model, the call type (rewrite, G0 or G2),
+the conversation and the turn. The cache stores the usage with the answer, so a cached
+call is logged with the usage of the original call and marked as cached. All numbers in
+the next section come from this log.
+
+For the whole project the Azure bill of the \texttt{gpt-5.4-nano} deployment is EUR 34.56
+for 164.62 million input and 11.56 million output tokens, which includes the graph
+construction and all runs before the comparison of the next section.
+
+
+% ===========================================================================
+\section{Generator Models}\label{sec:convgen:models}
+
+Three generator models available on the same Azure endpoint were compared on the system
+G2 + abstain(G0): \texttt{gpt-5.4-nano}, used in all previous chapters, \texttt{gpt-5-nano}
+and \texttt{gpt-6-luna}. Only the two generation calls change model; the query rewriter
+stays on \texttt{gpt-5.4-nano}, and the prompts are exactly those of
+Section~\ref{sec:convgen:input}. The three models were run fresh on the full validation
+split with the default reasoning settings. A second run of \texttt{gpt-5.4-nano} is used as
+the reference, so that all three runs use the same code; it differs from the cached run of
+Table~\ref{tab:convgen:input} by at most 0.1 points of \fone{} on all questions, which
+gives an idea of the variation between two runs of the same model.
+
+Costs use the USD list prices of the Azure Retail Prices API for a Global Standard
+deployment in the East US 2 region, checked on 21 October 2026 (input / cached input /
+output per million tokens): \texttt{gpt-5.4-nano} 0.20 / 0.02 / 1.25, \texttt{gpt-5-nano}
+0.05 / 0.005 / 0.40 and \texttt{gpt-6-luna} 0.10 / 0.01 / 0.50 (short-context meters). The
+deployment type of the project's deployments is not confirmed, so the real prices can
+differ. The project's tokens at the \texttt{gpt-5.4-nano} list price would cost between USD
+17.74 (all input cached) and USD 47.37 (no input cached), a range that contains the billed
+EUR 34.56.
+
+\begin{table}[ht]
+    \centering
+    \caption{Generator models on the full validation split (\%, $n = 4{,}427$), system
+    G2 + abstain(G0). $\Delta$: paired bootstrap difference to \texttt{gpt-5.4-nano}.
+    Tokens per turn of the generator calls (input / output, of which reasoning) and cost
+    in USD per 1,000 conversations at list prices, from the recorded usage.}
+    \label{tab:convgen:models}
+    \small
+    \begin{tabular}{llrrlllr}
+        \toprule
+        & Model & \fone{} & answ. & $\Delta$, all & $\Delta$, answerable & Tokens / turn & USD \\
+        \midrule
+        Passages & gpt-5.4-nano & 27.6 & 27.6 & ---                    & ---                     & 2{,}492 / 108 (0)     & 3.91 \\
+                 & gpt-5-nano   & 27.6 & 26.5 & $-0.0$ ($-0.5$, $0.5$) & $-1.0$ ($-1.4$, $-0.6$) & 2{,}394 / 1{,}569 (1{,}425) & 4.95 \\
+                 & gpt-6-luna   & 26.8 & 25.8 & $-0.8$ ($-1.3$, $-0.2$) & $-1.8$ ($-2.2$, $-1.3$) & 2{,}348 / 151 (80)   & 1.96 \\
+        \midrule
+        Passages & gpt-5.4-nano & 28.1 & 28.4 & ---                    & ---                     & 5{,}793 / 106 (0)     & 7.30 \\
+        + facts  & gpt-5-nano   & 28.1 & 26.8 & $-0.0$ ($-0.6$, $0.5$) & $-1.6$ ($-2.0$, $-1.2$) & 5{,}532 / 1{,}578 (1{,}435) & 5.94 \\
+                 & gpt-6-luna   & 27.3 & 26.6 & $-0.8$ ($-1.4$, $-0.3$) & $-1.8$ ($-2.2$, $-1.4$) & 5{,}511 / 176 (102)  & 3.89 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Table~\ref{tab:convgen:models} shows that neither newer model improves the system. On
+answerable questions both are worse than \texttt{gpt-5.4-nano}, by 1.0 to 1.8 points; on
+all questions \texttt{gpt-5-nano} ties and \texttt{gpt-6-luna} loses 0.8 points. The two newer
+models abstain much more often: \texttt{gpt-5-nano} catches about half of the unanswerable
+questions but refuses 12\% of the answerable ones, against 4 to 6\% for
+\texttt{gpt-5.4-nano}, and \texttt{gpt-6-luna} refuses 14 to 17\%.
+
+The loss comes from these refusals and not from worse answers. On the answerable
+questions where all three models answer (3{,}326 with passages, 3{,}443 with facts), the
+three models reach the same \fone{} within noise (30.7, 31.0 and 31.1 with passages,
+30.8, 30.7 and 30.8 with facts). The newer models write shorter answers, 34 to 41 words on
+average against 46 to 48 for \texttt{gpt-5.4-nano}. Taking the abstention decision from
+\texttt{gpt-5.4-nano} and only the answer from a newer model does not help either: on the
+questions where the cached answers make this combination possible, it differs from
+\texttt{gpt-5.4-nano} alone by at most 0.4 points, with no significant difference.
+
+The token usage differs mostly in the output. \texttt{gpt-5.4-nano} used no reasoning
+tokens with the default settings. \texttt{gpt-5-nano} spends about 1{,}430 hidden reasoning
+tokens per turn, about ten times its visible answer, so despite the lowest price per token
+it costs more than \texttt{gpt-5.4-nano} with passages and only somewhat less with facts.
+\texttt{gpt-6-luna} reasons moderately (80 to 100 tokens per turn) and is the cheapest,
+about half the cost of \texttt{gpt-5.4-nano}. A conversation of the validation split (6.7
+turns on average) uses about 16{,}700 input tokens with passages and 38{,}800 with facts
+(95th percentile 27{,}300 and 55{,}400). Prompt caching saves little on a normal run, since
+only 7 to 19\% of the input is served from the cache. \texttt{gpt-5.4-nano} was kept as the
+generator.

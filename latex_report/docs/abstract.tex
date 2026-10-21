@@ -39,6 +39,9 @@ run once on the test split: the \gls{llm} alone reaches 15.1\% \fone{}, graph re
 23.8\%, the best passage pipeline 26.9\%, passages with graph facts 27.5\% and the oracle
 34.2\%. A control with the same number of random facts shows that the gain of 0.8 points
 on answerable questions comes from the content of the facts and not from the longer
-context.
+context. Giving the generator the dialogue history helps on answerable questions but makes
+it abstain less; with the decision to abstain taken without the history, passages with
+graph facts reach 28.0\% on validation. Two newer generator models answer as well when they
+answer, but refuse more answerable questions, so \texttt{gpt-5.4-nano} was kept.
 
 \end{abstract}

@@ -56,6 +56,18 @@ Token F1 (%), all questions / answerable questions only. Validation: 4,427 quest
 | Passages + graph facts, with dialogue history | **28.0 / 28.2** | not run yet |
 | Oracle (upper bound) | 35.5 / 36.5 | 34.2 / 35.1 |
 
+### Generator models
+
+The best configuration (passages + graph facts, with dialogue history) with three generator models on validation; only the generator changes. All three were run fresh, so gpt-5.4-nano differs by 0.1–0.2 from the table above. Token usage is recorded per call; cost at USD list prices (Azure Retail Prices API, Global Standard, East US 2, 21 Oct 2026; deployment type not confirmed).
+
+| Generator | F1 all / answerable | False abstention | Tokens per turn, in / out (reasoning) | USD per 1,000 conversations |
+| :--- | :---: | :---: | :---: | :---: |
+| gpt-5.4-nano (used) | **28.1 / 28.4** | 3.9% | 5,793 / 106 (0) | 7.30 |
+| gpt-5-nano | 28.1 / 26.8 | 11.6% | 5,532 / 1,578 (1,435) | 5.94 |
+| gpt-6-luna | 27.3 / 26.6 | 14.2% | 5,511 / 176 (102) | 3.89 |
+
+The newer models answer as well when they answer (same F1 on the questions all three answer) but refuse more answerable questions. Full comparison, also for passages only: [summary](experiments/results/validation/model_comparison/summary.md).
+
 ## Example
 
 A follow-up turn of a validation dialogue (DMV, traffic tickets), answered by passages + graph facts:
