@@ -255,6 +255,122 @@ def pilot_estimate(model: str) -> None:
     print("\n".join(lines))
 
 
+OTHERS = ("gpt-5-nano", "gpt-6-luna")
+# Azure bill of the whole project for gpt-5.4-nano: EUR 34.56 for 164.62 M input and 11.56 M output tokens.
+BILL_EUR, BILL_IN_M, BILL_OUT_M = 34.56, 164.62, 11.56
+
+
+def _cached_call(model: str, prompt: str) -> Optional[Dict[str, Any]]:
+    path = CACHE_ROOT / model / f"{hashlib.sha256(prompt.encode('utf-8')).hexdigest()}.json"
+    return json.loads(path.read_text(encoding="utf-8")) if path.exists() else None
+
+
+def _cost(model: str, u: Dict[str, Any]) -> float:
+    p = PRICES[model]
+    return ((u["input_tokens"] - u["cached_tokens"]) * p["input"] + u["cached_tokens"] * p["cached_input"]
+            + u["output_tokens"] * p["output"]) / 1e6
+
+
+def price_note() -> List[str]:
+    p = PRICES[BASELINE]
+    list_usd = BILL_IN_M * p["input"] + BILL_OUT_M * p["output"]
+    all_cached_usd = BILL_IN_M * p["cached_input"] + BILL_OUT_M * p["output"]
+    return ["## Prices", "",
+            "All costs are USD list prices from the Azure Retail Prices API (prices.azure.com), Global Standard "
+            "deployment, region East US 2, checked on 2026-10-21. The deployment type and region of the project's "
+            "deployments are not confirmed, so the real prices can differ.", "",
+            f"Check against the Azure bill of gpt-5.4-nano (EUR {BILL_EUR} for {BILL_IN_M} M input and "
+            f"{BILL_OUT_M} M output tokens over the whole project, i.e. EUR {BILL_EUR / (BILL_IN_M + BILL_OUT_M):.3f} "
+            f"per 1 M tokens on average): the same tokens at the list price cost USD {list_usd:.2f} if no input is "
+            f"cached, and USD {all_cached_usd:.2f} if all input were cached. The bill (EUR {BILL_EUR}) lies inside "
+            "this range; it does not say how much input was cached, and the EUR/USD rate is not applied here, so "
+            "the bill neither confirms nor contradicts the list price exactly.", ""]
+
+
+def quality_checks(base: str) -> List[str]:
+    """F1 without refusals, and the mixed system (abstention of gpt-5.4-nano G0, answer of another model's G2)."""
+    runs = {m: {r["example_id"]: r for r in load(OUT_DIR / f"{m}__{base}__answers_full.jsonl")} for m in MODELS}
+    g0p = {r["example_id"]: r["prompt"] for r in load(GEN_DIR / f"{base}__G0.jsonl")}
+    g2p = {r["example_id"]: r["prompt"] for r in load(GEN_DIR / f"{base}__G2_kall.jsonl")}
+    ref = runs[BASELINE]
+    ids = list(ref)
+    f1 = lambda a, r: compute_metrics(a or "", r)["f1"]
+    fmt = lambda t: f"{t['mean_diff']*100:+.1f} [{t['ci_low']*100:.1f}, {t['ci_high']*100:.1f}]"
+    words = lambda a: len((a or "").split())
+    answ = [i for i in ids if not ref[i]["is_unanswerable"]]
+    out = ["### Answer quality without refusals (answerable questions)", "",
+           "| Model | answered (not abstained) | F1 on them | mean words | F1 on the common subset | Δ vs 5.4-nano (common subset) |",
+           "| :--- | ---: | :---: | :---: | :---: | :---: |"]
+    answered = {m: [i for i in answ if runs[m][i]["model_answer"] and not is_abstention(runs[m][i]["model_answer"])]
+                for m in MODELS}
+    common = [i for i in answ if all(i in answered[m] for m in MODELS)]
+    common_set = set(common)
+    fb = [f1(ref[i]["model_answer"], ref[i]["reference_answer"]) for i in common]
+    for m in MODELS:
+        own = answered[m]
+        f_own = np.mean([f1(runs[m][i]["model_answer"], runs[m][i]["reference_answer"]) for i in own])
+        w = np.mean([words(runs[m][i]["model_answer"]) for i in own])
+        fc = [f1(runs[m][i]["model_answer"], runs[m][i]["reference_answer"]) for i in common]
+        d = "-" if m == BASELINE else fmt(paired_bootstrap_test(fc, fb))
+        out.append(f"| {m} | {len(own)} of {len(answ)} | {f_own*100:.1f} | {w:.1f} | {np.mean(fc)*100:.1f} | {d} |")
+    out += ["", f"Common subset: the {len(common)} answerable questions where all three models answered.", ""]
+
+    out += ["### Mixed system: abstention from gpt-5.4-nano G0, answer from another model's G2", "",
+            "Same G2 + abstain(G0) logic; G0 runs on gpt-5.4-nano and G2 on the other model. No new calls were "
+            "made: the other model's G2 answer is in the cache only where its own G0 did not abstain, so questions "
+            "where gpt-5.4-nano answers but the other model's G2 was never called are left out (counted below), and "
+            "every comparison uses the same questions for both systems.", "",
+            "| Answer model | n (left out) | F1 all | F1 answerable | F1 unanswerable | Δ all vs 5.4-nano | Δ answerable | "
+            "abstain recall / false abstention | USD per 1,000 conv. |",
+            "| :--- | ---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |"]
+    n_conv = len({ref[i]["dialogue_id"] for i in ids})
+    g0_base = {i: _cached_call(BASELINE, g0p[i]) for i in ids}
+    for m in OTHERS:
+        final, cost, missing = {}, {}, 0
+        g2_costs = []
+        for i in ids:
+            c0 = g0_base[i]
+            a0 = c0["text"] if c0 else None
+            if a0 is None:
+                continue
+            if is_abstention(a0):
+                final[i], cost[i] = ABSTAIN, _cost(BASELINE, c0)
+                continue
+            if g2p[i] == g0p[i]:
+                c2 = _cached_call(m, g0p[i])
+            else:
+                c2 = _cached_call(m, g2p[i])
+            if not c2 or c2.get("text") is None:
+                missing += 1
+                continue
+            final[i] = c2["text"]
+            cost[i] = _cost(BASELINE, c0) + _cost(m, c2)
+            g2_costs.append(_cost(m, c2))
+        keep = [i for i in ids if i in final]
+        f = np.array([f1(final[i], ref[i]["reference_answer"]) for i in keep])
+        fb2 = np.array([f1(ref[i]["model_answer"], ref[i]["reference_answer"]) for i in keep])
+        u = np.array([ref[i]["is_unanswerable"] for i in keep])
+        ab = np.array([is_abstention(final[i]) for i in keep])
+        d_all = paired_bootstrap_test(list(f), list(fb2))
+        d_ans = paired_bootstrap_test(list(f[~u]), list(fb2[~u]))
+        # cost per conversation over all questions: missing G2 calls counted at the mean G2 cost of this model
+        per_conv: Dict[str, float] = defaultdict(float)
+        mean_g2 = float(np.mean(g2_costs))
+        for i in ids:
+            c0 = g0_base[i]
+            if i in cost:
+                per_conv[ref[i]["dialogue_id"]] += cost[i]
+            elif c0:
+                per_conv[ref[i]["dialogue_id"]] += _cost(BASELINE, c0) + mean_g2
+        usd = sum(per_conv.values()) / n_conv * 1000
+        out.append(f"| {m} | {len(keep)} ({missing}) | {f.mean()*100:.1f} | {f[~u].mean()*100:.1f} | "
+                   f"{f[u].mean()*100:.1f} | {fmt(d_all)} | {fmt(d_ans)} | "
+                   f"{ab[u].mean()*100:.1f} / {ab[~u].mean()*100:.1f} | {usd:.2f} |")
+    out += ["", "Cost: G0 on gpt-5.4-nano for every question plus G2 on the other model when G0 answers, from the "
+            "recorded usage; the left-out G2 calls are counted at the mean G2 cost of that model.", ""]
+    return out
+
+
 def report() -> None:
     lines = ["# Generator models (validation, G2 + abstain(G0))", "",
              "Only the generator calls change model; rewrites, retrieval, graph facts and contexts are identical. "
@@ -318,6 +434,8 @@ def report() -> None:
                          f"{e['abstain_recall']*100:.1f} / {e['false_abstention']*100:.1f} | {tok} | {conv} | {usd} |")
             summary["pipelines"][base][name] = e
         lines.append("")
+        lines += quality_checks(base)
+    lines += price_note()
     (OUT_DIR / "summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
     (OUT_DIR / "summary.md").write_text("\n".join(lines), encoding="utf-8")
     print("\n".join(lines))
