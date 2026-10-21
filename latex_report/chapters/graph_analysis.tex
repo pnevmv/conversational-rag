@@ -1,0 +1,94 @@
+%!TEX root = ../main.tex
+
+\chapter{When the Graph Helps}\label{ch:graphhelp}
+
+On average, adding graph facts to the passages gains about half a point of \fone{}. This
+chapter looks at which questions the gain comes from, and whether a cheap router could
+choose, per question, between passages, passages with graph facts and graph facts only.
+The analysis uses only the cached answers of the full validation split, with the
+conversational generator of Chapter~\ref{ch:convgen} (G2 + abstain(G0), \texttt{gpt-5.4-nano});
+no new \gls{llm} calls were made and the test split was not used. P denotes passages and E
+passages with graph facts. Graph facts only (B) exists only with the current user turn as
+input, since it was not run with the dialogue history. For every question
+$d = \fone{}(E) - \fone{}(P)$; overall P reaches 27.5\%, E 28.0\% ($d = +0.5$, 95\%
+interval $[0.1, 0.9]$) and B 24.1\%.
+
+
+% ===========================================================================
+\section{Gain by Question Type}\label{sec:graphhelp:groups}
+
+Table~\ref{tab:graphhelp:groups} breaks $d$ down by question type; only groups with at
+least 100 questions are shown. The clearest split is by retrieval. Where passage retrieval
+misses the gold section but at least one fact comes from it (342 questions), E gains 4.6
+points, and graph facts alone do as well there (26.2 against 25.2 for E). Where the gold
+section is already among the five passages but no fact comes from it, E loses 1.0 point:
+the extra facts distract the model from a good context. Over all retrieval hits the gain
+is 0.1 points, over all misses 1.3 points.
+
+\begin{table}[ht]
+    \centering
+    \caption{Passages with graph facts (E) against passages (P) by question type, full
+    validation split (\%). $d$: mean difference with its paired bootstrap 95\% interval;
+    $d > 0$ / $d < 0$: share of questions where E is better / worse.}
+    \label{tab:graphhelp:groups}
+    \small
+    \begin{tabular}{lrrrlrr}
+        \toprule
+        Group & $n$ & P & E & $d$ & $d > 0$ & $d < 0$ \\
+        \midrule
+        All questions                               & 4{,}427 & 27.5 & 28.0 & $+0.5$ ($0.1$, $0.9$)   & 48 & 42 \\
+        \midrule
+        Retrieval hit                               & 2{,}822 & 32.5 & 32.6 & $+0.1$ ($-0.4$, $0.6$)  & 48 & 44 \\
+        Retrieval miss                              & 1{,}605 & 18.7 & 20.0 & $+1.3$ ($0.6$, $2.0$)   & 49 & 39 \\
+        \quad hit, a fact from the gold section     & 1{,}817 & 32.8 & 33.5 & $+0.7$ ($0.0$, $1.3$)   & 50 & 41 \\
+        \quad hit, no fact from the gold section    & 1{,}005 & 31.9 & 30.9 & $-1.0$ ($-1.9$, $-0.1$) & 43 & 48 \\
+        \quad miss, a fact from the gold section    &     342 & 20.6 & 25.2 & $+4.6$ ($2.7$, $6.6$)   & 59 & 34 \\
+        \quad miss, no fact from the gold section   & 1{,}263 & 18.1 & 18.5 & $+0.4$ ($-0.4$, $1.1$)  & 46 & 40 \\
+        \midrule
+        First turn                                  &     660 & 26.6 & 26.6 & $-0.0$ ($-0.6$, $0.7$)  & 50 & 46 \\
+        Follow-up                                   & 3{,}767 & 27.6 & 28.2 & $+0.6$ ($0.1$, $1.1$)   & 48 & 41 \\
+        User replies ``yes''                        &     531 & 25.8 & 26.8 & $+1.0$ ($0.1$, $1.9$)   & 52 & 42 \\
+        Question names a linked entity              & 1{,}553 & 30.4 & 31.3 & $+0.9$ ($0.4$, $1.4$)   & 50 & 43 \\
+        Question names no linked entity             & 2{,}874 & 25.9 & 26.2 & $+0.3$ ($-0.3$, $0.9$)  & 47 & 41 \\
+        \midrule
+        VA                                          & 1{,}269 & 26.9 & 27.8 & $+0.9$ ($0.1$, $1.7$)   & 49 & 41 \\
+        DMV                                         & 1{,}132 & 31.3 & 32.0 & $+0.7$ ($-0.2$, $1.6$)  & 47 & 43 \\
+        SSA                                         & 1{,}162 & 26.2 & 26.7 & $+0.6$ ($-0.2$, $1.2$)  & 48 & 41 \\
+        StudentAid                                  &     864 & 25.1 & 24.8 & $-0.3$ ($-1.3$, $0.6$)  & 47 & 43 \\
+        \midrule
+        Answerable                                  & 4{,}201 & 27.6 & 28.2 & $+0.6$ ($0.3$, $0.9$)   & 49 & 43 \\
+        Unanswerable                                &     226 & 25.0 & 24.5 & $-0.5$ ($-6.8$, $5.5$)  & 27 & 23 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+The other splits show small and spread-out effects. E is ahead on follow-up turns, on
+``yes'' replies of the user, when the question names one of the linked entities (a
+string match on the entity names) and in the VA domain, and gives nothing on first turns
+and in StudentAid. The dialogue act of the reference agent turn, a document switch and the
+number of facts make little difference, and every question has ten linked entities, so
+their number does not split the questions. Per question, E is better on 48\% and worse on
+42\% of the questions, so the average gain is the net of many changes in both directions.
+
+
+% ===========================================================================
+\section{Routing Between Configurations}\label{sec:graphhelp:router}
+
+An oracle router that picks, for each question, the better of P and E with the reference
+answer reaches 31.3\% \fone{}, 3.3 points above always using E; adding B as a third
+option gives 33.8\%. These upper bounds are mostly noise, however: picking the better of
+two runs of the same system E (the cached run and the fresh run of
+Section~\ref{sec:convgen:models}) already gains 2.9 points, because two runs of the same
+model give different answers to many questions.
+
+A cheap router between P and E was nevertheless tested, with features available before
+generation: the cross-encoder scores of the passage ranking (top score, gap between the
+first two, mean of the top five), the share of facts whose evidence section is among the
+five passages, the mean degree of the linked entities, the number of facts, the position
+in the dialogue, the length of the question and whether it names a linked entity. A
+logistic regression fitted on dev-500 and evaluated on the other 3{,}927 validation
+questions predicts the better configuration in only 52\% of the cases and is 0.5 points
+worse than always using E; the best single threshold, on the top reranker score, is 0.2
+points worse. The one signal that separates the questions where the facts help, whether a
+fact comes from the gold section, depends on the reference answer and is not available at
+run time. Always adding the graph facts is therefore the better choice with these signals.

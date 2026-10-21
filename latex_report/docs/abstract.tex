@@ -42,6 +42,8 @@ on answerable questions comes from the content of the facts and not from the lon
 context. Giving the generator the dialogue history helps on answerable questions but makes
 it abstain less; with the decision to abstain taken without the history, passages with
 graph facts reach 28.0\% on validation. Two newer generator models answer as well when they
-answer, but refuse more answerable questions, so \texttt{gpt-5.4-nano} was kept.
+answer, but refuse more answerable questions, so \texttt{gpt-5.4-nano} was kept. The graph facts help mostly where passage retrieval misses
+the answer and a fact still comes from the right section, and a router using signals
+available before generation could not tell these questions apart.
 
 \end{abstract}

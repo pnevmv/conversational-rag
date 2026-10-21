@@ -498,12 +498,43 @@ generator calls. Cost at USD list prices (Azure Retail Prices API, Global Standa
 \end{itemize}
 
 % =====================================================================
+\section{When does the graph help? (Q14)}\label{sec:graphhelp}
+
+\textbf{Mostly where passage retrieval misses the answer but a graph fact still comes from the
+right section. A cheap router cannot find these questions before generation, so always adding the
+facts stays the best choice.}
+
+\begin{table}[H]
+\centering\small
+\begin{tabular}{lrccc}
+\toprule
+Questions (validation, with dialogue history) & $n$ & Passages & + graph facts & $d$ [95\% CI] \\
+\midrule
+All & 4,427 & 27.5 & 28.0 & $+0.5$ [0.1, 0.9] \\
+Passages miss, a fact from the gold section & 342 & 20.6 & 25.2 & $+4.6$ [2.7, 6.6] \\
+Passages hit, no fact from the gold section & 1,005 & 31.9 & 30.9 & $-1.0$ [$-1.9$, $-0.1$] \\
+Follow-up turns & 3,767 & 27.6 & 28.2 & $+0.6$ [0.1, 1.1] \\
+First turns & 660 & 26.6 & 26.6 & $-0.0$ [$-0.6$, 0.7] \\
+\bottomrule
+\end{tabular}
+\caption{F1 of passages and passages + graph facts by question type; $d$ is the paired difference.}
+\label{tab:graphhelp}
+\end{table}
+
+\begin{itemize}
+\item An oracle choosing the better configuration per question gains 3.3 F1, but the better of two
+  runs of the same system already gains 2.9: the oracle gain is mostly run-to-run noise.
+\item A router on signals available before generation (reranker scores, fact overlap, dialogue
+  position) picks the better configuration only 52\% of the time and is 0.5 F1 worse than always
+  adding the facts.
+\end{itemize}
+
+% =====================================================================
 \section*{Open items (Planned)}
 \begin{itemize}
 \item Q9, extraction precision with entities and relations evaluated separately on documents
   annotated by hand.
 \item Q13, the source section shown with each answer and whether it is a gold section.
-\item Q14, when the graph helps (by question type) and an oracle router as upper bound.
 \end{itemize}
 
 

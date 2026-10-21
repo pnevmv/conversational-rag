@@ -91,6 +91,14 @@ the answerable questions and are 1.0 to 1.8 points worse on them. \texttt{gpt-5-
 about 1{,}400 hidden reasoning tokens per turn, so its low price per token does not make it
 cheaper; \texttt{gpt-6-luna} costs about half as much as \texttt{gpt-5.4-nano}.
 
+The gain of the graph facts is concentrated where passage retrieval misses the answer but a
+fact still comes from the gold section, 4.6 points on 342 validation questions, while the
+facts cost one point where the passages are already right and the facts come from other
+sections. A router that would add the facts only where they help could not be built from
+signals available before generation: a logistic regression on retrieval scores, fact
+overlap and dialogue features chose the better configuration only 52\% of the time, and most
+of the gain of an oracle router comes from the run-to-run variation of the generator.
+
 
 % ===========================================================================
 \section*{Scope Limitations}
