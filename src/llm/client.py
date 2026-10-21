@@ -1,5 +1,9 @@
+import json
 import os
-from typing import Optional
+import threading
+import time
+from pathlib import Path
+from typing import Any, Dict, Optional, Tuple
 from dotenv import load_dotenv
 from openai import OpenAI, OpenAIError
 
@@ -8,6 +12,46 @@ load_dotenv()
 
 DEFAULT_BASE_URL = "https://2026-foundry.services.ai.azure.com/openai/v1"
 DEFAULT_MODEL = "gpt-5.4-nano-smirnov"
+
+# Every API call appends one JSON line with its token usage. LLM_USAGE_LOG overrides the path;
+# "off" disables the log.
+DEFAULT_USAGE_LOG = Path(__file__).resolve().parents[2] / "experiments" / "logs" / "llm_usage.jsonl"
+_USAGE_LOCK = threading.Lock()
+
+
+def usage_of(response: Any) -> Dict[str, Optional[int]]:
+    """Input, cached input, output and reasoning tokens of a Responses API result."""
+    u = getattr(response, "usage", None)
+    return {
+        "input_tokens": getattr(u, "input_tokens", None),
+        "cached_tokens": getattr(getattr(u, "input_tokens_details", None), "cached_tokens", None),
+        "output_tokens": getattr(u, "output_tokens", None),
+        "reasoning_tokens": getattr(getattr(u, "output_tokens_details", None), "reasoning_tokens", None),
+    }
+
+
+def call_meta(example: Dict[str, Any], call_type: str, pipeline: Optional[str] = None) -> Dict[str, Any]:
+    """Usage-log fields of one call for a dataset example."""
+    return {"conversation_id": example.get("dialogue_id"), "turn_id": example.get("turn_id"),
+            "example_id": example.get("example_id"), "call_type": call_type, "pipeline": pipeline}
+
+
+def log_usage(model: str, usage: Dict[str, Optional[int]], meta: Optional[Dict[str, Any]] = None,
+              cache_hit: bool = False) -> None:
+    """Append one call to the usage log (conversation id, turn id and call type come from meta)."""
+    target = os.getenv("LLM_USAGE_LOG", str(DEFAULT_USAGE_LOG))
+    if target == "off":
+        return
+    meta = meta or {}
+    row = {"t": time.time(), "model": model, "call_type": meta.get("call_type"),
+           "conversation_id": meta.get("conversation_id"), "turn_id": meta.get("turn_id"),
+           "example_id": meta.get("example_id"), "pipeline": meta.get("pipeline"),
+           "cache_hit": cache_hit, **usage}
+    path = Path(target)
+    with _USAGE_LOCK:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with open(path, "a", encoding="utf-8") as f:
+            f.write(json.dumps(row) + "\n")
 
 
 class LLMClient:
@@ -44,8 +88,13 @@ class LLMClient:
             timeout=float(os.getenv("LLM_TIMEOUT", "120")),
         )
 
-    def generate(self, prompt: str, model: Optional[str] = None) -> str:
+    def generate(self, prompt: str, model: Optional[str] = None, meta: Optional[Dict[str, Any]] = None) -> str:
         """Send a prompt to the LLM and return the generated text response."""
+        return self.generate_with_usage(prompt, model=model, meta=meta)[0]
+
+    def generate_with_usage(self, prompt: str, model: Optional[str] = None,
+                            meta: Optional[Dict[str, Any]] = None) -> Tuple[str, Dict[str, Optional[int]]]:
+        """Like generate(), but also return the token usage. Every call is written to the usage log."""
         target_model = model or self.default_model
 
         try:
@@ -53,10 +102,12 @@ class LLMClient:
                 model=target_model,
                 input=prompt,
             )
-            return response.output_text
         except OpenAIError as e:
             # Handle API errors without leaking credentials
             raise RuntimeError(f"LLM API request failed: {e}") from None
+        usage = usage_of(response)
+        log_usage(target_model, usage, meta)
+        return response.output_text, usage
 
 
 _default_client: Optional[LLMClient] = None

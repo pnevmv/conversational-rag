@@ -31,17 +31,21 @@ if __name__ == "__main__":
     unittest.main()
 
 
-def test_generate_batch_sends_identical_prompts_once():
+def test_generate_batch_sends_identical_prompts_once(monkeypatch):
     """Duplicate prompts must get one call and the same answer (no race between two calls)."""
     from src.llm.parallel import generate_batch
 
+    monkeypatch.setenv("LLM_USAGE_LOG", "off")
+
     class Counter:
+        default_model = "fake"
+
         def __init__(self):
             self.calls = []
 
-        def generate(self, prompt):
+        def generate_with_usage(self, prompt, meta=None):
             self.calls.append(prompt)
-            return f"answer {len(self.calls)}"
+            return f"answer {len(self.calls)}", {}
 
     client = Counter()
     out = generate_batch(client, ["a", "b", "a", "a"], max_workers=4, verbose=False)

@@ -32,7 +32,7 @@ from experiments.evaluate_diagnostics import paired_bootstrap_test
 from experiments.run_dev_subset import _build_agent_prompt, _load_few_shot_examples, write_jsonl
 from src.data.loader import load_dialogues, load_qa_pairs
 from src.evaluation.metrics import compute_metrics, is_abstention
-from src.llm import LLMCache, LLMClient, generate_batch
+from src.llm import LLMCache, LLMClient, call_meta, generate_batch
 
 RESULTS = PROJECT_ROOT / "experiments" / "results"
 CACHE_DIR = PROJECT_ROOT / "experiments" / "cache"
@@ -98,7 +98,8 @@ def run_variants(split: str, variants: List[str], k_values: List[Optional[int]],
                 prompts = [build_prompt(h, examples[r["example_id"]], r["rewritten_query"] or r["question"], variant, k)
                            for h, r in zip(heads, rows)]
                 print(f"=== {name}: {len(prompts)} prompts", flush=True)
-                answers = generate_batch(client, prompts, cache=cache, max_workers=workers, verbose=len(prompts) > 1000)
+                answers = generate_batch(client, prompts, cache=cache, max_workers=workers, verbose=len(prompts) > 1000,
+                                         metas=[call_meta(r, variant, base) for r in rows])
                 recs = []
                 for r, p, (a, status) in zip(rows, prompts, answers):
                     recs.append({key: r[key] for key in ("example_id", "dialogue_id", "turn_id", "domain", "question",

@@ -23,21 +23,30 @@ class LLMCache:
         return self.cache_dir / f"{h}.json"
 
     def get(self, prompt: str) -> Optional[str]:
+        entry = self.get_entry(prompt)
+        return None if entry is None else entry["response"]
+
+    def get_entry(self, prompt: str) -> Optional[dict]:
+        """The cached entry: {"response": ..., "usage": ...}; usage is missing for older entries."""
         p = self._path(prompt)
         if p.exists():
             try:
                 data = json.loads(p.read_text(encoding="utf-8"))
+                data["response"]
                 self._hits += 1
-                return data["response"]
+                return data
             except Exception:
                 pass
         self._misses += 1
         return None
 
-    def put(self, prompt: str, response: str) -> None:
+    def put(self, prompt: str, response: str, usage: Optional[dict] = None) -> None:
         p = self._path(prompt)
+        entry = {"response": response}
+        if usage is not None:
+            entry["usage"] = usage
         p.write_text(
-            json.dumps({"response": response}, ensure_ascii=False),
+            json.dumps(entry, ensure_ascii=False),
             encoding="utf-8",
         )
 

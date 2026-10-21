@@ -40,11 +40,11 @@ class QueryRewriter:
     def __init__(self, client: LLMClient = None):
         self._client = client or LLMClient()
 
-    def rewrite(self, question: str, dialogue_history: List[Dict[str, str]]) -> str:
+    def rewrite(self, question: str, dialogue_history: List[Dict[str, str]], meta: Dict = None) -> str:
         if not dialogue_history:
             return question
 
         history_text = _format_history(dialogue_history)
         prompt = REWRITE_PROMPT.format(history=history_text, question=question)
-        rewritten = self._client.generate(prompt=prompt).strip()
+        rewritten = self._client.generate(prompt=prompt, meta={**(meta or {}), "call_type": "rewrite"}).strip()
         return rewritten if rewritten else question

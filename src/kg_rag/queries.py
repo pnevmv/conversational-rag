@@ -11,7 +11,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from src.data.loader import load_doc_domain_map, load_qa_pairs, load_sections, make_section_id
 from src.kg.coverage import load_examples
-from src.llm import LLMCache, LLMClient, generate_batch
+from src.llm import LLMCache, LLMClient, call_meta, generate_batch
 from src.rag.query_rewriter import REWRITE_PROMPT, _format_history
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
@@ -60,7 +60,8 @@ def rewrite_all(examples: List[Dict[str, Any]], client: Optional[LLMClient] = No
                for i, ex in enumerate(examples) if ex.get("dialogue_history")}
     idx = sorted(prompts)
     print(f"  rewriting {len(idx)} turns", flush=True)
-    answers = generate_batch(client, [prompts[i] for i in idx], cache=cache, max_workers=workers, verbose=len(idx) > 1000)
+    answers = generate_batch(client, [prompts[i] for i in idx], cache=cache, max_workers=workers, verbose=len(idx) > 1000,
+                             metas=[call_meta(examples[i], "rewrite") for i in idx])
     out = [ex["question"] for ex in examples]
     for i, (answer, _) in zip(idx, answers):
         if answer and answer.strip():

@@ -22,7 +22,7 @@ from src.data.loader import load_doc_domain_map
 from src.kg_rag.linker import EntityLinker
 from src.kg_rag.queries import DOMAIN_CONFIDENCE, LLM_CACHE_DIR, OUT_DIR, RERANKER_CACHE_DIR, load_step4
 from src.kg_rag.retrievers import KGRetriever, rrf_sections
-from src.llm import LLMCache, LLMClient, generate_batch
+from src.llm import LLMCache, LLMClient, call_meta, generate_batch
 
 TOP_K = 5
 PIPELINES = ("kg_sections", "kg_sections_1hop", "kg_facts", "kg_hybrid", "kg_rerank", "step4_plus_facts",
@@ -220,7 +220,8 @@ def run(split: str = "dev500", pipelines=PIPELINES, workers: int = 8, retrieval_
     for name in pipelines:
         rows, prompts = all_rows[name]
         print(f"=== {name}: generating {len(prompts)} answers ===", flush=True)
-        answers = generate_batch(client, prompts, cache=cache, max_workers=workers, verbose=len(prompts) > 1000)
+        answers = generate_batch(client, prompts, cache=cache, max_workers=workers, verbose=len(prompts) > 1000,
+                                 metas=[call_meta(ex, "G0", name) for ex in examples])
         for row, prompt, (answer, status) in zip(rows, prompts, answers):
             row.update({"prompt": prompt, "model_answer": answer,
                         "status": status if answer is not None else "error",

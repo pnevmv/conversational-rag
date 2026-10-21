@@ -25,7 +25,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 
 from src.data import load_qa_pairs, load_sections, load_doc_domain_map
 from src.evaluation.metrics import compute_metrics
-from src.llm import LLMClient, LLMCache, generate_batch
+from src.llm import LLMClient, LLMCache, call_meta, generate_batch
 from src.rag import BM25Retriever, DenseRetriever, HybridRetriever, QueryRewriter, Reranker
 from src.rag.reranker import MAX_TOKENS as RERANKER_MODEL_MAX_TOKENS
 
@@ -163,8 +163,9 @@ def _batch(
     cache: LLMCache,
     prompts: List[str],
     workers: int,
+    metas: Optional[List[Dict[str, Any]]] = None,
 ) -> List[Tuple[Optional[str], str]]:
-    return generate_batch(client, prompts, cache=cache, max_workers=workers, verbose=True)
+    return generate_batch(client, prompts, cache=cache, max_workers=workers, verbose=True, metas=metas)
 
 
 # ---------------------------------------------------------------------------
@@ -178,7 +179,7 @@ def run_llm_baseline(
     prompts = [LLM_PROMPT.format(question=ex["question"]) for ex in examples]
 
     print(f"  Generating ({workers} workers)...")
-    answers = _batch(client, cache, prompts, workers)
+    answers = _batch(client, cache, prompts, workers, [call_meta(ex, "G0", "llm_baseline") for ex in examples])
 
     records = []
     for ex, prompt, (answer, status) in zip(examples, prompts, answers):
@@ -250,7 +251,7 @@ def run_oracle_context(
                for ex, ctx in zip(examples, contexts)]
 
     print(f"  Generating ({workers} workers)...")
-    answers = _batch(client, cache, prompts, workers)
+    answers = _batch(client, cache, prompts, workers, [call_meta(ex, "G0", "oracle") for ex in examples])
 
     records = []
     for ex, ctx, prompt, (answer, status) in zip(examples, contexts, prompts, answers):
@@ -318,7 +319,8 @@ def run_rag_retrieval(
         real_prompts = [p for p in rewrite_prompts if p is not None]
         indices = [i for i, p in enumerate(rewrite_prompts) if p is not None]
         print(f"  Rewriting {len(real_prompts)} queries ({workers} workers)...")
-        rw_answers = _batch(client, cache, real_prompts, workers)
+        rw_answers = _batch(client, cache, real_prompts, workers,
+                            [call_meta(examples[i], "rewrite") for i in indices])
 
         rewritten = list(questions)
         for i, (answer, _) in zip(indices, rw_answers):
@@ -362,7 +364,7 @@ def run_rag_retrieval(
 
     # Phase 4: batch generate answers
     print(f"  Generating ({workers} workers)...")
-    answers = _batch(client, cache, gen_prompts, workers)
+    answers = _batch(client, cache, gen_prompts, workers, [call_meta(ex, "G0", "rag") for ex in examples])
 
     records = []
     for i, (ex, retrieved, ctx, prompt, r1, r5, dr, rr_score, (answer, status)) in enumerate(
