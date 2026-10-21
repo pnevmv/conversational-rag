@@ -1,0 +1,510 @@
+{
+  "prices_usd_per_1m": {
+    "gpt-5.4-nano": {
+      "input": 0.2,
+      "cached_input": 0.02,
+      "output": 1.25,
+      "meters": "5.4 nano Inp / cd Inp / Opt Gl"
+    },
+    "gpt-5-nano": {
+      "input": 0.05,
+      "cached_input": 0.005,
+      "output": 0.4,
+      "meters": "GPT 5 Nano Inpt / cchd Inpt / outpt Glbl"
+    },
+    "gpt-6-luna": {
+      "input": 0.1,
+      "cached_input": 0.01,
+      "output": 0.5,
+      "meters": "6-luna ShortCo Inp / Cd Inp / Opt Std Gl"
+    }
+  },
+  "pipelines": {
+    "rag_rewrite_rerank_v2": {
+      "gpt-5.4-nano": {
+        "n": 4427,
+        "missing": 0,
+        "f1": 0.2760695122419462,
+        "f1_answerable": 0.2756172588941531,
+        "f1_unanswerable": 0.284476221596276,
+        "abstain_recall": 0.2743362831858407,
+        "false_abstention": 0.05736729350154725,
+        "usage": {
+          "turns": 4427,
+          "conversations": 661,
+          "calls": 7979,
+          "calls_per_turn": 1.802349220691213,
+          "errors": 0,
+          "turn": {
+            "input": {
+              "mean": 2491.5351253670656,
+              "median": 2336.0,
+              "p95": 4628.299999999998
+            },
+            "cached_input": {
+              "mean": 273.23243731646716,
+              "median": 0.0,
+              "p95": 1536.0
+            },
+            "output": {
+              "mean": 108.16399367517506,
+              "median": 112.0,
+              "p95": 175.0
+            },
+            "reasoning": {
+              "mean": 0.0,
+              "median": 0.0,
+              "p95": 0.0
+            }
+          },
+          "conversation": {
+            "input": {
+              "mean": 16686.877458396368,
+              "median": 15385.0,
+              "p95": 27287.0
+            },
+            "cached_input": {
+              "mean": 1829.9546142208774,
+              "median": 1280.0,
+              "p95": 6144.0
+            },
+            "output": {
+              "mean": 724.4205748865355,
+              "median": 710.0,
+              "p95": 1027.0
+            },
+            "reasoning": {
+              "mean": 0.0,
+              "median": 0.0,
+              "p95": 0.0
+            }
+          },
+          "usd_per_1000_conversations": 3.9135093797276848,
+          "usd_per_1000_conversations_no_cache": 4.242901210287443,
+          "usd_per_turn": 0.000584330178450418
+        }
+      },
+      "gpt-5-nano": {
+        "n": 4427,
+        "missing": 0,
+        "f1": 0.27587924863676727,
+        "f1_answerable": 0.26548106132827715,
+        "f1_unanswerable": 0.46916590741095787,
+        "abstain_recall": 0.46017699115044247,
+        "false_abstention": 0.1254463223042133,
+        "usage": {
+          "turns": 4427,
+          "conversations": 661,
+          "calls": 7669,
+          "calls_per_turn": 1.7323243731646714,
+          "errors": 0,
+          "turn": {
+            "input": {
+              "mean": 2394.3810707025073,
+              "median": 2238.0,
+              "p95": 4614.7
+            },
+            "cached_input": {
+              "mean": 180.01536028913486,
+              "median": 0.0,
+              "p95": 1408.0
+            },
+            "output": {
+              "mean": 1568.7826970860629,
+              "median": 1546.0,
+              "p95": 2899.499999999999
+            },
+            "reasoning": {
+              "mean": 1424.668624350576,
+              "median": 1408.0,
+              "p95": 2688.0
+            }
+          },
+          "conversation": {
+            "input": {
+              "mean": 16036.195158850227,
+              "median": 14916.0,
+              "p95": 25650.0
+            },
+            "cached_input": {
+              "mean": 1205.6399394856278,
+              "median": 0.0,
+              "p95": 4736.0
+            },
+            "output": {
+              "mean": 10506.809379727685,
+              "median": 10185.0,
+              "p95": 15947.0
+            },
+            "reasoning": {
+              "mean": 9541.615733736762,
+              "median": 9280.0,
+              "p95": 14720.0
+            }
+          },
+          "usd_per_1000_conversations": 4.950279712556733,
+          "usd_per_1000_conversations_no_cache": 5.004533509833586,
+          "usd_per_turn": 0.0007391314411565394
+        },
+        "delta_all": {
+          "mean_diff": -0.00019026360517887395,
+          "ci_low": -0.00519034368921239,
+          "ci_high": 0.004755330375699925,
+          "p_value": 0.534,
+          "n_paired": 4427
+        },
+        "delta_answerable": {
+          "mean_diff": -0.010136197565875974,
+          "ci_low": -0.01407685156043181,
+          "ci_high": -0.006069794491761192,
+          "p_value": 1.0,
+          "n_paired": 4201
+        }
+      },
+      "gpt-6-luna": {
+        "n": 4427,
+        "missing": 0,
+        "f1": 0.2684101813396681,
+        "f1_answerable": 0.25789903597349284,
+        "f1_unanswerable": 0.4637965604693238,
+        "abstain_recall": 0.4557522123893805,
+        "false_abstention": 0.1730540347536301,
+        "usage": {
+          "turns": 4427,
+          "conversations": 661,
+          "calls": 7523,
+          "calls_per_turn": 1.6993449288457194,
+          "errors": 0,
+          "turn": {
+            "input": {
+              "mean": 2348.4702959114525,
+              "median": 2195.0,
+              "p95": 4506.099999999998
+            },
+            "cached_input": {
+              "mean": 197.54167607860853,
+              "median": 0.0,
+              "p95": 2121.799999999994
+            },
+            "output": {
+              "mean": 151.3306979896092,
+              "median": 130.0,
+              "p95": 344.6999999999998
+            },
+            "reasoning": {
+              "mean": 79.98125141179128,
+              "median": 57.0,
+              "p95": 247.69999999999982
+            }
+          },
+          "conversation": {
+            "input": {
+              "mean": 15728.71104387292,
+              "median": 14606.0,
+              "p95": 25703.0
+            },
+            "cached_input": {
+              "mean": 1323.0211800302573,
+              "median": 0.0,
+              "p95": 10782.0
+            },
+            "output": {
+              "mean": 1013.5264750378215,
+              "median": 968.0,
+              "p95": 1724.0
+            },
+            "reasoning": {
+              "mean": 535.6686838124054,
+              "median": 495.0,
+              "p95": 1065.0
+            }
+          },
+          "usd_per_1000_conversations": 1.9605624357034797,
+          "usd_per_1000_conversations_no_cache": 2.0796343419062024,
+          "usd_per_turn": 0.00029273362773887514
+        },
+        "delta_all": {
+          "mean_diff": -0.007659330902278054,
+          "ci_low": -0.013167597043503397,
+          "ci_high": -0.0019540307973474978,
+          "p_value": 0.996,
+          "n_paired": 4427
+        },
+        "delta_answerable": {
+          "mean_diff": -0.017718222920660262,
+          "ci_low": -0.021733403091849457,
+          "ci_high": -0.013430776303337586,
+          "p_value": 1.0,
+          "n_paired": 4201
+        }
+      },
+      "gpt-5.4-nano, reported run": {
+        "n": 4427,
+        "missing": 0,
+        "f1": 0.27481359252897536,
+        "f1_answerable": 0.2761279634314719,
+        "f1_unanswerable": 0.2503814148237185,
+        "abstain_recall": 0.24336283185840707,
+        "false_abstention": 0.055701023565817666,
+        "usage": null,
+        "delta_all": {
+          "mean_diff": -0.0012559197129708244,
+          "ci_low": -0.0049042534627726075,
+          "ci_high": 0.002187319705403147,
+          "p_value": 0.764,
+          "n_paired": 4427
+        },
+        "delta_answerable": {
+          "mean_diff": 0.0005107045373187717,
+          "ci_low": -0.001835339443880332,
+          "ci_high": 0.003160486727560183,
+          "p_value": 0.341,
+          "n_paired": 4201
+        }
+      }
+    },
+    "step4_plus_facts": {
+      "gpt-5.4-nano": {
+        "n": 4427,
+        "missing": 0,
+        "f1": 0.2811425919445429,
+        "f1_answerable": 0.28372166091454404,
+        "f1_unanswerable": 0.23320157980748576,
+        "abstain_recall": 0.22566371681415928,
+        "false_abstention": 0.03927636277076887,
+        "usage": {
+          "turns": 4427,
+          "conversations": 661,
+          "calls": 8029,
+          "calls_per_turn": 1.8136435509374293,
+          "errors": 0,
+          "turn": {
+            "input": {
+              "mean": 5792.954822679015,
+              "median": 6074.0,
+              "p95": 8572.399999999998
+            },
+            "cached_input": {
+              "mean": 1113.1691890670884,
+              "median": 0.0,
+              "p95": 4096.0
+            },
+            "output": {
+              "mean": 105.70679918680823,
+              "median": 108.0,
+              "p95": 168.0
+            },
+            "reasoning": {
+              "mean": 0.0,
+              "median": 0.0,
+              "p95": 0.0
+            }
+          },
+          "conversation": {
+            "input": {
+              "mean": 38797.898638426625,
+              "median": 37068.0,
+              "p95": 55394.0
+            },
+            "cached_input": {
+              "mean": 7455.3706505295,
+              "median": 6656.0,
+              "p95": 17664.0
+            },
+            "output": {
+              "mean": 707.963691376702,
+              "median": 693.0,
+              "p95": 989.0
+            },
+            "reasoning": {
+              "mean": 0.0,
+              "median": 0.0,
+              "p95": 0.0
+            }
+          },
+          "usd_per_1000_conversations": 7.302567624810894,
+          "usd_per_1000_conversations_no_cache": 8.644534341906201,
+          "usd_per_turn": 0.0010903540094872376
+        }
+      },
+      "gpt-5-nano": {
+        "n": 4427,
+        "missing": 0,
+        "f1": 0.28077103381946533,
+        "f1_answerable": 0.26796967351510126,
+        "f1_unanswerable": 0.5187290631939487,
+        "abstain_recall": 0.5132743362831859,
+        "false_abstention": 0.11640085693882408,
+        "usage": {
+          "turns": 4427,
+          "conversations": 661,
+          "calls": 7661,
+          "calls_per_turn": 1.7305172803252766,
+          "errors": 0,
+          "turn": {
+            "input": {
+              "mean": 5532.363903320533,
+              "median": 5903.0,
+              "p95": 8506.699999999997
+            },
+            "cached_input": {
+              "mean": 477.3038174836232,
+              "median": 0.0,
+              "p95": 3200.0
+            },
+            "output": {
+              "mean": 1578.3209848655974,
+              "median": 1557.0,
+              "p95": 2913.7
+            },
+            "reasoning": {
+              "mean": 1435.2654167607861,
+              "median": 1408.0,
+              "p95": 2688.0
+            }
+          },
+          "conversation": {
+            "input": {
+              "mean": 37052.609682299546,
+              "median": 35320.0,
+              "p95": 54955.0
+            },
+            "cached_input": {
+              "mean": 3196.7080181543115,
+              "median": 2816.0,
+              "p95": 9344.0
+            },
+            "output": {
+              "mean": 10570.691376701967,
+              "median": 10368.0,
+              "p95": 16122.0
+            },
+            "reasoning": {
+              "mean": 9612.586989409985,
+              "median": 9472.0,
+              "p95": 14656.0
+            }
+          },
+          "usd_per_1000_conversations": 5.937055173978819,
+          "usd_per_1000_conversations_no_cache": 6.080907034795763,
+          "usd_per_turn": 0.0008864679173255026
+        },
+        "delta_all": {
+          "mean_diff": -0.00037155812507756074,
+          "ci_low": -0.00577722869163097,
+          "ci_high": 0.005102088635268689,
+          "p_value": 0.556,
+          "n_paired": 4427
+        },
+        "delta_answerable": {
+          "mean_diff": -0.01575198739944275,
+          "ci_low": -0.019804130661947018,
+          "ci_high": -0.011852649149140086,
+          "p_value": 1.0,
+          "n_paired": 4201
+        }
+      },
+      "gpt-6-luna": {
+        "n": 4427,
+        "missing": 0,
+        "f1": 0.27293881977569845,
+        "f1_answerable": 0.2655497794775902,
+        "f1_unanswerable": 0.41028996266221457,
+        "abstain_recall": 0.4026548672566372,
+        "false_abstention": 0.14234706022375626,
+        "usage": {
+          "turns": 4427,
+          "conversations": 661,
+          "calls": 7627,
+          "calls_per_turn": 1.7228371357578496,
+          "errors": 0,
+          "turn": {
+            "input": {
+              "mean": 5511.015812062345,
+              "median": 5878.0,
+              "p95": 8483.7
+            },
+            "cached_input": {
+              "mean": 641.6593629997741,
+              "median": 0.0,
+              "p95": 6017.899999999999
+            },
+            "output": {
+              "mean": 175.60379489496273,
+              "median": 160.0,
+              "p95": 382.0
+            },
+            "reasoning": {
+              "mean": 101.53399593404112,
+              "median": 75.0,
+              "p95": 287.6999999999998
+            }
+          },
+          "conversation": {
+            "input": {
+              "mean": 36909.63237518911,
+              "median": 35198.0,
+              "p95": 54701.0
+            },
+            "cached_input": {
+              "mean": 4297.467473524962,
+              "median": 0.0,
+              "p95": 35333.0
+            },
+            "output": {
+              "mean": 1176.0937972768534,
+              "median": 1130.0,
+              "p95": 1915.0
+            },
+            "reasoning": {
+              "mean": 680.016641452345,
+              "median": 625.0,
+              "p95": 1302.0
+            }
+          },
+          "usd_per_1000_conversations": 3.892238063540091,
+          "usd_per_1000_conversations_no_cache": 4.279010136157337,
+          "usd_per_turn": 0.0005811541359837362
+        },
+        "delta_all": {
+          "mean_diff": -0.008203772168844445,
+          "ci_low": -0.013525054267482978,
+          "ci_high": -0.0029019623125663154,
+          "p_value": 1.0,
+          "n_paired": 4427
+        },
+        "delta_answerable": {
+          "mean_diff": -0.01817188143695383,
+          "ci_low": -0.02223782051533776,
+          "ci_high": -0.013873910723700238,
+          "p_value": 1.0,
+          "n_paired": 4201
+        }
+      },
+      "gpt-5.4-nano, reported run": {
+        "n": 4427,
+        "missing": 0,
+        "f1": 0.2800187185899887,
+        "f1_answerable": 0.2818797320146235,
+        "f1_unanswerable": 0.2454252787807389,
+        "abstain_recall": 0.2345132743362832,
+        "false_abstention": 0.04594144251368722,
+        "usage": null,
+        "delta_all": {
+          "mean_diff": -0.0011238733545541,
+          "ci_low": -0.00456712860582862,
+          "ci_high": 0.002308681495842701,
+          "p_value": 0.739,
+          "n_paired": 4427
+        },
+        "delta_answerable": {
+          "mean_diff": -0.0018419288999205448,
+          "ci_low": -0.00432348439476811,
+          "ci_high": 0.0008437471000366247,
+          "p_value": 0.916,
+          "n_paired": 4201
+        }
+      }
+    }
+  }
+}
