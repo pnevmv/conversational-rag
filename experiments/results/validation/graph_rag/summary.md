@@ -15,6 +15,8 @@ V1 thresholds, chosen on dev-500 by F1 (ties go to the higher threshold): k = 5:
 | V1 control: 5 random facts | 27.8 | 27.3 | 36.4 | +0.3 [-0.1, 0.7] | -0.2 [-0.7, 0.2] | -0.9 [-1.2, -0.6] | 21.6 (-3.6 [-5.5, -1.7]) | 31.7 (+0.8 [-0.1, 1.7]) | 35.8 / 6.6 | 3089 / 99 | -47% |
 | V1: top 10 facts | 28.0 | 28.3 | 22.5 | +0.5 [0.1, 0.9] | -0.0 [-0.4, 0.4] | +0.1 [-0.2, 0.4] | 23.2 (-2.0 [-4.0, -0.1]) | 30.8 (-0.0 [-0.9, 0.9]) | 21.2 / 3.9 | 3778 / 99 | -35% |
 | V1 control: 10 random facts | 28.1 | 27.6 | 36.4 | +0.6 [0.2, 0.9] | +0.1 [-0.4, 0.5] | -0.6 [-0.9, -0.3] | 21.5 (-3.7 [-5.5, -1.9]) | 32.1 (+1.2 [0.3, 2.0]) | 36.3 / 6.6 | 3713 / 97 | -36% |
+| V2a: 10 facts, out-of-context first | 27.8 | 28.0 | 23.7 | +0.3 [-0.1, 0.7] | -0.2 [-0.6, 0.2] | -0.2 [-0.5, 0.1] | 25.5 (+0.3 [-1.7, 2.3]) | 30.6 (-0.3 [-1.3, 0.6]) | 23.0 / 4.3 | 3753 / 99 | -35% |
+| V2b: 5 out-of-context + 5 in-context | 27.9 | 28.2 | 23.2 | +0.5 [0.1, 0.8] | -0.1 [-0.4, 0.3] | +0.0 [-0.3, 0.3] | 23.2 (-2.0 [-3.8, -0.3]) | 30.9 (-0.0 [-0.9, 0.8]) | 22.1 / 3.9 | 3770 / 99 | -35% |
 
 ### Held-out validation (dev-500 removed), for the tuned V1 settings (n = 3927)
 
@@ -27,6 +29,8 @@ V1 thresholds, chosen on dev-500 by F1 (ties go to the higher threshold): k = 5:
 | V1 control: 5 random facts | 27.5 | 27.1 | 34.9 | +0.3 [-0.1, 0.7] | -0.2 [-0.7, 0.2] | -0.9 [-1.2, -0.5] | 21.4 (-3.5 [-5.5, -1.5]) | 31.6 (+0.9 [0.0, 1.9]) | 34.4 / 6.5 | 3089 / 99 | -47% |
 | V1: top 10 facts | 27.7 | 28.0 | 21.2 | +0.5 [0.1, 0.9] | -0.0 [-0.4, 0.4] | +0.1 [-0.2, 0.4] | 23.0 (-1.9 [-3.8, 0.0]) | 30.5 (-0.1 [-1.0, 0.9]) | 20.0 / 3.9 | 3778 / 99 | -35% |
 | V1 control: 10 random facts | 27.8 | 27.3 | 35.6 | +0.6 [0.2, 1.0] | +0.1 [-0.4, 0.5] | -0.6 [-0.9, -0.3] | 21.3 (-3.6 [-5.6, -1.6]) | 32.0 (+1.3 [0.5, 2.2]) | 34.9 / 6.6 | 3713 / 97 | -36% |
+| V2a: 10 facts, out-of-context first | 27.5 | 27.8 | 22.7 | +0.4 [-0.1, 0.8] | -0.2 [-0.6, 0.2] | -0.2 [-0.5, 0.2] | 25.9 (+1.0 [-0.7, 3.0]) | 30.1 (-0.5 [-1.4, 0.5]) | 22.1 / 4.3 | 3753 / 99 | -35% |
+| V2b: 5 out-of-context + 5 in-context | 27.6 | 27.9 | 21.1 | +0.4 [0.0, 0.8] | -0.1 [-0.5, 0.3] | -0.1 [-0.4, 0.2] | 23.1 (-1.8 [-3.5, -0.1]) | 30.4 (-0.2 [-1.1, 0.6]) | 20.0 / 4.0 | 3770 / 99 | -35% |
 
 ### V1 against its random control (same number of facts per question)
 
@@ -36,9 +40,22 @@ V1 thresholds, chosen on dev-500 by F1 (ties go to the higher threshold): k = 5:
 | 5 | held-out | -0.1 [-0.6, 0.3] | +0.8 [0.5, 1.1] |
 | 10 | full | -0.1 [-0.5, 0.3] | +0.7 [0.4, 0.9] |
 | 10 | held-out | -0.1 [-0.5, 0.4] | +0.7 [0.4, 1.0] |
-## Decisions after V0 and V1 (stopping rules of plans/step7-graph-rag.md)
 
-* **V0, graph facts only with dialogue history:** 24.6 F1, 3.4 points below E (24.1 without the history). It stays a reference row; on the questions where passage retrieval misses and a fact comes from the gold section it is as good as E (26.5 against 25.2, not significant), and on the questions where the passages hit and no fact does it loses 8.6 points.
-* **V1 with k = 10: kept.** Same F1 as E on all and on answerable questions (−0.0 and +0.1, both ties) with 35% fewer generator input tokens, and 0.7 points better than 10 random facts on answerable questions. The dev-500 search kept no score threshold (every threshold was worse).
-* **V1 with k = 5: dropped.** Same F1 as E on answerable questions with 45% fewer input tokens, but 0.4 points lower on all questions on the full split ([−0.8, −0.0]; held-out −0.3 [−0.7, 0.0]) because it abstains less (abstain recall 17% against 24%).
-* **The filter removes the useful facts.** On the 342 questions where passage retrieval misses and one of E's facts comes from the gold section, V1 loses 2.0 (k = 10) and 2.5 (k = 5) points against E: the cross-encoder ranks facts that repeat the passages first, and the out-of-context facts that recovered the misses are cut. On the 1,005 questions where the passages are right, the off-topic facts were removed, but this did not recover the 1.0 point that E loses there (V1: −0.0 to −0.2 against E). This is the case V2 (out-of-context facts first) is meant to address.
+### V2 against V1 with k = 10 (paired, full validation)
+
+| System | Δ all | Δ answerable | Δ miss + gold fact | Δ hit, no gold fact | input tokens vs V1 |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| V2a: 10 facts, out-of-context first | -0.2 [-0.5, 0.2] | -0.3 [-0.5, 0.0] | +2.4 [1.0, 3.9] | -0.2 [-0.8, 0.4] | -1% |
+| V2b: 5 out-of-context + 5 in-context | -0.0 [-0.3, 0.2] | -0.1 [-0.3, 0.1] | +0.1 [-1.2, 1.5] | +0.0 [-0.6, 0.7] | -0% |
+
+### Facts in the prompt (diagnostic, uses the gold sections)
+
+| System | questions with a fact from a gold section | of them in the 342 'miss + gold fact' questions | facts per question |
+| :--- | :---: | :---: | :---: |
+| E: passages + 30 facts | 49.2% | 99.7% | 26.1 |
+| V1: top 5 facts | 36.7% | 41.8% | 5.0 |
+| V1 control: 5 random facts | 0.7% | 0.3% | 5.0 |
+| V1: top 10 facts | 42.6% | 59.1% | 9.9 |
+| V1 control: 10 random facts | 1.3% | 0.9% | 9.9 |
+| V2a: 10 facts, out-of-context first | 9.2% | 69.6% | 9.9 |
+| V2b: 5 out-of-context + 5 in-context | 45.0% | 56.4% | 9.9 |

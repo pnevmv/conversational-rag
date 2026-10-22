@@ -7,11 +7,14 @@ prompts are the same. Rewrites, passages and linked entities come from the cache
     V0   graph facts only (B) with dialogue history
     V1   passages + the top-k one-hop facts by cross-encoder score (k = 5, 10), facts below a
          score threshold dropped (threshold chosen on dev-500), with a random-facts control
+    V2   as V1 with k = 10, but the slots are filled first with facts whose evidence section is not
+         among the top 5 passages: (a) all 10 slots, (b) 5 out-of-context + 5 in-context
 
     python experiments/graph_rag.py v0
     python experiments/graph_rag.py score          # cross-encoder score of every candidate fact
     python experiments/graph_rag.py v1-dev         # threshold per k on dev-500
     python experiments/graph_rag.py v1             # full validation, chosen thresholds + controls
+    python experiments/graph_rag.py v2
     python experiments/graph_rag.py report
 """
 import argparse
@@ -175,6 +178,47 @@ def v1_contexts(k: int, threshold: float, ids: List[str]) -> Dict[str, str]:
     return out
 
 
+def evidence_section(rel: Dict[str, Any]) -> Optional[str]:
+    """Section of a fact's first evidence quote (first section of the fact if it has no quote)."""
+    if rel["evidence"]:
+        return rel["evidence"][0]["section_id"]
+    return (rel["section_ids"] or [None])[0]
+
+
+def v2_contexts(mode: str, ids: List[str], k: int = 10) -> Dict[str, str]:
+    """Top-k facts by cross-encoder score, filling the slots with facts whose evidence section is not
+    among the top 5 passages first. mode "a": all k slots out-of-context first; "b": k/2 out-of-context
+    and k/2 in-context. A short group is filled from the other, so every question keeps k facts when
+    it has them. The kept facts are listed by score, as in V1."""
+    scores = json.loads((OUT / "fact_scores.json").read_text())
+    e_rows = {r["example_id"]: r for r in load(VAL / "step4_plus_facts.jsonl")}
+    g = kg()
+    out = {}
+    for i in ids:
+        top5 = set(e_rows[i]["retrieved_sections"])
+        ranked = scores[i]
+        outside = [x for x in ranked if evidence_section(g.relations[x[0]]) not in top5]
+        inside = [x for x in ranked if evidence_section(g.relations[x[0]]) in top5]
+        if mode == "a":
+            keep = (outside + inside)[:k]
+        else:
+            half = k // 2
+            keep = outside[:half] + inside[:half]
+            rest = [x for x in ranked if x not in keep]
+            keep += rest[:k - len(keep)]
+        keep = sorted(keep, key=lambda x: -x[1])
+        sections = e_rows[i]["context"].partition("\n\nFacts:\n")[0]
+        out[i] = sections + ("\n\nFacts:\n" + facts_block([x[0] for x in keep]) if keep else "")
+    return out
+
+
+def run_v2() -> None:
+    ids = [r["example_id"] for r in load(VAL / "step4_plus_facts.jsonl")]
+    rw = rewrites()
+    for mode in ("a", "b"):
+        generate(f"v2{mode}_k10", v2_contexts(mode, ids), rw)
+
+
 def random_contexts(counts: Dict[str, int]) -> Dict[str, str]:
     """Same number of facts per question, drawn at random from the facts of the question's domain."""
     from src.kg_rag.run_qa import facts_by_domain
@@ -222,6 +266,27 @@ def run_v1() -> None:
 
 
 # ---------------------------------------------------------------------------- report
+_TITLE_TO_SID: Optional[Dict[str, str]] = None
+
+
+def fact_sections_of(context: str) -> set:
+    """Section ids of the evidence quotes in a prompt's Facts block (matched by title and heading)."""
+    global _TITLE_TO_SID
+    if _TITLE_TO_SID is None:
+        g = kg()
+        _TITLE_TO_SID = {}
+        for sid, sec in g.sections.items():
+            label = sec["title"] + (" — " + sec["section_title"] if sec.get("section_title") else "")
+            _TITLE_TO_SID.setdefault(label, sid)
+    facts = context.partition("\n\nFacts:\n")[2]
+    return {_TITLE_TO_SID[t] for t in re.findall(r'^    Evidence: ".*" \((.+)\)$', facts, flags=re.M) if t in _TITLE_TO_SID}
+
+
+def load_gold() -> Dict[str, set]:
+    from src.kg_rag.queries import load_step4
+    return {i: set(r["gold_sections"]) for i, r in load_step4("validation")["records"].items()}
+
+
 def ref_system(base: str) -> List[Dict[str, Any]]:
     """P or E as G2 + abstain(G0), from the cached generator-input answers, in the same format."""
     g0 = load(GEN / f"{base}__G0.jsonl")
@@ -252,7 +317,9 @@ def report() -> None:
     systems = {"P: passages": P, "E: passages + 30 facts": E}
     for name, label in [("v0_graph_facts", "V0: graph facts only (B)"), ("v1_k5", "V1: top 5 facts"),
                         ("v1_k5_random", "V1 control: 5 random facts"), ("v1_k10", "V1: top 10 facts"),
-                        ("v1_k10_random", "V1 control: 10 random facts")]:
+                        ("v1_k10_random", "V1 control: 10 random facts"),
+                        ("v2a_k10", "V2a: 10 facts, out-of-context first"),
+                        ("v2b_k10", "V2b: 5 out-of-context + 5 in-context")]:
         path = OUT / f"{name}.jsonl"
         if path.exists():
             systems[label] = {r["example_id"]: r for r in load(path)}
@@ -314,6 +381,33 @@ def report() -> None:
             ctrl.append(f"| {k} | {set_name} | {fmt(paired_bootstrap_test([f1(a[i]) for i in ids], [f1(b[i]) for i in ids]))} | "
                         f"{fmt(paired_bootstrap_test([f1(a[i]) for i in ans], [f1(b[i]) for i in ans]))} |")
     lines += ctrl + [""]
+    v1 = systems.get("V1: top 10 facts")
+    v2 = [lab for lab in systems if lab.startswith("V2")]
+    if v1 and v2:
+        cmp = ["### V2 against V1 with k = 10 (paired, full validation)", "",
+               "| System | Δ all | Δ answerable | Δ miss + gold fact | Δ hit, no gold fact | input tokens vs V1 |",
+               "| :--- | :---: | :---: | :---: | :---: | :---: |"]
+        for lab in v2:
+            s2 = systems[lab]
+            ids = [i for i in E if s2[i]["model_answer"] is not None and v1[i]["model_answer"] is not None]
+            sub = lambda keep: fmt(paired_bootstrap_test([f1(s2[i]) for i in ids if keep(i)], [f1(v1[i]) for i in ids if keep(i)]))
+            cmp.append(f"| {lab} | {sub(lambda i: True)} | {sub(lambda i: not exs[i]['is_unanswerable'])} | "
+                       f"{sub(lambda i: i in miss_gold)} | {sub(lambda i: i in hit_nogold)} | "
+                       f"{(tok_in[lab] / tok_in['V1: top 10 facts'] - 1)*100:+.0f}% |")
+        lines += cmp + [""]
+    # diagnostic (uses the gold sections, analysis only): share of questions with at least one fact
+    # from a gold section, and with at least one fact from outside the top 5 passages
+    gold = load_gold()
+    diag = ["### Facts in the prompt (diagnostic, uses the gold sections)", "",
+            "| System | questions with a fact from a gold section | of them in the 342 'miss + gold fact' questions | facts per question |",
+            "| :--- | :---: | :---: | :---: |"]
+    for lab, s in systems.items():
+        if lab.startswith("P") or lab.startswith("V0"):
+            continue
+        has = {i: bool(fact_sections_of(s[i]["context"]) & gold[i]) for i in E}
+        diag.append(f"| {lab} | {np.mean(list(has.values()))*100:.1f}% | {np.mean([has[i] for i in miss_gold])*100:.1f}% | "
+                    f"{np.mean([n_facts(s[i]['context']) for i in E]):.1f} |")
+    lines += diag + [""]
     OUT.mkdir(parents=True, exist_ok=True)
     (OUT / "summary.md").write_text("\n".join(lines), encoding="utf-8")
     print("\n".join(lines))
@@ -321,9 +415,9 @@ def report() -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("cmd", choices=["v0", "score", "v1-dev", "v1", "report"])
+    parser.add_argument("cmd", choices=["v0", "score", "v1-dev", "v1", "v2", "report"])
     args = parser.parse_args()
-    {"v0": run_v0, "score": score_facts, "v1-dev": run_v1_dev, "v1": run_v1, "report": report}[args.cmd]()
+    {"v0": run_v0, "score": score_facts, "v1-dev": run_v1_dev, "v1": run_v1, "v2": run_v2, "report": report}[args.cmd]()
 
 
 if __name__ == "__main__":
