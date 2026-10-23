@@ -22,6 +22,7 @@ import json
 import random
 import re
 import sys
+from collections import defaultdict
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -265,6 +266,126 @@ def run_v1() -> None:
         generate(f"v1_k{k}_random", random_contexts({i: n_facts(c) for i, c in ctx.items()}), rw)
 
 
+# ---------------------------------------------------------------------------- V3 (retrieval only)
+W_GRID = (0.0, 0.05, 0.1, 0.2, 0.3, 0.5, 0.75, 1.0, 1.5, 2.0)
+
+
+def _minmax(x: Dict[str, float]) -> Dict[str, float]:
+    if not x:
+        return {}
+    lo, hi = min(x.values()), max(x.values())
+    return {k: 0.0 if hi == lo else (v - lo) / (hi - lo) for k, v in x.items()}
+
+
+def run_v3_retrieval() -> None:
+    """Rerank the candidate sections with s = ce(section) + w * g(section); R@5 only, no generation."""
+    from experiments.run_dev_subset import recall_at_k
+    from src.kg_rag.queries import load_step4
+    from src.rag import Reranker
+    g_ = kg()
+    s4 = load_step4("validation")["records"]
+    e_rows = {r["example_id"]: r for r in load(VAL / "step4_plus_facts.jsonl")}
+    p_rec = {r["example_id"]: r for r in load(VAL / "rag_rewrite_rerank_v2.jsonl")}
+    scores = json.loads((OUT / "fact_scores.json").read_text())
+    exs = examples()
+    ids = list(e_rows)
+    queries = {i: e_rows[i]["rewritten_query"] or e_rows[i]["question"] for i in ids}
+
+    # candidate pool: the 50 sections of the passage ranking + evidence sections of the candidate facts
+    ce: Dict[str, Dict[str, float]] = {i: {r["section_id"]: r["reranker_score"] for r in s4[i]["step4_ranking"]} for i in ids}
+    g_fact: Dict[str, Dict[str, float]] = {}
+    new: Dict[str, List[str]] = {}
+    for i in ids:
+        best: Dict[str, float] = {}
+        for rel, sc in scores[i]:
+            sid = evidence_section(g_.relations[rel])
+            if sid in g_.sections:
+                best[sid] = max(best.get(sid, float("-inf")), sc)
+        g_fact[i] = best
+        new[i] = sorted(sid for sid in best if sid not in ce[i])
+    n_new = sum(len(v) for v in new.values())
+    print(f"cross-encoder on {n_new} new candidate sections", flush=True)
+    ranked = Reranker(cache_dir=RERANKER_CACHE_DIR).rerank_many(
+        [queries[i] for i in ids], [[{"text": g_.sections[sid]["text"], "sid": sid} for sid in new[i]] for i in ids],
+        top_k=10_000)
+    for i, (docs, _) in zip(ids, ranked):
+        for d in docs:
+            ce[i][d["sid"]] = d["reranker_score"]
+
+    # A's entity-overlap score: summed weights of the linked entities each section mentions
+    embs = g_.linker.encode([queries[i] for i in ids])
+    g_ent: Dict[str, Dict[str, float]] = {}
+    for i, emb in zip(ids, embs):
+        w = g_.weights(g_.link(queries[i], emb))
+        sc: Dict[str, float] = defaultdict(float)
+        for eid, weight in w.items():
+            for sid in g_.entities[eid]["section_ids"]:
+                sc[sid] += weight
+        g_ent[i] = dict(sc)
+
+    def top5(i: str, g: Dict[str, Dict[str, float]], w: float) -> List[str]:
+        cn = _minmax(ce[i])
+        gn = _minmax({sid: g[i].get(sid, 0.0) for sid in ce[i]})
+        return sorted(ce[i], key=lambda sid: (-(cn[sid] + w * gn[sid]), sid))[:5]
+
+    def r5(i: str, sids: List[str]) -> float:
+        res = [g_.section_result(sid, k, 0.0) for k, sid in enumerate(sids, start=1)]
+        return recall_at_k(res, exs[i]["grounding"], 5)
+
+    dev = set(json.loads(DEV_IDS.read_text()))
+    held = [i for i in ids if i not in dev]
+    miss_gold = [i for i in ids if p_rec[i]["recall_at_5"] == 0 and e_rows[i]["facts_context_recall"] > 0]
+    step4 = {i: r5(i, [r["section_id"] for r in s4[i]["step4_ranking"][:5]]) for i in ids}
+    grid = {}
+    for gname, g in (("best fact score", g_fact), ("entity overlap", g_ent)):
+        for w in W_GRID:
+            grid[(gname, w)] = {i: r5(i, top5(i, g, w)) for i in ids}
+    base = grid[("best fact score", 0.0)]
+    dev_r5 = {k: float(np.mean([v[i] for i in dev])) for k, v in grid.items()}
+    best_key = max(dev_r5, key=lambda k: (round(dev_r5[k], 6), -k[1]))
+    fmt = lambda t: f"{t['mean_diff']*100:+.1f} [{t['ci_low']*100:.1f}, {t['ci_high']*100:.1f}]"
+    lines = ["# V3: the graph as a reranker signal (retrieval only, validation)", "",
+             "Candidate sections: the 50 of the passage ranking plus the evidence sections of the candidate facts not "
+             f"among them ({n_new} new sections in total, {n_new / len(ids):.1f} per question, scored with the same "
+             "cross-encoder). Score s = ce + w * g, ce and g min-max normalised per question over the candidate pool; "
+             "g = the best cross-encoder score of a candidate fact from that section (V1 scores), or A's entity-overlap "
+             "score (summed weights of the linked entities the section mentions). w = 0 is the cross-encoder alone on "
+             "the same pool. R@5 in %; Δ is the paired bootstrap difference to w = 0.", "",
+             f"Passage ranking as used so far (top 5 of the 50, no new sections): R@5 {np.mean([step4[i] for i in ids])*100:.1f} "
+             f"on all, {np.mean([step4[i] for i in held])*100:.1f} held-out, {np.mean([step4[i] for i in miss_gold])*100:.1f} "
+             f"on the {len(miss_gold)} 'miss + gold fact' questions.", "",
+             "## Dev-500 grid (R@5)", "", "| w | " + " | ".join(str(w) for w in W_GRID) + " |",
+             "| :--- |" + " :---: |" * len(W_GRID)]
+    for gname in ("best fact score", "entity overlap"):
+        lines.append(f"| {gname} | " + " | ".join(f"{dev_r5[(gname, w)]*100:.1f}" for w in W_GRID) + " |")
+    lines += ["", "R@5 on the fixed 'miss + gold fact' questions (all validation, diagnostic, not used for tuning):", "",
+              "| w | " + " | ".join(str(w) for w in W_GRID) + " |", "| :--- |" + " :---: |" * len(W_GRID)]
+    for gname in ("best fact score", "entity overlap"):
+        lines.append(f"| {gname} | " + " | ".join(f"{np.mean([grid[(gname, w)][i] for i in miss_gold])*100:.1f}" for w in W_GRID) + " |")
+    chosen = grid[best_key]
+    lines += ["", f"Chosen on dev-500: g = {best_key[0]}, w = {best_key[1]} (ties go to the smaller w).", "",
+              "## Held-out validation and the fixed subset", "",
+              "| Ranking | R@5 held-out (n = %d) | Δ vs w = 0 | R@5 'miss + gold fact' (n = %d) | Δ vs w = 0 |" % (len(held), len(miss_gold)),
+              "| :--- | :---: | :---: | :---: | :---: |"]
+    rows_out = [("passage ranking (top 5 of the 50)", step4), ("w = 0, same pool", base), (f"chosen: {best_key[0]}, w = {best_key[1]}", chosen)]
+    for gname in ("best fact score", "entity overlap"):
+        k2 = max((k for k in grid if k[0] == gname), key=lambda k: dev_r5[k])
+        if k2 != best_key:
+            rows_out.append((f"best {gname} on dev-500 (w = {k2[1]})", grid[k2]))
+    for name, v in rows_out:
+        dh = "-" if v is base else fmt(paired_bootstrap_test([v[i] for i in held], [base[i] for i in held]))
+        dm = "-" if v is base else fmt(paired_bootstrap_test([v[i] for i in miss_gold], [base[i] for i in miss_gold]))
+        lines.append(f"| {name} | {np.mean([v[i] for i in held])*100:.1f} | {dh} | {np.mean([v[i] for i in miss_gold])*100:.1f} | {dm} |")
+    gain = (np.mean([chosen[i] for i in held]) - np.mean([base[i] for i in held])) * 100
+    changed = np.mean([len(set(top5(i, g_fact if best_key[0] == "best fact score" else g_ent, best_key[1])) - set(top5(i, g_fact, 0.0))) for i in held])
+    lines += ["", f"Held-out R@5 gain of the chosen setting over w = 0: {gain:+.1f} points; on average {changed:.2f} of the 5 "
+              f"sections change. Rule of the plan: generation only if this gain is at least 1 point.", ""]
+    (OUT / "v3_retrieval.md").write_text("\n".join(lines), encoding="utf-8")
+    (OUT / "v3_retrieval.json").write_text(json.dumps({"chosen": list(best_key), "dev_r5": {f"{k[0]}|{k[1]}": v for k, v in dev_r5.items()},
+                                                       "heldout_gain": gain}, indent=2))
+    print("\n".join(lines))
+
+
 # ---------------------------------------------------------------------------- report
 _TITLE_TO_SID: Optional[Dict[str, str]] = None
 
@@ -415,9 +536,9 @@ def report() -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("cmd", choices=["v0", "score", "v1-dev", "v1", "v2", "report"])
+    parser.add_argument("cmd", choices=["v0", "score", "v1-dev", "v1", "v2", "v3-retrieval", "report"])
     args = parser.parse_args()
-    {"v0": run_v0, "score": score_facts, "v1-dev": run_v1_dev, "v1": run_v1, "v2": run_v2, "report": report}[args.cmd]()
+    {"v0": run_v0, "score": score_facts, "v1-dev": run_v1_dev, "v1": run_v1, "v2": run_v2, "v3-retrieval": run_v3_retrieval, "report": report}[args.cmd]()
 
 
 if __name__ == "__main__":
