@@ -25,3 +25,11 @@ Rule: generation only if the tuned setting raises held-out R@5 by at least 1 poi
 * **Where it does help.** On the fixed 342 "miss + gold fact" questions, R@5 rises from 3.5 at w = 0 to 48.0 at w = 2. This subset is selected by one of E's facts coming from the gold section, which is what the fact score rewards, so the number is optimistic; it confirms the earlier finding that the graph signal is strong on a small group of questions that cannot be identified before generation.
 * **Larger pool alone.** Adding the evidence sections of the candidate facts to the cross-encoder pool (w = 0) brings the gold section into the top 5 for 3.5% of the 342 questions, and leaves held-out R@5 unchanged (63.2 against 63.3 for the original top 5).
 * **Step 7 so far:** V1 k = 10 (default) and V2a match E with 35% fewer generator input tokens; nothing beats E on F1.
+
+## V4 (two-hop paths): dropped
+
+Check without LLM calls on the 1,605 validation questions where passage retrieval misses the gold section. In 1,115 of them no one-hop fact of the linked entities reaches a gold section (evidence or source section). A two-hop path between two linked entities reaches a gold section in none of these (0% of the misses), below the 10% threshold of the plan: both edges of such a path are themselves one-hop facts of a linked entity, so the paths add no new evidence. V4 is dropped. A broader two-hop neighbourhood (relations one step beyond the neighbours of the linked entities) would reach a gold section in 271 of the misses (16.9%), but it is a much larger and different candidate set and was not tried.
+
+## Step 7 closed
+
+Frozen for the test split, all with gpt-5.4-nano and G2 + abstain(G0): P (passages), E (passages + 30 facts) and V1 k = 10 (passages + the 10 facts with the best cross-encoder score). Result: `experiments/results/test/step7_final.md`.
