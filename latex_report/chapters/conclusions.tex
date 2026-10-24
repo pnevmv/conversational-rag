@@ -98,6 +98,12 @@ sections. A router that would add the facts only where they help could not be bu
 signals available before generation: a logistic regression on retrieval scores, fact
 overlap and dialogue features chose the better configuration only 52\% of the time, and most
 of the gain of an oracle router comes from the run-to-run variation of the generator.
+Changing which facts are given did not do better either. Keeping the ten facts with the best
+cross-encoder score matched all thirty on validation with a third fewer input tokens, but was
+0.4 points below them on test, because it drops the facts from other sections that recover
+retrieval misses; putting those first recovered them without an overall gain, and the graph
+used as a reranker signal lowered recall for every weight. On test, passages with graph facts
+and the dialogue history reach 28.2\% \fone{}, 0.6 points above passages alone.
 
 
 % ===========================================================================
@@ -107,8 +113,9 @@ Many design choices were made on the dev-500 subset, and part of the analysis (t
 reranker decomposition, the error analyses and the graph variants that were not
 retained) is reported only there. The final systems were confirmed on the full
 validation and the test split with a single generator model. Two other models were compared
-on validation only, with the default reasoning settings, and the conversational generator
-has not been run on the test split.
+on validation only, with the default reasoning settings. The conversational generator was
+run on the test split for three systems only (passages, passages with thirty facts and with
+ten filtered facts).
 
 The precision and recall estimates for the graph rest on small samples: the pilot on
 three documents (140 extracted and 38 missed triples) and a control sample of 30 triples

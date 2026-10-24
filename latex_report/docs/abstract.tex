@@ -44,6 +44,9 @@ it abstain less; with the decision to abstain taken without the history, passage
 graph facts reach 28.0\% on validation. Two newer generator models answer as well when they
 answer, but refuse more answerable questions, so \texttt{gpt-5.4-nano} was kept. The graph facts help mostly where passage retrieval misses
 the answer and a fact still comes from the right section, and a router using signals
-available before generation could not tell these questions apart.
+available before generation could not tell these questions apart. Filtering the facts with the
+cross-encoder cuts the generator input by a third but is slightly worse on test, and using the graph as a
+reranker signal lowers recall, so appending the facts stays the best use of the graph: with
+the dialogue history it reaches 28.2\% on test, 0.6 points above passages.
 
 \end{abstract}

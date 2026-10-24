@@ -425,7 +425,8 @@ Passages + facts, with dialogue history & 28.0 & 28.2 & 24.5 \\
 \end{tabular}
 \caption{Full validation split (4,427 questions, 226 unanswerable). The last two rows use the
 conversational generator of Section~\ref{sec:conv}. Test split, run once: Step 4 26.9, E 27.5,
-E-random 27.3, B 23.8, LLM only 15.1, oracle 34.2.}
+E-random 27.3, B 23.8, LLM only 15.1, oracle 34.2; with dialogue history, passages 27.6 and
+passages + facts 28.2 (Section~\ref{sec:graphrag}).}
 \label{tab:main}
 \end{table}
 
@@ -527,6 +528,38 @@ First turns & 660 & 26.6 & 26.6 & $-0.0$ [$-0.6$, 0.7] \\
 \item A router on signals available before generation (reranker scores, fact overlap, dialogue
   position) picks the better configuration only 52\% of the time and is 0.5 F1 worse than always
   adding the facts.
+\end{itemize}
+
+% =====================================================================
+\section{Graph RAG variants (Step 7)}\label{sec:graphrag}
+
+\textbf{Appending the one-hop facts stays the best use of the graph. Keeping only the 10 facts
+with the best cross-encoder score cuts the generator input by a third but is slightly worse on test; using the
+graph to rerank sections lowers recall.}
+
+\begin{table}[H]
+\centering\small
+\begin{tabular}{lcccc}
+\toprule
+ & \multicolumn{2}{c}{Validation} & \multicolumn{2}{c}{Test (run once)} \\
+System (with dialogue history) & F1 all & answerable & F1 all & answerable \\
+\midrule
+Passages & 27.5 & 27.6 & 27.6 & 27.5 \\
+Passages + 30 facts & 28.0 & 28.2 & 28.2 & 28.4 \\
+Passages + top 10 facts & 28.0 & 28.3 & 27.8 & 28.1 \\
+\bottomrule
+\end{tabular}
+\caption{Final systems. Top 10 facts: scored with the cross-encoder of the passage pipeline;
+35--36\% fewer generator input tokens than 30 facts. Test: 30 facts $+0.6$ over passages
+[0.1, 1.0]; top 10 facts $-0.4$ against 30 facts [$-0.7$, 0.0].}
+\label{tab:graphrag}
+\end{table}
+
+\begin{itemize}
+\item The cross-encoder filter drops the facts from other sections that recover retrieval misses;
+  putting those first recovers them, without an overall gain.
+\item Graph score added to the cross-encoder: R@5 falls for every weight above 0 (67.8 to 54.6 on
+  dev-500), so no generation run. Two-hop paths reach no gold section that one-hop facts miss.
 \end{itemize}
 
 % =====================================================================

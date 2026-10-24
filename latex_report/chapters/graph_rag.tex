@@ -1,0 +1,141 @@
+%!TEX root = ../main.tex
+
+\chapter{Graph RAG Variants}\label{ch:graphrag}
+
+Chapter~\ref{ch:graphhelp} showed two opposite effects of the graph facts. They help when
+passage retrieval misses the gold section and a fact still comes from it (4.6 points on
+342 validation questions), and they hurt when the passages are already right and the
+facts come from other sections (1.0 point on 1{,}005 questions). This chapter tries to
+keep the first effect and remove the second, by changing which facts are given to the
+generator and by using the graph to rerank the sections. All variants use the
+conversational generator (\texttt{gpt-5.4-nano}, G2 + abstain(G0)) and the same rewrites,
+passages and linked entities. They were developed on the validation split, with every
+setting tuned on dev-500 and reported on the other 3{,}927 questions, and with a stopping
+rule fixed in advance. The two subsets above are kept as defined for E and are not
+recomputed per variant. Only the systems retained at the end were run, once, on the test
+split. As in Chapter~\ref{ch:graphhelp}, P denotes passages and E passages with up to 30
+facts.
+
+
+% ===========================================================================
+\section{Variants}\label{sec:graphrag:variants}
+
+A question has on average 47 candidate facts (median 39, 95th percentile 120), the
+relations of its ten linked entities; the 30 facts of E take about 1{,}670 prompt tokens.
+Four variants and one reference were run:
+\begin{description}
+    \item[V0] graph facts only (B) with the dialogue history, which was missing so far;
+    \item[V1] every candidate fact (relation and evidence quote) scored against the
+        rewritten query with the cross-encoder of the passage pipeline; the top $k$ facts
+        are kept ($k = 5$ and $k = 10$), and facts below a score threshold are dropped. The
+        threshold was searched on dev-500; every threshold lowered \fone{}, so none is used.
+        The control is the same number of random facts from the same domain;
+    \item[V2] as V1 with $k = 10$, but the slots are filled first with facts whose evidence
+        section is not among the five passages: all ten slots (V2a) or five such facts and
+        five from the passages (V2b);
+    \item[V3] the graph as a reranker signal: each candidate section gets the score
+        $\mathrm{ce} + w \cdot g$, with ce the cross-encoder score and $g$ either the best
+        cross-encoder score of a fact from that section or the entity-overlap score of A,
+        both min-max normalised per question. The candidates are the 50 sections of the
+        passage ranking and the evidence sections of the candidate facts (11.6 more per
+        question);
+    \item[V4] two-hop paths between linked entities, to be run only if V1 to V3 left a
+        clear gap.
+\end{description}
+
+
+% ===========================================================================
+\section{Results on Validation}\label{sec:graphrag:val}
+
+\begin{table}[ht]
+    \centering
+    \caption{Graph RAG variants on the full validation split (\%, $n = 4{,}427$). $\Delta$:
+    paired bootstrap difference to E with its 95\% interval. Miss / hit: the 342 questions
+    where passage retrieval misses the gold section and one of E's facts comes from it, and
+    the 1{,}005 where the gold section is in the top 5 and none of E's facts comes from it.
+    Tokens: generator input per turn.}
+    \label{tab:graphrag:val}
+    \small
+    \begin{tabular}{lrrlrrr}
+        \toprule
+        System & \fone{} & answ. & $\Delta$\fone{}, all & Miss & Hit & Tokens \\
+        \midrule
+        P: passages                    & 27.5 & 27.6 & $-0.5$ ($-0.9$, $-0.1$) & 20.6 & 31.9 & 2{,}481 \\
+        E: passages + 30 facts         & 28.0 & 28.2 & ---                     & 25.2 & 30.9 & 5{,}775 \\
+        V0: graph facts only           & 24.6 & 24.1 & $-3.4$ ($-3.9$, $-2.8$) & 26.5 & 22.3 & 3{,}741 \\
+        V1, top 5 facts                & 27.6 & 28.1 & $-0.4$ ($-0.8$, $-0.0$) & 22.7 & 30.7 & 3{,}162 \\
+        V1, 5 random facts             & 27.8 & 27.3 & $-0.2$ ($-0.7$, $0.2$)  & 21.6 & 31.7 & 3{,}089 \\
+        V1, top 10 facts               & 28.0 & 28.3 & $-0.0$ ($-0.4$, $0.4$)  & 23.2 & 30.8 & 3{,}778 \\
+        V1, 10 random facts            & 28.1 & 27.6 & $+0.1$ ($-0.4$, $0.5$)  & 21.5 & 32.1 & 3{,}713 \\
+        V2a, out-of-context first      & 27.8 & 28.0 & $-0.2$ ($-0.6$, $0.2$)  & 25.5 & 30.6 & 3{,}753 \\
+        V2b, 5 + 5                     & 27.9 & 28.2 & $-0.1$ ($-0.4$, $0.3$)  & 23.2 & 30.9 & 3{,}770 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Table~\ref{tab:graphrag:val} shows the generation results. With dialogue history, graph
+facts alone reach 24.6\%, half a point more than without it, and stay far below E. Keeping
+the ten facts with the best cross-encoder score (V1) gives the same \fone{} as E with 35\%
+fewer input tokens, and on answerable questions it is 0.7 points better than ten random
+facts (interval $[0.4, 0.9]$); with five facts the model abstains less and loses 0.4 points
+on all questions, so $k = 10$ was kept as the default. However, V1 loses 2.0 points against
+E on the 342 questions it was meant to keep: the cross-encoder ranks first the facts that
+repeat the passages, and the facts from other sections that recovered the retrieval misses
+are cut. On the 1{,}005 questions where the passages are right, removing off-topic facts did
+not recover the point that E loses there.
+
+Putting the facts from other sections first (V2a) recovers these questions, 2.4 points
+over V1 (interval $[1.0, 3.9]$), back to E's level, without a significant loss on all
+questions; on answerable questions in general it is 0.3 points below V1, because facts from
+the same sections as the passages helped a little when the passages already held the
+answer. V2b selects almost the same facts as V1, since V1's top ten already come mostly from
+other sections, and changes nothing.
+
+The reranker signal of V3 does not help. On dev-500, recall@5 is 67.8\% with the
+cross-encoder alone ($w = 0$) and falls for every positive weight, to 54.6\% at $w = 2$ with
+the fact score and 52.2\% with the entity overlap, so the tuned weight is 0 and no generation
+run was made. Added to the cross-encoder, the graph score mostly promotes sections that
+mention the linked entities without holding the answer. On the 342 questions of the first
+subset it does raise recall@5, from 3.5\% to 48.0\% at $w = 2$, but this subset is selected by
+a fact from the gold section, which is what the fact score rewards, and it cannot be
+identified before generation (Section~\ref{sec:graphhelp:router}).
+
+V4 was not run. Among the 1{,}605 validation questions where passage retrieval misses, 1{,}115
+have no one-hop fact that reaches a gold section, and a two-hop path between two linked
+entities reaches one in none of them: both edges of such a path are themselves one-hop facts
+of a linked entity. A broader two-hop neighbourhood (relations one step beyond the
+neighbours of the linked entities) would reach a gold section in 16.9\% of the misses, but it
+is a much larger candidate set and was not tried.
+
+
+% ===========================================================================
+\section{Results on the Test Split}\label{sec:graphrag:test}
+
+P, E and V1 with $k = 10$ were frozen and run once on the test split.
+
+\begin{table}[ht]
+    \centering
+    \caption{Final systems on the test split (\%, $n = 4{,}335$, 241 unanswerable), all with
+    the conversational generator. Abstain: abstention recall / false abstentions. Tokens:
+    generator input per turn.}
+    \label{tab:graphrag:test}
+    \small
+    \begin{tabular}{lrrrrr}
+        \toprule
+        System & \fone{} & answerable & unanswerable & Abstain & Tokens \\
+        \midrule
+        P: passages             & 27.6 & 27.5 & 28.4 & 27.4 / 6.3 & 2{,}324 \\
+        E: passages + 30 facts  & 28.2 & 28.4 & 24.1 & 23.7 / 4.4 & 5{,}621 \\
+        V1: passages + 10 facts & 27.8 & 28.1 & 22.3 & 21.6 / 4.5 & 3{,}608 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+E gains 0.6 points over P on all questions (interval $[0.1, 1.0]$) and 0.9 on answerable
+ones ($[0.6, 1.2]$), as on validation. V1 is 0.4 points below E on all questions
+($[-0.7, 0.0]$) and 0.3 on answerable ones ($[-0.6, -0.0]$), so the tie of validation does not
+hold on test; it still gains 0.6 over P on answerable questions with 36\% fewer input tokens
+than E. Both graph systems abstain less than P and lose on the unanswerable questions, with
+wide intervals. Appending the one-hop facts of the linked entities therefore remains the best
+use of the graph found in this work, and the filtered selection is the cheaper option at a
+small cost in \fone{}.

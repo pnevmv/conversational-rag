@@ -8,7 +8,7 @@ Author: Danil Smirnov - danil.smirnov@studenti.unipd.it
 
 * **The graph alone is worse than passages.** Graph sections reach 23.0 and graph facts 24.1 token F1 on validation, against 26.9 for passage retrieval (test: 23.8 vs 26.9 for graph facts).
 * **Graph facts added to the passages give a small gain on answerable questions** (validation 27.7 vs 27.2, test 28.0 vs 27.1), which the same number of random facts does not give (27.2 and 27.1).
-* **Giving the generator the dialogue history, with the abstention decision taken separately, gives the best result**: 28.0 overall and 28.2 on answerable questions with passages + graph facts (validation).
+* **Giving the generator the dialogue history, with the abstention decision taken separately, gives the best result**: passages + graph facts reach 28.2 overall and 28.4 on answerable questions on test, +0.6 and +0.9 over passages. Filtering, reordering or reranking with the graph did not do better (see [Graph RAG variants](#graph-rag-variants)).
 
 ## Architecture
 
@@ -38,6 +38,7 @@ All use the same generator and prompt; they differ in what the context contains.
 * **Passages + graph facts**: the top 5 sections plus the graph facts in a separate block.
 * **Passages + random facts** (control): the same number of random facts from the same domain.
 * **Oracle**: the gold sections of the question.
+* **Passages + top 10 graph facts**: only the 10 facts with the best cross-encoder score against the query.
 * **..., with dialogue history**: the generator also sees the whole dialogue so far; whether to abstain is decided by the prompt without history.
 
 ## Results
@@ -52,8 +53,9 @@ Token F1 (%), all questions / answerable questions only. Validation: 4,427 quest
 | Graph facts | 24.1 / 23.8 | 23.8 / 23.3 |
 | Passages + graph facts | 27.4 / 27.7 | 27.5 / 28.0 |
 | Passages + random facts | 27.4 / 27.2 | 27.3 / 27.1 |
-| Passages, with dialogue history | 27.5 / 27.6 | not run yet |
-| Passages + graph facts, with dialogue history | **28.0 / 28.2** | not run yet |
+| Passages, with dialogue history | 27.5 / 27.6 | 27.6 / 27.5 |
+| Passages + graph facts, with dialogue history | **28.0 / 28.2** | **28.2 / 28.4** |
+| Passages + top 10 graph facts, with dialogue history | **28.0 / 28.3** | 27.8 / 28.1 |
 | Oracle (upper bound) | 35.5 / 36.5 | 34.2 / 35.1 |
 
 ### Generator models
@@ -67,6 +69,15 @@ The best configuration (passages + graph facts, with dialogue history) with thre
 | gpt-6-luna | 27.3 / 26.6 | 14.2% | 5,511 / 176 (102) | 3.89 |
 
 The newer models answer as well when they answer (same F1 on the questions all three answer) but refuse more answerable questions. Full comparison, also for passages only: [summary](experiments/results/validation/model_comparison/summary.md).
+
+### Graph RAG variants
+
+Attempts to keep the graph's help on retrieval misses while removing off-topic facts, all with dialogue history, chosen on validation and run once on test ([plan](plans/step7-graph-rag.md), [decisions](experiments/results/validation/graph_rag/decisions.md), [test result](experiments/results/test/step7_final.md)):
+
+* **Top 10 facts by cross-encoder score** match all 30 facts on validation with 35% fewer generator input tokens, and are 0.4 points below them on test (still +0.6 over passages on answerable questions).
+* **Facts from outside the top 5 passages first** recover the questions where retrieval misses but a fact points to the right section, without a gain overall.
+* **The graph as a reranker signal** (cross-encoder score + graph score) lowers Recall@5 for every weight above 0, so it was not used for generation.
+* **Two-hop paths** between linked entities reach no gold section that one-hop facts miss, so they were dropped.
 
 ## Example
 
