@@ -1,4 +1,4 @@
-"""Step 7, Graph RAG variants on the validation split (plans/step7-graph-rag.md).
+"""Step 7, Graph RAG variants on the validation split.
 
 Every variant uses gpt-5.4-nano with G2 + abstain(G0): G0 (current user turn) on every
 question, G2 (whole gold dialogue history) when G0 does not abstain; on first turns the two

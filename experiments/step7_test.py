@@ -81,8 +81,7 @@ def report() -> None:
     tok = {k: float(np.mean([sum(ntok(p) for p in runs[k][i]["prompts"]) for i in ids])) for k in SYSTEMS}
     lines = ["# Step 7: final systems on the test split", "",
              f"Test split of MultiDoc2Dial, {len(runs['p'])} questions ({len(un)} unanswerable), run once with the "
-             "systems frozen on validation (plans/step7-graph-rag.md, experiments/results/validation/graph_rag/"
-             "decisions.md); nothing was tuned on the test split. All systems use gpt-5.4-nano with the dialogue "
+             "systems frozen on validation (experiments/results/validation/graph_rag/decisions.md); nothing was tuned on the test split. All systems use gpt-5.4-nano with the dialogue "
              "history and the abstention decision of the prompt without history (G2 + abstain(G0)), the same rewrites "
              "and passages, and differ only in the graph facts. Δ: paired bootstrap difference with its 95% interval. "
              "Input tokens per turn: generator calls only (G0 always, G2 when G0 does not abstain), counted from the "

@@ -1,6 +1,6 @@
 # Step 7: decisions
 
-Decisions taken with the stopping rules of `plans/step7-graph-rag.md`. The tables are in `summary.md`, which `experiments/graph_rag.py report` regenerates; this file is written by hand.
+Decisions taken with stopping rules fixed before each run (the rule is given with each variant). The tables are in `summary.md`, which `experiments/graph_rag.py report` regenerates; this file is written by hand.
 
 ## V0 and V1
 

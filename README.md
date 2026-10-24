@@ -72,7 +72,7 @@ The newer models answer as well when they answer (same F1 on the questions all t
 
 ### Graph RAG variants
 
-Attempts to keep the graph's help on retrieval misses while removing off-topic facts, all with dialogue history, chosen on validation and run once on test ([plan](plans/step7-graph-rag.md), [decisions](experiments/results/validation/graph_rag/decisions.md), [test result](experiments/results/test/step7_final.md)):
+Attempts to keep the graph's help on retrieval misses while removing off-topic facts, all with dialogue history, chosen on validation and run once on test ([decisions](experiments/results/validation/graph_rag/decisions.md), [test result](experiments/results/test/step7_final.md)):
 
 * **Top 10 facts by cross-encoder score** match all 30 facts on validation with 35% fewer generator input tokens, and are 0.4 points below them on test (still +0.6 over passages on answerable questions).
 * **Facts from outside the top 5 passages first** recover the questions where retrieval misses but a fact points to the right section, without a gain overall.
