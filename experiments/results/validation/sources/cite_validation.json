@@ -1,0 +1,32 @@
+{
+  "split": "validation",
+  "n": 4427,
+  "f1_cite": 0.2829784463633159,
+  "f1_E": 0.2800187185899887,
+  "delta_all": {
+    "mean_diff": 0.002959727773327156,
+    "ci_low": 2.115110477139832e-05,
+    "ci_high": 0.005889872919048469,
+    "p_value": 0.024,
+    "n_paired": 4427
+  },
+  "delta_answerable": {
+    "mean_diff": 0.0028858559666073624,
+    "ci_low": 7.850299433162324e-05,
+    "ci_high": 0.005391786565649916,
+    "p_value": 0.023,
+    "n_paired": 4201
+  },
+  "false_abstention_cite": 0.043799095453463464,
+  "false_abstention_E": 0.04594144251368722,
+  "answered": 4189,
+  "no_citation": 37,
+  "invalid_citation": 74,
+  "precision_first": 0.4217883827428296,
+  "precision_any": 0.5215714630031333,
+  "precision_first_hit": 0.6339748334566987,
+  "precision_first_miss": 0.025570145127850726,
+  "sources_per_answer": 1.8057363220053024,
+  "extra_input_tokens_per_g2_call": 50.0,
+  "extra_output_tokens_per_g2_call": 6.416371785798537
+}
