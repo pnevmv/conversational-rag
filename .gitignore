@@ -36,6 +36,7 @@ logs/
 !latex_report/img/*.pdf
 !latex_report/main.pdf
 !docs/schematic_report.pdf
+!slides/main.pdf
 
 # LaTeX build artifacts
 *.aux
