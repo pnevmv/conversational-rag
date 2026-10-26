@@ -5,7 +5,7 @@ Tokens are counted with tiktoken o200k_base. Input = generation prompt (+ rewrit
 systems that use the rewritten query), output = answer (+ rewritten query). Reasoning tokens of
 the model are billed as output but are not visible, so the output figures are a lower bound.
 
-    python experiments/estimate_tokens.py [--split validation]
+    python experiments/estimate_tokens.py [--split validation|dev500|test]
 """
 import argparse
 import json
@@ -38,7 +38,7 @@ SYSTEMS = {
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--split", default="validation", choices=["validation", "dev500"])
+    parser.add_argument("--split", default="validation", choices=["validation", "dev500", "test"])
     args = parser.parse_args()
     enc = tiktoken.get_encoding("o200k_base")
     n = lambda s: len(enc.encode(s or "", disallowed_special=()))

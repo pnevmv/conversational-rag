@@ -1,0 +1,78 @@
+{
+  "split": "test",
+  "tokenizer": "o200k_base",
+  "systems": {
+    "llm_baseline": {
+      "label": "LLM only",
+      "turns": 4335,
+      "conversations": 661,
+      "calls_per_turn": 1.0,
+      "in_per_turn": 65.2636678200692,
+      "out_per_turn": 48.27635524798155,
+      "in_per_conversation": 428.01512859304086,
+      "out_per_conversation": 316.6081694402421,
+      "in_total": 282918,
+      "out_total": 209278
+    },
+    "oracle_context_v2": {
+      "label": "Oracle",
+      "turns": 4335,
+      "conversations": 661,
+      "calls_per_turn": 1.0,
+      "in_per_turn": 455.7660899653979,
+      "out_per_turn": 51.31649365628604,
+      "in_per_conversation": 2989.0257186081694,
+      "out_per_conversation": 336.5461422087746,
+      "in_total": 1975746,
+      "out_total": 222457
+    },
+    "rag_rewrite_rerank_v2": {
+      "label": "Passage RAG (best)",
+      "turns": 4335,
+      "conversations": 661,
+      "calls_per_turn": 1.8477508650519032,
+      "in_per_turn": 1411.1367935409457,
+      "out_per_turn": 68.04567474048443,
+      "in_per_conversation": 9254.580937972769,
+      "out_per_conversation": 446.26021180030256,
+      "in_total": 6117278,
+      "out_total": 294978
+    },
+    "kg_facts": {
+      "label": "B: graph facts",
+      "turns": 4335,
+      "conversations": 661,
+      "calls_per_turn": 1.8477508650519032,
+      "in_per_turn": 2235.551326412918,
+      "out_per_turn": 55.307035755478665,
+      "in_per_conversation": 14661.293494704993,
+      "out_per_conversation": 362.71709531013613,
+      "in_total": 9691115,
+      "out_total": 239756
+    },
+    "step4_plus_facts": {
+      "label": "E: passages + facts",
+      "turns": 4335,
+      "conversations": 661,
+      "calls_per_turn": 1.8477508650519032,
+      "in_per_turn": 3213.9026528258364,
+      "out_per_turn": 66.43391003460208,
+      "in_per_conversation": 21077.561270801816,
+      "out_per_conversation": 435.68986384266265,
+      "in_total": 13932268,
+      "out_total": 287991
+    },
+    "step4_plus_random_facts": {
+      "label": "E-random",
+      "turns": 4335,
+      "conversations": 661,
+      "calls_per_turn": 1.8477508650519032,
+      "in_per_turn": 3259.4971164936564,
+      "out_per_turn": 65.2242214532872,
+      "in_per_conversation": 21376.58093797277,
+      "out_per_conversation": 427.75642965204236,
+      "in_total": 14129920,
+      "out_total": 282747
+    }
+  }
+}

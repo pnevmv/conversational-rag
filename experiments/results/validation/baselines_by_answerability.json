@@ -1,0 +1,20 @@
+{
+  "llm_baseline": {
+    "n": 4427,
+    "n_unanswerable": 226,
+    "f1": 0.1584161662495562,
+    "f1_answerable": 0.15704678802250596,
+    "f1_unanswerable": 0.18387084736388404,
+    "abstain_recall": 0.17256637168141592,
+    "false_abstention": 0.08093311116400857
+  },
+  "oracle_context_v2": {
+    "n": 4427,
+    "n_unanswerable": 226,
+    "f1": 0.35490512062612034,
+    "f1_answerable": 0.36543243183282265,
+    "f1_unanswerable": 0.15921824284135813,
+    "abstain_recall": 0.15486725663716813,
+    "false_abstention": 0.019995239228755058
+  }
+}
