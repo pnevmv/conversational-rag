@@ -1,0 +1,70 @@
+%!TEX root = ../main.tex
+
+\chapter{Sources per Answer}\label{ch:sources}
+
+A system that answers from documents should show which document sections an answer is based
+on, as a chatbot interface would do with a link to the source. This chapter measures how often
+the shown source is a gold section, that is, a section that contains the grounding span of the
+reference answer. The system is the final one of Chapter~\ref{ch:graphrag}, passages with 30
+graph facts and the conversational generator (\texttt{gpt-5.4-nano}, G2 + abstain(G0)),
+unchanged; only the validation split was used. Refusals get no source, so all numbers are over
+the answered questions (4{,}181 of 4{,}427 for the cached answers).
+
+
+% ===========================================================================
+\section{Post-hoc Attribution}\label{sec:sources:posthoc}
+
+The simplest source needs no extra \gls{llm} call. The candidate sections of an answer are the
+five passages and the evidence sections of the facts in its prompt; each is scored by the share
+of the answer's tokens (with the normalisation of \fone{}) that its text in the prompt contains,
+and the best one is shown. Table~\ref{tab:sources:main} gives the result: the top source is a
+gold section for 39.5\% of the answered questions, and a gold section is among the top two for
+54.5\%. Where the gold section is among the passages, the top source is gold for 59.7\% of the
+questions; where passage retrieval missed it, a gold section can reach the prompt only through a
+graph fact (22.6\% of these questions) and the overlap rarely picks it (1.4\%).
+
+
+% ===========================================================================
+\section{Citations by the Generator}\label{sec:sources:cite}
+
+In the second variant the generator names its sources. The G2 prompt asks the model to end its
+answer with the numbers of the passages and facts it used, for example [2] or [2, F7]; the facts
+are numbered [F1] to [F30] in the prompt, and each maps to the section of its evidence quote.
+G0, which takes the decision to abstain, is unchanged, and the citations are removed before
+computing \fone{}. The prompt was first tried on dev-500, with the rule to run the full split only
+if \fone{} did not drop by more than 0.3 points; it rose by 0.8 points (interval $[-0.2, 1.9]$).
+
+\begin{table}[ht]
+    \centering
+    \caption{Sources of the answered validation questions (\%). Hit / miss: whether a gold section
+    is among the five passages. Post-hoc: the candidate section with the largest token overlap with
+    the answer. Citation: the first section cited by the model. Upper bound: a gold section is
+    anywhere in the prompt.}
+    \label{tab:sources:main}
+    \small
+    \begin{tabular}{lrrr}
+        \toprule
+        & All & Hit & Miss \\
+        \midrule
+        Post-hoc, top source is gold     & 39.5 & 59.7 &  1.4 \\
+        Post-hoc, gold in the top two    & 54.5 & 82.0 &  2.7 \\
+        Citation, first source is gold   & 42.2 & 63.4 &  2.6 \\
+        Citation, any source is gold     & 52.2 &      &      \\
+        Upper bound                      & 73.2 & 100  & 22.6 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+On the full validation split the citations cost nothing: \fone{} is 0.3 points higher
+(interval $[0.0, 0.6]$) and the false-abstention rate is 4.4\% against 4.6\%. The prompt adds 50
+input tokens and the citations about 6 output tokens per G2 call. The model cites 1.8 sections per
+answer on average; 0.9\% of the answers cite nothing and 1.8\% contain a number that is not in the
+prompt. The first cited section is a gold section for 42.2\% of the answered questions, a little
+more than with the post-hoc overlap, and one of the cited sections is gold for 52.2\%.
+
+Both methods are limited by retrieval in the same way. When a gold section is among the passages,
+the first citation is gold in 63.4\% of the cases; when it is not, in 2.6\%, even though a graph fact
+from a gold section is in the prompt for about a fifth of these questions. A non-gold citation is
+not necessarily wrong, since several sections of the corpus often state the same rule, but this
+was not measured. For a demonstration both sources can be shown: the cited sections come with
+the answer, and the post-hoc overlap is almost as precise without extra tokens.

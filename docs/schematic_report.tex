@@ -563,11 +563,42 @@ Passages + top 10 facts & 28.0 & 28.3 & 27.8 & 28.1 \\
 \end{itemize}
 
 % =====================================================================
+\section{Sources per answer (Q13)}\label{sec:sources}
+
+\textbf{Every answer can show the sections it is based on. Asked to cite the passages and facts it
+used, the model names a gold section first in 42\% of the answered questions, at no cost in F1;
+the limit is retrieval, not the citations.}
+
+\begin{table}[H]
+\centering\small
+\begin{tabular}{lccc}
+\toprule
+Answered questions (validation) & all & gold section in top 5 & gold not retrieved \\
+\midrule
+Post-hoc: highest answer overlap is gold & 39.5\% & 59.7\% & 1.4\% \\
+Model citation: first cited source is gold & 42.2\% & 63.4\% & 2.6\% \\
+Gold section anywhere in the prompt & 73.2\% & 100\% & 22.6\% \\
+\bottomrule
+\end{tabular}
+\caption{Passages + 30 facts with dialogue history (unchanged system), 4,181--4,189 answered
+questions. Post-hoc: the passage or fact section whose prompt text shares the most answer
+tokens, no LLM calls. Model citation: the generator ends its answer with [2] or [F7]; each fact
+maps to the section of its evidence quote.}
+\label{tab:sources}
+\end{table}
+
+\begin{itemize}
+\item Citations cost no quality: F1 $+0.3$ [0.0, 0.6] with the citations stripped, false abstention
+  4.4\% against 4.6\%, about 56 extra tokens per answer (50 input, 6 output).
+\item 1.8 sections are cited per answer; 0.9\% of the answers cite nothing and 1.8\% contain a number
+  that is not in the prompt.
+\end{itemize}
+
+% =====================================================================
 \section*{Open items (Planned)}
 \begin{itemize}
 \item Q9, extraction precision with entities and relations evaluated separately on documents
   annotated by hand.
-\item Q13, the source section shown with each answer and whether it is a gold section.
 \end{itemize}
 
 

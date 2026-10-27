@@ -105,6 +105,11 @@ retrieval misses; putting those first recovered them without an overall gain, an
 used as a reranker signal lowered recall for every weight. On test, passages with graph facts
 and the dialogue history reach 28.2\% \fone{}, 0.6 points above passages alone.
 
+Each answer can be shown with the sections it is based on. When the generator is asked to cite
+the passages and facts it used, \fone{} does not drop and the first cited section is a gold section
+for 42\% of the answered validation questions, 63\% when passage retrieval found the gold section
+and 3\% when it did not, so the quality of the sources is again limited by retrieval.
+
 
 % ===========================================================================
 \section*{Scope Limitations}

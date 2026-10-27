@@ -427,6 +427,37 @@ Oracle & 34.2 & 35.1 & 456 \\ % experiments/results/test/baselines_by_answerabil
 \end{frame}
 
 % =====================================================================
+\begin{frame}{Sources per answer}
+\begin{columns}[T]
+\column{0.44\textwidth}
+\footnotesize
+\begin{tabular}{lc}
+\toprule
+Answered (validation) & first source gold \\
+\midrule
+all & 42.2\% \\ % experiments/results/validation/sources/cite_validation.json
+gold in the top 5 & 63.4\% \\ % experiments/results/validation/sources/cite_validation.json
+gold not retrieved & \phantom{0}2.6\% \\ % experiments/results/validation/sources/cite_validation.json
+\bottomrule
+\end{tabular}
+
+\vspace{3mm}
+\small
+\begin{itemize}
+\item The answer ends with the passages and facts it used: [2], [F7]
+\item Citations cost no quality: F1 +0.3 [0.0, 0.6], +56 tokens per answer % experiments/results/validation/sources/cite_validation.json (50 input + 6 output tokens)
+\end{itemize}
+\column{0.52\textwidth}
+\begin{tikzpicture}[every node/.style={inner sep=3pt}]
+  \tikzset{box/.append style={font=\scriptsize, align=left, text width=5.9cm}}
+  \node[dat, rounded corners=2pt, fill=white] (q) {\textbf{User:} what junior driver license classes are restricted under the Graduated License Law?}; % experiments/results/validation/sources/demo_examples.md (example 4)
+  \node[llm, rounded corners=2pt, below=1mm of q] (a) {\textbf{Answer:} Under the Graduated License Law, if you are under 18 and have a junior learner permit or a junior driver license class DJ, MJ, or DJMJ, you are subject to restrictions. [\ldots]};
+  \node[kg, rounded corners=2pt, below=1mm of a] (s) {\textbf{Source [1]:} The Graduated License Law and Restrictions for Drivers under 18 \hfill \textbf{gold}};
+\end{tikzpicture}
+\end{columns}
+\end{frame}
+
+% =====================================================================
 \begin{frame}{Conclusions}
 \begin{itemize}
 \setlength{\itemsep}{6pt}
@@ -443,7 +474,6 @@ Oracle & 34.2 & 35.1 & 456 \\ % experiments/results/test/baselines_by_answerabil
 \begin{itemize}
 \setlength{\itemsep}{5pt}
 \item Extraction precision for entities and relations separately, on new hand-annotated documents
-\item The source section shown with each answer, and whether it is a gold section
 \item Error analysis of the final systems
 \item LLM judge to complement token F1 (correct paraphrases score low)
 \item An agent that checks whether the context is sufficient before answering
