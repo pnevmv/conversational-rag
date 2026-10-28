@@ -466,36 +466,58 @@ gives the best overall F1 ($+0.6$ to $+0.7$), at twice the input tokens.}
 \section{Generator models (Q12, new experiment)}\label{sec:models}
 
 \textbf{gpt-5.4-nano stays the generator. gpt-5-nano and gpt-6-luna answer as well when they
-answer, but refuse more answerable questions; gpt-5-nano spends many hidden reasoning tokens, and
-gpt-6-luna is the cheapest.}
+answer, but refuse more answerable questions, so they are 1.0--1.8 F1 worse on them; gpt-5-nano
+spends many hidden reasoning tokens, and gpt-6-luna is the cheapest.}
 
 \begin{table}[H]
-\centering\small
+\centering\footnotesize
 \begin{tabular}{llccccc}
 \toprule
- & & \multicolumn{2}{c}{F1} & false & tokens / turn & USD per 1,000 \\
- & Model & all & answerable & abstention & in / out (reasoning) & conversations \\
+ & & \multicolumn{2}{c}{F1} & $\Delta$ answerable & abstain recall / & USD per 1,000 \\
+ & Model & all & answerable & vs gpt-5.4-nano & false abstention & conversations \\
 \midrule
-Passages & gpt-5.4-nano & 27.6 & 27.6 & \phantom{0}5.7 & 2,492 / 108 (0) & 3.91 \\
- & gpt-5-nano & 27.6 & 26.5 & 12.5 & 2,394 / 1,569 (1,425) & 4.95 \\
- & gpt-6-luna & 26.8 & 25.8 & 17.3 & 2,348 / 151 (80) & 1.96 \\
+Passages & gpt-5.4-nano & 27.6 & 27.6 & -- & 27.4 / \phantom{0}5.7 & 3.91 \\
+ & gpt-5-nano & 27.6 & 26.5 & $-1.0$ [$-1.4$, $-0.6$] & 46.0 / 12.5 & 4.95 \\
+ & gpt-6-luna & 26.8 & 25.8 & $-1.8$ [$-2.2$, $-1.3$] & 45.6 / 17.3 & 1.96 \\
 \midrule
-Passages & gpt-5.4-nano & 28.1 & 28.4 & \phantom{0}3.9 & 5,793 / 106 (0) & 7.30 \\
-+ facts & gpt-5-nano & 28.1 & 26.8 & 11.6 & 5,532 / 1,578 (1,435) & 5.94 \\
- & gpt-6-luna & 27.3 & 26.6 & 14.2 & 5,511 / 176 (102) & 3.89 \\
+Passages & gpt-5.4-nano & 28.1 & 28.4 & -- & 22.6 / \phantom{0}3.9 & 7.30 \\
++ facts & gpt-5-nano & 28.1 & 26.8 & $-1.6$ [$-2.0$, $-1.2$] & 51.3 / 11.6 & 5.94 \\
+ & gpt-6-luna & 27.3 & 26.6 & $-1.8$ [$-2.2$, $-1.4$] & 40.3 / 14.2 & 3.89 \\
 \bottomrule
 \end{tabular}
 \caption{Generator models on validation, with dialogue history and the abstention decision of
-Section~\ref{sec:conv}; only the generator changes model. Tokens are the recorded usage of the
-generator calls. Cost at USD list prices (Azure Retail Prices API, Global Standard, East US 2,
-21 October 2026; the deployment type is not confirmed).}
+Section~\ref{sec:conv}; only the generator changes model, all three run fresh with usage logging.
+$\Delta$: paired bootstrap difference on answerable questions. On all questions gpt-5-nano ties
+($-0.0$) and gpt-6-luna loses 0.8 in both pipelines. Cost at USD list prices (Azure Retail Prices
+API, Global Standard, East US 2, 21 October 2026; the deployment type is not confirmed).}
 \label{tab:models}
 \end{table}
 
+\begin{table}[H]
+\centering\footnotesize
+\begin{tabular}{lccccc}
+\toprule
+Passages + facts & answered & F1 on & mean & F1, questions & tokens / turn \\
+ & (of 4,201) & own answers & words & all three answer & in / out (reasoning) \\
+\midrule
+gpt-5.4-nano & 4,036 & 29.5 & 46.4 & 30.8 & 5,793 / 106 (0) \\
+gpt-5-nano & 3,712 & 30.1 & 40.3 & 30.7 & 5,532 / 1,578 (1,435) \\
+gpt-6-luna & 3,603 & 30.6 & 34.3 & 30.8 & 5,511 / 176 (102) \\
+\bottomrule
+\end{tabular}
+\caption{Answerable questions only. On the 3,443 questions all three models answer, F1 is the
+same (gpt-5-nano $-0.1$ [$-0.5$, 0.2], gpt-6-luna $-0.0$ [$-0.4$, 0.4]); with passages only the
+same holds (30.7, 31.0, 31.1 on 3,326 questions). Tokens: recorded usage of the generator calls.}
+\label{tab:models2}
+\end{table}
+
 \begin{itemize}
-\item On the answerable questions all three models answer, F1 is the same (about 31); the newer
-  models lose 1.0--1.8 points on answerable questions only through extra refusals.
-\item Abstention from gpt-5.4-nano with answers from a newer model gives no gain.
+\item The loss comes from refusals, not from worse answers: the newer models answer 83--88\% of
+  the answerable questions, gpt-5.4-nano 94--96\%, and write shorter answers.
+\item gpt-5-nano spends about 1,400 hidden reasoning tokens per turn, so its low price per token
+  does not make it cheaper; gpt-6-luna costs about half as much as gpt-5.4-nano.
+\item Refusal decision from gpt-5.4-nano with the answer of a newer model: no significant gain
+  ($-0.3$ to $+0.2$ F1).
 \end{itemize}
 
 % =====================================================================
