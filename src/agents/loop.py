@@ -1,11 +1,16 @@
 """A2: a tool-calling agent in a plain Python loop. It starts from the context of E and may look further with
 at most MAX_TOOLS calls of search_passages / get_entity_facts, then must answer or refuse."""
 import json
+import threading
+import time
 from typing import Any, Dict, List, Optional
 
 from src.agents.world import NEW_FACTS, Turn, World
 from src.llm import LLMCache, LLMClient
 from src.llm.client import log_usage
+from src.llm.parallel import _is_retriable
+
+_LOCK = threading.Lock()  # retrieval and linking models are shared by the worker threads
 
 MAX_TOOLS = 3
 ABSTAIN = "Unfortunately, no relevant information is found."
@@ -40,26 +45,34 @@ def tool_prompt(head: str) -> str:
     return head.replace(anchor, AGENT_NOTE + "\n" + anchor, 1)
 
 
-def _call(client: LLMClient, cache: LLMCache, items, tools, meta) -> Dict[str, Any]:
+def _call(client: LLMClient, cache: LLMCache, items, tools, meta, retries: int = 5) -> Dict[str, Any]:
     key = json.dumps({"i": items, "t": [t["name"] for t in tools]}, sort_keys=True, ensure_ascii=False)
     entry = cache.get_entry(key)
     if entry is not None:
         log_usage(client.default_model, entry.get("usage") or {}, meta, cache_hit=True)
-        return json.loads(entry["response"])
-    resp, usage = client.generate_with_tools(items, tools, tool_choice="required", meta=meta)
+        return {**json.loads(entry["response"]), "usage": entry.get("usage") or {}}
+    for attempt in range(retries):
+        try:
+            resp, usage = client.generate_with_tools(items, tools, tool_choice="required", meta=meta)
+            break
+        except Exception as exc:
+            if not _is_retriable(exc) or attempt == retries - 1:
+                raise
+            time.sleep(min(2 ** attempt, 60))
     cache.put(key, json.dumps(resp, ensure_ascii=False), usage)
-    return resp
+    return {**resp, "usage": usage}
 
 
 def run_a2(world: World, client: LLMClient, cache: LLMCache, t: Turn, prompt: str, meta: Dict[str, Any]) -> Dict[str, Any]:
     """prompt: the G2 prompt of E (citation request included) with the tool note; returns the trace and the answer."""
     sections, facts = list(t.sections), list(t.facts)
     items: List[Dict[str, Any]] = [{"role": "user", "content": prompt}]
-    n_tools, trace, final = 0, [], None
+    n_tools, trace, final, usages = 0, [], None, []
     for _ in range(MAX_TOOLS + 1):
         tools = [ANSWER, REFUSE] if n_tools >= MAX_TOOLS else [SEARCH, FACTS, ANSWER, REFUSE]
         resp = _call(client, cache, items, tools, meta)
         items += resp["output"]
+        usages.append(resp["usage"])
         calls = [o for o in resp["output"] if o.get("type") == "function_call"]
         if not calls:
             final = {"kind": "answer", "text": resp["text"], "citations": []}
@@ -78,16 +91,19 @@ def run_a2(world: World, client: LLMClient, cache: LLMCache, t: Turn, prompt: st
             break
         n_tools += 1
         if name == "search_passages" and isinstance(args, dict) and args.get("query"):
-            ranked = world.search([args["query"]])[0]
+            with _LOCK:
+                ranked = world.search([args["query"]])[0]
             cur = Turn(t.example, t.query, t.emb, t.gold, t.linked, sections, facts)
             new = world.add_sections(cur, ranked)
             sections += new
             out = world.render(new, []) if new else "No new sections."
             trace.append({"tool": name, "arg": args["query"], "new_sections": [s["section_id"] for s in new]})
         elif name == "get_entity_facts" and isinstance(args, dict) and args.get("entity"):
-            linked = world.linker.link(args["entity"], k=1, skip_hubs=False)
+            with _LOCK:
+                linked = world.linker.link(args["entity"], k=1, skip_hubs=False)
             cur = Turn(t.example, t.query, t.emb, t.gold, t.linked, sections, facts)
-            new = world.add_facts(cur, linked, t.emb) if linked else []
+            with _LOCK:
+                new = world.add_facts(cur, linked, t.emb) if linked else []
             facts += new
             out = world.render([], new, cite=True).replace("\n\nFacts:\n", "", 1) if new else "No new facts."
             trace.append({"tool": name, "arg": args["entity"], "entity": linked[0]["name"] if linked else None,
@@ -98,4 +114,4 @@ def run_a2(world: World, client: LLMClient, cache: LLMCache, t: Turn, prompt: st
         items.append({"type": "function_call_output", "call_id": c["call_id"], "output": out})
     if final is None:  # the loop ended without a terminal call (cannot happen with tool_choice=required)
         final = {"kind": "answer", "text": "", "citations": []}
-    return {"trace": trace, "n_tools": n_tools, "final": final, "sections": sections, "facts": facts}
+    return {"trace": trace, "n_tools": n_tools, "final": final, "sections": sections, "facts": facts, "usage": usages}

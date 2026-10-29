@@ -1,0 +1,194 @@
+{
+  "split": "dev500",
+  "n": 500,
+  "errors": 0,
+  "set_sizes": {
+    "all": 500,
+    "answerable": 469,
+    "unanswerable": 31,
+    "passages-miss": 153,
+    "passages-hit": 316,
+    "used tools": 220
+  },
+  "f1": {
+    "E": {
+      "all": 0.31154419689470225,
+      "answerable": 0.3038584829003217,
+      "unanswerable": 0.42782161184194295,
+      "passages-miss": 0.20235370582893616,
+      "passages-hit": 0.3530047831912141,
+      "used tools": 0.2820197090380333
+    },
+    "A2 (abstain G0)": {
+      "all": 0.2970145691057286,
+      "answerable": 0.2944881950860958,
+      "unanswerable": 0.33523616314468957,
+      "passages-miss": 0.19625266078690137,
+      "passages-hit": 0.3420516025157691,
+      "used tools": 0.2552923737195979
+    },
+    "A2 (own refusal)": {
+      "all": 0.2831489621179939,
+      "answerable": 0.2987714854332159,
+      "unanswerable": 0.0467953029296358,
+      "passages-miss": 0.2042039552400776,
+      "passages-hit": 0.34455892884951383,
+      "used tools": 0.23467357210250606
+    }
+  },
+  "delta_vs_E": {
+    "A2 (abstain G0)": {
+      "all": {
+        "mean_diff": -0.014529627788973574,
+        "ci_low": -0.02889727027976063,
+        "ci_high": -0.001108418945252994,
+        "p_value": 0.982,
+        "n_paired": 500
+      },
+      "answerable": {
+        "mean_diff": -0.009370287814225867,
+        "ci_low": -0.020075016241921928,
+        "ci_high": 0.0007085244403874612,
+        "p_value": 0.961,
+        "n_paired": 469
+      },
+      "passages-miss": {
+        "mean_diff": -0.0061010450420347926,
+        "ci_low": -0.018126411996777607,
+        "ci_high": 0.005854286159091002,
+        "p_value": 0.826,
+        "n_paired": 153
+      },
+      "passages-hit": {
+        "mean_diff": -0.010953180675444962,
+        "ci_low": -0.026206735860787804,
+        "ci_high": 0.0031805947026441617,
+        "p_value": 0.931,
+        "n_paired": 316
+      },
+      "used tools": {
+        "mean_diff": -0.026727335318435397,
+        "ci_low": -0.051637117428017534,
+        "ci_high": -0.002103816789026576,
+        "p_value": 0.984,
+        "n_paired": 220
+      }
+    },
+    "A2 (own refusal)": {
+      "all": {
+        "mean_diff": -0.028395234776708307,
+        "ci_low": -0.045326040072398925,
+        "ci_high": -0.01247192253516843,
+        "p_value": 1.0,
+        "n_paired": 500
+      },
+      "answerable": {
+        "mean_diff": -0.005086997467105826,
+        "ci_low": -0.016014510671232145,
+        "ci_high": 0.005736155169663015,
+        "p_value": 0.812,
+        "n_paired": 469
+      },
+      "passages-miss": {
+        "mean_diff": 0.0018502494111414306,
+        "ci_low": -0.01052869149189656,
+        "ci_high": 0.014310949212285085,
+        "p_value": 0.4,
+        "n_paired": 153
+      },
+      "passages-hit": {
+        "mean_diff": -0.008445854341700223,
+        "ci_low": -0.023770615845375914,
+        "ci_high": 0.005994110073463599,
+        "p_value": 0.86,
+        "n_paired": 316
+      },
+      "used tools": {
+        "mean_diff": -0.04734613693552726,
+        "ci_low": -0.07523878915994951,
+        "ci_high": -0.020158889506526074,
+        "p_value": 1.0,
+        "n_paired": 220
+      }
+    }
+  },
+  "abstention": {
+    "E": {
+      "false_abstention": 0.046908315565031986,
+      "abstain_recall": 0.41935483870967744
+    },
+    "A2 (abstain G0)": {
+      "false_abstention": 0.04477611940298507,
+      "abstain_recall": 0.3225806451612903
+    },
+    "A2 (own refusal)": {
+      "false_abstention": 0.01279317697228145,
+      "abstain_recall": 0.03225806451612903
+    }
+  },
+  "tools": {
+    "share_with_tool_call": 0.44,
+    "tool_calls_histogram": {
+      "1": 209,
+      "0": 280,
+      "2": 11
+    },
+    "share_at_limit": 0.0,
+    "mean_calls_per_question": 0.462,
+    "search_passages": 220,
+    "get_entity_facts": 11,
+    "invalid_calls": 0,
+    "final_kind": {
+      "answer": 496,
+      "refuse": 4
+    },
+    "refuse_share_unanswerable": 0.0,
+    "gold_in_context_before_broad": 0.6536585365853659,
+    "gold_in_context_after_broad": 0.7024390243902439,
+    "gold_in_top5_before": 0.5804878048780487,
+    "gold_in_passages_after": 0.6585365853658537
+  },
+  "tool_use_as_classifier": {
+    "broad": {
+      "tp": 216,
+      "fp": 48,
+      "fn": 134,
+      "tn": 71,
+      "base_rate_gold_in_context": 0.746268656716418,
+      "J": 0.21378151260504197,
+      "ci_low": 0.11684270694510215,
+      "ci_high": 0.30711557356914765
+    },
+    "strict": {
+      "tp": 197,
+      "fp": 67,
+      "fn": 119,
+      "tn": 86,
+      "base_rate_gold_in_context": 0.673773987206823,
+      "J": 0.1855092247869612,
+      "ci_low": 0.09028458496940521,
+      "ci_high": 0.2798055283187459
+    }
+  },
+  "per_turn": {
+    "E": {
+      "in": 6251.124,
+      "out": 110.222,
+      "calls": 1.942,
+      "usd_per_1000": 1.3880023000000001
+    },
+    "A2 (own refusal)": {
+      "in": 5567.708,
+      "out": 96.318,
+      "calls": 1.462,
+      "usd_per_1000": 1.2339391
+    },
+    "A2 (abstain G0)": {
+      "in": 8974.998,
+      "out": 149.498,
+      "calls": 2.462,
+      "usd_per_1000": 1.9818721
+    }
+  },
+  "token_counting": "E: o200k_base on the stored prompts; A2: input/output tokens reported by the API (tool definitions included); G0 on the final context: o200k_base"
+}

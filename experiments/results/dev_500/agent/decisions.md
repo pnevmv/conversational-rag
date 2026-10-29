@@ -12,3 +12,27 @@ dev-500, gpt-5.4-nano, baseline E with citations. Spend of the A1 runs: about US
 * **Own refusal (refuse if the second check is still insufficient) is worse:** −6.6 on all questions [−8.5, −4.7]; the second check says insufficient for 80% of the round questions and false abstention reaches 37%. Abstain(G0) stays the default, as in the plan.
 * **Cost:** USD 2.29 per 1,000 turns against 1.39 for E (+65%), 2.9 model calls per turn against 1.9.
 * **Decision:** A1 can only be kept with the interval of Δ F1 on all questions above 0 (it costs more than E by construction). With Δ = −0.6 [−1.6, 0.4] on dev-500 at +65% cost it cannot reach that, so A1 is not run on the full validation split. Reported as a negative result: the check can tell when the context lacks the gold section, but a second search with the model's own query does not repair it.
+
+## Exploratory (not in the plan): ranks 6-10 of E's own list against the new query
+
+No LLM calls, from the cache (`a1_rank610.json`, `experiments/agent.py rank610`). On the 213 answerable questions that A1 sent to the extra round: share with a gold section outside E's top 5 and inside the added sections.
+
+| Group (check says insufficient) | n | ranks 6-10 of E's list | new query of A1 | both |
+| :--- | :---: | :---: | :---: | :---: |
+| answerable | 213 | +8.9 | +5.6 | +12.7 |
+| gold in context (passages or facts) | 130 | +5.4 | +3.1 | +6.9 |
+| gold missing from the context | 83 | +14.5 | +9.6 | +21.7 |
+
+Going five sections deeper in the original reranked list recovers more gold sections than the model's own search query (and costs no call), and the two together are largely complementary. For the 83 questions where the context really lacks the gold section, the top 10 of E's list holds it in 14.5%. Exploratory, chosen after seeing the A1 result; one dev-500 subset, no interval.
+
+## A2 (tool-calling agent): negative on dev-500, no full-validation run
+
+dev-500, 500 questions, 0 errors, USD 0.78. Tools were used on 44% of the questions (209 with one call, 11 with two, none at the limit of 3; 220 `search_passages`, 11 `get_entity_facts`); `refuse()` was called 4 times. Tool use as a prediction of "gold section not in context": J = 0.21 [0.12, 0.31].
+
+* **A2 with abstain(G0):** Δ −1.5 on all questions [−2.9, −0.1], −0.9 on answerable ones [−2.0, 0.1]; cost USD 1.98 per 1,000 turns against 1.39 for E (+42%).
+* **A2 with own refusal:** Δ −2.8 on all questions [−4.5, −1.3], −0.5 on answerable ones [−1.6, 0.6] (a tie), at USD 1.23 per 1,000 turns (−12%, one call replaces the G0 + G2 pair). The loss on all questions comes from the unanswerable ones: the agent refuses almost never (abstain recall 3.2% against 41.9% for E, 31 unanswerable questions).
+* **Decision:** both variants have the interval of Δ on all questions entirely below 0, so by the rule fixed in the plan A2 is dropped and not run on the full validation split. Token counts of A2 are the API-reported ones (tool definitions included), those of E are counted from the prompts.
+
+## Step 8 closed
+
+Negative result. No variant is run on the full validation split or the test split; E stays the final system. The idea "ranks 6-10 of E's list plus own refusal" came from the exploratory check after seeing dev-500, so it would need a fresh validation run to mean anything; it is listed as future work, not tried.
