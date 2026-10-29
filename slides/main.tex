@@ -379,6 +379,29 @@ All variants tuned on dev-500 with stopping rules fixed in advance. Only top-10 
 \end{frame}
 
 % =====================================================================
+\begin{frame}{Step 8: agents}
+\centering
+\small
+\renewcommand{\arraystretch}{1.25}
+\begin{tabular}{lccc}
+\toprule
+ & $\Delta$ F1 all & $\Delta$ F1 answerable & USD / 1,000 turns \\
+\midrule
+E: passages + 30 facts & --- & --- & 1.39 \\ % experiments/results/dev_500/agent/a1_summary.json
+A1: check + one extra round & $-0.6$ [$-1.6$, 0.4] & $+0.1$ [$-0.5$, 0.6] & 2.29 ($+65\%$) \\ % experiments/results/dev_500/agent/a1_summary.json
+A2: tools, own refusal & $-2.8$ [$-4.5$, $-1.3$] & $-0.5$ [$-1.6$, 0.6] & 1.23 ($-12\%$) \\ % experiments/results/dev_500/agent/a2_summary.json
+\bottomrule
+\end{tabular}
+
+\vspace{4mm}
+\footnotesize dev-500, against E with citations; the check separates the questions (J = 0.33) but neither agent beat E, so neither went to the full validation split.
+
+\vspace{4mm}
+\normalsize
+The model can tell when the context is missing, but a second search or tool calls do not recover the gold section often enough, and an agent that refuses on its own almost never does.
+\end{frame}
+
+% =====================================================================
 \begin{frame}{Generator models and cost}
 \centering
 \footnotesize
@@ -476,7 +499,7 @@ gold not retrieved & \phantom{0}2.6\% \\ % experiments/results/validation/source
 \item Extraction precision for entities and relations separately, on new hand-annotated documents
 \item Error analysis of the final systems
 \item LLM judge to complement token F1 (correct paraphrases score low)
-\item An agent that checks whether the context is sufficient before answering
+\item Agent with a second retrieval round: ranks 6--10 of the first list plus a separate refusal decision (future work from Step 8)
 \item Report writing
 \item EnronQA and MTRAG datasets
 \end{itemize}

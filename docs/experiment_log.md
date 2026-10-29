@@ -19,6 +19,7 @@ This file keeps the history of the work in the order it was done, with the inter
 | Step 6 E-random (`step4_plus_random_facts`) | configuration *passages + random facts* (control) |
 | G0 / G1 / G2 / G3 (`generator_input/`) | generator with the user turn / the rewritten query / the dialogue history / both |
 | G2 + abstain(G0) | generator with dialogue history, abstention decided by the G0 prompt |
+| Step 8, agents (`src/agents`, `experiments/agent.py`) | sufficiency check with one extra round (A1) and tool-calling agent (A2); negative result |
 
 ## Earlier README
 
@@ -348,3 +349,31 @@ python -m pytest tests
 ## Generator input and abstention (after the final evaluation)
 
 All results above give the generator only the current user turn and the retrieved context. Four generator inputs were then compared on the full validation split with retrieval unchanged (`experiments/generator_input.py`): G0 the user turn (as above), G1 the rewritten query, G2 the whole gold dialogue history plus the user turn (history length chosen on dev-500), G3 both. G2 gains on answerable questions (+0.8 F1 with passages, +0.7 with passages + graph facts) but abstains half as often; G1 and G3 are worse. Taking the abstention decision from G0 and the answer from G2 gives the best overall F1 (27.5 with passages, 28.0 with passages + graph facts). Two cheaper decisions, a yes/no classifier call and a threshold on the top reranker score (`experiments/abstention_decision.py`), both lose against it. Summaries: `experiments/results/validation/generator_input/` (`summary.md`, `abstention_decision.md`, `unanswerable_examples.md`).
+
+## Step 8: agent with a sufficiency check (negative result)
+
+**Question.** In about 27% of the validation questions the gold section is not in the top 5, and F1 there is far lower. The graph facts rescue some of these (+4.6 F1 on 342 questions) but a router on pre-generation signals could not tell which ones, and the generator with the dialogue history refuses too rarely, which is why the refusal comes from G0. Step 8 asked whether the model itself can judge from the retrieved context that it is not enough, and whether looking further repairs it.
+
+**Plan and stopping rule (fixed before any run, 2026-10-29).** Baseline E with citations (passages + 30 facts, G2 + abstain(G0), gpt-5.4-nano), development on dev-500, decisions on the full validation split, the test split used once for a single frozen agent.
+* *A1, fixed controller:* one check on (rewritten query, top-5 sections, facts) answering sufficient / insufficient plus what is missing; if insufficient, one extra round (new query, hybrid retrieval and reranking, facts of newly linked entities, new top 5 added to the old one), then answer or refuse. Refusal: abstain(G0) on the new context, with "refuse if a second check is still insufficient" as a paired alternative.
+* *A2, tool-calling agent:* starts from E's context, tools `search_passages`, `get_entity_facts`, `answer`, `refuse`, at most 3 tool calls.
+* *Keep* a variant only if Δ F1 on all questions against E has its interval above 0 (and answerable questions do not get significantly worse), or ties E (Δ ≥ −0.2) at least 10% cheaper; *drop* it if the interval on all or on answerable questions is entirely below 0. A2 was run only if the check of A1 was better than chance on dev-500 (Youden's J ≥ 0.2 with the lower bound above 0). Each run was estimated in calls and cost beforehand and capped at 1.5 times the estimate.
+
+**A1 (dev-500, 500 questions).**
+* The check works: against "gold section in context" (passages or facts, answerable questions) J = 0.33 [0.23, 0.42]; "sufficient" has precision 0.86 and recall 0.63, "insufficient" precision 0.39 (base rate of missing gold 25%) and recall 0.70. It says insufficient on 58% of the 31 unanswerable questions. The gate was passed.
+* The extra round (46% of the questions) adds little: on the 213 answerable ones the new query alone puts a gold section in its top 5 less often than E's query (45.5% against 53.5%), and the union with E's top 5 raises passage recall only from 53.5% to 59.2% (+5.6 points); gold in the whole context goes from 61.0% to 65.7%.
+* The larger context makes G0 abstain less (abstain recall 32.3% against 41.9% for E). Δ F1 against E: −0.6 on all questions [−1.6, +0.4], +0.1 on answerable ones [−0.5, +0.6], at USD 2.29 per 1,000 turns against 1.39 (+65%) and 2.9 model calls per turn against 1.9.
+* Own refusal (refuse if the second check is still insufficient) is much worse: −6.6 on all questions [−8.5, −4.7], because the second check calls 80% of the round questions insufficient and false abstention reaches 37%.
+* Decision: A1 cannot reach the keep condition at +65% cost, so it was not run on the full validation split.
+
+**A2 (dev-500).**
+* The agent used a tool on 44% of the questions (209 with one call, 11 with two, none at the limit; 220 searches, 11 fact lookups) and called `refuse()` 4 times. Tool use as a predictor of missing gold: J = 0.21 [0.12, 0.31].
+* With abstain(G0): Δ −1.5 on all questions [−2.9, −0.1], −0.9 on answerable ones [−2.0, +0.1], USD 1.98 per 1,000 turns (+42%).
+* With its own refusal: Δ −2.8 on all questions [−4.5, −1.3] but −0.5 on answerable ones [−1.6, +0.6], a tie, at USD 1.23 per 1,000 turns (−12%, one call replaces the G0 + G2 pair). The loss comes from the unanswerable questions: the agent almost never refuses (abstain recall 3.2% against 41.9%; 31 unanswerable questions, so noisy).
+* Decision: both variants have the interval on all questions entirely below 0; A2 was dropped without a full-validation run.
+
+**Exploratory check, not in the plan (no LLM calls).** On the 213 answerable questions A1 sent to the extra round, a gold section outside E's top 5 is at ranks 6-10 of E's own reranked list for 8.9% of them, against 5.6% brought in by the new query (12.7% together); for the 83 questions where the context really lacks the gold section, 14.5% against 9.6%. Chosen after seeing the A1 result, one dev-500 subset, no interval.
+
+**Conclusion.** The model can tell when the context is missing the gold section (J 0.33), but neither a second search with its own query nor a tool-using agent recovers it often enough to pay off, and the extra context costs abstentions on unanswerable questions. An agent that decides to refuse on its own almost never refuses (abstain recall 3%), as with the dialogue history in G2; the refusal has to come from a separate decision such as G0. E stays the final system. Future work: add ranks 6-10 of the original list as the second round and combine it with a separate refusal decision; this idea comes from the exploratory check, so it needs a fresh validation run to mean anything.
+
+Plan file: not in the repository. Code: `src/agents/`, `experiments/agent.py`. Results and decisions: `experiments/results/dev_500/agent/` (`decisions.md`, `a1_summary.json`, `a2_summary.json`, `a1_rank610.json`).
