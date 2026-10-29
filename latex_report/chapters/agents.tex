@@ -1,0 +1,162 @@
+%!TEX root = ../main.tex
+
+\chapter{Agents: Sufficiency Check and Tool Use}\label{ch:agents}
+
+Passage retrieval misses the gold section for about 27\% of the validation questions, and \fone{}
+there is far lower. The graph facts rescue some of these questions (4.6 points on 342 of them,
+Chapter~\ref{ch:graphhelp}), but a router could not tell before generation which ones, and
+the generator with the dialogue history refuses too rarely, which is why the decision to
+abstain comes from the prompt without history (Chapter~\ref{ch:convgen}). This chapter asks
+whether the model itself can judge, after reading the retrieved context, that it is not enough,
+and whether looking further repairs the answer at an acceptable cost. The baseline is E with
+citations: passages with up to 30 facts, the conversational generator
+(\texttt{gpt-5.4-nano}, G2 + abstain(G0)) and the citation prompt of Chapter~\ref{ch:sources}.
+
+The experiments were planned in advance, with the stopping rule fixed before any run: a variant is
+kept only if the paired interval of the \fone{} difference to E on all questions is above 0 (and
+answerable questions do not get significantly worse), or if it ties E ($\Delta \ge -0.2$) at
+least 10\% cheaper; it is dropped if the interval on all or on answerable questions lies entirely
+below 0. Development and the decision were both done on dev-500 here, because the first runs
+already ruled the variants out (see the end of the chapter); no variant was run on the full validation
+or the test split.
+
+
+% ===========================================================================
+\section{Variants}\label{sec:agents:variants}
+
+\begin{description}
+    \item[A1, fixed controller.] One call checks the rewritten query, the top five sections and
+        the facts, and answers in JSON whether the context is sufficient, what is missing and which
+        query would search for it. If it is sufficient, the answer is the one of E. If not, there is
+        one extra round, never more: the new query goes through the same hybrid retrieval and
+        reranking, the five best new sections are added to the old five (duplicates removed, at
+        most ten), up to 15 facts of the entities linked only by the new query are added, and the
+        question is answered again. The refusal is decided by G0 on the new context; a paired
+        alternative refuses if a second check on the new context is still insufficient.
+    \item[A2, tool-calling agent.] The model starts from the context of E and has four tools:
+        \texttt{search\_passages(query)}, \texttt{get\_entity\_facts(entity)},
+        \texttt{answer(text, citations)} and \texttt{refuse()}. At most three calls of the two
+        search tools are allowed, after which it must answer or refuse; the loop is plain Python
+        over the existing retrieval modules. The refusal is either its own (\texttt{refuse()}) or,
+        in addition, the decision of G0 on the final context.
+\end{description}
+A2 was to be run only if the check of A1 was better than chance on dev-500, defined as Youden's $J
+\ge 0.2$ with the lower bound of its bootstrap interval above 0, measured against the label ``a gold
+section is in the context'' (among the passages or the evidence section of a fact). Every run
+was estimated in calls and cost before it started.
+
+
+% ===========================================================================
+\section{The Sufficiency Check}\label{sec:agents:check}
+
+The check passes the gate: $J = 0.33$ with a 95\% interval of $[0.23, 0.42]$ on the 469 answerable
+dev-500 questions (strict label, passages only: $0.29$, $[0.19, 0.37]$). Table~\ref{tab:agents:check}
+gives the confusion matrix. When it says the context is sufficient it is right for 86\% of the
+questions, but it finds only 63\% of the questions whose context holds the gold section; when it
+says insufficient it is right for 39\% (the base rate of a missing gold section is 25\%) and finds
+70\% of the missing ones. On the 31 unanswerable questions it says insufficient 58\% of the time.
+Two replies of 500 could not be parsed.
+
+\begin{table}[ht]
+    \centering
+    \caption{The sufficiency check against ``gold section in context'', answerable dev-500
+    questions ($n = 469$).}
+    \label{tab:agents:check}
+    \small
+    \begin{tabular}{lrr}
+        \toprule
+        & Gold in context & Gold missing \\
+        \midrule
+        Check says sufficient   & 220 &  36 \\
+        Check says insufficient & 130 &  83 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+
+% ===========================================================================
+\section{Results on dev-500}\label{sec:agents:results}
+
+\begin{table}[ht]
+    \centering
+    \caption{Agents on dev-500 (\%, $n = 500$), against E with citations. $\Delta$: paired
+    bootstrap difference to E with its 95\% interval. Cost: USD per 1{,}000 turns at the list
+    price of \texttt{gpt-5.4-nano}, rewrite left out; calls: model calls per turn (E: 1.9). A2 tokens
+    are those reported by the API (tool definitions included), the others are counted from the
+    prompts.}
+    \label{tab:agents:main}
+    \small
+    \begin{tabular}{lrrrrrr}
+        \toprule
+        System & \fone{} & $\Delta$ all & $\Delta$ answerable & Abstain rec. / false & Cost & Calls \\
+        \midrule
+        E                          & 31.2 & ---                     & ---                      & 41.9 / 4.7  & 1.39 & 1.9 \\
+        A1, abstain(G0)            & 30.6 & $-0.6$ ($-1.6$, $0.4$)  & $+0.1$ ($-0.5$, $0.6$)   & 32.3 / 4.5  & 2.29 & 2.9 \\
+        A1, own refusal            & 24.6 & $-6.6$ ($-8.5$, $-4.7$) & $-8.5$ ($-10.1$, $-6.9$) & 64.5 / 37.1 & 2.33 & 3.0 \\
+        A2, abstain(G0)            & 29.7 & $-1.5$ ($-2.9$, $-0.1$) & $-0.9$ ($-2.0$, $0.1$)   & 32.3 / 4.5  & 1.98 & 2.5 \\
+        A2, own refusal            & 28.3 & $-2.8$ ($-4.5$, $-1.3$) & $-0.5$ ($-1.6$, $0.6$)   & 3.2 / 1.3   & 1.23 & 1.5 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\paragraph{A1.} The extra round was taken by 231 of the 500 questions (46\%). It adds little: on the
+213 answerable ones, the new query alone puts a gold section in its top five for 45.5\% of them,
+less than the query of E (53.5\%), and the union with the old top five raises the recall of the
+passages from 53.5\% to 59.2\% (+5.6 points). Counting the facts as well, a gold section is in the
+context for 61.0\% before and 65.7\% after. The larger context makes G0 abstain less (abstain recall
+32.3\% against 41.9\%), so the difference to E is $-0.6$ on all questions and $+0.1$ on answerable
+ones, at 65\% more cost. Refusing when a second check is still insufficient is much worse: the
+second check calls 80\% of the questions of the round insufficient, and false abstention reaches
+37\%. With the interval of the difference on all questions at most 0.4 above 0, A1 cannot satisfy
+the keep condition at a higher cost than E, and it was not run on the full validation split.
+
+\paragraph{A2.} The agent used a tool on 44\% of the questions (one call for 209, two for 11, none
+reached the limit of three); 220 calls were passage searches and 11 fact lookups, and
+\texttt{refuse()} was called four times. Tool use is a weaker predictor of a missing gold section
+than the check of A1 ($J = 0.21$, $[0.12, 0.31]$). With the abstention decision of G0 the difference
+to E is $-1.5$ on all questions ($[-2.9, -0.1]$), a significant loss. With its own refusal the agent
+ties E on answerable questions ($-0.5$, $[-1.6, 0.6]$) at 12\% lower cost, since one call replaces
+the G0 and G2 pair when no tool is used, but it almost never refuses (abstain recall 3.2\% against
+41.9\%), which gives $-2.8$ on all questions. Both variants have the interval on all questions below
+0 and were dropped; the 31 unanswerable questions of dev-500 make the abstention figures noisy.
+
+
+% ===========================================================================
+\section{An Exploratory Check}\label{sec:agents:explore}
+
+After the A1 result, one check that needs no \gls{llm} call was added, and it was not part of the plan:
+for the questions A1 sent to the extra round, how often is a gold section at ranks 6 to 10 of the
+original reranked list of E, compared with the sections the new query brought in?
+Table~\ref{tab:agents:explore} shows that going five sections deeper in the original list recovers more
+gold sections than the model's own query, and that the two are largely complementary. This was
+chosen after seeing the result on dev-500, on one subset and without an interval, so it is a
+hypothesis for further work and not a result.
+
+\begin{table}[ht]
+    \centering
+    \caption{Exploratory: share of the answerable questions called insufficient by the check where
+    a gold section outside the top five of E is among the added sections (\%).}
+    \label{tab:agents:explore}
+    \small
+    \begin{tabular}{lrrrr}
+        \toprule
+        Group & $n$ & Ranks 6--10 of E & New query of A1 & Both \\
+        \midrule
+        All answerable          & 213 &  8.9 & 5.6 & 12.7 \\
+        Gold section in context & 130 &  5.4 & 3.1 &  6.9 \\
+        Gold section missing    &  83 & 14.5 & 9.6 & 21.7 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+
+% ===========================================================================
+\section{Conclusion}\label{sec:agents:conclusion}
+
+The model can tell when the context lacks the gold section, but neither a second search with its
+own query nor a tool-using agent recovers it often enough to pay off, and the larger context
+costs abstentions on the unanswerable questions. An agent that decides to refuse on its own almost
+never refuses, as with the dialogue history in G2: the decision to abstain has to come from a
+separate call such as G0. E stays the final system. A direction that follows from
+Section~\ref{sec:agents:explore} is a second round that adds ranks 6 to 10 of the original list and
+keeps a separate refusal decision; it would need a fresh run on the validation split to mean anything.

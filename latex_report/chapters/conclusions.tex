@@ -110,6 +110,14 @@ the passages and facts it used, \fone{} does not drop and the first cited sectio
 for 42\% of the answered validation questions, 63\% when passage retrieval found the gold section
 and 3\% when it did not, so the quality of the sources is again limited by retrieval.
 
+Finally, two agents were tried on dev-500 for the questions where the context lacks the gold
+section. A check of the model on the retrieved context separates them fairly well (Youden's $J$ of
+0.33), but one more search with the model's own query adds only 5.6 points of recall of the gold
+section, and neither this controller ($-0.6$ points of \fone{} against E, at 65\% more cost) nor a
+tool-calling agent ($-1.5$ with the abstention decision of G0; $-2.8$ with its own refusal, which
+it almost never uses) beats E. The model that judges the context sufficient is not a good judge of
+when to refuse.
+
 
 % ===========================================================================
 \section*{Scope Limitations}
@@ -120,7 +128,8 @@ retained) is reported only there. The final systems were confirmed on the full
 validation and the test split with a single generator model. Two other models were compared
 on validation only, with the default reasoning settings. The conversational generator was
 run on the test split for three systems only (passages, passages with thirty facts and with
-ten filtered facts).
+ten filtered facts). The agents were run on dev-500 only (500 questions, 31 of them unanswerable),
+with their stopping rule applied there, so the abstention figures in particular are noisy.
 
 The precision and recall estimates for the graph rest on small samples: the pilot on
 three documents (140 extracted and 38 missed triples) and a control sample of 30 triples

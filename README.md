@@ -9,6 +9,7 @@ Author: Danil Smirnov - danil.smirnov@studenti.unipd.it
 * **The graph alone is worse than passages.** Graph sections reach 23.0 and graph facts 24.1 token F1 on validation, against 26.9 for passage retrieval (test: 23.8 vs 26.9 for graph facts).
 * **Graph facts added to the passages give a small gain on answerable questions** (validation 27.7 vs 27.2, test 28.0 vs 27.1), which the same number of random facts does not give (27.2 and 27.1).
 * **Giving the generator the dialogue history, with the abstention decision taken separately, gives the best result**: passages + graph facts reach 28.2 overall and 28.4 on answerable questions on test, +0.6 and +0.9 over passages. Filtering, reordering or reranking with the graph did not do better (see [Graph RAG variants](#graph-rag-variants)).
+* **A model that checks its own context does not help.** It can tell when the retrieved context lacks the gold section (Youden's J 0.33), but one more search or a tool-calling agent does not recover the section often enough to beat the system above, and an agent that refuses on its own almost never refuses (see [Agents](#agents)).
 
 ## Architecture
 
@@ -21,6 +22,7 @@ Author: Danil Smirnov - danil.smirnov@studenti.unipd.it
 | Query rewriter | `src/rag/query_rewriter.py` |
 | LLM extraction, entity resolution, Neo4j loading | `src/kg/` |
 | Entity linking, 1-hop fact retrieval | `src/kg_rag/` |
+| Sufficiency check, context extension, tool-calling agent (experiments) | `src/agents/`, `experiments/agent.py` |
 | LLM client, cache, per-call token usage log | `src/llm/` |
 | Generator prompt, dialogue history, abstention decision | `experiments/run_dev_subset.py`, `experiments/generator_input.py` |
 | Metrics | `src/evaluation/` |
@@ -79,6 +81,22 @@ Attempts to keep the graph's help on retrieval misses while removing off-topic f
 * **The graph as a reranker signal** (cross-encoder score + graph score) lowers Recall@5 for every weight above 0, so it was not used for generation.
 * **Two-hop paths** between linked entities reach no gold section that one-hop facts miss, so they were dropped.
 
+### Agents
+
+Can the model judge that the retrieved context is not enough, and does looking further help? Both variants start from the final system (passages + 30 facts, dialogue history, citations) and were run on dev-500 (500 questions) with the stopping rule fixed in advance: keep a variant only if the interval of its F1 difference to the final system on all questions is above 0, or it ties at 10% lower cost ([decisions](experiments/results/dev_500/agent/decisions.md)).
+
+| System | Δ F1 all | Δ F1 answerable | USD per 1,000 turns |
+| :--- | :---: | :---: | :---: |
+| Final system | – | – | 1.39 |
+| Check + one extra round, abstention from G0 | −0.6 [−1.6, 0.4] | +0.1 [−0.5, 0.6] | 2.29 (+65%) |
+| Tool-calling agent, abstention from G0 | −1.5 [−2.9, −0.1] | −0.9 [−2.0, 0.1] | 1.98 (+42%) |
+| Tool-calling agent, its own refusal | −2.8 [−4.5, −1.3] | −0.5 [−1.6, 0.6] | 1.23 (−12%) |
+
+* **The check works**: Youden's J 0.33 [0.23, 0.42] against "the gold section is in the context", and it calls 58% of the unanswerable questions insufficient.
+* **The extra round adds little**: the new query alone finds a gold section less often than the original query (45.5% against 53.5%), the union adds 5.6 points of recall, and the larger context makes G0 abstain less.
+* **The agent used a tool on 44% of the questions.** With its own refusal it ties the final system on answerable questions at 12% lower cost, but it refuses almost never (abstain recall 3% against 42%).
+* Neither variant qualified, so neither was run on the full validation or the test split. An exploratory check (not planned) found that ranks 6–10 of the original list hold a gold section more often than the new query (8.9% against 5.6% of the answerable questions sent to the round), which is left as future work.
+
 ## Example
 
 A follow-up turn of a validation dialogue (DMV, traffic tickets), answered by passages + graph facts:
@@ -113,7 +131,7 @@ LLM only and the oracle are scored with `python experiments/evaluate_diagnostics
 
 ## Repository map
 
-* `src/`: the system (`data`, `llm`, `rag`, `kg`, `kg_rag`, `evaluation`).
+* `src/`: the system (`data`, `llm`, `rag`, `kg`, `kg_rag`, `evaluation`) and the agent experiments (`agents`).
 * `experiments/`: run and evaluation scripts, result summaries (`results/`) and the reports of the graph work (`kg/`, `kg_rag/`).
 * `docs/`: the schematic report, the experiment log, the graph build guide and the figures.
 * `latex_report/`: the full report (unipd-thesis-modern template).
