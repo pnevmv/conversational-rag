@@ -1,0 +1,196 @@
+{
+  "split": "dev500",
+  "n": 500,
+  "f1": {
+    "E": {
+      "all": 0.31154419689470225,
+      "answerable": 0.3038584829003217,
+      "unanswerable": 0.42782161184194295,
+      "passages-miss": 0.20235370582893616,
+      "passages-hit": 0.3530047831912141,
+      "took round": 0.2825877120857834
+    },
+    "A1 (abstain G0)": {
+      "all": 0.3059243301711742,
+      "answerable": 0.3044722575643409,
+      "unanswerable": 0.3278927834810066,
+      "passages-miss": 0.19642486676754342,
+      "passages-hit": 0.3567863423488662,
+      "took round": 0.2704234983984933
+    },
+    "A1 (own refusal)": {
+      "all": 0.24552733754610137,
+      "answerable": 0.218761178006694,
+      "unanswerable": 0.650473428642297,
+      "passages-miss": 0.11331440745992262,
+      "passages-hit": 0.2698161017207953,
+      "took round": 0.1396940771321019
+    }
+  },
+  "set_sizes": {
+    "all": 500,
+    "answerable": 469,
+    "unanswerable": 31,
+    "passages-miss": 153,
+    "passages-hit": 316,
+    "took round": 231
+  },
+  "delta_vs_E": {
+    "A1 (abstain G0)": {
+      "all": {
+        "mean_diff": -0.005619866723528065,
+        "ci_low": -0.015594413102421668,
+        "ci_high": 0.004412214907567781,
+        "p_value": 0.872,
+        "n_paired": 500
+      },
+      "answerable": {
+        "mean_diff": 0.0006137746640191819,
+        "ci_low": -0.00499200289236763,
+        "ci_high": 0.006370578747951847,
+        "p_value": 0.412,
+        "n_paired": 469
+      },
+      "passages-miss": {
+        "mean_diff": -0.005928839061392717,
+        "ci_low": -0.015102803067934732,
+        "ci_high": 0.002844489287203139,
+        "p_value": 0.899,
+        "n_paired": 153
+      },
+      "passages-hit": {
+        "mean_diff": 0.003781559157652158,
+        "ci_low": -0.004001470806275274,
+        "ci_high": 0.011709894617789256,
+        "p_value": 0.157,
+        "n_paired": 316
+      },
+      "took round": {
+        "mean_diff": -0.012164213687290178,
+        "ci_low": -0.03511840420011188,
+        "ci_high": 0.009564000024077013,
+        "p_value": 0.862,
+        "n_paired": 231
+      }
+    },
+    "A1 (own refusal)": {
+      "all": {
+        "mean_diff": -0.06601685934860084,
+        "ci_low": -0.08445946758019676,
+        "ci_high": -0.046786301941908116,
+        "p_value": 1.0,
+        "n_paired": 500
+      },
+      "answerable": {
+        "mean_diff": -0.0850973048936277,
+        "ci_low": -0.10104049510287093,
+        "ci_high": -0.06930453049570122,
+        "p_value": 1.0,
+        "n_paired": 469
+      },
+      "passages-miss": {
+        "mean_diff": -0.08903929836901353,
+        "ci_low": -0.11065056707059252,
+        "ci_high": -0.0698757403657974,
+        "p_value": 1.0,
+        "n_paired": 153
+      },
+      "passages-hit": {
+        "mean_diff": -0.08318868147041876,
+        "ci_low": -0.10395192334449767,
+        "ci_high": -0.06402862896469942,
+        "p_value": 1.0,
+        "n_paired": 316
+      },
+      "took round": {
+        "mean_diff": -0.1428936349536815,
+        "ci_low": -0.18024644718315913,
+        "ci_high": -0.10600473806653611,
+        "p_value": 1.0,
+        "n_paired": 231
+      }
+    }
+  },
+  "abstention": {
+    "E": {
+      "false_abstention": 0.046908315565031986,
+      "abstain_recall": 0.41935483870967744
+    },
+    "A1 (abstain G0)": {
+      "false_abstention": 0.04477611940298507,
+      "abstain_recall": 0.3225806451612903
+    },
+    "A1 (own refusal)": {
+      "false_abstention": 0.37100213219616207,
+      "abstain_recall": 0.6451612903225806
+    }
+  },
+  "round_share": 0.462,
+  "parse_failures": 2,
+  "round": {
+    "n": 231,
+    "n_answerable": 213,
+    "mean_new_sections": 2.688311688311688,
+    "mean_new_facts": 10.826839826839826,
+    "R@5_E_top5": 0.5352112676056338,
+    "R@5_new_query": 0.45539906103286387,
+    "R@10_union_passages": 0.5915492957746479,
+    "gold_in_context_before_broad": 0.6103286384976526,
+    "gold_in_context_after_broad": 0.6572769953051644,
+    "second_check_insufficient": 0.8051948051948052
+  },
+  "classifier": {
+    "broad": {
+      "tp": 220,
+      "fp": 36,
+      "fn": 130,
+      "tn": 83,
+      "base_rate_gold_in_context": 0.746268656716418,
+      "precision_sufficient": 0.859375,
+      "recall_sufficient": 0.6285714285714286,
+      "precision_insufficient": 0.38967136150234744,
+      "recall_insufficient": 0.6974789915966386,
+      "J": 0.3260504201680672,
+      "ci_low": 0.23415686137054859,
+      "ci_high": 0.42102490726020136
+    },
+    "strict": {
+      "tp": 202,
+      "fp": 54,
+      "fn": 114,
+      "tn": 99,
+      "base_rate_gold_in_context": 0.673773987206823,
+      "precision_sufficient": 0.7890625,
+      "recall_sufficient": 0.6392405063291139,
+      "precision_insufficient": 0.4647887323943662,
+      "recall_insufficient": 0.6470588235294118,
+      "J": 0.2862993298585257,
+      "ci_low": 0.19040304743180148,
+      "ci_high": 0.368749759272207
+    }
+  },
+  "unanswerable_called_insufficient": {
+    "n": 31,
+    "share": 0.5806451612903226
+  },
+  "per_turn": {
+    "E": {
+      "in": 6251.124,
+      "out": 110.222,
+      "calls": 1.942,
+      "usd_per_1000": 1.3880023000000001
+    },
+    "A1 (abstain G0)": {
+      "in": 10466.556,
+      "out": 155.756,
+      "calls": 2.94,
+      "usd_per_1000": 2.2880062
+    },
+    "A1 (own refusal)": {
+      "in": 10615.75,
+      "out": 164.908,
+      "calls": 2.986,
+      "usd_per_1000": 2.329285
+    }
+  }
+}

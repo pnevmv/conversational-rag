@@ -1,0 +1,196 @@
+{
+  "split": "dev500",
+  "n": 100,
+  "f1": {
+    "E": {
+      "all": 0.2892102411469637,
+      "answerable": 0.2873427178030051,
+      "unanswerable": 0.34959349593495936,
+      "passages-miss": 0.16959981457123344,
+      "passages-hit": 0.3568303328250342,
+      "took round": 0.2436861749344719
+    },
+    "A1 (abstain G0)": {
+      "all": 0.28097420254828864,
+      "answerable": 0.28916123471158744,
+      "unanswerable": 0.016260162601626015,
+      "passages-miss": 0.1658628679930535,
+      "passages-hit": 0.36192748392252555,
+      "took round": 0.2240765592233407
+    },
+    "A1 (own refusal)": {
+      "all": 0.22409989606448594,
+      "answerable": 0.20990937235715174,
+      "unanswerable": 0.6829268292682927,
+      "passages-miss": 0.09537037788959223,
+      "passages-hit": 0.27750615597735073,
+      "took round": 0.08866154378571538
+    }
+  },
+  "set_sizes": {
+    "all": 100,
+    "answerable": 97,
+    "unanswerable": 3,
+    "passages-miss": 36,
+    "passages-hit": 61,
+    "took round": 42
+  },
+  "delta_vs_E": {
+    "A1 (abstain G0)": {
+      "all": {
+        "mean_diff": -0.0082360385986751,
+        "ci_low": -0.03377366908127596,
+        "ci_high": 0.013053820660723487,
+        "p_value": 0.74,
+        "n_paired": 100
+      },
+      "answerable": {
+        "mean_diff": 0.0018185169085823722,
+        "ci_low": -0.011842763226102088,
+        "ci_high": 0.01643067894132351,
+        "p_value": 0.428,
+        "n_paired": 97
+      },
+      "passages-miss": {
+        "mean_diff": -0.003736946578179917,
+        "ci_low": -0.021315921125080912,
+        "ci_high": 0.013859313022815789,
+        "p_value": 0.653,
+        "n_paired": 36
+      },
+      "passages-hit": {
+        "mean_diff": 0.005097151097491264,
+        "ci_low": -0.01580350598286294,
+        "ci_high": 0.028273201636770703,
+        "p_value": 0.337,
+        "n_paired": 61
+      },
+      "took round": {
+        "mean_diff": -0.01960961571113119,
+        "ci_low": -0.07887020575211622,
+        "ci_high": 0.027738028219493373,
+        "p_value": 0.723,
+        "n_paired": 42
+      }
+    },
+    "A1 (own refusal)": {
+      "all": {
+        "mean_diff": -0.06511034508247775,
+        "ci_low": -0.10544880480720661,
+        "ci_high": -0.02292217424604972,
+        "p_value": 1.0,
+        "n_paired": 100
+      },
+      "answerable": {
+        "mean_diff": -0.07743334544585334,
+        "ci_low": -0.11406216247742008,
+        "ci_high": -0.04410532659982063,
+        "p_value": 1.0,
+        "n_paired": 97
+      },
+      "passages-miss": {
+        "mean_diff": -0.07422943668164117,
+        "ci_low": -0.1114878793582874,
+        "ci_high": -0.04099170434601771,
+        "p_value": 1.0,
+        "n_paired": 36
+      },
+      "passages-hit": {
+        "mean_diff": -0.07932417684768346,
+        "ci_low": -0.1324504474589754,
+        "ci_high": -0.0336217717592495,
+        "p_value": 1.0,
+        "n_paired": 61
+      },
+      "took round": {
+        "mean_diff": -0.1550246311487565,
+        "ci_low": -0.23522027738825355,
+        "ci_high": -0.07546121450965884,
+        "p_value": 1.0,
+        "n_paired": 42
+      }
+    }
+  },
+  "abstention": {
+    "E": {
+      "false_abstention": 0.030927835051546393,
+      "abstain_recall": 0.3333333333333333
+    },
+    "A1 (abstain G0)": {
+      "false_abstention": 0.020618556701030927,
+      "abstain_recall": 0.0
+    },
+    "A1 (own refusal)": {
+      "false_abstention": 0.3402061855670103,
+      "abstain_recall": 0.6666666666666666
+    }
+  },
+  "round_share": 0.42,
+  "parse_failures": 0,
+  "round": {
+    "n": 42,
+    "n_answerable": 40,
+    "mean_new_sections": 2.761904761904762,
+    "mean_new_facts": 10.071428571428571,
+    "R@5_E_top5": 0.45,
+    "R@5_new_query": 0.4,
+    "R@10_union_passages": 0.5,
+    "gold_in_context_before_broad": 0.5,
+    "gold_in_context_after_broad": 0.525,
+    "second_check_insufficient": 0.8333333333333334
+  },
+  "classifier": {
+    "broad": {
+      "tp": 46,
+      "fp": 11,
+      "fn": 20,
+      "tn": 20,
+      "base_rate_gold_in_context": 0.6804123711340206,
+      "precision_sufficient": 0.8070175438596491,
+      "recall_sufficient": 0.696969696969697,
+      "precision_insufficient": 0.5,
+      "recall_insufficient": 0.6451612903225806,
+      "J": 0.34213098729227776,
+      "ci_low": 0.14706654456654464,
+      "ci_high": 0.5432046669242409
+    },
+    "strict": {
+      "tp": 43,
+      "fp": 14,
+      "fn": 18,
+      "tn": 22,
+      "base_rate_gold_in_context": 0.6288659793814433,
+      "precision_sufficient": 0.7543859649122807,
+      "recall_sufficient": 0.7049180327868853,
+      "precision_insufficient": 0.55,
+      "recall_insufficient": 0.6111111111111112,
+      "J": 0.3160291438979965,
+      "ci_low": 0.11790361716010124,
+      "ci_high": 0.5086281875788243
+    }
+  },
+  "unanswerable_called_insufficient": {
+    "n": 3,
+    "share": 0.6666666666666666
+  },
+  "per_turn": {
+    "E": {
+      "in": 6501.66,
+      "out": 116.32,
+      "calls": 1.97,
+      "usd_per_1000": 1.4457319999999998
+    },
+    "A1 (abstain G0)": {
+      "in": 10651.4,
+      "out": 159.91,
+      "calls": 2.98,
+      "usd_per_1000": 2.3301675
+    },
+    "A1 (own refusal)": {
+      "in": 10711.42,
+      "out": 166.18,
+      "calls": 3.0,
+      "usd_per_1000": 2.3500089999999996
+    }
+  }
+}

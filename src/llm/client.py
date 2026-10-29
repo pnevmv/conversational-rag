@@ -3,7 +3,7 @@ import os
 import threading
 import time
 from pathlib import Path
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 from dotenv import load_dotenv
 from openai import OpenAI, OpenAIError
 
@@ -108,6 +108,26 @@ class LLMClient:
         usage = usage_of(response)
         log_usage(target_model, usage, meta)
         return response.output_text, usage
+
+
+    def generate_with_tools(self, input_items: List[Dict[str, Any]], tools: List[Dict[str, Any]],
+                            tool_choice: Any = "auto", model: Optional[str] = None,
+                            meta: Optional[Dict[str, Any]] = None) -> Tuple[Dict[str, Any], Dict[str, Optional[int]]]:
+        """One turn of a tool-calling conversation (Responses API, stateless: the whole input is sent).
+
+        Returns ({"output": [items as dicts], "text": output text}, usage); the output items can be
+        appended to the next input. Every call is written to the usage log.
+        """
+        target_model = model or self.default_model
+        try:
+            response = self.client.responses.create(model=target_model, input=input_items, tools=tools,
+                                                    tool_choice=tool_choice, parallel_tool_calls=False)
+        except OpenAIError as e:
+            raise RuntimeError(f"LLM API request failed: {e}") from None
+        usage = usage_of(response)
+        log_usage(target_model, usage, meta)
+        return {"output": [item.model_dump(exclude_none=True) for item in response.output],
+                "text": response.output_text}, usage
 
 
 _default_client: Optional[LLMClient] = None
