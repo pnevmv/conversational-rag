@@ -62,7 +62,7 @@ Token F1 (%), all questions / answerable questions only. Validation: 4,427 quest
 
 ### Generator models
 
-The best configuration (passages + graph facts, with dialogue history) with three generator models on validation; only the generator changes. All three were run fresh, so gpt-5.4-nano differs by 0.1–0.2 from the table above. Token usage is recorded per call; cost at USD list prices (Azure Retail Prices API, Global Standard, East US 2, 21 Oct 2026; deployment type not confirmed).
+The best configuration (passages + graph facts, with dialogue history) with three generator models on validation; only the generator changes. All three were run fresh, so gpt-5.4-nano differs by 0.1–0.2 from the table above. Token usage is recorded per call; cost at USD list prices (Azure Retail Prices API, Global Standard, East US 2, 21 Oct 2026).
 
 | Generator | F1 all / answerable | False abstention | Tokens per turn, in / out (reasoning) | USD per 1,000 conversations |
 | :--- | :---: | :---: | :---: | :---: |
@@ -70,11 +70,11 @@ The best configuration (passages + graph facts, with dialogue history) with thre
 | gpt-5-nano | 28.1 / 26.8 | 11.6% | 5,532 / 1,578 (1,435) | 5.94 |
 | gpt-6-luna | 27.3 / 26.6 | 14.2% | 5,511 / 176 (102) | 3.89 |
 
-The newer models answer as well when they answer (same F1 on the questions all three answer) but refuse more answerable questions. Full comparison, also for passages only: [summary](experiments/results/validation/model_comparison/summary.md).
+The newer models answer as well when they answer (same F1 on the questions all three answer) but refuse more answerable questions.
 
 ### Graph RAG variants
 
-Attempts to keep the graph's help on retrieval misses while removing off-topic facts, all with dialogue history, chosen on validation and run once on test ([decisions](experiments/results/validation/graph_rag/decisions.md), [test result](experiments/results/test/step7_final.md)):
+Attempts to keep the graph's help on retrieval misses while removing off-topic facts, all with dialogue history, chosen on validation and run once on test:
 
 * **Top 10 facts by cross-encoder score** match all 30 facts on validation with 35% fewer generator input tokens, and are 0.4 points below them on test (still +0.6 over passages on answerable questions).
 * **Facts from outside the top 5 passages first** recover the questions where retrieval misses but a fact points to the right section, without a gain overall.
@@ -83,7 +83,7 @@ Attempts to keep the graph's help on retrieval misses while removing off-topic f
 
 ### Agents
 
-Can the model judge that the retrieved context is not enough, and does looking further help? Both variants start from the final system (passages + 30 facts, dialogue history, citations) and were run on dev-500 (500 questions) with the stopping rule fixed in advance: keep a variant only if the interval of its F1 difference to the final system on all questions is above 0, or it ties at 10% lower cost ([decisions](experiments/results/dev_500/agent/decisions.md)).
+Can the model judge that the retrieved context is not enough, and does looking further help? Both variants start from the final system (passages + 30 facts, dialogue history, citations) and were run on dev-500 (500 questions) with the stopping rule fixed in advance: keep a variant only if the interval of its F1 difference to the final system on all questions is above 0, or it ties at 10% lower cost.
 
 | System | Δ F1 all | Δ F1 answerable | USD per 1,000 turns |
 | :--- | :---: | :---: | :---: |
@@ -127,7 +127,7 @@ python -m src.kg_rag.eval_qa --split validation                                 
 python experiments/generator_input.py --split validation --k all                     # with dialogue history
 ```
 
-LLM only and the oracle are scored with `python experiments/evaluate_diagnostics.py --inputs experiments/results/validation/*.jsonl`. The test column uses `run_split.py`, `run_qa` and `eval_qa` with `--split test`. The full list of commands is in [docs/experiment_log.md](docs/experiment_log.md).
+LLM only and the oracle are scored with `python experiments/evaluate_diagnostics.py --inputs experiments/results/validation/*.jsonl`. The test column uses `run_split.py`, `run_qa` and `eval_qa` with `--split test`.
 
 ## Repository map
 
@@ -144,6 +144,4 @@ Raw outputs (`*.jsonl`) and LLM caches are not tracked.
 
 * [Schematic report](docs/schematic_report.pdf): one short answer per question, with diagrams.
 * [Full report](latex_report/main.pdf), source in [latex_report/](latex_report/).
-* [Evaluation report](experiments/final_evaluation_report.md): full validation and test split.
-* [Experiment log](docs/experiment_log.md): the work in the order it was done, with intermediate results and the old step names.
 * [Graph build](docs/graph_build.md): Neo4j setup and the commands to build the knowledge graph.
