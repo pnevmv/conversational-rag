@@ -1,4 +1,4 @@
-"""Step 8, agent with a sufficiency check (validation and dev-500; the test split is not used here).
+"""Agents with a sufficiency check (validation and dev-500; the test split is not used here).
 
     A1  one check on (rewritten query, top-5 sections, facts); if insufficient, one extra round: a new search
         query, retrieval + reranking, facts of the newly linked entities, answer or refuse. Sufficient questions

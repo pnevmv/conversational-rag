@@ -19,7 +19,7 @@ This file keeps the history of the work in the order it was done, with the inter
 | Step 6 E-random (`step4_plus_random_facts`) | configuration *passages + random facts* (control) |
 | G0 / G1 / G2 / G3 (`generator_input/`) | generator with the user turn / the rewritten query / the dialogue history / both |
 | G2 + abstain(G0) | generator with dialogue history, abstention decided by the G0 prompt |
-| Step 8, agents (`src/agents`, `experiments/agent.py`) | sufficiency check with one extra round (A1) and tool-calling agent (A2); negative result |
+| Agents (`src/agents`, `experiments/agent.py`) | sufficiency check with one extra round (A1) and tool-calling agent (A2); negative result |
 
 ## Earlier README
 
@@ -350,9 +350,9 @@ python -m pytest tests
 
 All results above give the generator only the current user turn and the retrieved context. Four generator inputs were then compared on the full validation split with retrieval unchanged (`experiments/generator_input.py`): G0 the user turn (as above), G1 the rewritten query, G2 the whole gold dialogue history plus the user turn (history length chosen on dev-500), G3 both. G2 gains on answerable questions (+0.8 F1 with passages, +0.7 with passages + graph facts) but abstains half as often; G1 and G3 are worse. Taking the abstention decision from G0 and the answer from G2 gives the best overall F1 (27.5 with passages, 28.0 with passages + graph facts). Two cheaper decisions, a yes/no classifier call and a threshold on the top reranker score (`experiments/abstention_decision.py`), both lose against it. Summaries: `experiments/results/validation/generator_input/` (`summary.md`, `abstention_decision.md`, `unanswerable_examples.md`).
 
-## Step 8: agent with a sufficiency check (negative result)
+## Agents: sufficiency check and tool use (negative result)
 
-**Question.** In about 27% of the validation questions the gold section is not in the top 5, and F1 there is far lower. The graph facts rescue some of these (+4.6 F1 on 342 questions) but a router on pre-generation signals could not tell which ones, and the generator with the dialogue history refuses too rarely, which is why the refusal comes from G0. Step 8 asked whether the model itself can judge from the retrieved context that it is not enough, and whether looking further repairs it.
+**Question.** In about 27% of the validation questions the gold section is not in the top 5, and F1 there is far lower. The graph facts rescue some of these (+4.6 F1 on 342 questions) but a router on pre-generation signals could not tell which ones, and the generator with the dialogue history refuses too rarely, which is why the refusal comes from G0. The agent experiments asked whether the model itself can judge from the retrieved context that it is not enough, and whether looking further repairs it.
 
 **Plan and stopping rule (fixed before any run, 2026-10-29).** Baseline E with citations (passages + 30 facts, G2 + abstain(G0), gpt-5.4-nano), development on dev-500, decisions on the full validation split, the test split used once for a single frozen agent.
 * *A1, fixed controller:* one check on (rewritten query, top-5 sections, facts) answering sufficient / insufficient plus what is missing; if insufficient, one extra round (new query, hybrid retrieval and reranking, facts of newly linked entities, new top 5 added to the old one), then answer or refuse. Refusal: abstain(G0) on the new context, with "refuse if a second check is still insufficient" as a paired alternative.

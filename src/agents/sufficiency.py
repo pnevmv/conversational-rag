@@ -1,4 +1,4 @@
-"""The sufficiency check of the Step 8 agent: is the retrieved context enough to answer?"""
+"""The sufficiency check of the agent: is the retrieved context enough to answer?"""
 import json
 import re
 from typing import Any, Dict

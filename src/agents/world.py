@@ -1,4 +1,4 @@
-"""Retrieval world of the Step 8 agents: the context of E for a question, and the two ways of looking further
+"""Retrieval world of the agents: the context of E for a question, and the two ways of looking further
 (a new passage search, more graph facts), over the existing modules.
 
 The context of E is rebuilt exactly as in the final system (Step 4 top 5 + up to 30 facts of the 10 linked
