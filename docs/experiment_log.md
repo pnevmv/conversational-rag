@@ -309,28 +309,29 @@ Expected token F1: ~24.5 for A, ~29.2 for E.
 
 ### LLM judge
 
-Token F1 only counts word overlap with the reference, so correct paraphrases get low scores. `experiments/judge_answers.py` re-scores the cached answers with an LLM judge from a different model family, called through the [Hugging Face inference router](https://huggingface.co/docs/inference-providers). The judge sees the last turns of the dialogue, the question, the reference answer, the gold section and the context the model was given. It rates each answer as correct, partial or incorrect, and separately says whether the answer is supported by the section or the context. Abstentions are scored by rule (correct only on unanswerable turns), without a call.
+Token F1 only counts word overlap with the reference, so correct paraphrases get low scores. `experiments/judge_answers.py` re-scores the cached answers of the systems on dev-500 with an LLM judge, gpt-6-luna on the Azure Foundry endpoint (`AZURE_LUNA_*` in `.env`). A first version called Llama-3.3-70B through the Hugging Face router; it stopped after 10 answers per pipeline when the credits ran out. The judge sees the last four turns of the dialogue, the question, the reference answer, the gold section and the context the model was given (up to 24,000 characters, enough for 5 passages and 30 facts). It rates each answer as correct, partial or incorrect, and separately says whether the answer is supported by the section or the context. Abstentions are scored by rule (correct only on unanswerable turns), without a call. Citations are stripped before judging. The agents' extended contexts are not stored, so for them "supported" is judged against the gold section only.
 
-1. Add your token to `.env` (and optionally another model):
+Systems: no documents, gold section given, P, E, E with citations, V1, and the agents A1 and A2 (with abstain(G0) and with their own refusal). Score differences are paired against E.
 
-```env
-HF_TOKEN=<your Hugging Face token>
-JUDGE_MODEL=meta-llama/Llama-3.3-70B-Instruct
+1. Count the tokens and estimate the cost (no API calls; cached calls are not counted):
+
+```bash
+python experiments/judge_answers.py cost
 ```
 
-2. Try it on a few answers, then run it on all dev-500 pipelines (about 4,300 calls, 8M input tokens; cached, so reruns are free):
+2. Try it on a few answers, then run all systems (about 3,600 calls, 6.4M input tokens; cached, so reruns are free):
 
 ```bash
 python experiments/judge_answers.py run --limit 10
 python experiments/judge_answers.py run --workers 8
 ```
 
-The summary is written to `experiments/results/judge/<model>/summary.md`.
+The summary is written to `experiments/results/judge/gpt-6-luna/dev_500/summary.md`.
 
 3. Check the judge against human labels on 100 answers, and against a second run of itself:
 
 ```bash
-python experiments/judge_answers.py export --n 100      # fill `label` in experiments/results/judge/human_labels.csv
+python experiments/judge_answers.py export --n 100      # fill `label` in experiments/results/judge/gpt-6-luna/dev_500/human_labels.csv
 python experiments/judge_answers.py agreement
 python experiments/judge_answers.py run --run-id run2
 python experiments/judge_answers.py stability --other run2

@@ -1,5 +1,7 @@
 import unittest
 
+import pytest
+
 from src.evaluation.metrics import compute_metrics, exact_match, token_f1
 
 
@@ -87,6 +89,7 @@ if __name__ == "__main__":
 
 # LLM judge helpers
 
+from src.evaluation import judge
 from src.evaluation.judge import build_prompt, parse_verdict, rule_verdict
 
 
@@ -114,4 +117,14 @@ def test_judge_prompt_contains_all_parts():
                  "Section text", "Retrieved context", "Yes, you need insurance."):
         assert part in p
     assert "answered without documents" in build_prompt(ex, "Yes.", "Section text")
-    assert build_prompt(ex, "Yes.", "S", "§" * 10000).count("§") == 6000
+    n = judge.MAX_CONTEXT_CHARS
+    assert build_prompt(ex, "Yes.", "S", "§" * (n + 100)).count("§") == n
+    assert judge.UNKNOWN_CONTEXT in build_prompt(ex, "Yes.", "S", None, context_known=False)
+
+
+def test_judge_client_needs_settings(monkeypatch):
+    for v in ("JUDGE_ENDPOINT", "JUDGE_KEY", "JUDGE_DEPLOYMENT", "AZURE_LUNA_ENDPOINT", "AZURE_LUNA_KEY",
+              "AZURE_LUNA_DEPLOYMENT"):
+        monkeypatch.delenv(v, raising=False)
+    with pytest.raises(ValueError):
+        judge.JudgeClient()
