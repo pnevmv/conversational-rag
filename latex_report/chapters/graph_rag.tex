@@ -139,3 +139,57 @@ than E. Both graph systems abstain less than P and lose on the unanswerable ques
 wide intervals. Appending the one-hop facts of the linked entities therefore remains the best
 use of the graph found in this work, and the filtered selection is the cheaper option at a
 small cost in \fone{}.
+
+
+% ===========================================================================
+\section{Scoring with an LLM Judge}\label{sec:graphrag:judge}
+
+Token \fone{} only counts word overlap with the reference, so a correct paraphrase can score
+low. The answers of P, E and V1 were therefore scored again, without generating anything new,
+by a second model, gpt-6-luna. For each answer it sees the last four turns of the dialogue,
+the question, the reference answer, the gold section and the context given to the generator,
+rates the answer as correct, partial or incorrect, and says separately whether it is supported
+by the documents. Abstentions are scored by rule (correct only on unanswerable turns), citations
+are stripped, and the score is 1, 0.5 or 0. The judge results are reported next to \fone{} only;
+no system was re-selected on them.
+
+The judge was checked against 60 answers of the three systems labelled by hand with the verdict
+and the system hidden: 30 drawn at random and 30 where the judge and \fone{} disagree most
+(judged incorrect with the highest \fone{}, judged correct with the lowest). Cohen's $\kappa$ is
+0.65 for the three classes (0.66 on the random half, 0.59 on the disagreement half), 0.69 for
+correct against the rest and 0.75 for correct or partial against incorrect, with 90\%
+agreement on the last split. The judge is stricter than the human labels: in 9 of the 12
+disagreements its verdict is the lower one.
+
+\begin{table}[ht]
+    \centering
+    \caption{Judge score and token \fone{} of the final systems (\%). Judge: correct = 1,
+    partial = 0.5, incorrect = 0. Test: 4{,}334 of the 4{,}335 questions, one being blocked by the
+    content filter for the judge prompt. $\Delta$: paired bootstrap difference on the same
+    questions, 95\% interval.}
+    \label{tab:graphrag:judge}
+    \small
+    \setlength{\tabcolsep}{4pt}
+    \begin{tabular}{lllll}
+        \toprule
+        & \multicolumn{2}{c}{Validation ($n = 4{,}427$)} & \multicolumn{2}{c}{Test ($n = 4{,}334$)} \\
+        & Judge & \fone{} & Judge & \fone{} \\
+        \midrule
+        P: passages             & 66.3 & 27.5 & 67.3 & 27.6 \\
+        E: passages + 30 facts  & 66.7 & 28.0 & 68.5 & 28.2 \\
+        V1: passages + 10 facts & 66.9 & 28.0 & 67.3 & 27.8 \\
+        \midrule
+        E vs P  & $+0.4$ ($-0.4$, $1.3$) & $+0.5$ ($0.1$, $0.9$)   & $+1.3$ ($0.3$, $2.2$)   & $+0.6$ ($0.2$, $1.0$) \\
+        V1 vs P & $+0.6$ ($-0.2$, $1.5$) & $+0.5$ ($0.1$, $0.9$)   & $+0.0$ ($-0.8$, $0.9$)  & $+0.2$ ($-0.2$, $0.6$) \\
+        V1 vs E & $+0.2$ ($-0.6$, $1.0$) & $-0.0$ ($-0.4$, $0.4$)  & $-1.2$ ($-2.0$, $-0.4$) & $-0.4$ ($-0.7$, $0.0$) \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+On the test split the judge agrees with \fone{} and separates the systems more clearly
+(Table~\ref{tab:graphrag:judge}): E is above P by 1.3 points and V1 below E by 1.2, both with
+intervals that exclude zero. On validation it shows no difference between the three systems,
+while \fone{} puts E and V1 half a point above P. Two caveats apply. The judge and the generator
+are from the same model family, so the judge may share the generator's preferences. On dev-500
+the judge also scored the agents of Chapter~\ref{ch:agents}; their extended contexts were not
+stored, so for them ``supported'' is checked against the gold section only.

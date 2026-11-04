@@ -661,6 +661,48 @@ full validation or the test split.}
 \end{itemize}
 
 % =====================================================================
+\section{LLM judge}\label{sec:judge}
+
+\textbf{A second model scores the answers of the final systems as correct, partial or incorrect. It agrees
+with hand labels well enough ($\kappa$ 0.65) and confirms the test ranking of token F1 more clearly:
+passages + 30 facts are best, and keeping only the top 10 facts costs quality.}
+
+\begin{table}[H]
+\centering\small\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lcccc}
+\toprule
+ & \multicolumn{2}{c}{Validation (4,427)} & \multicolumn{2}{c}{Test (4,334)} \\
+System (with dialogue history) & judge & F1 & judge & F1 \\
+\midrule
+P: passages & 66.3 & 27.5 & 67.3 & 27.6 \\
+E: passages + 30 facts & 66.7 & 28.0 & 68.5 & 28.2 \\
+V1: passages + top 10 facts & 66.9 & 28.0 & 67.3 & 27.8 \\
+\midrule
+E vs P & $+0.4$ [$-0.4$, 1.3] & $+0.5$ [0.1, 0.9] & $+1.3$ [0.3, 2.2] & $+0.6$ [0.2, 1.0] \\
+V1 vs E & $+0.2$ [$-0.6$, 1.0] & $-0.0$ [$-0.4$, 0.4] & $-1.2$ [$-2.0$, $-0.4$] & $-0.4$ [$-0.7$, 0.0] \\
+\bottomrule
+\end{tabular}
+\caption{Judge score: correct = 1, partial = 0.5, incorrect = 0; abstentions scored by rule (correct only on
+unanswerable turns), citations stripped. Differences are paired bootstrap intervals on the same questions.
+Evaluation only: no system was re-selected on the judge.}
+\label{tab:judge}
+\end{table}
+
+\begin{itemize}
+\item \textbf{Setup.} gpt-6-luna sees the last four turns, the question, the reference, the gold section and the
+  context given to the generator, and rates the answer; separately it says whether the answer is supported.
+  USD 7.8 for validation and test together.
+\item \textbf{Human check.} 60 answers of P, E and V1, half at random and half where judge and F1 disagree most,
+  labelled by hand with the verdict hidden: $\kappa$ 0.65 for the three classes (0.66 on the random half, 0.59
+  on the disagreement half), 0.69 for correct vs not, 90\% agreement ($\kappa$ 0.75) on correct+partial vs
+  incorrect.
+\item \textbf{Caveats.} Judge and generator are from the same model family. The judge is stricter than the
+  human labels (in 9 of the 12 disagreements its verdict is lower). One test question is left out for all
+  three systems because the content filter blocked the judge prompt. On dev-500 the agents were scored too, but
+  their extended contexts are not stored, so their ``supported'' is checked against the gold section only.
+\end{itemize}
+
+% =====================================================================
 \section*{Open items (Planned)}
 \begin{itemize}
 \item Q9, extraction precision with entities and relations evaluated separately on documents

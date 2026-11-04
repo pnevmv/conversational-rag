@@ -139,9 +139,11 @@ moderately on the control sample ($\kappa = 0.31$), so a second annotator would 
 to separate the quality of the graph from the strictness of the labels. The recall of the
 full graph was not measured outside the pilot documents.
 
-Token \fone{} is the only generation metric. As discussed in Chapter~\ref{ch:rag}, the
+Token \fone{} is the main generation metric. As discussed in Chapter~\ref{ch:rag}, the
 reference answers are extracts from the source documents while the model paraphrases, so
 correct paraphrases can get a low score; this affects in particular the prompt comparison
-and the longer answers produced from graph facts. Abstention metrics rest on few examples
+and the longer answers produced from graph facts. Only the final systems were also scored by an
+\gls{llm} judge (Section~\ref{sec:graphrag:judge}); it agrees with hand labels on 60 answers
+($\kappa = 0.65$) but is stricter than them and comes from the same model family as the generator. Abstention metrics rest on few examples
 (31 unanswerable questions in dev-500, 226 in the validation and 241 in the test split)
 and are correspondingly noisy.

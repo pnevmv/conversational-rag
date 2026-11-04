@@ -27,7 +27,7 @@ Author: Danil Smirnov - danil.smirnov@studenti.unipd.it
 | Generator prompt, dialogue history, abstention decision | `experiments/run_dev_subset.py`, `experiments/generator_input.py` |
 | Metrics | `src/evaluation/` |
 
-All LLM calls (rewriting, extraction, entity resolution, generation) go to one Azure OpenAI deployment of `gpt-5.4-nano`.
+All LLM calls of the system (rewriting, extraction, entity resolution, generation) go to one Azure OpenAI deployment of `gpt-5.4-nano`; the evaluation judge (`src/evaluation/judge.py`, `experiments/judge_answers.py`) uses `gpt-6-luna`.
 
 ## Configurations evaluated
 
@@ -96,6 +96,30 @@ Can the model judge that the retrieved context is not enough, and does looking f
 * **The extra round adds little**: the new query alone finds a gold section less often than the original query (45.5% against 53.5%), the union adds 5.6 points of recall, and the larger context makes G0 abstain less.
 * **The agent used a tool on 44% of the questions.** With its own refusal it ties the final system on answerable questions at 12% lower cost, but it refuses almost never (abstain recall 3% against 42%).
 * Neither variant qualified, so neither was run on the full validation or the test split. An exploratory check (not planned) found that ranks 6–10 of the original list hold a gold section more often than the new query (8.9% against 5.6% of the answerable questions sent to the round), which is left as future work.
+
+### LLM judge
+
+Token F1 only counts word overlap with the reference, so correct paraphrases score low. A second model, gpt-6-luna, rates each answer of the final systems as correct, partial or incorrect against the reference answer and the gold section, and says separately whether the answer is supported by the documents. Abstentions are scored by rule (correct only on unanswerable turns), citations are stripped, and the score is 1 / 0.5 / 0. The judge was checked against 60 hand-labelled answers of the three systems (half at random, half where judge and F1 disagree most): Cohen's kappa 0.65 for the three classes, 90% agreement on correct+partial vs incorrect. The results are reported next to F1 only; no system was re-selected on them.
+
+| System | Validation judge / F1 | Test judge / F1 |
+| :--- | :---: | :---: |
+| Passages, with dialogue history | 66.3 / 27.5 | 67.3 / 27.6 |
+| Passages + graph facts, with dialogue history | 66.7 / 28.0 | **68.5 / 28.2** |
+| Passages + top 10 graph facts, with dialogue history | 66.9 / 28.0 | 67.3 / 27.8 |
+
+| Paired difference [95% CI] | Validation judge | Validation F1 | Test judge | Test F1 |
+| :--- | :---: | :---: | :---: | :---: |
+| + graph facts vs passages | +0.4 [−0.4, 1.3] | +0.5 [0.1, 0.9] | +1.3 [0.3, 2.2] | +0.6 [0.2, 1.0] |
+| top 10 facts vs all facts | +0.2 [−0.6, 1.0] | −0.0 [−0.4, 0.4] | −1.2 [−2.0, −0.4] | −0.4 [−0.7, 0.0] |
+
+On test the judge agrees with F1 and separates the systems more clearly: passages + graph facts are best, and keeping only the top 10 facts costs quality. On validation the judge shows no difference between the three.
+
+Caveats:
+
+* The judge and the generator are from the same model family (OpenAI).
+* The judge is stricter than the human labels: in 9 of the 12 disagreements its verdict is lower.
+* One test question is left out for all three systems because the Azure content filter blocked the judge prompt (4,334 of 4,335 questions; the F1 differences above are on the same questions).
+* On dev-500 the judge also scored the agents; their extended contexts are not stored, so for them "supported" is checked against the gold section only.
 
 ## Example
 
