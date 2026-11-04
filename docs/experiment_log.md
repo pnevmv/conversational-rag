@@ -345,6 +345,8 @@ python experiments/judge_answers.py run --split validation
 python experiments/judge_answers.py run --split test
 ```
 
+Results (`experiments/results/judge/gpt-6-luna/validation/summary.md`, `.../test/summary.md`; USD 7.8 for both splits). Judge score: validation P 66.3, E 66.7, V1 66.9; test P 67.3, E 68.5, V1 67.3. On validation no difference has an interval above 0 under the judge (V1 vs P +0.6 [−0.2, 1.5], E vs P +0.4 [−0.4, 1.3]), while F1 has E and V1 above P by +0.5. On test E is above P under both measures (judge +1.3 [0.3, 2.2], F1 +0.6 [0.2, 1.0]) and V1 is below E under the judge (−1.2 [−2.0, −0.4]; F1 −0.4 [−0.7, 0.0]). One test question is left out for all three systems because the Azure content filter refused the judge prompt. The judge is from the same model family as the generator, and for the agents (dev-500 only) "supported" is checked against the gold section only, since their extended contexts are not stored. No system is re-selected on these results.
+
 ---
 
 ### Tests

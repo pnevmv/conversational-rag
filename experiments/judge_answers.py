@@ -242,7 +242,9 @@ def summarise(rows: List[Dict[str, Any]]) -> Dict[str, Any]:
                 "incorrect": v["incorrect"] / len(sub),
                 "supported": (sum(r["supported"] for r in judged) / len(judged)) if judged else None,
                 "f1": float(np.mean([r["f1"] for r in sub]))}
-    return {"n_total": len(rows), "n_scored": len(ok), "n_failed": len(rows) - len(ok),
+    failed = Counter("content filter" if "content management policy" in (r.get("error") or "") else (r.get("error") or "")[:80]
+                     for r in rows if r["score"] is None)
+    return {"n_total": len(rows), "n_scored": len(ok), "n_failed": len(rows) - len(ok), "failed": dict(failed),
             "n_judge_calls": sum(1 for r in rows if r.get("by") == "judge"),
             "all": part(ok), "answerable": part([r for r in ok if not r["is_unanswerable"]]),
             "unanswerable": part([r for r in ok if r["is_unanswerable"]]),
@@ -365,6 +367,13 @@ def paired_comparisons(all_rows: Dict[str, List[Dict]]) -> Dict[str, Any]:
     return out
 
 
+def failed_note(summary: Dict[str, Any]) -> str:
+    """Sentence on questions without a verdict, which the paired differences leave out."""
+    parts = [f"{s['label'].split(':')[0]} {s['n_failed']} ({', '.join(s['failed'])})"
+             for s in summary["systems"].values() if s.get("n_failed")]
+    return (" Questions without a verdict, left out: " + "; ".join(parts) + ".") if parts else ""
+
+
 def write_markdown_full(summary: Dict[str, Any], path: Path) -> None:
     """Summary of the final systems on a whole split: judge score next to token F1, and paired differences."""
     def pct(x):
@@ -377,7 +386,7 @@ def write_markdown_full(summary: Dict[str, Any], path: Path) -> None:
              "Final systems, evaluation only (nothing is re-selected). Score: correct = 1, partial = 0.5, incorrect = 0; "
              "abstentions are scored by rule. The judge (gpt-6-luna) is from the same model family as the generator "
              "(gpt-5.4-nano). Δ: paired bootstrap difference with its 95% interval. "
-             f"{n_un} of the questions are unanswerable.", "",
+             f"{n_un} of the questions are unanswerable." + failed_note(summary), "",
              "| System | n | Judge score [95% CI] | Correct | Partial | Supported | Judge answerable | Judge unanswerable | Token F1 | F1 answerable |",
              "| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |"]
     for s in summary["systems"].values():
