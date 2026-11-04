@@ -1,0 +1,370 @@
+{
+  "seed": 42,
+  "systems": [
+    "p",
+    "e",
+    "v1"
+  ],
+  "items": {
+    "h001": {
+      "system": "v1",
+      "example_id": "f82ca701e7fed67d70b132772814fbf3_3",
+      "stratum": "random",
+      "f1": 0.1142857142857143
+    },
+    "h002": {
+      "system": "p",
+      "example_id": "82ffc5c82814ef592536f9197235f7af_7",
+      "stratum": "low F1, judged correct",
+      "f1": 0.0
+    },
+    "h003": {
+      "system": "v1",
+      "example_id": "be3d0426d273b85f076149d3d89530a2_8",
+      "stratum": "random",
+      "f1": 0.12244897959183675
+    },
+    "h004": {
+      "system": "e",
+      "example_id": "eafb66f846d722983cbff8d12f600cf0_15",
+      "stratum": "random",
+      "f1": 0.15217391304347827
+    },
+    "h005": {
+      "system": "v1",
+      "example_id": "b1636bf0a27cb22b424bd5c572646dfa_8",
+      "stratum": "high F1, judged incorrect",
+      "f1": 0.16949152542372883
+    },
+    "h006": {
+      "system": "v1",
+      "example_id": "e8f71defa28a10db41f42486eec7edcd_5",
+      "stratum": "high F1, judged incorrect",
+      "f1": 0.18867924528301888
+    },
+    "h007": {
+      "system": "p",
+      "example_id": "dbac675233f968f92858c19fb6221753_13",
+      "stratum": "random",
+      "f1": 0.3111111111111111
+    },
+    "h008": {
+      "system": "p",
+      "example_id": "d5583b4d428fd931787fb6f2fc76486b_12",
+      "stratum": "random",
+      "f1": 0.07228915662650602
+    },
+    "h009": {
+      "system": "v1",
+      "example_id": "3e8d4f726c013ba365e0faef13bf3851_5",
+      "stratum": "random",
+      "f1": 0.22580645161290322
+    },
+    "h010": {
+      "system": "e",
+      "example_id": "450e1bd8483cca2243d3c13bb08de309_7",
+      "stratum": "random",
+      "f1": 0.0
+    },
+    "h011": {
+      "system": "v1",
+      "example_id": "be2fb0f758ca7f6452f1ead0eae321b2_5",
+      "stratum": "high F1, judged incorrect",
+      "f1": 0.2318840579710145
+    },
+    "h012": {
+      "system": "e",
+      "example_id": "5d0f778042f0efbd0c0deb5eb38d64b4_10",
+      "stratum": "random",
+      "f1": 0.6590909090909091
+    },
+    "h013": {
+      "system": "p",
+      "example_id": "c9c3ef69d5c741f14798a542dd4dff3b_5",
+      "stratum": "random",
+      "f1": 0.5882352941176471
+    },
+    "h014": {
+      "system": "p",
+      "example_id": "4c73e8a169d2225cbb0368b07aed194c_1",
+      "stratum": "low F1, judged correct",
+      "f1": 0.09523809523809523
+    },
+    "h015": {
+      "system": "v1",
+      "example_id": "90b0bed8f3e17d007d040da657773bbe_7",
+      "stratum": "high F1, judged incorrect",
+      "f1": 0.20895522388059704
+    },
+    "h016": {
+      "system": "e",
+      "example_id": "c7d8e25d5351ffefea0a5ea607094cfb_8",
+      "stratum": "high F1, judged incorrect",
+      "f1": 0.18666666666666668
+    },
+    "h017": {
+      "system": "e",
+      "example_id": "82ba8181a008d2f3f0d004846ff458c6_10",
+      "stratum": "random",
+      "f1": 0.49122807017543857
+    },
+    "h018": {
+      "system": "p",
+      "example_id": "1059b0151d031e8985271345a297bc98_3",
+      "stratum": "low F1, judged correct",
+      "f1": 0.1111111111111111
+    },
+    "h019": {
+      "system": "e",
+      "example_id": "4e4f5eec99d28d7fd68b67f294944218_4",
+      "stratum": "random",
+      "f1": 0.22950819672131148
+    },
+    "h020": {
+      "system": "e",
+      "example_id": "fb53196cfdeb65d1a7901b878fe0cf93_11",
+      "stratum": "random",
+      "f1": 0.27272727272727276
+    },
+    "h021": {
+      "system": "p",
+      "example_id": "6b80669ed7714bd53879a1d3a6097aaf_13",
+      "stratum": "low F1, judged correct",
+      "f1": 0.03278688524590164
+    },
+    "h022": {
+      "system": "p",
+      "example_id": "2ca640276d852b3d7d7c5f91a9a6485a_11",
+      "stratum": "random",
+      "f1": 0.5436893203883495
+    },
+    "h023": {
+      "system": "e",
+      "example_id": "2422d9da57fbb79e1eb294f1ca21ff34_11",
+      "stratum": "random",
+      "f1": 0.26666666666666666
+    },
+    "h024": {
+      "system": "e",
+      "example_id": "31b2de3f533b7210a33db4ab15564650_12",
+      "stratum": "high F1, judged incorrect",
+      "f1": 0.24489795918367346
+    },
+    "h025": {
+      "system": "e",
+      "example_id": "20d1354fe0a3f4dfaebb10ee9e14dd86_5",
+      "stratum": "random",
+      "f1": 0.4285714285714285
+    },
+    "h026": {
+      "system": "p",
+      "example_id": "f33ebe04c6c6fc36825253952db3380a_9",
+      "stratum": "random",
+      "f1": 0.5853658536585366
+    },
+    "h027": {
+      "system": "v1",
+      "example_id": "c87786b46d3c4462ab4e0367dbd8df29_10",
+      "stratum": "random",
+      "f1": 0.1346153846153846
+    },
+    "h028": {
+      "system": "v1",
+      "example_id": "08a4c73e6eece0ee2b3a64a3949ee0ff_11",
+      "stratum": "low F1, judged correct",
+      "f1": 0.06779661016949153
+    },
+    "h029": {
+      "system": "v1",
+      "example_id": "e7aa37e907c0fcdb32fa7de67531174e_11",
+      "stratum": "low F1, judged correct",
+      "f1": 0.07692307692307693
+    },
+    "h030": {
+      "system": "e",
+      "example_id": "18c88704abffaa8b85609b55cf4cbde1_5",
+      "stratum": "random",
+      "f1": 0.3058823529411765
+    },
+    "h031": {
+      "system": "v1",
+      "example_id": "0a7f32262e15436fbd585e360f36c1bc_3",
+      "stratum": "low F1, judged correct",
+      "f1": 0.08
+    },
+    "h032": {
+      "system": "e",
+      "example_id": "82ffc5c82814ef592536f9197235f7af_7",
+      "stratum": "low F1, judged correct",
+      "f1": 0.05128205128205129
+    },
+    "h033": {
+      "system": "e",
+      "example_id": "d7d36b3f4ce3dab9d9e4b5edf19eb35f_5",
+      "stratum": "low F1, judged correct",
+      "f1": 0.08888888888888888
+    },
+    "h034": {
+      "system": "e",
+      "example_id": "714e7c64a127521421138c748f156545_7",
+      "stratum": "random",
+      "f1": 0.7529411764705882
+    },
+    "h035": {
+      "system": "e",
+      "example_id": "1e5ccb63f0b838637cf5c7efd1dc2d53_12",
+      "stratum": "random",
+      "f1": 0.44776119402985076
+    },
+    "h036": {
+      "system": "p",
+      "example_id": "cb2580e29e89992409cc436654f9023c_6",
+      "stratum": "high F1, judged incorrect",
+      "f1": 0.2784810126582279
+    },
+    "h037": {
+      "system": "v1",
+      "example_id": "7abe4ca5e4440f77fb2a4cd9ecfb6c0a_15",
+      "stratum": "low F1, judged correct",
+      "f1": 0.09523809523809523
+    },
+    "h038": {
+      "system": "p",
+      "example_id": "e7aa37e907c0fcdb32fa7de67531174e_11",
+      "stratum": "low F1, judged correct",
+      "f1": 0.07547169811320756
+    },
+    "h039": {
+      "system": "v1",
+      "example_id": "a8c7fa7dc2aa6b8cda02f7a6d0fd2602_7",
+      "stratum": "random",
+      "f1": 0.42622950819672134
+    },
+    "h040": {
+      "system": "e",
+      "example_id": "c9c3ef69d5c741f14798a542dd4dff3b_1",
+      "stratum": "high F1, judged incorrect",
+      "f1": 0.19999999999999998
+    },
+    "h041": {
+      "system": "e",
+      "example_id": "56c4c30460ae5f13bc0ed1c5ac9862f7_12",
+      "stratum": "random",
+      "f1": 0.393939393939394
+    },
+    "h042": {
+      "system": "e",
+      "example_id": "6525c84617eefb37d526ab382373e4ec_11",
+      "stratum": "high F1, judged incorrect",
+      "f1": 0.1935483870967742
+    },
+    "h043": {
+      "system": "e",
+      "example_id": "c0cc575770951e2d7311fa36b76ddb89_5",
+      "stratum": "random",
+      "f1": 0.0
+    },
+    "h044": {
+      "system": "e",
+      "example_id": "18506228169789cfc40c75cee72f2095_14",
+      "stratum": "random",
+      "f1": 0.4680851063829787
+    },
+    "h045": {
+      "system": "p",
+      "example_id": "9c597124812a3b16f36596b8da2a5bec_4",
+      "stratum": "high F1, judged incorrect",
+      "f1": 0.16
+    },
+    "h046": {
+      "system": "e",
+      "example_id": "38b58ec3ea97beba356aa570797485a0_11",
+      "stratum": "random",
+      "f1": 0.35897435897435903
+    },
+    "h047": {
+      "system": "e",
+      "example_id": "fd1b043475a3a2e99fa9af8127419426_3",
+      "stratum": "random",
+      "f1": 0.28125
+    },
+    "h048": {
+      "system": "v1",
+      "example_id": "d7d36b3f4ce3dab9d9e4b5edf19eb35f_5",
+      "stratum": "low F1, judged correct",
+      "f1": 0.0425531914893617
+    },
+    "h049": {
+      "system": "v1",
+      "example_id": "98c58a56af5e55754eeb7d427928ff66_12",
+      "stratum": "low F1, judged correct",
+      "f1": 0.0
+    },
+    "h050": {
+      "system": "e",
+      "example_id": "ad05bffb495d0ebed68f79df07e29021_7",
+      "stratum": "random",
+      "f1": 0.6666666666666667
+    },
+    "h051": {
+      "system": "v1",
+      "example_id": "3319b4c1020ef853f5f8b5bd61c21645_11",
+      "stratum": "high F1, judged incorrect",
+      "f1": 0.30769230769230765
+    },
+    "h052": {
+      "system": "e",
+      "example_id": "c94608d8e3a9a5b1e929f4e7a70d69f2_6",
+      "stratum": "random",
+      "f1": 0.5357142857142858
+    },
+    "h053": {
+      "system": "p",
+      "example_id": "31b2de3f533b7210a33db4ab15564650_12",
+      "stratum": "high F1, judged incorrect",
+      "f1": 0.22950819672131145
+    },
+    "h054": {
+      "system": "p",
+      "example_id": "00ab3fae7e743c15f1b475ce9131cab5_11",
+      "stratum": "random",
+      "f1": 0.1702127659574468
+    },
+    "h055": {
+      "system": "e",
+      "example_id": "98c58a56af5e55754eeb7d427928ff66_12",
+      "stratum": "low F1, judged correct",
+      "f1": 0.0
+    },
+    "h056": {
+      "system": "p",
+      "example_id": "261383ad88faa4fc4be7b10fcf385b18_12",
+      "stratum": "random",
+      "f1": 0.3333333333333333
+    },
+    "h057": {
+      "system": "e",
+      "example_id": "47ba9d17a37608191e7a10859ed329e7_9",
+      "stratum": "high F1, judged incorrect",
+      "f1": 0.32727272727272727
+    },
+    "h058": {
+      "system": "e",
+      "example_id": "7d8c5205719fc14d2f5e992ee3b40a7b_3",
+      "stratum": "high F1, judged incorrect",
+      "f1": 0.16666666666666663
+    },
+    "h059": {
+      "system": "v1",
+      "example_id": "b15800c850f4b6e6035f4213b073dca0_13",
+      "stratum": "low F1, judged correct",
+      "f1": 0.030303030303030304
+    },
+    "h060": {
+      "system": "p",
+      "example_id": "520ed2a72180daba9325bb3a985ba7cf_18",
+      "stratum": "high F1, judged incorrect",
+      "f1": 0.1923076923076923
+    }
+  }
+}

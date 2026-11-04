@@ -328,13 +328,21 @@ python experiments/judge_answers.py run --workers 8
 
 The summary is written to `experiments/results/judge/gpt-6-luna/dev_500/summary.md`.
 
-3. Check the judge against human labels on 100 answers, and against a second run of itself:
+3. Check the judge against human labels on 60 answers of P, E and V1 (each distinct answer once, seed 42): 30 at random, 15 judged incorrect with the highest F1 and 15 judged correct with the lowest F1. The judge verdict and the system are kept in a separate key file. `agreement` reports Cohen's kappa for the three classes and for two binary splits (correct vs not, correct+partial vs incorrect), overall, on the random half and on the disagreement half. A second run of the judge (stability) is only planned if the human check is borderline.
 
 ```bash
-python experiments/judge_answers.py export --n 100      # fill `label` in experiments/results/judge/gpt-6-luna/dev_500/human_labels.csv
+python experiments/judge_answers.py export      # fill `label` in experiments/results/judge/gpt-6-luna/dev_500/human_labels.csv
+python experiments/judge_answers.py carry --from labels.csv   # labels of an earlier sample, if the same answers were drawn again
 python experiments/judge_answers.py agreement
-python experiments/judge_answers.py run --run-id run2
-python experiments/judge_answers.py stability --other run2
+```
+
+Agreement with the human labels (`experiments/results/judge/gpt-6-luna/dev_500/human_agreement.json`): Cohen's kappa 0.65 for the three classes (random half 0.66, disagreement half 0.59), 0.69 for correct vs not and 0.75 for correct+partial vs incorrect. The judge is stricter than the human labels: in 9 of the 12 disagreements its verdict is lower.
+
+4. Since kappa is at least 0.6, the final systems P, E and V1 are judged on the whole validation and test splits. This is evaluation only, no system is re-selected; the judge scores are reported next to F1:
+
+```bash
+python experiments/judge_answers.py run --split validation
+python experiments/judge_answers.py run --split test
 ```
 
 ---

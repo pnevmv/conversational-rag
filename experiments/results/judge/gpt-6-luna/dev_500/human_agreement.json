@@ -1,0 +1,103 @@
+{
+  "model": "gpt-6-luna",
+  "n_items": 60,
+  "n_labelled": 60,
+  "halves": {
+    "all": {
+      "n": 60,
+      "confusion": {
+        "correct": {
+          "correct": 30,
+          "partial": 5,
+          "incorrect": 1
+        },
+        "partial": {
+          "correct": 1,
+          "partial": 4,
+          "incorrect": 3
+        },
+        "incorrect": {
+          "correct": 2,
+          "partial": 0,
+          "incorrect": 14
+        }
+      },
+      "3 classes": {
+        "agreement": 0.8,
+        "kappa": 0.6491228070175439
+      },
+      "correct vs not": {
+        "agreement": 0.85,
+        "kappa": 0.6938775510204082
+      },
+      "correct+partial vs incorrect": {
+        "agreement": 0.9,
+        "kappa": 0.7540983606557378
+      }
+    },
+    "random": {
+      "n": 30,
+      "confusion": {
+        "correct": {
+          "correct": 18,
+          "partial": 5,
+          "incorrect": 0
+        },
+        "partial": {
+          "correct": 0,
+          "partial": 4,
+          "incorrect": 0
+        },
+        "incorrect": {
+          "correct": 0,
+          "partial": 0,
+          "incorrect": 3
+        }
+      },
+      "3 classes": {
+        "agreement": 0.8333333333333334,
+        "kappa": 0.6598639455782314
+      },
+      "correct vs not": {
+        "agreement": 0.8333333333333334,
+        "kappa": 0.6268656716417911
+      },
+      "correct+partial vs incorrect": {
+        "agreement": 1.0,
+        "kappa": 1.0
+      }
+    },
+    "disagreement": {
+      "n": 30,
+      "confusion": {
+        "correct": {
+          "correct": 12,
+          "partial": 0,
+          "incorrect": 1
+        },
+        "partial": {
+          "correct": 1,
+          "partial": 0,
+          "incorrect": 3
+        },
+        "incorrect": {
+          "correct": 2,
+          "partial": 0,
+          "incorrect": 11
+        }
+      },
+      "3 classes": {
+        "agreement": 0.7666666666666667,
+        "kappa": 0.5882352941176472
+      },
+      "correct vs not": {
+        "agreement": 0.8666666666666667,
+        "kappa": 0.7333333333333334
+      },
+      "correct+partial vs incorrect": {
+        "agreement": 0.8,
+        "kappa": 0.6000000000000001
+      }
+    }
+  }
+}

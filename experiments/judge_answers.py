@@ -16,16 +16,21 @@ split, data/dev_500_ids.json):
 Commands:
     cost       count the tokens of every judge call (no API calls) and estimate the cost
     run        judge the systems and write a summary (paired difference to E)
-    export     sample 100 answers for human labelling (half random, half where judge and F1 disagree most)
-    agreement  compare the human labels with the judge, overall and per half
+    export     sample 60 answers of P, E and V1 for human labelling (half random, half where judge and F1
+               disagree most)
+    carry      copy labels of an earlier sample onto the same answers in the current one
+    agreement  compare the human labels with the judge (kappa for 3 classes and two binary splits)
     stability  compare two judge runs (--run-id) on the same answers
 
     python experiments/judge_answers.py cost
     python experiments/judge_answers.py run --limit 20            # quick check
     python experiments/judge_answers.py run --workers 8
-    python experiments/judge_answers.py export --n 100
+    python experiments/judge_answers.py export
+    python experiments/judge_answers.py carry --from my_labels.csv
     python experiments/judge_answers.py agreement
     python experiments/judge_answers.py run --run-id run2 && python experiments/judge_answers.py stability --other run2
+    python experiments/judge_answers.py cost --split test        # final P, E, V1 on a whole split
+    python experiments/judge_answers.py run --split validation
 
 Judge calls are cached per model (and run id) in experiments/cache/judge/, so a rerun only pays
 for new answers. Per-answer verdicts and the summary go to experiments/results/judge/<model>/dev_500/.
@@ -58,7 +63,12 @@ AGENT = PROJECT_ROOT / "experiments" / "results" / "dev_500" / "agent"
 DEV_IDS = PROJECT_ROOT / "data" / "dev_500_ids.json"
 OUT_ROOT = PROJECT_ROOT / "experiments" / "results" / "judge"
 CACHE_ROOT = PROJECT_ROOT / "experiments" / "cache" / "judge"
+TEST_STEP7 = PROJECT_ROOT / "experiments" / "results" / "test" / "step7"
 SUBSET = "dev_500"
+# Output folder per split. On the full validation and test splits only the final systems are judged.
+SPLITS = {"dev500": "dev_500", "validation": "validation", "test": "test"}
+FULL_SYSTEMS = ("p", "e", "v1")
+COMPARISONS = (("v1", "p"), ("e", "p"), ("v1", "e"))  # as in experiments/results/test/step7_final.md
 BASELINE = "e"
 ABSTAIN = "Unfortunately, no relevant information is found."
 RETRY_SUFFIX = "\n\nReturn only the JSON object."
@@ -96,8 +106,12 @@ def _single(name: str) -> Answers:
     return {i: (r["model_answer"], r.get("context"), True) for i, r in by_id(VAL / f"{name}.jsonl").items()}
 
 
-def _g2_abstain_g0(pipeline: str) -> Answers:
-    """G2 + abstain(G0), as in experiments/sources.py: abstain if G0 abstains, else the G2 answer."""
+def _g2_abstain_g0(pipeline: str, split: str = "dev500") -> Answers:
+    """G2 + abstain(G0), as in experiments/sources.py: abstain if G0 abstains, else the G2 answer.
+    On the test split the answers come composed from the Step 7 run."""
+    if split == "test":
+        name = {"rag_rewrite_rerank_v2": "p", "step4_plus_facts": "e"}[pipeline]
+        return {i: (r["model_answer"], r["context"], True) for i, r in by_id(TEST_STEP7 / f"{name}.jsonl").items()}
     g0, g2 = by_id(GEN / f"{pipeline}__G0.jsonl"), by_id(GEN / f"{pipeline}__G2_kall.jsonl")
     ctx = by_id(VAL / f"{pipeline}.jsonl")
     out = {}
@@ -114,8 +128,9 @@ def _cite() -> Answers:
             for i, r in by_id(VAL / "sources" / "cite_validation.jsonl").items()}
 
 
-def _v1() -> Answers:
-    return {i: (r["model_answer"], r["context"], True) for i, r in by_id(VAL / "graph_rag" / "v1_k10.jsonl").items()}
+def _v1(split: str = "dev500") -> Answers:
+    path = TEST_STEP7 / "v1_k10.jsonl" if split == "test" else VAL / "graph_rag" / "v1_k10.jsonl"
+    return {i: (r["model_answer"], r["context"], True) for i, r in by_id(path).items()}
 
 
 def _agent(file: str, field: str) -> Answers:
@@ -123,29 +138,31 @@ def _agent(file: str, field: str) -> Answers:
     return {i: (strip_citations(r.get(field)), None, False) for i, r in by_id(AGENT / file).items()}
 
 
-SYSTEMS: Dict[str, Tuple[str, Callable[[], Answers]]] = {
-    "llm": ("LLM only, no documents", lambda: _single("llm_baseline")),
-    "oracle": ("Gold section given", lambda: _single("oracle_context_v2")),
-    "p": ("P: passages", lambda: _g2_abstain_g0("rag_rewrite_rerank_v2")),
-    "e": ("E: passages + 30 facts", lambda: _g2_abstain_g0("step4_plus_facts")),
-    "e_cite": ("E with citations", _cite),
+# Loaders take the split; only P, E and V1 exist beyond dev-500 (FULL_SYSTEMS).
+SYSTEMS: Dict[str, Tuple[str, Callable[[str], Answers]]] = {
+    "llm": ("LLM only, no documents", lambda split: _single("llm_baseline")),
+    "oracle": ("Gold section given", lambda split: _single("oracle_context_v2")),
+    "p": ("P: passages", lambda split: _g2_abstain_g0("rag_rewrite_rerank_v2", split)),
+    "e": ("E: passages + 30 facts", lambda split: _g2_abstain_g0("step4_plus_facts", split)),
+    "e_cite": ("E with citations", lambda split: _cite()),
     "v1": ("V1: passages + 10 facts", _v1),
-    "a1": ("A1 agent, abstain(G0)", lambda: _agent("a1.jsonl", "a1_g0")),
-    "a1_own": ("A1 agent, own refusal", lambda: _agent("a1.jsonl", "a1_own")),
-    "a2": ("A2 agent, abstain(G0)", lambda: _agent("a2.jsonl", "a2_g0")),
-    "a2_own": ("A2 agent, own refusal", lambda: _agent("a2.jsonl", "a2_own")),
+    "a1": ("A1 agent, abstain(G0)", lambda split: _agent("a1.jsonl", "a1_g0")),
+    "a1_own": ("A1 agent, own refusal", lambda split: _agent("a1.jsonl", "a1_own")),
+    "a2": ("A2 agent, abstain(G0)", lambda split: _agent("a2.jsonl", "a2_g0")),
+    "a2_own": ("A2 agent, own refusal", lambda split: _agent("a2.jsonl", "a2_own")),
 }
 
 
-def load_context() -> Dict[str, Any]:
-    ids = json.load(open(DEV_IDS, encoding="utf-8"))
-    examples = {ex["example_id"]: ex for ex in load_qa_pairs(split="validation", max_examples=None)}
+def load_context(split: str = "dev500") -> Dict[str, Any]:
+    qa = load_qa_pairs(split="test" if split == "test" else "validation", max_examples=None)
+    examples = {ex["example_id"]: ex for ex in qa}
+    ids = json.load(open(DEV_IDS, encoding="utf-8")) if split == "dev500" else [ex["example_id"] for ex in qa]
     sections = {}
     for s in load_sections():
         sid = make_section_id(s["doc_id"], s["id_sp"])
         for sp in s["span_ids"]:
             sections[(s["doc_id"], str(sp))] = (sid, s)
-    return {"ids": ids, "examples": examples, "sections": sections}
+    return {"split": split, "ids": ids, "examples": examples, "sections": sections}
 
 
 def gold_text(example: Dict[str, Any], sections: Dict) -> str:
@@ -160,8 +177,8 @@ def gold_text(example: Dict[str, Any], sections: Dict) -> str:
 
 
 def prepare(system: str, ctx: Dict, limit: Optional[int]) -> Tuple[List[Dict], List[int], List[str], List[Dict]]:
-    """Rows of one system on dev-500; rule verdicts filled in, prompts for the rest."""
-    answers = SYSTEMS[system][1]()
+    """Rows of one system on the split of ctx; rule verdicts filled in, prompts for the rest."""
+    answers = SYSTEMS[system][1](ctx["split"])
     ids = ctx["ids"][:limit] if limit else ctx["ids"]
     rows, pending, prompts, metas = [], [], [], []
     for i in ids:
@@ -232,8 +249,17 @@ def summarise(rows: List[Dict[str, Any]]) -> Dict[str, Any]:
             "doc_switch": part([r for r in ok if r["is_doc_switch"]])}
 
 
-def out_dir(model: str, run_id: Optional[str]) -> Path:
-    return OUT_ROOT / slug(model) / SUBSET / (run_id or "")
+def out_dir(model: str, run_id: Optional[str], split: str = "dev500") -> Path:
+    return OUT_ROOT / slug(model) / SPLITS[split] / (run_id or "")
+
+
+def systems_for(args) -> List[str]:
+    if args.split == "dev500":
+        return args.systems or list(SYSTEMS)
+    bad = [x for x in (args.systems or []) if x not in FULL_SYSTEMS]
+    if bad:
+        raise SystemExit(f"only {', '.join(FULL_SYSTEMS)} exist on the {args.split} split, not {', '.join(bad)}")
+    return args.systems or list(FULL_SYSTEMS)
 
 
 def cache_for(model: str, run_id: Optional[str]) -> LLMCache:
@@ -247,10 +273,10 @@ def cmd_cost(args) -> None:
     enc = tiktoken.get_encoding("o200k_base")
     model = args.model or _default_model()
     cache = cache_for(model, args.run_id)
-    ctx = load_context()
-    systems = args.systems or list(SYSTEMS)
+    ctx = load_context(args.split)
+    systems = systems_for(args)
     seen, lines, total_in, total_calls = set(), [], 0, 0
-    lines.append(f"Judge {model}, {SUBSET}" + (f", first {args.limit} questions" if args.limit else "") +
+    lines.append(f"Judge {model}, {SPLITS[args.split]}" + (f", first {args.limit} questions" if args.limit else "") +
                  f"; price USD {PRICE['input']:.2f} input / {PRICE['output']:.2f} output per 1M tokens")
     lines.append(f"{'system':8} {'answers':>7} {'by rule':>7} {'calls':>6} {'input tok':>10} {'tok/call':>8}")
     for name in systems:
@@ -274,11 +300,11 @@ def cmd_cost(args) -> None:
 
 def cmd_run(args) -> None:
     client = JudgeClient(model=args.model)
-    out = out_dir(client.model, args.run_id)
+    out = out_dir(client.model, args.run_id, args.split)
     cache = cache_for(client.model, args.run_id)
-    ctx = load_context()
+    ctx = load_context(args.split)
     all_rows: Dict[str, List[Dict]] = {}
-    for name in args.systems or list(SYSTEMS):
+    for name in systems_for(args):
         rows = judge_system(name, client, cache, ctx, args.workers, args.limit)
         all_rows[name] = rows
         out.mkdir(parents=True, exist_ok=True)
@@ -293,12 +319,15 @@ def cmd_run(args) -> None:
         print(f"{name:8} judge {s['all']['score']['mean']*100:5.1f}  correct {s['all']['correct']*100:5.1f}%  "
               f"F1 {s['all']['f1']*100:5.1f}  ({s['n_judge_calls']} judge calls, {s['n_failed']} failed)", flush=True)
 
-    summary = {"model": client.model, "deployment": client.default_model, "subset": SUBSET,
+    summary = {"model": client.model, "deployment": client.default_model, "subset": SPLITS[args.split],
                "run_id": args.run_id, "limit": args.limit,
                "systems": {k: {"label": SYSTEMS[k][0], **summarise(v)} for k, v in all_rows.items()
                            if summarise(v)["n_scored"]},
                "paired_vs_e": {}}
-    if BASELINE in all_rows:
+    if args.split != "dev500":
+        summary.pop("paired_vs_e")
+        summary["paired"] = paired_comparisons(all_rows)
+    elif BASELINE in all_rows:
         base = {r["example_id"]: r["score"] for r in all_rows[BASELINE]}
         for name, rows in all_rows.items():
             if name == BASELINE:
@@ -311,8 +340,59 @@ def cmd_run(args) -> None:
                         [a for a, _ in pairs], [b for _, b in pairs])
     out.mkdir(parents=True, exist_ok=True)
     (out / "summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
-    write_markdown(summary, out / "summary.md")
+    (write_markdown if args.split == "dev500" else write_markdown_full)(summary, out / "summary.md")
     print(f"cache: {cache.stats}\nSummary -> {out / 'summary.md'}")
+
+
+def paired_comparisons(all_rows: Dict[str, List[Dict]]) -> Dict[str, Any]:
+    """Paired bootstrap differences of judge score and token F1 for COMPARISONS, on all / answerable /
+    unanswerable questions; questions without a verdict from either system are left out."""
+    out = {}
+    for a, b in COMPARISONS:
+        if a not in all_rows or b not in all_rows:
+            continue
+        rb = {r["example_id"]: r for r in all_rows[b]}
+        both = [(r, rb[r["example_id"]]) for r in all_rows[a]
+                if r["score"] is not None and rb.get(r["example_id"], {}).get("score") is not None]
+        res = {"n": len(both)}
+        for part, keep in (("all", lambda r: True), ("answerable", lambda r: not r["is_unanswerable"]),
+                           ("unanswerable", lambda r: r["is_unanswerable"])):
+            sub = [(x, y) for x, y in both if keep(x)]
+            if sub:
+                res[part] = {m: paired_bootstrap_test([x[m] for x, _ in sub], [y[m] for _, y in sub])
+                             for m in ("score", "f1")}
+        out[f"{a} vs {b}"] = res
+    return out
+
+
+def write_markdown_full(summary: Dict[str, Any], path: Path) -> None:
+    """Summary of the final systems on a whole split: judge score next to token F1, and paired differences."""
+    def pct(x):
+        return "-" if x is None else f"{x * 100:.1f}"
+
+    def delta(p):
+        return f"{p['mean_diff']*100:+.1f} [{p['ci_low']*100:.1f}, {p['ci_high']*100:.1f}]" if p else "-"
+    n_un = next(iter(summary["systems"].values()))["unanswerable"].get("n", 0)
+    lines = [f"# LLM judge: {summary['model']}, {summary['subset']} split" + (f" (run {summary['run_id']})" if summary["run_id"] else ""), "",
+             "Final systems, evaluation only (nothing is re-selected). Score: correct = 1, partial = 0.5, incorrect = 0; "
+             "abstentions are scored by rule. The judge (gpt-6-luna) is from the same model family as the generator "
+             "(gpt-5.4-nano). Δ: paired bootstrap difference with its 95% interval. "
+             f"{n_un} of the questions are unanswerable.", "",
+             "| System | n | Judge score [95% CI] | Correct | Partial | Supported | Judge answerable | Judge unanswerable | Token F1 | F1 answerable |",
+             "| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |"]
+    for s in summary["systems"].values():
+        a = s["all"]
+        lines.append(f"| {s['label']} | {a['n']} | {pct(a['score']['mean'])} [{pct(a['score']['ci_low'])}, {pct(a['score']['ci_high'])}] | "
+                     f"{pct(a['correct'])} | {pct(a['partial'])} | {pct(a['supported'])} | "
+                     f"{pct(s['answerable'].get('score', {}).get('mean'))} | {pct(s['unanswerable'].get('score', {}).get('mean'))} | "
+                     f"{pct(a['f1'])} | {pct(s['answerable'].get('f1'))} |")
+    lines += ["", "| Comparison | n | Δ judge all | Δ judge answerable | Δ judge unanswerable | Δ F1 all | Δ F1 answerable | Δ F1 unanswerable |",
+              "| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |"]
+    for name, c in summary["paired"].items():
+        a, b = (x.upper() for x in name.split(" vs "))
+        cells = [delta(c.get(part, {}).get(m)) for m in ("score", "f1") for part in ("all", "answerable", "unanswerable")]
+        lines.append(f"| {a} vs {b} | {c['n']} | " + " | ".join(cells) + " |")
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
 def write_markdown(summary: Dict[str, Any], path: Path) -> None:
@@ -337,8 +417,17 @@ def write_markdown(summary: Dict[str, Any], path: Path) -> None:
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
-HUMAN_N_EXTREME = 25          # per disagreement group
-HUMAN_EXTREME_POOL = 3        # draw them from the 3 * 25 most extreme answers of the group
+HUMAN_SYSTEMS = ("p", "e", "v1")   # the systems the judge is applied to beyond dev-500
+HUMAN_N = 60
+HUMAN_N_EXTREME = 15          # per disagreement group
+HUMAN_EXTREME_POOL = 3        # draw them from the 3 * 15 most extreme answers of the group
+# Labels may also be written as scores.
+LABEL_ALIASES = {"1": "correct", "0.5": "partial", "0": "incorrect"}
+
+
+def norm_label(label: str) -> str:
+    label = (label or "").strip().lower()
+    return LABEL_ALIASES.get(label, label)
 
 
 def human_paths(judge_dir: Path) -> Dict[str, Path]:
@@ -352,6 +441,7 @@ def cmd_export(args) -> None:
     Half are drawn at random from all judged answers; the other half are where the judge and token F1
     disagree most: judged incorrect with the highest F1, and judged correct with the lowest F1. Each
     distinct (question, answer) is labelled once. The strata and systems are kept in a separate key file.
+    Answers come from P, E and V1 only (--systems).
     """
     judge_dir = out_dir(args.model or _default_model(), None)
     paths = human_paths(judge_dir)
@@ -361,7 +451,7 @@ def cmd_export(args) -> None:
             raise SystemExit(f"{paths['csv']} already has {len(filled)} labels; use --force to overwrite")
     ctx = load_context()
     pool, seen = [], set()
-    for name in SYSTEMS:
+    for name in args.systems:
         f = judge_dir / f"{name}.jsonl"
         if not f.exists():
             continue
@@ -372,7 +462,7 @@ def cmd_export(args) -> None:
                 pool.append({**r, "system": name})
     rng = random.Random(args.seed)
     rng.shuffle(pool)
-    k = HUMAN_N_EXTREME
+    k = args.n_extreme
     high_f1_wrong = sorted((r for r in pool if r["verdict"] == "incorrect"), key=lambda r: -r["f1"])
     low_f1_right = sorted((r for r in pool if r["verdict"] == "correct"), key=lambda r: r["f1"])
     picked = ([dict(r, stratum="high F1, judged incorrect") for r in rng.sample(high_f1_wrong[:HUMAN_EXTREME_POOL * k], k)] +
@@ -383,7 +473,7 @@ def cmd_export(args) -> None:
     rng.shuffle(picked)
 
     key, md = {}, ["# Human check of the LLM judge", "",
-                   "Label each answer in `human_labels.csv` (column `label`: correct / partial / incorrect), with the "
+                   "Label each answer in `human_labels.csv` (column `label`: correct / partial / incorrect, or 1 / 0.5 / 0), with the "
                    "same rules as the judge: correct = gives the key information of the reference (wording and length "
                    "may differ, correct extra details are fine); partial = right topic but misses an important part or "
                    "adds a wrong detail; incorrect = something else, misses the point, refuses although the information "
@@ -404,7 +494,8 @@ def cmd_export(args) -> None:
                    f"**Reference.** {r['reference_answer']}", "", f"**Answer.** {r['answer']}", "",
                    "<details><summary>Gold section</summary>", "", gold, "", "</details>", ""]
     paths["md"].write_text("\n".join(md), encoding="utf-8")
-    paths["key"].write_text(json.dumps({"seed": args.seed, "items": key}, indent=2), encoding="utf-8")
+    paths["key"].write_text(json.dumps({"seed": args.seed, "systems": args.systems, "items": key}, indent=2),
+                            encoding="utf-8")
     print(f"{len(picked)} answers ({Counter(r['stratum'] for r in picked)}) from {len(pool)} distinct judged answers")
     print(f"label: {paths['csv']}\nread:  {paths['md']}\nkey (do not open before labelling): {paths['key']}")
 
@@ -422,48 +513,90 @@ def kappa(a: List[str], b: List[str]) -> float:
     return (po - pe) / (1 - pe) if pe < 1 else 1.0
 
 
+def cmd_carry(args) -> None:
+    """Copy labels of an earlier sample onto the same (question, answer) in the current one."""
+    judge_dir = out_dir(args.model or _default_model(), None)
+    paths = human_paths(judge_dir)
+    old = {r["item_id"]: r for r in csv.DictReader(open(args.old, encoding="utf-8"))}
+    given = list(csv.DictReader(open(args.from_csv, encoding="utf-8")))
+    labels = {}
+    for r in given:
+        label = norm_label(r.get("label"))
+        if not label:
+            continue
+        if label not in SCORES:
+            print(f"skipped {r.get('item_id')}: label {r.get('label')!r} is not correct / partial / incorrect")
+            continue
+        src = r if r.get("example_id") and r.get("answer") else old.get(r.get("item_id"))
+        if not src:
+            print(f"skipped {r.get('item_id')}: not in {args.old}")
+            continue
+        labels[(src["example_id"], src["answer"].strip())] = (label, r.get("item_id"), r.get("note", "").strip())
+    rows = list(csv.DictReader(open(paths["csv"], encoding="utf-8")))
+    carried = []
+    for r in rows:
+        hit = labels.get((r["example_id"], r["answer"].strip()))
+        if hit and not r["label"].strip():
+            r["label"] = hit[0]
+            r["note"] = "; ".join(x for x in (hit[2], f"carried from {hit[1]} of {Path(args.old).name}") if x)
+            carried.append(f"{hit[1]} -> {r['item_id']} ({hit[0]})")
+    with open(paths["csv"], "w", newline="", encoding="utf-8") as fh:
+        w = csv.DictWriter(fh, fieldnames=list(rows[0].keys()))
+        w.writeheader()
+        w.writerows(rows)
+    print(f"{len(labels)} labels given, {len(carried)} carried over" + ("".join(f"\n  {c}" for c in carried)))
+
+
+SCHEMES = {
+    "3 classes": lambda x: x,
+    "correct vs not": lambda x: "correct" if x == "correct" else "not",
+    "correct+partial vs incorrect": lambda x: "incorrect" if x == "incorrect" else "correct+partial",
+}
+
+
 def cmd_agreement(args) -> None:
-    """Human labels against the judge (and any other judge given with --compare), overall and per half."""
+    """Human labels against the judge: agreement and Cohen's kappa for 3 classes and two binary splits,
+    overall, on the random half and on the disagreement half."""
     base_dir = out_dir(args.model or _default_model(), None)
     paths = human_paths(base_dir)
     key = json.loads(paths["key"].read_text(encoding="utf-8"))["items"]
-    labels = {r["item_id"]: r["label"].strip().lower() for r in csv.DictReader(open(paths["csv"], encoding="utf-8"))}
-    bad = sorted(i for i, l in labels.items() if l and l not in SCORES)
+    raw = {r["item_id"]: r["label"] for r in csv.DictReader(open(paths["csv"], encoding="utf-8"))}
+    bad = sorted(i for i, l in raw.items() if l.strip() and norm_label(l) not in SCORES)
     if bad:
         print(f"ignored, label not correct / partial / incorrect: {', '.join(bad)}")
-    labels = {i: l for i, l in labels.items() if l in SCORES}
+    labels = {i: norm_label(l) for i, l in raw.items() if norm_label(l) in SCORES}
     if not labels:
         print("No labelled rows yet.")
         return
-    halves = {"all": lambda s: True, "disagreement half": lambda s: s != "random", "random half": lambda s: s == "random"}
-    result = {"n_labelled": len(labels), "judges": {}}
-    for model in [args.model or _default_model()] + (args.compare or []):
-        jdir = out_dir(model, None)
-        verdicts = {}
-        for f in jdir.glob("*.jsonl"):
-            for r in map(json.loads, open(f, encoding="utf-8")):
-                verdicts[(f.stem, r["example_id"])] = r.get("verdict")
-        res = {}
-        for name, keep in halves.items():
-            pairs = [(labels[i], verdicts.get((key[i]["system"], key[i]["example_id"]))) for i in labels
-                     if keep(key[i]["stratum"])]
-            pairs = [(h, j) for h, j in pairs if j]
-            if not pairs:
-                continue
-            h, j = [p[0] for p in pairs], [p[1] for p in pairs]
-            hb = ["correct" if x == "correct" else "not" for x in h]
-            jb = ["correct" if x == "correct" else "not" for x in j]
-            res[name] = {"n": len(pairs), "exact": sum(a == b for a, b in pairs) / len(pairs), "kappa": kappa(h, j),
-                         "binary_agreement": sum(a == b for a, b in zip(hb, jb)) / len(pairs), "binary_kappa": kappa(hb, jb),
-                         "confusion": {x: {y: sum(1 for a, b in pairs if a == x and b == y) for y in SCORES} for x in SCORES}}
-        result["judges"][model] = res
-        print(f"{model}: {len(labels)} labelled answers")
-        for name, r in res.items():
-            print(f"  {name:18} n {r['n']:3}  exact {r['exact']:.1%}  kappa {r['kappa']:.2f}  "
-                  f"correct vs not: {r['binary_agreement']:.1%}, kappa {r['binary_kappa']:.2f}")
+    halves = {"all": lambda s: True, "random": lambda s: s == "random", "disagreement": lambda s: s != "random"}
+    model = args.model or _default_model()
+    verdicts = {}
+    for f in base_dir.glob("*.jsonl"):
+        for r in map(json.loads, open(f, encoding="utf-8")):
+            verdicts[(f.stem, r["example_id"])] = r.get("verdict")
+    result = {"model": model, "n_items": len(key), "n_labelled": len(labels), "halves": {}}
+    print(f"{model}: {len(labels)} of {len(key)} items labelled")
+    for name, keep in halves.items():
+        pairs = [(labels[i], verdicts.get((key[i]["system"], key[i]["example_id"]))) for i in labels
+                 if keep(key[i]["stratum"])]
+        pairs = [(h, j) for h, j in pairs if j]
+        if not pairs:
+            continue
+        res = {"n": len(pairs),
+               "confusion": {x: {y: sum(1 for a, b in pairs if a == x and b == y) for y in SCORES} for x in SCORES}}
+        line = []
+        for scheme, f in SCHEMES.items():
+            h, j = [f(a) for a, _ in pairs], [f(b) for _, b in pairs]
+            agree = sum(a == b for a, b in zip(h, j)) / len(pairs)
+            k = kappa(h, j)
+            res[scheme] = {"agreement": agree, "kappa": k}
+            line.append(f"{scheme}: {agree:.0%}, kappa {k:.2f}")
+        result["halves"][name] = res
+        print(f"  {name:12} n {len(pairs):2}  " + "  |  ".join(line))
+    if "all" in result["halves"]:
         print("  confusion, all (human -> judge):")
         for x in SCORES:
-            print(f"    {x:9} " + "  ".join(f"{y} {res['all']['confusion'][x][y]}" for y in SCORES))
+            print(f"    {x:9} " + "  ".join(f"{y} {result['halves']['all']['confusion'][x][y]}" for y in SCORES))
     (base_dir / "human_agreement.json").write_text(json.dumps(result, indent=2), encoding="utf-8")
     print(f"-> {base_dir / 'human_agreement.json'}")
 
@@ -490,6 +623,8 @@ def main() -> None:
     sub = parser.add_subparsers(dest="cmd", required=True)
     for name in ("cost", "run"):
         p = sub.add_parser(name)
+        p.add_argument("--split", choices=list(SPLITS), default="dev500",
+                       help="dev500 (all systems) or the whole validation / test split (P, E, V1 only)")
         p.add_argument("--systems", nargs="+", choices=list(SYSTEMS))
         p.add_argument("--model")
         p.add_argument("--limit", type=int, help="only the first N dev-500 questions")
@@ -497,18 +632,24 @@ def main() -> None:
         if name == "run":
             p.add_argument("--workers", type=int, default=8)
     p = sub.add_parser("export")
-    p.add_argument("--n", type=int, default=100)
+    p.add_argument("--n", type=int, default=HUMAN_N)
+    p.add_argument("--n-extreme", type=int, default=HUMAN_N_EXTREME, help="items per disagreement group")
+    p.add_argument("--systems", nargs="+", choices=list(SYSTEMS), default=list(HUMAN_SYSTEMS))
     p.add_argument("--seed", type=int, default=42)
     p.add_argument("--force", action="store_true", help="overwrite a file that already has labels")
     p.add_argument("--model")
+    p = sub.add_parser("carry")
+    p.add_argument("--from", dest="from_csv", required=True, help="CSV with item_id, label (and optionally note)")
+    p.add_argument("--old", default=str(OUT_ROOT / DEFAULT_MODEL / SUBSET / "human_labels_v1.csv"),
+                   help="the earlier sample the item ids refer to")
+    p.add_argument("--model")
     p = sub.add_parser("agreement")
     p.add_argument("--model")
-    p.add_argument("--compare", nargs="+", help="other judges (output folder names) to compare on the same items")
     p = sub.add_parser("stability")
     p.add_argument("--other", required=True)
     p.add_argument("--model")
     args = parser.parse_args()
-    {"cost": cmd_cost, "run": cmd_run, "export": cmd_export, "agreement": cmd_agreement,
+    {"cost": cmd_cost, "run": cmd_run, "export": cmd_export, "carry": cmd_carry, "agreement": cmd_agreement,
      "stability": cmd_stability}[args.cmd](args)
 
 
