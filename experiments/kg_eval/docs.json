@@ -1,0 +1,60 @@
+{
+  "seed": 42,
+  "excluded_used": 73,
+  "excluded_related": 126,
+  "documents": [
+    {
+      "doc_id": "Conditional and restricted use licenses#3_0",
+      "domain": "dmv",
+      "title": "Conditional and restricted use licenses#3",
+      "sections": 4,
+      "entities": 19,
+      "relations": 13
+    },
+    {
+      "doc_id": "Apply For A Child (Under Age 18) | Disability Benefits | SSA#2_0",
+      "domain": "ssa",
+      "title": "Apply For A Child (Under Age 18) | Disability Benefits | SSA#2",
+      "sections": 2,
+      "entities": 16,
+      "relations": 12
+    },
+    {
+      "doc_id": "How to Renew Your FAFSA® Application | Federal Student Aid#1_0",
+      "domain": "studentaid",
+      "title": "How to Renew Your FAFSA® Application | Federal Student Aid#1",
+      "sections": 2,
+      "entities": 14,
+      "relations": 12
+    },
+    {
+      "doc_id": "GI Bill Eligibility | Veterans Affairs#1_0",
+      "domain": "va",
+      "title": "GI Bill Eligibility | Veterans Affairs#1",
+      "sections": 10,
+      "entities": 57,
+      "relations": 45
+    },
+    {
+      "doc_id": "GI Bill | Veterans Affairs#1_0",
+      "domain": "va",
+      "title": "GI Bill | Veterans Affairs#1",
+      "sections": 5,
+      "entities": 29,
+      "relations": 19
+    },
+    {
+      "doc_id": "Complete Federal Student Loan Counseling | Federal Student Aid#1_0",
+      "domain": "studentaid",
+      "title": "Complete Federal Student Loan Counseling | Federal Student Aid#1",
+      "sections": 7,
+      "entities": 24,
+      "relations": 14
+    }
+  ],
+  "entities": 159,
+  "relations": 115,
+  "samples": {
+    "entities": "entities_sample150.csv"
+  }
+}
