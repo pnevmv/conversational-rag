@@ -694,6 +694,81 @@ transportation network company ``provided by'' a rideshare company). With the fi
 counted as errors); the two rounds agree on 20 of the 30 triples ($\kappa = 0.31$), so the
 estimate depends noticeably on the annotator.
 
+\subsection{Entity and Relation Precision}\label{sec:kg:precision}
+
+Entities and relations of the full graph were then evaluated separately on six documents
+not used in any earlier annotation, drawn with a fixed seed (42) and stratified by
+domain. Documents that share a page title or the text of a section with an earlier one
+were excluded too, since identical sections are extracted once and shared. The rows were
+read from the existing graph without new \gls{llm} calls. Each resolved entity with a
+mention in the six documents and each relation with evidence from them was labelled
+correct or not, and given an error type when not, following fixed written rules: an
+entity is correct when it is a real, useful thing in the text, its type fits the schema,
+its name is clean and all merged aliases mean the same thing; a relation is correct when
+its evidence quote supports it in the right direction and with the right relation type.
+A seeded sample of 150 of the 159 entities and all 115 relations were labelled. The
+labels are by the author; an \gls{llm} was consulted on borderline rows, with the final
+decisions by the author.
+
+\begin{table}[ht]
+    \centering
+    \caption{Precision of entities and relations on six unseen documents, with Wilson 95\%
+             confidence intervals. \textsc{determined\_by} does not occur in the sample.}
+    \label{tab:kg:precision}
+    \small\setlength{\tabcolsep}{4pt}
+    \begin{minipage}[t]{0.46\textwidth}\centering
+    \begin{tabular}{lrr}
+        \toprule
+        Entity type & Correct & Precision \\
+        \midrule
+        All          & 87/150 & 58.0 $[50.0, 65.6]$ \\
+        Service      & 32/58  & 55.2 $[42.5, 67.3]$ \\
+        Requirement  & 24/47  & 51.1 $[37.2, 64.7]$ \\
+        Document     & 5/10   & 50.0 $[23.7, 76.3]$ \\
+        Role         & 8/10   & 80.0 $[49.0, 94.3]$ \\
+        ContactPoint & 7/8    & 87.5 $[52.9, 97.8]$ \\
+        TimeLimit    & 5/6    & 83.3 $[43.6, 97.0]$ \\
+        Organization & 2/4    & 50.0 $[15.0, 85.0]$ \\
+        Outcome      & 1/4    & 25.0 $[4.6, 69.9]$ \\
+        Amount       & 3/3    & 100.0 $[43.8, 100.0]$ \\
+        \bottomrule
+    \end{tabular}
+    \end{minipage}\hfill
+    \begin{minipage}[t]{0.52\textwidth}\centering
+    \begin{tabular}{lrr}
+        \toprule
+        Relation & Correct & Precision \\
+        \midrule
+        All                      & 90/115 & 78.3 $[69.9, 84.8]$ \\
+        \textsc{requires}        & 46/57  & 80.7 $[68.7, 88.9]$ \\
+        \textsc{applies\_to}     & 16/19  & 84.2 $[62.4, 94.5]$ \\
+        \textsc{leads\_to}       & 4/8    & 50.0 $[21.5, 78.5]$ \\
+        \textsc{available\_at}   & 7/7    & 100.0 $[64.6, 100.0]$ \\
+        \textsc{part\_of}        & 3/6    & 50.0 $[18.8, 81.2]$ \\
+        \textsc{has\_time\_limit} & 6/6   & 100.0 $[61.0, 100.0]$ \\
+        \textsc{exempt\_from}    & 1/4    & 25.0 $[4.6, 69.9]$ \\
+        \textsc{provided\_by}    & 3/3    & 100.0 $[43.8, 100.0]$ \\
+        \textsc{alternative\_to} & 2/3    & 66.7 $[20.8, 93.9]$ \\
+        \textsc{has\_amount}     & 2/2    & 100.0 $[34.2, 100.0]$ \\
+        \bottomrule
+    \end{tabular}
+    \end{minipage}
+\end{table}
+
+Table~\ref{tab:kg:precision} gives the results: 58.0\% of the entities (Wilson CI
+$[50.0, 65.6]$) and 78.3\% of the relations ($[69.9, 84.8]$) are correct. Services and
+requirements make up 105 of the 150 entities and are correct about half of the time;
+\textsc{requires} and \textsc{applies\_to}, 76 of the 115 relations, about four times in
+five. The other types are too rare in the sample for their intervals to be informative.
+The 63 entity errors are 27 bad names (a clause or a truncated phrase instead of a
+name), 15 wrong merges, 12 wrong types and 9 rows that are not entities; the 25
+relation errors are 11 wrong relation types, 8 unsupported relations, 4 reversed
+directions and 2 self-referential or circular relations, with no lost negation. The
+graph therefore invents few facts (7\% of the relations are unsupported, 6\% of the
+entities are not real); its main problems are entity names, merges and the choice of
+relation type. These figures are not comparable to the control sample above, which
+judged whole triples on other documents under other rules.
+
 
 % ===========================================================================
 \section{Status}\label{sec:kg:status}
@@ -704,7 +779,7 @@ document structure shared with the retrieval index. The pilot evaluation guided 
 prompt revisions and several entity-resolution safeguards. On the pilot documents the
 first prompt finds about two thirds of the stated facts with a precision of about one
 half, and the revised prompt did not improve on it; on unseen documents the final graph
-has a precision of about three quarters. Agreement between two independent runs is the
+has a precision of about three quarters, and separate checks on six further documents give 58\% for entities and 78\% for relations. Agreement between two independent runs is the
 strongest available precision signal. The graph covers the gold sections of almost all dev-500 questions. The next
 step, question answering over the graph, is the subject of Chapter~\ref{ch:kgret};
 there, noisy triples can still be filtered by the retriever or the answering model.

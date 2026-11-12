@@ -304,6 +304,69 @@ section are the same object.}
 \end{itemize}
 
 % =====================================================================
+\section{Extraction precision (Q9)}\label{sec:precision}
+
+\textbf{On 6 documents not used before, 58\% of the entities and 78\% of the relations are correct. The graph
+invents few facts (7\% of relations unsupported, 6\% of entities not real); the main problems are names, merges
+and the relation type.}
+
+\begin{table}[H]
+\centering\small\setlength{\tabcolsep}{4pt}
+\begin{minipage}[t]{0.47\textwidth}\centering
+\begin{tabular}{lrc}
+\toprule
+Entity type & Correct & Precision [95\% CI] \\
+\midrule
+\textbf{All} & \textbf{87/150} & \textbf{58.0} [50.0, 65.6] \\
+Service & 32/58 & 55.2 [42.5, 67.3] \\
+Requirement & 24/47 & 51.1 [37.2, 64.7] \\
+Document & 5/10 & 50.0 [23.7, 76.3] \\
+Role & 8/10 & 80.0 [49.0, 94.3] \\
+ContactPoint & 7/8 & 87.5 [52.9, 97.8] \\
+TimeLimit & 5/6 & 83.3 [43.6, 97.0] \\
+Organization & 2/4 & 50.0 [15.0, 85.0] \\
+Outcome & 1/4 & 25.0 [4.6, 69.9] \\
+Amount & 3/3 & 100.0 [43.8, 100.0] \\
+\bottomrule
+\end{tabular}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.5\textwidth}\centering
+\begin{tabular}{lrc}
+\toprule
+Relation & Correct & Precision [95\% CI] \\
+\midrule
+\textbf{All} & \textbf{90/115} & \textbf{78.3} [69.9, 84.8] \\
+REQUIRES & 46/57 & 80.7 [68.7, 88.9] \\
+APPLIES\_TO & 16/19 & 84.2 [62.4, 94.5] \\
+LEADS\_TO & 4/8 & 50.0 [21.5, 78.5] \\
+AVAILABLE\_AT & 7/7 & 100.0 [64.6, 100.0] \\
+PART\_OF & 3/6 & 50.0 [18.8, 81.2] \\
+HAS\_TIME\_LIMIT & 6/6 & 100.0 [61.0, 100.0] \\
+EXEMPT\_FROM & 1/4 & 25.0 [4.6, 69.9] \\
+PROVIDED\_BY & 3/3 & 100.0 [43.8, 100.0] \\
+ALTERNATIVE\_TO & 2/3 & 66.7 [20.8, 93.9] \\
+HAS\_AMOUNT & 2/2 & 100.0 [34.2, 100.0] \\
+\bottomrule
+\end{tabular}
+\end{minipage}
+\caption{Precision of entities (seeded sample of 150 of the 159 in the 6 documents) and relations (all 115),
+with Wilson 95\% intervals.}
+\label{tab:precision}
+\end{table}
+
+\begin{itemize}
+\item \textbf{Method.} 6 documents drawn with seed 42, stratified by domain, excluding every document used in an
+  earlier annotation and those sharing a page title or a section with one. Each entity and each relation was
+  labelled correct or not with an error type, following fixed rules (\texttt{experiments/kg\_eval/guidelines.md}).
+  No LLM calls: the rows are read from the existing graph.
+\item \textbf{Errors.} Entities: 27 bad name, 15 wrong merge, 12 wrong type, 9 not an entity. Relations: 11 wrong
+  relation type, 8 not supported, 4 wrong direction, 2 self or circular, 0 negation lost.
+\item \textbf{Caveats.} Labels by the author; an LLM was consulted on borderline rows, final decisions by the
+  author. Not comparable to the earlier check of 30 triples (73\% [56, 86]), which judged whole triples on other
+  documents with other rules.
+\end{itemize}
+
+% =====================================================================
 \section{How the LLM uses the graph (Q4)}\label{sec:usage}
 
 \textbf{The LLM never calls the graph. The retriever queries it, and the LLM only sees the facts
@@ -700,13 +763,6 @@ Evaluation only: no system was re-selected on the judge.}
   human labels (in 9 of the 12 disagreements its verdict is lower). One test question is left out for all
   three systems because the content filter blocked the judge prompt. On dev-500 the agents were scored too, but
   their extended contexts are not stored, so their ``supported'' is checked against the gold section only.
-\end{itemize}
-
-% =====================================================================
-\section*{Open items (Planned)}
-\begin{itemize}
-\item Q9, extraction precision with entities and relations evaluated separately on documents
-  annotated by hand.
 \end{itemize}
 
 

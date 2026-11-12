@@ -72,6 +72,42 @@ The best configuration (passages + graph facts, with dialogue history) with thre
 
 The newer models answer as well when they answer (same F1 on the questions all three answer) but refuse more answerable questions.
 
+### Extraction precision
+
+Entities and relations of the full graph were checked separately on 6 documents not used in any earlier annotation (seed 42, stratified by domain; documents sharing a page title or a section with an earlier one excluded). Each row was labelled correct or not with an error type, following fixed rules ([guidelines](experiments/kg_eval/guidelines.md)); intervals are Wilson 95%. Entities are a seeded sample of 150 of the 159 in the 6 documents; all 115 relations were labelled.
+
+| Entity type | Correct | Precision [95% CI] |
+| :--- | :---: | :---: |
+| **All entities** | **87 / 150** | **58.0 [50.0, 65.6]** |
+| Service | 32 / 58 | 55.2 [42.5, 67.3] |
+| Requirement | 24 / 47 | 51.1 [37.2, 64.7] |
+| Document | 5 / 10 | 50.0 [23.7, 76.3] |
+| Role | 8 / 10 | 80.0 [49.0, 94.3] |
+| ContactPoint | 7 / 8 | 87.5 [52.9, 97.8] |
+| TimeLimit | 5 / 6 | 83.3 [43.6, 97.0] |
+| Organization | 2 / 4 | 50.0 [15.0, 85.0] |
+| Outcome | 1 / 4 | 25.0 [4.6, 69.9] |
+| Amount | 3 / 3 | 100.0 [43.8, 100.0] |
+
+| Relation | Correct | Precision [95% CI] |
+| :--- | :---: | :---: |
+| **All relations** | **90 / 115** | **78.3 [69.9, 84.8]** |
+| REQUIRES | 46 / 57 | 80.7 [68.7, 88.9] |
+| APPLIES_TO | 16 / 19 | 84.2 [62.4, 94.5] |
+| LEADS_TO | 4 / 8 | 50.0 [21.5, 78.5] |
+| AVAILABLE_AT | 7 / 7 | 100.0 [64.6, 100.0] |
+| PART_OF | 3 / 6 | 50.0 [18.8, 81.2] |
+| HAS_TIME_LIMIT | 6 / 6 | 100.0 [61.0, 100.0] |
+| EXEMPT_FROM | 1 / 4 | 25.0 [4.6, 69.9] |
+| PROVIDED_BY | 3 / 3 | 100.0 [43.8, 100.0] |
+| ALTERNATIVE_TO | 2 / 3 | 66.7 [20.8, 93.9] |
+| HAS_AMOUNT | 2 / 2 | 100.0 [34.2, 100.0] |
+
+Errors: entities 27 bad name, 15 wrong merge, 12 wrong type, 9 not an entity; relations 11 wrong relation type, 8 not supported, 4 wrong direction, 2 self or circular, 0 negation lost. The graph invents few facts (7% of relations unsupported, 6% of entities not real); the main problems are names, merges and the relation type.
+
+* Labels by the author; an LLM was consulted on borderline rows, final decisions by the author.
+* Not comparable to the earlier check of 30 triples (73% [56, 86]), which judged whole triples on other documents with other rules.
+
 ### Graph RAG variants
 
 Attempts to keep the graph's help on retrieval misses while removing off-topic facts, all with dialogue history, chosen on validation and run once on test:

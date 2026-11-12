@@ -225,7 +225,7 @@ Hybrid (RRF) & 24.7 & 44.7 \\ % experiments/results/rag_hybrid_baseline_full_eva
 \item Control sample from the full graph: 22 of 30 triples correct, precision 73\% [56, 86] % experiments/kg/control_scores.json
 \item Pilot on 3 annotated documents: precision 51\%, recall 66\% % experiments/kg/v1_v2_comparison.md
 \item Not deterministic: two runs with the same settings share a third of their triples (Jaccard 0.33) % experiments/kg/pilot3_report.md
-\item \down{Still to do:} entity and relation precision, separately, on new hand-annotated documents
+\item Entity and relation precision, separately, on 6 unseen documents: next slide
 \end{itemize}
 \column{0.46\textwidth}
 \footnotesize
@@ -241,6 +241,57 @@ Hybrid (RRF) & 24.7 & 44.7 \\ % experiments/results/rag_hybrid_baseline_full_eva
   \node[font=\tiny, text width=5.5cm, align=left] at (2.2,-2.95) {circular relation};
 \end{tikzpicture}
 \end{columns}
+\end{frame}
+
+% =====================================================================
+\begin{frame}{Extraction precision (Q9)}
+\footnotesize
+6 documents not used before (seeded, stratified by domain), labelled by hand with fixed guidelines; Wilson 95\% intervals % experiments/kg_eval/precision_scores.json, experiments/kg_eval/docs.json
+\vspace{1mm}
+
+\begin{columns}[T]
+\column{0.42\textwidth}
+\centering
+\vspace{2mm}
+\begin{tabular}{@{}lrr@{}}
+\toprule
+ & Entities & Relations \\
+\midrule
+Labelled & 150 & 115 \\
+Correct & 87 & 90 \\
+Precision & \textbf{58.0\%} & \textbf{78.3\%} \\
+95\% CI & [50.0, 65.6] & [69.9, 84.8] \\
+\bottomrule
+\end{tabular}
+
+\vspace{2mm}
+\raggedright\scriptsize
+Entities: a seeded sample of 150 of the 159 in the 6 documents. Relations: all 115.
+\column{0.54\textwidth}
+\textbf{Errors per type}\\[2pt]
+\begin{tikzpicture}[x=1.3mm, y=3.3mm, every node/.style={font=\scriptsize}]
+  \foreach \lab/\n/\y in {bad\_name/27/0, wrong\_merge/15/1, wrong\_type/12/2, not\_an\_entity/9/3} {
+    \fill[kgc!70!black] (0,-\y-0.35) rectangle (\n,-\y+0.35);
+    \node[anchor=east] at (-0.5,-\y) {\lab};
+    \node[anchor=west] at (\n+0.4,-\y) {\n};
+  }
+  \node[anchor=west, font=\scriptsize\bfseries] at (-21,1.2) {Entities (63 errors)};
+  \foreach \lab/\n/\y in {wrong\_relation\_type/11/6.2, not\_supported/8/7.2, wrong\_direction/4/8.2, self\_or\_circular/2/9.2, negation\_lost/0/10.2} {
+    \fill[retc!60!black] (0,-\y-0.35) rectangle (\n,-\y+0.35);
+    \node[anchor=east] at (-0.5,-\y) {\lab};
+    \node[anchor=west] at (\n+0.4,-\y) {\n};
+  }
+  \node[anchor=west, font=\scriptsize\bfseries] at (-21,-5) {Relations (25 errors)};
+\end{tikzpicture}
+\end{columns}
+
+\vspace{1mm}
+\small
+Few invented facts (7\% of relations unsupported, 6\% of entities not real); main problems are names, merges and relation type.
+
+\vspace{1mm}
+\scriptsize\color{muted}
+Not comparable to the earlier 30-triple check (whole triples, other documents and rules).
 \end{frame}
 
 % =====================================================================
@@ -548,7 +599,6 @@ gold not retrieved & \phantom{0}2.6\% \\ % experiments/results/validation/source
 \begin{frame}{Open items and next steps}
 \begin{itemize}
 \setlength{\itemsep}{5pt}
-\item Extraction precision for entities and relations separately, on new hand-annotated documents
 \item Error analysis of the final systems
 \item Agent with a second retrieval round: ranks 6--10 of the first list plus a separate refusal decision (future work from the agent experiments)
 \item Report writing
