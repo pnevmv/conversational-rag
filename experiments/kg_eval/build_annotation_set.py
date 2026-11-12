@@ -143,8 +143,8 @@ def main() -> None:
     ent_rows = []
     for eid, m in sorted(first.items(), key=lambda kv: (order(kv[1]["section_id"]), kv[0])):
         e, sec = entities[eid], sections[m["section_id"]]
-        extracted = next((x for x in sec["entities"] if x.get("name") == m["name"] and x.get("text")), None)
-        context = extracted["text"] if extracted else sentence_with(sec["text"], m["name"])
+        extracted = next((x for x in sec["entities"] if x.get("name") == m["name"] and x.get("evidence")), None)
+        context = extracted["evidence"] if extracted else sentence_with(sec["text"], m["name"])
         ent_rows.append({"entity_id": eid, "name": e["name"], "type": e["type"],
                          "aliases": " | ".join(e["forms"]), "doc_id": sec["doc_id"],
                          "section_title": section_title(sec), "context": short(context)})
