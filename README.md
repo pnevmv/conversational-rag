@@ -107,9 +107,6 @@ Entities and relations of the full graph were checked separately on 6 documents 
 
 Errors: entities 27 bad name, 15 wrong merge, 12 wrong type, 9 not an entity; relations 11 wrong relation type, 8 not supported, 4 wrong direction, 2 self or circular, 0 negation lost. The graph invents few facts (7% of relations unsupported, 6% of entities not real); the main problems are names, merges and the relation type.
 
-* Labels by the author; an LLM was consulted on borderline rows, final decisions by the author.
-* Not comparable to the earlier check of 30 triples (73% [56, 86]), which judged whole triples on other documents with other rules.
-
 ### Graph RAG variants
 
 Attempts to keep the graph's help on retrieval misses while removing off-topic facts, all with dialogue history, chosen on validation and run once on test:
