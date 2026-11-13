@@ -19,7 +19,7 @@ Neo4j does not need to be running: the graph is served from the JSON exports in 
 
 * **System:** P (passages), E (passages + 30 one-hop graph facts, the default) or V1 (passages + the top 10 facts by cross-encoder score).
 * **Citations:** on by default (the citation prompt was tested on E only). The answer prompt asks the model to cite the passages ([2]) and facts ([F7]) it used; the cited sections are listed under the answer and the brackets are removed from the answer text. Unchecked, the demo is exactly the evaluated system, and the source shown is the passage or fact section that shares the most words with the answer.
-* **Side panels:** the rewritten query, the top 5 passages with their reranker scores, the graph facts in the prompt (head —relation→ tail, with the evidence quote), and the tokens and cost of this turn and of the conversation, with the time of each step.
+* **Side panels:** the rewritten query, the top 5 passages with their reranker scores, the graph facts in the prompt (head —relation→ tail, with the evidence quote), and the tokens (input, cached input, output) and cost of this turn and of the conversation, with the time of each step. Cached input tokens are the start of a prompt that the API reuses from an earlier call; they are billed at a tenth of the input price, so the cost is not proportional to the input tokens.
 * **New conversation** clears the history and the totals.
 
 A turn takes about 7–11 s on a laptop (rewrite about 1–2.5 s, passage reranking about 2.5 s, V1 fact scoring about 1 s, two generator calls of 1.5–3 s each) and costs about USD 0.0006–0.002.
