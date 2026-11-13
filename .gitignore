@@ -35,7 +35,6 @@ logs/
 !latex_report/template/*.pdf
 !latex_report/img/*.pdf
 !latex_report/main.pdf
-!docs/schematic_report.pdf
 !slides/main.pdf
 
 # LaTeX build artifacts
@@ -84,3 +83,6 @@ experiments/kg_rag/*.npy
 experiments/kg_rag/entities_*.json
 experiments/kg_rag/step4_*.json
 experiments/kg_rag/relations_*.json
+
+# Schematic report: kept locally, not published
+docs/schematic_report.*

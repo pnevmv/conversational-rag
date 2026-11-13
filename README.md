@@ -8,8 +8,10 @@ Author: Danil Smirnov - danil.smirnov@studenti.unipd.it
 
 * **The graph alone is worse than passages.** Graph sections reach 23.0 and graph facts 24.1 token F1 on validation, against 26.9 for passage retrieval (test: 23.8 vs 26.9 for graph facts).
 * **Graph facts added to the passages give a small gain on answerable questions** (validation 27.7 vs 27.2, test 28.0 vs 27.1), which the same number of random facts does not give (27.2 and 27.1).
-* **Giving the generator the dialogue history, with the abstention decision taken separately, gives the best result**: passages + graph facts reach 28.2 overall and 28.4 on answerable questions on test, +0.6 and +0.9 over passages. Filtering, reordering or reranking with the graph did not do better (see [Graph RAG variants](#graph-rag-variants)).
-* **A model that checks its own context does not help.** It can tell when the retrieved context lacks the gold section (Youden's J 0.33), but one more search or a tool-calling agent does not recover the section often enough to beat the system above, and an agent that refuses on its own almost never refuses (see [Agents](#agents)).
+* **Giving the generator the dialogue history, with the abstention decision taken separately, gives the best result**: passages + graph facts reach 28.2 overall and 28.4 on answerable questions on test, +0.6 and +0.9 over passages. Filtering, reordering or reranking with the graph did not do better.
+* **A model that checks its own context does not help.** It can tell when the retrieved context lacks the gold section (Youden's J 0.33), but one more search or a tool-calling agent does not recover the section often enough to beat the system above, and an agent that refuses on its own almost never refuses.
+* **An LLM judge agrees on test**: passages + graph facts score 68.5 against 67.3 for passages (+1.3 [0.3, 2.2]); on validation it shows no difference.
+* **The graph invents few facts but has noisy entities**: relation precision 78.3%, entity precision 58.0%, mostly from names, merges and relation types.
 
 ## Architecture
 
@@ -26,8 +28,6 @@ Author: Danil Smirnov - danil.smirnov@studenti.unipd.it
 | LLM client, cache, per-call token usage log | `src/llm/` |
 | Generator prompt, dialogue history, abstention decision | `experiments/run_dev_subset.py`, `experiments/generator_input.py` |
 | Metrics | `src/evaluation/` |
-
-All LLM calls of the system (rewriting, extraction, entity resolution, generation) go to one Azure OpenAI deployment of `gpt-5.4-nano`; the evaluation judge (`src/evaluation/judge.py`, `experiments/judge_answers.py`) uses `gpt-6-luna`.
 
 ## Configurations evaluated
 
@@ -63,6 +63,8 @@ Token F1 (%), all questions / answerable questions only. Validation: 4,427 quest
 ### Generator models
 
 The best configuration (passages + graph facts, with dialogue history) with three generator models on validation; only the generator changes. All three were run fresh, so gpt-5.4-nano differs by 0.1–0.2 from the table above. Token usage is recorded per call; cost at USD list prices (Azure Retail Prices API, Global Standard, East US 2, 21 Oct 2026).
+
+In the experiments every LLM call of the system (rewriting, extraction, entity resolution, generation) went to one Azure OpenAI deployment of gpt-5.4-nano, and the judge used gpt-6-luna. The model is not fixed: `src/llm/client.py` talks to any OpenAI-compatible Responses API, and the endpoint and model are set in `.env` (`AZURE_OPENAI_BASE_URL`, `LLM_MODEL`).
 
 | Generator | F1 all / answerable | False abstention | Tokens per turn, in / out (reasoning) | USD per 1,000 conversations |
 | :--- | :---: | :---: | :---: | :---: |
@@ -170,6 +172,27 @@ A follow-up turn of a validation dialogue (DMV, traffic tickets), answered by pa
 
 The relation name is not right (these drivers cannot plead by mail), but the evidence quote is, which is why every fact is given to the model with its quote.
 
+## Demo
+
+A local chat over the final system in `demo/`, built on the experiment code: the same rewriter, retrieval, reranking, graph facts and G2 + abstain(G0) generator. `python demo/check_replay.py` builds the contexts and G0/G2 prompts of 20 validation questions from the stored rewrites and the gold history and compares them with the stored results of all three systems and of the citation prompt, without LLM calls: 194 of 194 are identical.
+
+```bash
+pip install -r demo/requirements.txt                # Gradio 6.30.0, tested with Python 3.14
+python demo/app.py                                  # http://127.0.0.1:7860
+python demo/app.py --share --auth user:password     # temporary public link (72 h); --auth is required
+```
+
+The API settings are read from `.env`, as for the experiments, and are never printed or logged. Neo4j does not need to be running: the graph is served from the JSON exports in `experiments/kg_rag/`, which were made from Neo4j.
+
+* **System:** passages, passages + 30 graph facts (default), or passages + the top 10 facts by cross-encoder score.
+* **Citations:** on by default. The model cites the passages ([2]) and facts ([F7]) it used; the cited sections are listed under the answer and the brackets are removed from the text. The citation prompt was evaluated on passages + graph facts only. With citations off the demo is exactly the evaluated system, and the source shown is the section that shares the most words with the answer.
+* **Side panels:** the rewritten query, the top 5 passages with their reranker scores, the graph facts in the prompt with their evidence quotes, and the tokens (input, cached input, output), cost and time of the turn and of the conversation. Cached input is the start of a prompt that the API reuses from an earlier call, billed at a tenth of the input price, so the cost is not proportional to the input tokens.
+* **New conversation** clears the history and the totals.
+
+A turn takes about 7–11 s on a laptop (rewrite 1–2.5 s, reranking about 2.5 s, two generator calls of 1.5–3 s) and costs USD 0.0006–0.002.
+
+Differences from the evaluation: the history holds the system's own earlier answers instead of the gold agent turns, so a wrong answer can carry over to later turns; and nothing is cached, so every turn calls the model (token usage goes to `demo/logs/usage.jsonl`, not tracked).
+
 ## Quick start
 
 ```bash
@@ -192,9 +215,11 @@ LLM only and the oracle are scored with `python experiments/evaluate_diagnostics
 ## Repository map
 
 * `src/`: the system (`data`, `llm`, `rag`, `kg`, `kg_rag`, `evaluation`) and the agent experiments (`agents`).
-* `experiments/`: run and evaluation scripts, result summaries (`results/`) and the reports of the graph work (`kg/`, `kg_rag/`).
-* `docs/`: the schematic report, the experiment log, the graph build guide and the figures.
+* `experiments/`: run and evaluation scripts, result summaries (`results/`), the reports of the graph work (`kg/`, `kg_rag/`) and the extraction precision labels (`kg_eval/`).
+* `demo/`: the local demo chat.
+* `docs/`: the experiment log, the graph build guide and the figures.
 * `latex_report/`: the full report (unipd-thesis-modern template).
+* `slides/`: the presentation (Beamer).
 * `tests/`: unit and regression tests (`python -m pytest tests`).
 * `data/`: the dataset (not tracked), the development subset ids and the index cache.
 
@@ -202,6 +227,16 @@ Raw outputs (`*.jsonl`) and LLM caches are not tracked.
 
 ## Reports and documentation
 
-* [Schematic report](docs/schematic_report.pdf): one short answer per question, with diagrams.
 * [Full report](latex_report/main.pdf), source in [latex_report/](latex_report/).
+* [Slides](slides/main.pdf), source in [slides/](slides/).
+* [Experiment log](docs/experiment_log.md): the history of the experiments, with the old step names.
 * [Graph build](docs/graph_build.md): Neo4j setup and the commands to build the knowledge graph.
+
+## Status and future work
+
+The system on MultiDoc2Dial is finished: the final configuration (passages + graph facts, with dialogue history) was chosen on validation and run once on test, and the agents, the LLM judge and the extraction precision check are done. No result above will change.
+
+Future work:
+
+* **EnronQA and MTRAG.** Run the same pipeline on two more datasets, agreed with the supervisor: EnronQA (questions over a company's email collection) and MTRAG (multi-turn conversations over several document collections). The aim is to see whether the findings hold outside the government-service documents of MultiDoc2Dial: the graph's small gain over passages, the value of the dialogue history with a separate abstention decision, and the low use of a self-checking agent.
+* **A second retrieval round from ranks 6–10** of the original list with a separate refusal decision. The idea comes from an exploratory check after the agent experiments, so it needs a fresh validation run.
