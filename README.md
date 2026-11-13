@@ -172,27 +172,6 @@ A follow-up turn of a validation dialogue (DMV, traffic tickets), answered by pa
 
 The relation name is not right (these drivers cannot plead by mail), but the evidence quote is, which is why every fact is given to the model with its quote.
 
-## Demo
-
-A local chat over the final system in `demo/`, built on the experiment code: the same rewriter, retrieval, reranking, graph facts and G2 + abstain(G0) generator. `python demo/check_replay.py` builds the contexts and G0/G2 prompts of 20 validation questions from the stored rewrites and the gold history and compares them with the stored results of all three systems and of the citation prompt, without LLM calls: 194 of 194 are identical.
-
-```bash
-pip install -r demo/requirements.txt                # Gradio 6.30.0, tested with Python 3.14
-python demo/app.py                                  # http://127.0.0.1:7860
-python demo/app.py --share --auth user:password     # temporary public link (72 h); --auth is required
-```
-
-The API settings are read from `.env`, as for the experiments, and are never printed or logged. Neo4j does not need to be running: the graph is served from the JSON exports in `experiments/kg_rag/`, which were made from Neo4j.
-
-* **System:** passages, passages + 30 graph facts (default), or passages + the top 10 facts by cross-encoder score.
-* **Citations:** on by default. The model cites the passages ([2]) and facts ([F7]) it used; the cited sections are listed under the answer and the brackets are removed from the text. The citation prompt was evaluated on passages + graph facts only. With citations off the demo is exactly the evaluated system, and the source shown is the section that shares the most words with the answer.
-* **Side panels:** the rewritten query, the top 5 passages with their reranker scores, the graph facts in the prompt with their evidence quotes, and the tokens (input, cached input, output), cost and time of the turn and of the conversation. Cached input is the start of a prompt that the API reuses from an earlier call, billed at a tenth of the input price, so the cost is not proportional to the input tokens.
-* **New conversation** clears the history and the totals.
-
-A turn takes about 7–11 s on a laptop (rewrite 1–2.5 s, reranking about 2.5 s, two generator calls of 1.5–3 s) and costs USD 0.0006–0.002.
-
-Differences from the evaluation: the history holds the system's own earlier answers instead of the gold agent turns, so a wrong answer can carry over to later turns; and nothing is cached, so every turn calls the model (token usage goes to `demo/logs/usage.jsonl`, not tracked).
-
 ## Quick start
 
 ```bash
@@ -211,6 +190,18 @@ python experiments/generator_input.py --split validation --k all                
 ```
 
 LLM only and the oracle are scored with `python experiments/evaluate_diagnostics.py --inputs experiments/results/validation/*.jsonl`. The test column uses `run_split.py`, `run_qa` and `eval_qa` with `--split test`.
+
+## Demo
+
+A local chat over the final system (`demo/`), built on the experiment code: its prompts are identical to the evaluated systems (`python demo/check_replay.py`, 194 of 194). You can switch between the three final systems and see the sources, retrieved passages, graph facts and cost of each turn. Neo4j is not needed; the graph is read from its JSON exports.
+
+```bash
+pip install -r demo/requirements.txt
+python demo/app.py                                  # http://127.0.0.1:7860
+python demo/app.py --share --auth user:password     # temporary public link, --auth required
+```
+
+A turn takes about 7–11 s and costs USD 0.0006–0.002. Unlike the evaluation, the history holds the system's own answers instead of the gold agent turns.
 
 ## Repository map
 
