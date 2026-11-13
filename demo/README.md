@@ -18,7 +18,7 @@ Neo4j does not need to be running: the graph is served from the JSON exports in 
 ## What the page shows
 
 * **System:** P (passages), E (passages + 30 one-hop graph facts, the default) or V1 (passages + the top 10 facts by cross-encoder score).
-* **Citations (tested on E only):** on by default. The answer prompt asks the model to cite the passages ([2]) and facts ([F7]) it used; the cited sections are listed under the answer and the brackets are removed from the answer text. Unchecked, the demo is exactly the evaluated system, and the source shown is the passage or fact section that shares the most words with the answer.
+* **Citations:** on by default (the citation prompt was tested on E only). The answer prompt asks the model to cite the passages ([2]) and facts ([F7]) it used; the cited sections are listed under the answer and the brackets are removed from the answer text. Unchecked, the demo is exactly the evaluated system, and the source shown is the passage or fact section that shares the most words with the answer.
 * **Side panels:** the rewritten query, the top 5 passages with their reranker scores, the graph facts in the prompt (head —relation→ tail, with the evidence quote), and the tokens and cost of this turn and of the conversation, with the time of each step.
 * **New conversation** clears the history and the totals.
 

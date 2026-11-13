@@ -190,9 +190,12 @@ class Pipeline:
             labels, how = [], "best match"
         out, seen = [], set()
         for sid in sids:
-            if sid in seen or sid not in self.kg.sections:
+            if sid not in self.kg.sections:
                 continue
-            seen.add(sid)
             s = self.kg.sections[sid]
+            key = (display_title(s["title"]), s.get("section_title") or "")  # shown once even if several sections match
+            if key in seen:
+                continue
+            seen.add(key)
             out.append({"section_id": sid, "title": display_title(s["title"]), "section": s.get("section_title") or "", "how": how})
         return out

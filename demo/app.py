@@ -107,9 +107,7 @@ def build(pipe: Pipeline) -> gr.Blocks:
         return [], [], {"turns": 0, "usd": 0.0, "in": 0, "out": 0}, "", "", "", "", ""
 
     with gr.Blocks(title="MultiDoc2Dial RAG + KG demo") as demo:
-        gr.Markdown("## Government services assistant: passages + knowledge graph\n"
-                    "Answers come from the MultiDoc2Dial documents (DMV, SSA, StudentAid, VA). "
-                    f"If the documents do not say, the system replies “{ABSTAIN}”")
+        gr.Markdown("## Government services assistant")
         history = gr.State([])
         total = gr.State({"turns": 0, "usd": 0.0, "in": 0, "out": 0})
         with gr.Row():
@@ -117,7 +115,7 @@ def build(pipe: Pipeline) -> gr.Blocks:
                 with gr.Row():
                     system = gr.Radio(list(SYSTEMS), value="E", label="System",
                                       info="P passages · E passages + 30 graph facts · V1 passages + top 10 facts")
-                    cite = gr.Checkbox(value=True, label="Citations (tested on E only)")
+                    cite = gr.Checkbox(value=True, label="Citations")
                 chat = gr.Chatbot(height=520, label="Chat")
                 msg = gr.Textbox(placeholder="Ask about a government service…", label="Your message", lines=1)
                 with gr.Row():
