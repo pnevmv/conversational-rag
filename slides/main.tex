@@ -46,7 +46,7 @@
 \subtitle{Research Project in Computer Engineering}
 \author{Danil Smirnov (2142049)\\[2pt]{\small Supervisor: Prof.\ Gianmaria Silvello}}
 \institute{University of Padua}
-\date{October 2026}
+\date{\ifcase\month\or January\or February\or March\or April\or May\or June\or July\or August\or September\or October\or November\or December\fi\ \number\year}
 
 \begin{document}
 
@@ -185,6 +185,33 @@ Hybrid (RRF) & 24.7 & 44.7 \\ % experiments/results/rag_hybrid_baseline_full_eva
 \end{frame}
 
 % =====================================================================
+\begin{frame}{How the graph was built}
+\centering
+\begin{tikzpicture}[x=2.72cm, every node/.style={inner sep=3pt}]
+  \node[dat, minimum width=2.3cm, minimum height=9mm] (s1) at (0,0) {\footnotesize\bfseries 1. Structure};
+  \node[prm, minimum width=2.3cm, minimum height=9mm] (s2) at (1,0) {\footnotesize\bfseries 2. Schema};
+  \node[llm, minimum width=2.3cm, minimum height=9mm] (s3) at (2,0) {\footnotesize\bfseries 3. Extraction};
+  \node[kg, minimum width=2.3cm, minimum height=9mm] (s4) at (3,0) {\footnotesize\bfseries 4. Filtering};
+  \node[kg, minimum width=2.3cm, minimum height=9mm] (s5) at (4,0) {\footnotesize\bfseries 5. Resolution};
+  \foreach \a/\b in {s1/s2,s2/s3,s3/s4,s4/s5} \draw[arr] (\a) -- (\b);
+  \node[font=\scriptsize, align=center, text width=2.5cm, anchor=north] at (0,-0.6) {Domains, documents, sections, spans (no LLM)};
+  \node[font=\scriptsize, align=center, text width=2.5cm, anchor=north] at (1,-0.6) {Closed schema: 9 entity types, 11 relation types, allowed type pairs};
+  \node[font=\scriptsize, align=center, text width=2.5cm, anchor=north] at (2,-0.6) {LLM per section: JSON entities + relations, each with an evidence quote};
+  \node[font=\scriptsize, align=center, text width=2.5cm, anchor=north] at (3,-0.6) {Schema-violating relations dropped (16\%) + rule post-filters};
+  \node[font=\scriptsize, align=center, text width=2.5cm, anchor=north] at (4,-0.6) {Blocking by type/domain, rules, embedding sim.\ $\geq$ 0.80, LLM judge asks ``what differs?'', value conflicts block merges, hub fix};
+\end{tikzpicture}
+
+\vspace{9mm}
+\small
+$\sim$3,550 extraction calls $\;\to\;$ 28,782 mentions $\to$ 14,731 entities, 13,277 relations\\[2pt]
+$\sim$13k LLM calls in total, about 1 h, EUR 5--7 % experiments/kg/full_build_report.md (3,559 extraction calls, 12,970 total, about 63 min); EUR from docs/schematic_report.tex
+
+\vfill
+{\scriptsize Prompt iterated on a 3-document pilot (precision v1 44\%, v2 54\% on the first, LLM-drafted labels; hand relabelling later gave 51\% / 45\%), then v2.1. A single full run was kept because extraction is nondeterministic. % experiments/kg/full_build_report.md section 1
+}
+\end{frame}
+
+% =====================================================================
 \begin{frame}{Knowledge graph construction}
 \begin{columns}[c]
 \column{0.56\textwidth}
@@ -244,7 +271,7 @@ Hybrid (RRF) & 24.7 & 44.7 \\ % experiments/results/rag_hybrid_baseline_full_eva
 \end{frame}
 
 % =====================================================================
-\begin{frame}{Extraction precision (Q9)}
+\begin{frame}{Extraction precision}
 \footnotesize
 6 documents not used before (seeded, stratified by domain), labelled by hand with fixed guidelines; Wilson 95\% intervals % experiments/kg_eval/precision_scores.json, experiments/kg_eval/docs.json
 \vspace{1mm}
@@ -347,7 +374,7 @@ E with random facts & 27.4 & 27.2 & 63.7 & 27.3 & 27.1 \\ % experiments/results/
 
 \vspace{4mm}
 \begin{itemize}
-\item Generator sees the user turn only (G0); the dialogue history comes on slide 11
+\item Generator sees the user turn only (G0); the dialogue history comes on slide 13
 \item The graph alone ranks sections badly: R@5 half of passage retrieval
 \item Facts added to passages help on answerable questions; random facts do not (they only make the model abstain more)
 \end{itemize}
