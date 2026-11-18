@@ -345,7 +345,8 @@ Not comparable to the earlier 30-triple check (whole triples, other documents an
   \node[kg, right=of q3, yshift=-4mm, minimum width=36mm] (f3) {up to 30 facts (as B)};
   \node[llm, right=8mm of p3, yshift=-4mm] (g3) {generator};
   \draw[arr] (q3) |- (p3); \draw[arr] (q3) |- (f3); \draw[arr] (p3) -- (g3); \draw[arr] (f3) -- (g3);
-  \node[ret, right=5mm of g1, font=\tiny, align=left] {fact line: \texttt{junior license holder (Role)}\\\texttt{exempt from plead by mail (Service)}\\\texttt{Evidence: "you cannot plead by mail [\ldots]"}};
+  \node[ret, right=5mm of g2, font=\tiny, align=left] (fl) {fact line: \texttt{junior license holder (Role)}\\\texttt{exempt from plead by mail (Service)}\\\texttt{Evidence: "you cannot plead by mail [\ldots]"}};
+  \draw[dashed, thin, -{Stealth[length=1.4mm]}] (fl.north) |- ($(f2.north)+(0,1.5mm)$) -- (f2.north);
 \end{tikzpicture}
 
 \vspace{2mm}
