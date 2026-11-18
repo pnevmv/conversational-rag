@@ -214,9 +214,9 @@ $\sim$13k LLM calls in total, about 1 h, $\sim$EUR 5--7, est. % experiments/kg/f
 % =====================================================================
 \begin{frame}{Knowledge graph construction}
 \begin{columns}[c]
-\column{0.56\textwidth}
+\column{0.62\textwidth}
 \centering
-\begin{tikzpicture}[scale=0.74, transform shape]
+\begin{tikzpicture}[scale=0.82, transform shape]
   \node[dat, minimum width=17mm] (doc) at (0,0) {Document\\488};
   \node[dat, minimum width=17mm] (sec) at (3.4,0) {Section\\4,114};
   \node[dat, minimum width=17mm] (sp) at (6.8,0) {Span\\35,659};
@@ -233,13 +233,11 @@ $\sim$13k LLM calls in total, about 1 h, $\sim$EUR 5--7, est. % experiments/kg/f
   \node[font=\small\bfseries, anchor=east] at (-0.9,-4) {entities};
 \end{tikzpicture}
 % sizes: experiments/kg/full_build_report.md
-\column{0.42\textwidth}
+\column{0.36\textwidth}
 \begin{itemize}
-\item Closed schema: 9 entity types, 11 relations with allowed type pairs % src/kg/schema.py
-\item LLM extraction per section (JSON), then entity resolution with rules and an LLM judge
-\item 13,277 typed relations, each with an evidence quote % experiments/kg/full_build_report.md
-\item 16.2\% of the extracted relations broke the type rules % experiments/kg/full_build_report.md
-\item Cost: 12,970 LLM calls, 22.2\,M input / 3.9\,M output tokens, about 1 hour, EUR 5--7 % experiments/kg/full_build_report.md; EUR from docs/schematic_report.tex (Cost section, derived from the Azure bill)
+\item Structure: documents, sections, spans from the dataset
+\item Mentions: what the LLM extracted from each section
+\item Entities: mentions merged by entity resolution; 13,277 typed relations, each with an evidence quote % experiments/kg/full_build_report.md
 \end{itemize}
 \end{columns}
 \end{frame}
