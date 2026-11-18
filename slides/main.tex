@@ -527,6 +527,30 @@ Oracle & 34.2 & 35.1 & 456 \\ % experiments/results/test/baselines_by_answerabil
 \end{frame}
 
 % =====================================================================
+\begin{frame}{Why F1 is not enough}
+\footnotesize
+\begin{columns}[T]
+\column{0.48\textwidth}
+\textbf{Correct answer, F1 near 0} % experiments/results/judge/gpt-6-luna/dev_500/human_labels.csv (h018)
+\par\vspace{2pt}
+\textbf{User:} I need information from Proof of Supplemental Security Income\\[3pt]
+\textbf{Answer:} To prove you receive SSI at the DMV, bring an original Notice of Award, COLA letter, SSA-2258 benefit verification letter [\ldots]\\[3pt]
+\textbf{Reference:} you receive SSI?\\[3pt]
+\textbf{F1} 0.11 \quad \textbf{judge (next slide) / human:} correct / correct
+\column{0.48\textwidth}
+\textbf{Dataset noise} % experiments/results/judge/gpt-6-luna/dev_500/human_labels.csv (h004)
+\par\vspace{2pt}
+\textbf{User} (after VA homelessness help): Where can I get more information?\\[3pt]
+\textbf{Answer:} Call the VA hotline 800-827-1000, or the National Call Center for Homeless Veterans [\ldots]\\[3pt]
+\textbf{Reference:} Learn about suicide prevention [\ldots] Visit our suicide prevention website\\[3pt]
+\textbf{F1} 0.15 \quad \textbf{judge / human:} incorrect / incorrect
+\end{columns}
+
+\vspace{3mm}
+\small The reference is a clarifying question in the first case; in the second the gold turn switches to a topic the user never raised, so a reasonable answer to the conversation is scored wrong by both measures.
+\end{frame}
+
+% =====================================================================
 \begin{frame}{LLM judge}
 \small
 \begin{itemize}
@@ -551,30 +575,6 @@ V1 vs E & $-1.2$ [$-2.0$, $-0.4$] & $-0.4$ [$-0.7$, 0.0] \\ % experiments/result
 
 \vspace{2mm}
 \raggedright\scriptsize Paired over the 4,334 test questions with a verdict (one blocked by the content filter). Judge and generator are from the same model family. Evaluation only: no system re-selected.
-\end{frame}
-
-% =====================================================================
-\begin{frame}{Why F1 is not enough}
-\footnotesize
-\begin{columns}[T]
-\column{0.48\textwidth}
-\textbf{Correct answer, F1 near 0} % experiments/results/judge/gpt-6-luna/dev_500/human_labels.csv (h018)
-\par\vspace{2pt}
-\textbf{User:} I need information from Proof of Supplemental Security Income\\[3pt]
-\textbf{Answer:} To prove you receive SSI at the DMV, bring an original Notice of Award, COLA letter, SSA-2258 benefit verification letter [\ldots]\\[3pt]
-\textbf{Reference:} you receive SSI?\\[3pt]
-\textbf{F1} 0.11 \quad \textbf{judge / human:} correct / correct
-\column{0.48\textwidth}
-\textbf{Dataset noise} % experiments/results/judge/gpt-6-luna/dev_500/human_labels.csv (h004)
-\par\vspace{2pt}
-\textbf{User} (after VA homelessness help): Where can I get more information?\\[3pt]
-\textbf{Answer:} Call the VA hotline 800-827-1000, or the National Call Center for Homeless Veterans [\ldots]\\[3pt]
-\textbf{Reference:} Learn about suicide prevention [\ldots] Visit our suicide prevention website\\[3pt]
-\textbf{F1} 0.15 \quad \textbf{judge / human:} incorrect / incorrect
-\end{columns}
-
-\vspace{3mm}
-\small The reference is a clarifying question in the first case; in the second the gold turn switches to a topic the user never raised, so a reasonable answer to the conversation is scored wrong by both measures.
 \end{frame}
 
 % =====================================================================
