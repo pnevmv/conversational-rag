@@ -27,7 +27,7 @@ The text below is the README as it was before the restructuring, unchanged excep
 
 ### Project description
 
-This repository contains the code, experiments and write-up of a research project on conversational question answering over document collections, starting from Retrieval-Augmented Generation (RAG) and moving towards Knowledge Graphs (KGs), Graph RAG and agent-based approaches.
+This repository contains the code, experiments and write-up of a thesis project on conversational question answering over document collections, starting from Retrieval-Augmented Generation (RAG) and moving towards Knowledge Graphs (KGs), Graph RAG and agent-based approaches.
 
 The work is carried out within the
 
@@ -46,7 +46,7 @@ The repository is organised as follows:
 
 * `src`: the source code. `llm` is the Azure OpenAI client with a parallel runner and a disk cache, `data` the MultiDoc2Dial loader, `evaluation` the metrics, `rag` the retrievers, query rewriter and reranker, `kg` the knowledge graph construction (schema, extraction, entity resolution, Neo4j loaders) and `kg_rag` the retrieval over the graph.
 * `experiments`: the scripts that run the pipelines and evaluate them, plus the reports of the KG work in `experiments/kg` and `experiments/kg_rag`.
-* `latex_report`: the written report of the research (LuaLaTeX, unipd-thesis-modern template).
+* `latex_report`: the written report of the thesis (LuaLaTeX, unipd-thesis-modern template).
 * `tests`: unit and regression tests.
 * `data`: the dataset (not tracked), the ids of the fixed dev-500 subset and the dense index cache.
 
