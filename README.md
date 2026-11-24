@@ -200,6 +200,8 @@ python demo/app.py --share --auth user:password     # temporary public link, --a
 
 A turn takes about 7–11 s and costs USD 0.0006–0.002. Unlike the evaluation, the history holds the system's own answers instead of the gold agent turns.
 
+The answer is shown while it is written, and with an ElevenLabs key (`ELEVENLABS_API_KEY` in `.env`) it can also be read aloud. This is an optional experiment: the **Voice** checkbox is off without a key. The answer is split into sentences, each sentence is sent to ElevenLabs as soon as it is complete, and the audio starts after the first one while the model is still writing. The generator calls G0 (abstention check) and G2 (answer) run in parallel, so the voice starts only after G0 has not abstained. The prompts and the final answers are the same as without voice. The settings (voice, model), the times shown in the interface and the cost are described in [demo/README.md](demo/README.md).
+
 ## Repository map
 
 * `src/`: the system (`data`, `llm`, `rag`, `kg`, `kg_rag`, `evaluation`) and the agent experiments (`agents`).
