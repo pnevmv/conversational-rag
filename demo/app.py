@@ -22,6 +22,7 @@ import gradio as gr  # noqa: E402
 from src.data.loader import load_qa_pairs  # noqa: E402
 
 N_EXAMPLES, SEED = 4, 42
+LATE_TIMEOUT = 130  # s to wait for a dropped G2 call (the API timeout is 120 s)
 
 
 def example_questions() -> List[str]:
@@ -70,6 +71,9 @@ def facts_md(res: Dict[str, Any], pipe: Pipeline) -> str:
 def cost_md(res: Dict[str, Any], total: Dict[str, float]) -> str:
     rows = ["| Call | In | Cached | Out | USD |", "| --- | --- | --- | --- | --- |"]
     for c in res["calls"]:
+        if c.get("pending"):  # a dropped G2 call that has not completed yet
+            rows.append(f"| {c['call']} | … | … | … | … |")
+            continue
         rows.append(f"| {c['call']} | {c['input_tokens'] or 0:,} | {c['cached_tokens'] or 0:,} | "
                     f"{c['output_tokens'] or 0:,} | {c['usd']:.5f} |")
     t_in = sum(c["input_tokens"] or 0 for c in res["calls"])
@@ -90,11 +94,20 @@ def cost_md(res: Dict[str, Any], total: Dict[str, float]) -> str:
             f"reuses from an earlier call, so the cost is not proportional to the input tokens.</sub>")
 
 
+def add_calls(total: Dict[str, float], calls: List[Dict[str, Any]], turn: int = 0) -> Dict[str, float]:
+    """Conversation totals with the tokens and cost of `calls` added."""
+    return {"turns": total["turns"] + turn, "usd": total["usd"] + sum(c["usd"] for c in calls),
+            "in": total["in"] + sum(c["input_tokens"] or 0 for c in calls),
+            "out": total["out"] + sum(c["output_tokens"] or 0 for c in calls),
+            "cached": total.get("cached", 0) + sum(c["cached_tokens"] or 0 for c in calls)}
+
+
 def build(pipe: Pipeline) -> gr.Blocks:
-    def ui(chat: List[Dict], panels=None, cost=None, audio=None, info=None, mp3=None):
+    def ui(chat: List[Dict], panels=None, cost=None, audio=None, info=None, mp3=None, total=None):
         """One update of the outputs; what is not given stays as it is."""
         keep = gr.skip()
-        return (chat, keep, keep, keep) + (panels or (keep,) * 3) + tuple(keep if v is None else v for v in (cost, audio, info, mp3))
+        return ((chat, keep, keep if total is None else total, keep) + (panels or (keep,) * 3) +
+                tuple(keep if v is None else v for v in (cost, audio, info, mp3)))
 
     def respond(message: str, chat: List[Dict], history: List[Dict], total: Dict, system: str, cite: bool,
                 voice: bool, voice_model: str):
@@ -153,33 +166,36 @@ def build(pipe: Pipeline) -> gr.Blocks:
             return
         chat[-1] = {"role": "assistant", "content": res["answer"] + sources_md(res)}
         history = history + [{"role": "user", "utterance": message}, {"role": "agent", "utterance": res["answer"]}]
-        total = {"turns": total["turns"] + 1, "usd": total["usd"] + res["usd"],
-                 "in": total["in"] + sum(c["input_tokens"] or 0 for c in res["calls"]),
-                 "out": total["out"] + sum(c["output_tokens"] or 0 for c in res["calls"]),
-                 "cached": total.get("cached", 0) + sum(c["cached_tokens"] or 0 for c in res["calls"])}
+        late = res["late"]  # dropped G2 calls still running: their cost is added when they complete
+        total = add_calls(total, [c for c in res["calls"] if c not in late], turn=1)
         res["tts"] = {"first_token": first_token}
         info = "_Generating audio…_" if voice else (f"_Voice error: {voice_err}_" if voice_err else "")
         yield (chat, history, total, "") + panels + (cost_md(res, total), gr.skip(), info, None)
-        if not voice:
-            if vs:
-                vs.close()
-            return
-        # The text is final; the sentences still missing (all of them after an abstention) go to the voice now.
-        try:
-            feed_sentences(res["answer"], True)
-            for chunk in vs.drain():
-                yield ui(chat, audio=chunk)
-        except tts.TTSError as e:
-            voice_err = str(e)
-        st = vs.close()
-        res["tts"] = {"first_token": first_token, "first_audio": st["first_audio"], "seconds": st["seconds"]}
-        if voice_err:
-            yield ui(chat, cost=cost_md(res, total), info=f"_Voice error: {voice_err}_", mp3=st["path"])
-            return
-        credits = f" · {st['credits']:,} credits" if st["credits"] is not None else ""
-        yield ui(chat, cost=cost_md(res, total), mp3=st["path"],
-                 info=f"<sub>{st['model']} · {st['chars']:,} characters{credits} · {st['sentences']} sentences · "
-                      f"first audio {st['first_audio']:.1f} s from Send</sub>")
+        if voice:
+            # The text is final; the sentences still missing (all of them after an abstention) go to the voice now.
+            try:
+                feed_sentences(res["answer"], True)
+                for chunk in vs.drain():
+                    yield ui(chat, audio=chunk)
+            except tts.TTSError as e:
+                voice_err = str(e)
+        if vs:
+            st = vs.close()
+            res["tts"] = {"first_token": first_token, "first_audio": st["first_audio"], "seconds": st["seconds"]}
+            if voice_err:
+                yield ui(chat, cost=cost_md(res, total), info=f"_Voice error: {voice_err}_", mp3=st["path"])
+            elif voice:
+                credits = f" · {st['credits']:,} credits" if st["credits"] is not None else ""
+                yield ui(chat, cost=cost_md(res, total), mp3=st["path"],
+                         info=f"<sub>{st['model']} · {st['chars']:,} characters{credits} · {st['sentences']} sentences · "
+                              f"first audio {st['first_audio']:.1f} s from Send</sub>")
+        for c in late:  # the answer is out; only the cost of the dropped G2 call is still missing
+            c["settled"].wait(timeout=LATE_TIMEOUT)
+        done = [c for c in late if c["settled"].is_set()]
+        if done:
+            total = add_calls(total, done)
+            res["usd"] += sum(c["usd"] for c in done)
+            yield ui(chat, cost=cost_md(res, total), total=total)
 
     def new_conversation():
         return [], [], {"turns": 0, "usd": 0.0, "in": 0, "out": 0, "cached": 0}, "", "", "", "", "", None, "", None

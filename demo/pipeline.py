@@ -13,9 +13,11 @@ Nothing is written under experiments/: no LLM or reranker cache, and the usage l
 """
 import os
 import re
+import queue
 import sys
+import threading
 import time
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import Future, ThreadPoolExecutor
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -50,6 +52,28 @@ def display_title(title: str) -> str:
 def cost_usd(usage: Dict[str, Optional[int]]) -> float:
     inp, cached, out = (usage.get("input_tokens") or 0), (usage.get("cached_tokens") or 0), (usage.get("output_tokens") or 0)
     return ((inp - cached) * PRICE["input"] + cached * PRICE["cached_input"] + out * PRICE["output"]) / 1e6
+
+
+def late_call(fut: Future) -> Dict[str, Any]:
+    """Record of a G2 call that is dropped (G0 abstained) while it may still be running.
+
+    It reads "G2 (discarded, pending)" until the call completes; then its tokens and cost are filled in, the
+    name becomes "G2 (discarded)" and `settled` is set. The call's usage-log line is written by the client.
+    """
+    rec: Dict[str, Any] = {"call": "G2 (discarded, pending)", "pending": True, "seconds": None, "usd": 0.0,
+                           "input_tokens": None, "cached_tokens": None, "output_tokens": None, "reasoning_tokens": None,
+                           "settled": threading.Event()}
+
+    def settle(f: Future) -> None:
+        try:
+            rec.update(f.result()[1], call="G2 (discarded)")
+        except Exception:  # not used anyway, so a failed call must not fail anything
+            rec["call"] = "G2 (discarded, failed)"
+        rec["usd"], rec["pending"] = cost_usd(rec), False
+        rec["settled"].set()
+
+    fut.add_done_callback(settle)  # runs at once if the call is already done
+    return rec
 
 
 def stream_view(raw: str, cite: bool = True) -> str:
@@ -169,11 +193,13 @@ class Pipeline:
         final = src_attr.strip_citations(raw) if st["cite"] else raw
         sources = self.sources(raw, final, st["context"], st["ranking"], st["cite"])
         for c in st["calls"]:
-            c["usd"] = cost_usd(c)
+            if "settled" not in c:  # a late call fills in its own cost
+                c["usd"] = cost_usd(c)
+        late = [c for c in st["calls"] if "settled" in c and not c["settled"].is_set()]  # not in usd or tokens yet
         return {**{k: st[k] for k in ("question", "rewritten", "system", "cite", "ranking", "facts", "context",
                                       "prompts", "calls", "times")},
-                "raw_answer": raw, "answer": final, "abstained": is_abstention(final),
-                "sources": sources, "usd": sum(c["usd"] for c in st["calls"])}
+                "raw_answer": raw, "answer": final, "abstained": is_abstention(final), "sources": sources,
+                "late": late, "usd": sum(c["usd"] for c in st["calls"] if c not in late)}
 
     # ------------------------------------------------------------------ one turn
     def answer(self, question: str, history: List[Dict[str, str]], system: str = "E", cite: bool = True) -> Dict[str, Any]:
@@ -195,42 +221,61 @@ class Pipeline:
         p, calls, client = st["prompts"], st["calls"], self.llm()
         single = p["G2"] == p["G0"]
         kind = "G0" if single else "G2"
-        pool = ThreadPoolExecutor(max_workers=1)
-        try:
-            t = time.time()
-            f0 = None if single else pool.submit(self._call, client, "G0", p, system)
-            parts: List[str] = []
-            usage: Optional[Dict] = None
-            err: Optional[Exception] = None
-            told = False
+        events: "queue.Queue" = queue.Queue()
+        fut: Future = Future()  # (text, call record) of the streamed call
+
+        def pump() -> None:  # the streamed call runs on its own, so it can outlive a dropped answer
+            t, parts, usage = time.time(), [], None
             try:
                 for x in client.generate_stream_with_usage(p[kind], meta={"call_type": kind, "pipeline": f"demo-{system}"}):
                     if isinstance(x, str):
                         parts.append(x)
-                        if f0 is not None and not told and f0.done():
-                            told = True
-                            yield "g0", is_abstention(f0.result()[0])
-                        yield "delta", x
+                        events.put(("delta", x))
                     else:
                         usage = x
-            except RuntimeError as e:  # an API failure only matters if G2 is the answer
-                err = e
-            seconds = time.time() - t
-            a0, c0 = f0.result() if f0 else ("".join(parts), None)
-            abstained = is_abstention(a0)
-            if not told:
-                yield "g0", abstained
-            if c0:
-                calls.append(c0)
-            if err and not (abstained and not single):
-                raise err
-            if usage is not None:
-                g2 = {"call": kind if not (abstained and not single) else "G2 (discarded)", "seconds": seconds, **usage}
-                calls.append(g2)
-            st["times"]["G0" if single else "G0+G2"] = time.time() - t
-            raw = ABSTAIN if abstained else "".join(parts)
+                fut.set_result(("".join(parts), {"call": kind, "seconds": time.time() - t, **usage}))
+            except Exception as e:
+                fut.set_exception(e)
+            events.put(("end", None))
+
+        t = time.time()
+        pool = ThreadPoolExecutor(max_workers=1)
+        try:
+            f0 = None if single else pool.submit(self._call, client, "G0", p, system)
+            if f0:
+                f0.add_done_callback(lambda f: events.put(("g0", None)))
+            threading.Thread(target=pump, daemon=True).start()
+            abstained, ended = None, False
+            while True:
+                k, v = events.get()
+                if k == "delta":
+                    yield "delta", v
+                elif k == "g0":
+                    a0, c0 = f0.result()  # a failed G0 fails the turn
+                    abstained = is_abstention(a0)
+                    yield "g0", abstained
+                    if abstained:
+                        break
+                else:
+                    ended = True
+                if ended and (single or abstained is not None):
+                    break
         finally:
-            pool.shutdown(wait=False, cancel_futures=True)
+            pool.shutdown(wait=False)
+        if single:
+            text, c2 = fut.result()
+            abstained = is_abstention(text)
+            yield "g0", abstained
+            calls.append(c2)
+            raw = ABSTAIN if abstained else text
+        elif abstained:  # G2 is not waited for; it finishes in the background
+            calls += [c0, late_call(fut)]
+            raw = ABSTAIN
+        else:
+            text, c2 = fut.result()
+            calls += [c0, c2]
+            raw = text
+        st["times"]["G0" if single or abstained else "G0+G2"] = time.time() - t  # G2 is not waited for after an abstention
         yield "done", self.finish(st, raw)
 
     def _call(self, client: LLMClient, kind: str, p: Dict[str, str], system: str):
@@ -241,9 +286,10 @@ class Pipeline:
     def generate(self, p: Dict[str, str], system: str, calls: List[Dict], times: Dict[str, float]) -> str:
         """G0 (abstention check) and G2 (answer), as graph_rag.generate, but started together.
 
-        G2 does not depend on G0, so both calls run at once and the turn waits for the slower one. The
-        decision is unchanged: an abstaining G0 gives ABSTAIN and the G2 text is dropped (its call is
-        listed as "G2 (discarded)" and still costs). With G2 == G0 there is a single call.
+        G2 does not depend on G0, so both calls run at once. The decision is unchanged: an abstaining G0
+        gives ABSTAIN at once and the G2 text is dropped; its call is not waited for, but still costs and is
+        listed as "G2 (discarded, pending)" until it completes (see late_call). Without an abstention the
+        turn waits for G2. With G2 == G0 there is a single call.
         """
         client = self.llm()  # created here, before the threads start
 
@@ -253,19 +299,19 @@ class Pipeline:
             calls.append(c0)
             times["G0"] = time.time() - t
             return ABSTAIN if is_abstention(a0) else a0
-        with ThreadPoolExecutor(max_workers=2) as pool:
+        pool = ThreadPoolExecutor(max_workers=2)
+        try:
             f0, f2 = (pool.submit(self._call, client, k, p, system) for k in ("G0", "G2"))
             a0, c0 = f0.result()
             calls.append(c0)
-            if is_abstention(a0):
-                try:
-                    calls.append({**f2.result()[1], "call": "G2 (discarded)"})
-                except Exception:  # a failed call that is not used must not fail the turn
-                    pass
-                raw = ABSTAIN
-            else:
-                raw, c2 = f2.result()
-                calls.append(c2)
+            if is_abstention(a0):  # G2 is not waited for; it finishes in the background
+                calls.append(late_call(f2))
+                times["G0"] = time.time() - t
+                return ABSTAIN
+            raw, c2 = f2.result()
+            calls.append(c2)
+        finally:
+            pool.shutdown(wait=False)
         times["G0+G2"] = time.time() - t
         return raw
 

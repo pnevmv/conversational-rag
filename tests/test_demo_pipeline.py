@@ -30,14 +30,34 @@ def run(outputs, p, delay=0.0):
 
 def test_abstaining_g0_gives_abstain_and_counts_discarded_g2():
     raw, calls, times, client = run({"G0": ABSTAIN, "G2": "You can apply online."}, {"G0": "a", "G2": "b"})
-    assert raw == ABSTAIN
-    assert [c["call"] for c in calls] == ["G0", "G2 (discarded)"] and sorted(client.calls) == ["G0", "G2"]
-    assert all(c["input_tokens"] == 100 for c in calls) and "G0+G2" in times
+    assert raw == ABSTAIN and [c["call"] for c in calls][0] == "G0" and len(calls) == 2
+    late = calls[1]
+    assert late["settled"].wait(2) and late["call"] == "G2 (discarded)" and not late["pending"]
+    assert late["input_tokens"] == 100 and late["usd"] > 0 and sorted(client.calls) == ["G0", "G2"] and "G0" in times
+
+
+def test_abstention_does_not_wait_for_g2():
+    pipe = Pipeline.__new__(Pipeline)
+
+    class SlowG2(FakeLLM):
+        def generate_with_usage(self, prompt, model=None, meta=None):
+            time.sleep(0.6 if meta["call_type"] == "G2" else 0)
+            return self.outputs[meta["call_type"]], {"input_tokens": 100, "cached_tokens": 0, "output_tokens": 10,
+                                                     "reasoning_tokens": 0}
+
+    pipe.client = SlowG2({"G0": ABSTAIN, "G2": "You can apply online."})
+    calls, times = [], {}
+    t = time.time()
+    assert pipe.generate({"G0": "a", "G2": "b"}, "E", calls, times) == ABSTAIN
+    assert time.time() - t < 0.4  # G2 takes 0.6 s
+    late = calls[1]
+    assert late["call"] == "G2 (discarded, pending)" and late["pending"] and late["usd"] == 0 and late["input_tokens"] is None
+    assert late["settled"].wait(3) and late["call"] == "G2 (discarded)" and late["usd"] > 0 and late["input_tokens"] == 100
 
 
 def test_answering_g0_gives_g2_text():
     raw, calls, times, _ = run({"G0": "Yes, you can.", "G2": "You can apply online [2]."}, {"G0": "a", "G2": "b"})
-    assert raw == "You can apply online [2]." and [c["call"] for c in calls] == ["G0", "G2"]
+    assert raw == "You can apply online [2]." and [c["call"] for c in calls] == ["G0", "G2"] and "G0+G2" in times
 
 
 def test_same_prompt_is_one_call():
@@ -63,4 +83,5 @@ def test_failed_g2_does_not_fail_an_abstaining_turn():
 
     pipe.client = Flaky({"G0": ABSTAIN})
     calls = []
-    assert pipe.generate({"G0": "a", "G2": "b"}, "E", calls, {}) == ABSTAIN and [c["call"] for c in calls] == ["G0"]
+    assert pipe.generate({"G0": "a", "G2": "b"}, "E", calls, {}) == ABSTAIN
+    assert calls[0]["call"] == "G0" and calls[1]["settled"].wait(2) and calls[1]["call"] == "G2 (discarded, failed)"

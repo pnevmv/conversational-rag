@@ -69,6 +69,9 @@ def test_streamed_answer_equals_non_streamed_one():
         st = pipe.prepare("How do I apply?", [], "P", True)
         ref = pipe.finish(st, pipe.generate(st["prompts"], "P", st["calls"], st["times"]))
         assert (done["raw_answer"], done["answer"], done["abstained"]) == (ref["raw_answer"], ref["answer"], ref["abstained"])
+        for c in done["calls"] + ref["calls"]:
+            if "settled" in c:
+                assert c["settled"].wait(2)
         assert [c["call"] for c in done["calls"]] == [c["call"] for c in ref["calls"]]
         assert done["usd"] == pytest.approx(ref["usd"])
     assert ev[-1][1]["answer"] == ABSTAIN
@@ -90,7 +93,22 @@ def test_abstain_after_streaming_drops_text_and_counts_discarded_g2():
     assert kinds.index("delta") < kinds.index("g0") and ev[kinds.index("g0")][1] is True
     done = ev[-1][1]
     assert done["answer"] == ABSTAIN and done["abstained"] and done["sources"] == []
-    assert [c["call"] for c in done["calls"]] == ["G0", "G2 (discarded)"] and done["usd"] > 0
+    assert [c["call"] for c in done["calls"]] == ["G0", "G2 (discarded)"] and done["usd"] > 0 and done["late"] == []
+
+
+def test_abstention_is_returned_without_waiting_for_g2_and_its_cost_settles_later():
+    t = time.time()
+    ev = events(make_pipe(FakeLLM(ABSTAIN, ANSWER * 2, tick=0.1)))  # G2 streams for about 1.8 s
+    assert time.time() - t < 1.0
+    kinds = [k for k, _ in ev]
+    assert kinds[-2:] == ["g0", "done"] and ev[-2][1] is True
+    done = ev[-1][1]
+    assert done["answer"] == ABSTAIN and done["usd"] > 0 and "G0" in done["times"]  # G0's cost only
+    late = done["late"][0]
+    assert late["call"] == "G2 (discarded, pending)" and late["input_tokens"] is None
+    g0_usd = done["usd"]
+    assert late["settled"].wait(5) and late["call"] == "G2 (discarded)" and late["usd"] > 0 and not late["pending"]
+    assert done["usd"] == g0_usd  # the turn's own sum is not changed behind the caller's back
 
 
 def test_same_prompt_streams_one_call_and_decides_at_the_end():
@@ -126,8 +144,8 @@ class FakeEleven:
 class ScriptedPipe:
     """answer_stream that writes ANSWER word by word and records when it ends."""
 
-    def __init__(self, g0_abstains=False):
-        self.g0_abstains, self.done_at = g0_abstains, None
+    def __init__(self, g0_abstains=False, late_usd=0.0):
+        self.g0_abstains, self.late_usd, self.done_at = g0_abstains, late_usd, None
 
     def answer_stream(self, message, history, system="E", cite=True):
         st = {"system": system, "rewritten": message, "ranking": [], "facts": [], "sources": [], "cite": cite,
@@ -140,7 +158,19 @@ class ScriptedPipe:
         time.sleep(0.4)  # G2 still finishing: the first sentences must already be with the voice
         self.done_at = time.time()
         raw = ABSTAIN if self.g0_abstains else ANSWER
-        yield "done", {**st, "raw_answer": raw, "answer": pipeline.src_attr.strip_citations(raw), "abstained": self.g0_abstains}
+        late = []
+        if self.late_usd:  # a dropped G2 call that completes 0.3 s after the answer
+            call = {"call": "G2 (discarded, pending)", "pending": True, "usd": 0.0, "input_tokens": None,
+                    "cached_tokens": None, "output_tokens": None, "settled": threading.Event()}
+            late = [call]
+
+            def settle():
+                call.update(call="G2 (discarded)", pending=False, usd=self.late_usd, input_tokens=100, cached_tokens=0,
+                            output_tokens=10)
+                call["settled"].set()
+            threading.Timer(0.3, settle).start()
+        yield "done", {**st, "raw_answer": raw, "answer": pipeline.src_attr.strip_citations(raw), "abstained": self.g0_abstains,
+                       "calls": [call for call in late], "late": late}
 
 
 def run_respond(monkeypatch, tmp_path, pipe):
@@ -214,3 +244,12 @@ def test_client_stream_yields_deltas_then_usage_and_logs_once(monkeypatch, tmp_p
     with pytest.raises(RuntimeError, match="before the response completed"):
         list(client.generate_stream_with_usage("hi"))
     assert len(log.read_text().splitlines()) == 1  # an unfinished stream is not logged
+
+
+def test_late_g2_cost_is_added_to_the_conversation_total_when_it_completes(monkeypatch, tmp_path):
+    out, _ = run_respond(monkeypatch, tmp_path, ScriptedPipe(g0_abstains=True, late_usd=0.002))
+    first = next(u for _, u in out if isinstance(u[2], dict) and u[2].get("turns") == 1)  # the turn's own total
+    assert first[2]["usd"] == 0 and first[2]["turns"] == 1 and "G2 (discarded, pending)" in first[7]
+    last = out[-1][1]
+    assert last[2]["usd"] == pytest.approx(0.002) and last[2]["in"] == 100 and last[2]["turns"] == 1
+    assert "G2 (discarded) |" in last[7] and "pending" not in last[7]
