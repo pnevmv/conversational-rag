@@ -15,6 +15,7 @@ import os
 import re
 import sys
 import time
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -151,19 +152,7 @@ class Pipeline:
         context = self.context(system, ranking, facts)
         p = self.prompts(system, context, question, history, rewritten, cite)
 
-        t = time.time()
-        a0, u0 = self.llm().generate_with_usage(p["G0"], meta={"call_type": "G0", "pipeline": f"demo-{system}"})
-        calls.append({"call": "G0", **u0})
-        times["G0"] = time.time() - t
-        if is_abstention(a0):
-            raw = ABSTAIN
-        elif p["G2"] != p["G0"]:
-            t = time.time()
-            raw, u2 = self.llm().generate_with_usage(p["G2"], meta={"call_type": "G2", "pipeline": f"demo-{system}"})
-            calls.append({"call": "G2", **u2})
-            times["G2"] = time.time() - t
-        else:
-            raw = a0
+        raw = self.generate(p, system, calls, times)
 
         final = src_attr.strip_citations(raw) if cite else raw
         sources = self.sources(raw, final, context, ranking, cite)
@@ -174,6 +163,42 @@ class Pipeline:
                 "raw_answer": raw, "answer": final, "abstained": is_abstention(final),
                 "sources": sources, "calls": calls, "times": times,
                 "usd": sum(c["usd"] for c in calls)}
+
+    def generate(self, p: Dict[str, str], system: str, calls: List[Dict], times: Dict[str, float]) -> str:
+        """G0 (abstention check) and G2 (answer), as graph_rag.generate, but started together.
+
+        G2 does not depend on G0, so both calls run at once and the turn waits for the slower one. The
+        decision is unchanged: an abstaining G0 gives ABSTAIN and the G2 text is dropped (its call is
+        listed as "G2 (discarded)" and still costs). With G2 == G0 there is a single call.
+        """
+        client = self.llm()  # created here, before the threads start
+
+        def run(kind: str):
+            t = time.time()
+            text, usage = client.generate_with_usage(p[kind], meta={"call_type": kind, "pipeline": f"demo-{system}"})
+            return text, {"call": kind, "seconds": time.time() - t, **usage}
+
+        t = time.time()
+        if p["G2"] == p["G0"]:
+            a0, c0 = run("G0")
+            calls.append(c0)
+            times["G0"] = time.time() - t
+            return ABSTAIN if is_abstention(a0) else a0
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            f0, f2 = pool.submit(run, "G0"), pool.submit(run, "G2")
+            a0, c0 = f0.result()
+            calls.append(c0)
+            if is_abstention(a0):
+                try:
+                    calls.append({**f2.result()[1], "call": "G2 (discarded)"})
+                except Exception:  # a failed call that is not used must not fail the turn
+                    pass
+                raw = ABSTAIN
+            else:
+                raw, c2 = f2.result()
+                calls.append(c2)
+        times["G0+G2"] = time.time() - t
+        return raw
 
     def sources(self, raw: str, final: str, context: str, ranking: List[Dict], cite: bool) -> List[Dict[str, str]]:
         """Cited sections (citation prompt) or the best post-hoc match (sources.py method A)."""
