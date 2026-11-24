@@ -76,9 +76,12 @@ def cost_md(res: Dict[str, Any], total: Dict[str, float]) -> str:
     t_cached = sum(c["cached_tokens"] or 0 for c in res["calls"])
     rows.append(f"| **This turn** | {t_in:,} | {t_cached:,} | {t_out:,} | **{res['usd']:.5f}** |")
     times = ", ".join(f"{k} {v:.1f} s" for k, v in res["times"].items())
+    total_s = sum(res["times"].values())
+    if res.get("tts") and res["tts"].get("first_audio") is not None:  # voice runs after the text, not in the total
+        times += f" · voice: first audio {res['tts']['first_audio']:.1f} s, total {res['tts']['seconds']:.1f} s"
     return ("\n".join(rows) + f"\n\n**Conversation:** {int(total['turns'])} turns, {int(total['in']):,} in ({int(total.get('cached', 0)):,} cached) / "
             f"{int(total['out']):,} out tokens, USD {total['usd']:.4f}\n\n**Time:** {times} "
-            f"(total {sum(res['times'].values()):.1f} s)\n\n<sub>gpt-5.4-nano list prices, USD per 1M tokens: "
+            f"(total {total_s:.1f} s)\n\n<sub>gpt-5.4-nano list prices, USD per 1M tokens: "
             f"0.20 input, 0.02 cached input, 1.25 output. Cached input is the start of the prompt that the API "
             f"reuses from an earlier call, so the cost is not proportional to the input tokens.</sub>")
 
@@ -87,12 +90,12 @@ def build(pipe: Pipeline) -> gr.Blocks:
     def respond(message: str, chat: List[Dict], history: List[Dict], total: Dict, system: str, cite: bool,
                 voice: bool, voice_model: str):
         message = (message or "").strip()
-        skip = (gr.skip(),) * 6
+        skip = (gr.skip(),) * 7
         if not message:
             yield (chat, history, total, "") + skip
             return
         chat = chat + [{"role": "user", "content": message}, {"role": "assistant", "content": "…"}]
-        yield (chat, history, total, "") + skip[:-2] + (None, "")
+        yield (chat, history, total, "") + skip[:-3] + (None, "", None)
         try:
             res = pipe.answer(message, history, system=system, cite=cite)
         except Exception as e:  # API errors carry no credentials (src.llm.client strips them)
@@ -107,23 +110,27 @@ def build(pipe: Pipeline) -> gr.Blocks:
                  "cached": total.get("cached", 0) + sum(c["cached_tokens"] or 0 for c in res["calls"])}
         rw = res["rewritten"] if res["rewritten"] != message else f"{res['rewritten']}  _(unchanged)_"
         panels = (f"**{SYSTEMS[system]}**\n\n{rw}", passages_md(res), facts_md(res, pipe))
-        # The text is shown first; the audio follows when ElevenLabs has answered.
-        yield (chat, history, total, "") + panels + (cost_md(res, total), None, "_Generating audio…_" if voice else "")
+        # The text is shown first; the audio follows sentence by sentence while ElevenLabs synthesizes it.
+        base = (chat, history, total, "") + panels
+        yield base + (cost_md(res, total), None, "_Generating audio…_" if voice else "", None)
         if not voice:
             return
+        st: Dict[str, Any] = {}
         try:
-            a = tts.synthesize(res["answer"], model=voice_model)
+            for chunk in tts.stream_answer(res["answer"], model=voice_model, stats=st):
+                res["tts"] = st
+                yield base + (gr.skip(), chunk, f"_Playing… {st['sentences']} sentences_", gr.skip())
         except tts.TTSError as e:
-            yield (chat, history, total, "") + panels + (cost_md(res, total), None, f"_Voice error: {e}_")
+            yield base + (cost_md(res, total), gr.skip(), f"_Voice error: {e}_", st.get("path"))
             return
-        res["times"]["tts"] = a["seconds"]
-        credits = f", {a['credits']:,} credits" if a["credits"] is not None else ""
-        yield ((chat, history, total, "") + panels +
-               (cost_md(res, total), a["path"], f"<sub>{a['model']} · {a['chars']:,} characters{credits} · "
-                                                f"{a['seconds']:.1f} s</sub>"))
+        res["tts"] = st
+        credits = f" · {st['credits']:,} credits" if st["credits"] is not None else ""
+        yield base + (cost_md(res, total), gr.skip(),
+                      f"<sub>{st['model']} · {st['chars']:,} characters{credits} · {st['sentences']} sentences · "
+                      f"first audio {st['first_audio']:.1f} s</sub>", st["path"])
 
     def new_conversation():
-        return [], [], {"turns": 0, "usd": 0.0, "in": 0, "out": 0, "cached": 0}, "", "", "", "", "", None, ""
+        return [], [], {"turns": 0, "usd": 0.0, "in": 0, "out": 0, "cached": 0}, "", "", "", "", "", None, "", None
 
     with gr.Blocks(title="MultiDoc2Dial RAG + KG demo") as demo:
         gr.Markdown("## Government services assistant")
@@ -141,8 +148,10 @@ def build(pipe: Pipeline) -> gr.Blocks:
                     voice_model = gr.Dropdown(tts.MODELS, value=tts.default_model(), label="Voice model",
                                               allow_custom_value=True, interactive=tts.enabled())
                 chat = gr.Chatbot(height=520, label="Chat")
-                audio = gr.Audio(label="Answer audio", type="filepath", autoplay=True, interactive=False)
-                audio_info = gr.Markdown()
+                audio = gr.Audio(label="Answer audio", streaming=True, autoplay=True, interactive=False)
+                with gr.Row():
+                    audio_info = gr.Markdown()
+                    mp3 = gr.DownloadButton("Download mp3", size="sm", scale=0)
                 msg = gr.Textbox(placeholder="Ask about a government service…", label="Your message", lines=1)
                 with gr.Row():
                     send = gr.Button("Send", variant="primary")
@@ -157,7 +166,7 @@ def build(pipe: Pipeline) -> gr.Blocks:
                     fct = gr.Markdown(max_height=320)
                 with gr.Accordion("Tokens and cost", open=True):
                     cst = gr.Markdown()
-        outs = [chat, history, total, msg, rw, psg, fct, cst, audio, audio_info]
+        outs = [chat, history, total, msg, rw, psg, fct, cst, audio, audio_info, mp3]
         ins = [msg, chat, history, total, system, cite, voice, voice_model]
         msg.submit(respond, ins, outs)
         send.click(respond, ins, outs)

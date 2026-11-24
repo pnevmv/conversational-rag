@@ -26,15 +26,17 @@ A turn takes about 7–11 s on a laptop (rewrite about 1–2.5 s, passage rerank
 
 ## Voice (ElevenLabs, experiment)
 
-Each answer can be read aloud with ElevenLabs text to speech (`demo/tts.py`, one REST call per answer, standard library only, no extra package).
+Each answer can be read aloud with ElevenLabs text to speech (`demo/tts.py`, official `elevenlabs` SDK, pinned in `demo/requirements.txt`). The answer is split into sentences and the audio is streamed sentence by sentence: playback starts after the first sentence is synthesized, and the next sentence is requested while the current one plays.
 
-1. Put `ELEVENLABS_API_KEY` in `.env` (optionally `ELEVENLABS_VOICE_ID` and `ELEVENLABS_MODEL`, see `.env.example`). Without the key the **Voice** checkbox is off and the demo works as before.
-2. Start the demo as usual. With **Voice** checked, the text answer appears first and the audio plays automatically when it is ready.
+1. `pip install -r demo/requirements.txt`, then put `ELEVENLABS_API_KEY` in `.env` (optionally `ELEVENLABS_VOICE_ID` and `ELEVENLABS_MODEL`, see `.env.example`). Without the key the **Voice** checkbox is off and the demo works as before.
+2. Start the demo as usual. With **Voice** checked, the text answer appears first and the audio starts playing automatically a moment later.
 
 * **Voice model:** `eleven_flash_v2_5` (default, lowest latency), `eleven_turbo_v2_5`, `eleven_multilingual_v2` or `eleven_v3` (more natural, slower, more credits per character).
 * **What is read:** the final answer without citation brackets, markdown or URLs; the source line is not read. An abstention is read as well.
-* **Cost and time:** the line under the player shows the model, the characters sent, the credits ElevenLabs reports for the call and the time; the time is also added to the **Time** line. Each call is logged to `demo/logs/tts_usage.jsonl` and the mp3 files are kept in `demo/logs/tts/` (both ignored by git).
-* A voice error (bad key, no credits, network) is shown under the player and does not affect the text answer.
+* **Sentences:** split at `.`, `!`, `?` followed by a capital letter, not after abbreviations such as U.S., e.g. or Dr.; fragments under 20 characters are merged into the neighbour and chunks over 400 characters are cut at `;` or `,`. The neighbouring sentences are sent as `previous_text` / `next_text` to keep the intonation continuous; a model that rejects them (e.g. `eleven_v3`) is called without them.
+* **First audio:** seconds from the moment the text answer is ready to the first synthesized sentence. The LLM answer itself is not streamed, so this does not include the 7–11 s of the pipeline. The **Time** line shows first audio and the total synthesis time; they are not part of the pipeline total.
+* **Cost and files:** the line under the player shows the model, the characters, the credits ElevenLabs reports (header `character-cost`), the sentences and the first audio time. Each answer is logged to `demo/logs/tts_usage.jsonl`; the whole answer is saved as one mp3 in `demo/logs/tts/` (both ignored by git) and can be downloaded with the button next to the line.
+* A voice error (bad key, no credits, network) is shown under the player and does not affect the text answer; sentences played before the error stay played.
 
 ## Differences from the evaluation
 
