@@ -1,1 +1,2 @@
 gradio==6.30.0
+elevenlabs==2.80.0
