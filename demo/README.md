@@ -24,6 +24,18 @@ Neo4j does not need to be running: the graph is served from the JSON exports in 
 
 A turn takes about 7–11 s on a laptop (rewrite about 1–2.5 s, passage reranking about 2.5 s, V1 fact scoring about 1 s, two generator calls of 1.5–3 s each) and costs about USD 0.0006–0.002.
 
+## Voice (ElevenLabs, experiment)
+
+Each answer can be read aloud with ElevenLabs text to speech (`demo/tts.py`, one REST call per answer, standard library only, no extra package).
+
+1. Put `ELEVENLABS_API_KEY` in `.env` (optionally `ELEVENLABS_VOICE_ID` and `ELEVENLABS_MODEL`, see `.env.example`). Without the key the **Voice** checkbox is off and the demo works as before.
+2. Start the demo as usual. With **Voice** checked, the text answer appears first and the audio plays automatically when it is ready.
+
+* **Voice model:** `eleven_flash_v2_5` (default, lowest latency), `eleven_turbo_v2_5`, `eleven_multilingual_v2` or `eleven_v3` (more natural, slower, more credits per character).
+* **What is read:** the final answer without citation brackets, markdown or URLs; the source line is not read. An abstention is read as well.
+* **Cost and time:** the line under the player shows the model, the characters sent, the credits ElevenLabs reports for the call and the time; the time is also added to the **Time** line. Each call is logged to `demo/logs/tts_usage.jsonl` and the mp3 files are kept in `demo/logs/tts/` (both ignored by git).
+* A voice error (bad key, no credits, network) is shown under the player and does not affect the text answer.
+
 ## Differences from the evaluation
 
 * **History:** in the evaluation the history in the prompts held the gold agent turns of the dataset; here it holds the system's own earlier answers (without citations), so a wrong answer can carry over to later turns. The rewriter sees the last 6 turns and the generator the whole history, as in the evaluation.

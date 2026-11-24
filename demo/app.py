@@ -14,6 +14,7 @@ from typing import Any, Dict, List
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from pipeline import ABSTAIN, SYSTEMS, Pipeline, display_title  # noqa: E402
+import tts  # noqa: E402
 
 import gradio as gr  # noqa: E402
 
@@ -83,18 +84,20 @@ def cost_md(res: Dict[str, Any], total: Dict[str, float]) -> str:
 
 
 def build(pipe: Pipeline) -> gr.Blocks:
-    def respond(message: str, chat: List[Dict], history: List[Dict], total: Dict, system: str, cite: bool):
+    def respond(message: str, chat: List[Dict], history: List[Dict], total: Dict, system: str, cite: bool,
+                voice: bool, voice_model: str):
         message = (message or "").strip()
+        skip = (gr.skip(),) * 6
         if not message:
-            yield chat, history, total, "", gr.skip(), gr.skip(), gr.skip(), gr.skip()
+            yield (chat, history, total, "") + skip
             return
         chat = chat + [{"role": "user", "content": message}, {"role": "assistant", "content": "…"}]
-        yield chat, history, total, "", gr.skip(), gr.skip(), gr.skip(), gr.skip()
+        yield (chat, history, total, "") + skip[:-2] + (None, "")
         try:
             res = pipe.answer(message, history, system=system, cite=cite)
         except Exception as e:  # API errors carry no credentials (src.llm.client strips them)
             chat[-1] = {"role": "assistant", "content": f"_Error: {e}_"}
-            yield chat, history, total, "", gr.skip(), gr.skip(), gr.skip(), gr.skip()
+            yield (chat, history, total, "") + skip
             return
         chat[-1] = {"role": "assistant", "content": res["answer"] + sources_md(res)}
         history = history + [{"role": "user", "utterance": message}, {"role": "agent", "utterance": res["answer"]}]
@@ -103,11 +106,24 @@ def build(pipe: Pipeline) -> gr.Blocks:
                  "out": total["out"] + sum(c["output_tokens"] or 0 for c in res["calls"]),
                  "cached": total.get("cached", 0) + sum(c["cached_tokens"] or 0 for c in res["calls"])}
         rw = res["rewritten"] if res["rewritten"] != message else f"{res['rewritten']}  _(unchanged)_"
-        yield (chat, history, total, "", f"**{SYSTEMS[system]}**\n\n{rw}", passages_md(res), facts_md(res, pipe),
-               cost_md(res, total))
+        panels = (f"**{SYSTEMS[system]}**\n\n{rw}", passages_md(res), facts_md(res, pipe))
+        # The text is shown first; the audio follows when ElevenLabs has answered.
+        yield (chat, history, total, "") + panels + (cost_md(res, total), None, "_Generating audio…_" if voice else "")
+        if not voice:
+            return
+        try:
+            a = tts.synthesize(res["answer"], model=voice_model)
+        except tts.TTSError as e:
+            yield (chat, history, total, "") + panels + (cost_md(res, total), None, f"_Voice error: {e}_")
+            return
+        res["times"]["tts"] = a["seconds"]
+        credits = f", {a['credits']:,} credits" if a["credits"] is not None else ""
+        yield ((chat, history, total, "") + panels +
+               (cost_md(res, total), a["path"], f"<sub>{a['model']} · {a['chars']:,} characters{credits} · "
+                                                f"{a['seconds']:.1f} s</sub>"))
 
     def new_conversation():
-        return [], [], {"turns": 0, "usd": 0.0, "in": 0, "out": 0, "cached": 0}, "", "", "", "", ""
+        return [], [], {"turns": 0, "usd": 0.0, "in": 0, "out": 0, "cached": 0}, "", "", "", "", "", None, ""
 
     with gr.Blocks(title="MultiDoc2Dial RAG + KG demo") as demo:
         gr.Markdown("## Government services assistant")
@@ -119,7 +135,14 @@ def build(pipe: Pipeline) -> gr.Blocks:
                     system = gr.Radio(list(SYSTEMS), value="E", label="System",
                                       info="P passages · E passages + 30 graph facts · V1 passages + top 10 facts")
                     cite = gr.Checkbox(value=True, label="Citations")
+                with gr.Row():
+                    voice = gr.Checkbox(value=tts.enabled(), interactive=tts.enabled(), label="Voice (ElevenLabs)",
+                                        info=None if tts.enabled() else "set ELEVENLABS_API_KEY in .env to enable")
+                    voice_model = gr.Dropdown(tts.MODELS, value=tts.default_model(), label="Voice model",
+                                              allow_custom_value=True, interactive=tts.enabled())
                 chat = gr.Chatbot(height=520, label="Chat")
+                audio = gr.Audio(label="Answer audio", type="filepath", autoplay=True, interactive=False)
+                audio_info = gr.Markdown()
                 msg = gr.Textbox(placeholder="Ask about a government service…", label="Your message", lines=1)
                 with gr.Row():
                     send = gr.Button("Send", variant="primary")
@@ -134,8 +157,8 @@ def build(pipe: Pipeline) -> gr.Blocks:
                     fct = gr.Markdown(max_height=320)
                 with gr.Accordion("Tokens and cost", open=True):
                     cst = gr.Markdown()
-        outs = [chat, history, total, msg, rw, psg, fct, cst]
-        ins = [msg, chat, history, total, system, cite]
+        outs = [chat, history, total, msg, rw, psg, fct, cst, audio, audio_info]
+        ins = [msg, chat, history, total, system, cite, voice, voice_model]
         msg.submit(respond, ins, outs)
         send.click(respond, ins, outs)
         clear.click(new_conversation, None, outs)
@@ -157,7 +180,9 @@ def main() -> None:
     if args.share and not auth:
         sys.exit("--share makes the demo public and spends your API credit: start it with --auth user:password")
     pipe = Pipeline()
-    build(pipe).launch(server_name="127.0.0.1", server_port=args.port, share=args.share, auth=auth)
+    # Gradio serves only files under allowed paths; the answer audio is written to demo/logs/tts/.
+    build(pipe).launch(server_name="127.0.0.1", server_port=args.port, share=args.share, auth=auth,
+                       allowed_paths=[str(tts.AUDIO_DIR)])
 
 
 if __name__ == "__main__":
