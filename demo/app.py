@@ -8,12 +8,13 @@ Keys are read from .env by the LLM client; they are never printed or logged.
 import argparse
 import random
 import sys
+import time
 from collections import defaultdict
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from pipeline import ABSTAIN, SYSTEMS, Pipeline, display_title  # noqa: E402
+from pipeline import ABSTAIN, SYSTEMS, Pipeline, display_title, stream_view  # noqa: E402
 import tts  # noqa: E402
 
 import gradio as gr  # noqa: E402
@@ -77,8 +78,11 @@ def cost_md(res: Dict[str, Any], total: Dict[str, float]) -> str:
     rows.append(f"| **This turn** | {t_in:,} | {t_cached:,} | {t_out:,} | **{res['usd']:.5f}** |")
     times = ", ".join(f"{k} {v:.1f} s" for k, v in res["times"].items())
     total_s = sum(res["times"].values())
-    if res.get("tts") and res["tts"].get("first_audio") is not None:  # voice runs after the text, not in the total
-        times += f" · voice: first audio {res['tts']['first_audio']:.1f} s, total {res['tts']['seconds']:.1f} s"
+    t = res.get("tts") or {}
+    since = [f"{k} {t[v]:.1f} s" for k, v in (("first token", "first_token"), ("first audio", "first_audio"),
+                                               ("voice done", "seconds")) if t.get(v) is not None]
+    if since:  # measured from the moment Send was pressed; the voice is not in the total
+        times += " · from Send: " + ", ".join(since)
     return ("\n".join(rows) + f"\n\n**Conversation:** {int(total['turns'])} turns, {int(total['in']):,} in ({int(total.get('cached', 0)):,} cached) / "
             f"{int(total['out']):,} out tokens, USD {total['usd']:.4f}\n\n**Time:** {times} "
             f"(total {total_s:.1f} s)\n\n<sub>gpt-5.4-nano list prices, USD per 1M tokens: "
@@ -87,20 +91,65 @@ def cost_md(res: Dict[str, Any], total: Dict[str, float]) -> str:
 
 
 def build(pipe: Pipeline) -> gr.Blocks:
+    def ui(chat: List[Dict], panels=None, cost=None, audio=None, info=None, mp3=None):
+        """One update of the outputs; what is not given stays as it is."""
+        keep = gr.skip()
+        return (chat, keep, keep, keep) + (panels or (keep,) * 3) + tuple(keep if v is None else v for v in (cost, audio, info, mp3))
+
     def respond(message: str, chat: List[Dict], history: List[Dict], total: Dict, system: str, cite: bool,
                 voice: bool, voice_model: str):
+        t_send = time.time()
         message = (message or "").strip()
-        skip = (gr.skip(),) * 7
         if not message:
-            yield (chat, history, total, "") + skip
+            yield ui(chat)
             return
         chat = chat + [{"role": "user", "content": message}, {"role": "assistant", "content": "…"}]
-        yield (chat, history, total, "") + skip[:-3] + (None, "", None)
+        yield (chat, history, total, "") + (gr.skip(),) * 4 + (None, "", None)
+        vs: Optional[tts.VoiceStream] = None
+        raw, fed, abstain, first_token, last_ui, voice_err, panels, res = "", 0, None, None, 0.0, "", None, None
+
+        def feed_sentences(text: str, finished: bool) -> None:
+            nonlocal vs, fed
+            vs = vs or tts.VoiceStream(voice_model, start=t_send)
+            for part in tts.complete_sentences(text, finished)[fed:]:
+                vs.feed(part)
+                fed += 1
+
         try:
-            res = pipe.answer(message, history, system=system, cite=cite)
+            for kind, val in pipe.answer_stream(message, history, system=system, cite=cite):
+                if kind == "prepared":
+                    rw = val["rewritten"] if val["rewritten"] != message else f"{val['rewritten']}  _(unchanged)_"
+                    panels = (f"**{SYSTEMS[system]}**\n\n{rw}", passages_md(val), facts_md(val, pipe))
+                    yield ui(chat, panels)
+                elif kind == "g0":
+                    abstain = val
+                    if abstain:  # the streamed G2 text is dropped
+                        chat[-1] = {"role": "assistant", "content": ABSTAIN}
+                        yield ui(chat)
+                elif kind == "delta" and abstain is not True:
+                    raw += val
+                    first_token = first_token or time.time() - t_send
+                    shown = stream_view(raw, cite)
+                    chat[-1] = {"role": "assistant", "content": shown or "…"}
+                    chunks: List[bytes] = []
+                    if voice and abstain is False:  # the voice starts only once G0 has not abstained
+                        try:
+                            feed_sentences(shown, False)
+                            chunks = vs.ready()
+                        except tts.TTSError as e:
+                            voice, voice_err = False, str(e)
+                    for c in chunks:
+                        yield ui(chat, audio=c)
+                    if not chunks and time.time() - last_ui > 0.05:
+                        yield ui(chat)
+                    last_ui = time.time()
+                elif kind == "done":
+                    res = val
         except Exception as e:  # API errors carry no credentials (src.llm.client strips them)
+            if vs:
+                vs.close()
             chat[-1] = {"role": "assistant", "content": f"_Error: {e}_"}
-            yield (chat, history, total, "") + skip
+            yield ui(chat)
             return
         chat[-1] = {"role": "assistant", "content": res["answer"] + sources_md(res)}
         history = history + [{"role": "user", "utterance": message}, {"role": "agent", "utterance": res["answer"]}]
@@ -108,26 +157,29 @@ def build(pipe: Pipeline) -> gr.Blocks:
                  "in": total["in"] + sum(c["input_tokens"] or 0 for c in res["calls"]),
                  "out": total["out"] + sum(c["output_tokens"] or 0 for c in res["calls"]),
                  "cached": total.get("cached", 0) + sum(c["cached_tokens"] or 0 for c in res["calls"])}
-        rw = res["rewritten"] if res["rewritten"] != message else f"{res['rewritten']}  _(unchanged)_"
-        panels = (f"**{SYSTEMS[system]}**\n\n{rw}", passages_md(res), facts_md(res, pipe))
-        # The text is shown first; the audio follows sentence by sentence while ElevenLabs synthesizes it.
-        base = (chat, history, total, "") + panels
-        yield base + (cost_md(res, total), None, "_Generating audio…_" if voice else "", None)
+        res["tts"] = {"first_token": first_token}
+        info = "_Generating audio…_" if voice else (f"_Voice error: {voice_err}_" if voice_err else "")
+        yield (chat, history, total, "") + panels + (cost_md(res, total), gr.skip(), info, None)
         if not voice:
+            if vs:
+                vs.close()
             return
-        st: Dict[str, Any] = {}
+        # The text is final; the sentences still missing (all of them after an abstention) go to the voice now.
         try:
-            for chunk in tts.stream_answer(res["answer"], model=voice_model, stats=st):
-                res["tts"] = st
-                yield base + (gr.skip(), chunk, f"_Playing… {st['sentences']} sentences_", gr.skip())
+            feed_sentences(res["answer"], True)
+            for chunk in vs.drain():
+                yield ui(chat, audio=chunk)
         except tts.TTSError as e:
-            yield base + (cost_md(res, total), gr.skip(), f"_Voice error: {e}_", st.get("path"))
+            voice_err = str(e)
+        st = vs.close()
+        res["tts"] = {"first_token": first_token, "first_audio": st["first_audio"], "seconds": st["seconds"]}
+        if voice_err:
+            yield ui(chat, cost=cost_md(res, total), info=f"_Voice error: {voice_err}_", mp3=st["path"])
             return
-        res["tts"] = st
         credits = f" · {st['credits']:,} credits" if st["credits"] is not None else ""
-        yield base + (cost_md(res, total), gr.skip(),
-                      f"<sub>{st['model']} · {st['chars']:,} characters{credits} · {st['sentences']} sentences · "
-                      f"first audio {st['first_audio']:.1f} s</sub>", st["path"])
+        yield ui(chat, cost=cost_md(res, total), mp3=st["path"],
+                 info=f"<sub>{st['model']} · {st['chars']:,} characters{credits} · {st['sentences']} sentences · "
+                      f"first audio {st['first_audio']:.1f} s from Send</sub>")
 
     def new_conversation():
         return [], [], {"turns": 0, "usd": 0.0, "in": 0, "out": 0, "cached": 0}, "", "", "", "", "", None, "", None

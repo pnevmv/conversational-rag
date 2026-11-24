@@ -52,6 +52,15 @@ def cost_usd(usage: Dict[str, Optional[int]]) -> float:
     return ((inp - cached) * PRICE["input"] + cached * PRICE["cached_input"] + out * PRICE["output"]) / 1e6
 
 
+def stream_view(raw: str, cite: bool = True) -> str:
+    """Text of a growing answer as shown while it streams: citations removed, an unclosed "[" held back."""
+    if cite:
+        k = raw.rfind("[")
+        if k >= 0 and "]" not in raw[k:]:
+            raw = raw[:k]
+    return src_attr.strip_citations(raw) if cite else raw
+
+
 class Pipeline:
     def __init__(self, client: Optional[LLMClient] = None, log=print):
         from src.kg_rag.linker import EntityLinker
@@ -132,7 +141,8 @@ class Pipeline:
         return out
 
     # ------------------------------------------------------------------ one turn
-    def answer(self, question: str, history: List[Dict[str, str]], system: str = "E", cite: bool = True) -> Dict[str, Any]:
+    def prepare(self, question: str, history: List[Dict[str, str]], system: str, cite: bool) -> Dict[str, Any]:
+        """Everything before the generator: rewrite, passages, facts, context and the G0 / G2 prompts."""
         calls: List[Dict] = []
         times: Dict[str, float] = {}
 
@@ -151,18 +161,82 @@ class Pipeline:
             times["facts"] = time.time() - t
         context = self.context(system, ranking, facts)
         p = self.prompts(system, context, question, history, rewritten, cite)
+        return {"question": question, "system": system, "cite": cite, "rewritten": rewritten, "ranking": ranking[:TOP_K],
+                "facts": facts, "context": context, "prompts": p, "calls": calls, "times": times}
 
-        raw = self.generate(p, system, calls, times)
-
-        final = src_attr.strip_citations(raw) if cite else raw
-        sources = self.sources(raw, final, context, ranking, cite)
-        for c in calls:
+    def finish(self, st: Dict[str, Any], raw: str) -> Dict[str, Any]:
+        """The turn's result from the prepared state and the raw generator output."""
+        final = src_attr.strip_citations(raw) if st["cite"] else raw
+        sources = self.sources(raw, final, st["context"], st["ranking"], st["cite"])
+        for c in st["calls"]:
             c["usd"] = cost_usd(c)
-        return {"question": question, "rewritten": rewritten, "system": system, "cite": cite,
-                "ranking": ranking[:TOP_K], "facts": facts, "context": context, "prompts": p,
+        return {**{k: st[k] for k in ("question", "rewritten", "system", "cite", "ranking", "facts", "context",
+                                      "prompts", "calls", "times")},
                 "raw_answer": raw, "answer": final, "abstained": is_abstention(final),
-                "sources": sources, "calls": calls, "times": times,
-                "usd": sum(c["usd"] for c in calls)}
+                "sources": sources, "usd": sum(c["usd"] for c in st["calls"])}
+
+    # ------------------------------------------------------------------ one turn
+    def answer(self, question: str, history: List[Dict[str, str]], system: str = "E", cite: bool = True) -> Dict[str, Any]:
+        st = self.prepare(question, history, system, cite)
+        raw = self.generate(st["prompts"], system, st["calls"], st["times"])
+        return self.finish(st, raw)
+
+    def answer_stream(self, question: str, history: List[Dict[str, str]], system: str = "E", cite: bool = True):
+        """Like answer(), but as events: ("prepared", state), ("delta", text) while G2 is written,
+        ("g0", abstained) when G0 has decided, ("done", result).
+
+        G0 runs in a thread (whole, it only decides on abstention) while G2 is streamed in this one. With
+        G2 == G0 the single call is streamed and its decision comes with the last delta. The result is the
+        one answer() gives for the same model outputs: ABSTAIN if G0 abstains (the streamed G2 is then
+        "G2 (discarded)"), else the G2 text.
+        """
+        st = self.prepare(question, history, system, cite)
+        yield "prepared", st
+        p, calls, client = st["prompts"], st["calls"], self.llm()
+        single = p["G2"] == p["G0"]
+        kind = "G0" if single else "G2"
+        pool = ThreadPoolExecutor(max_workers=1)
+        try:
+            t = time.time()
+            f0 = None if single else pool.submit(self._call, client, "G0", p, system)
+            parts: List[str] = []
+            usage: Optional[Dict] = None
+            err: Optional[Exception] = None
+            told = False
+            try:
+                for x in client.generate_stream_with_usage(p[kind], meta={"call_type": kind, "pipeline": f"demo-{system}"}):
+                    if isinstance(x, str):
+                        parts.append(x)
+                        if f0 is not None and not told and f0.done():
+                            told = True
+                            yield "g0", is_abstention(f0.result()[0])
+                        yield "delta", x
+                    else:
+                        usage = x
+            except RuntimeError as e:  # an API failure only matters if G2 is the answer
+                err = e
+            seconds = time.time() - t
+            a0, c0 = f0.result() if f0 else ("".join(parts), None)
+            abstained = is_abstention(a0)
+            if not told:
+                yield "g0", abstained
+            if c0:
+                calls.append(c0)
+            if err and not (abstained and not single):
+                raise err
+            if usage is not None:
+                g2 = {"call": kind if not (abstained and not single) else "G2 (discarded)", "seconds": seconds, **usage}
+                calls.append(g2)
+            st["times"]["G0" if single else "G0+G2"] = time.time() - t
+            raw = ABSTAIN if abstained else "".join(parts)
+        finally:
+            pool.shutdown(wait=False, cancel_futures=True)
+        yield "done", self.finish(st, raw)
+
+    def _call(self, client: LLMClient, kind: str, p: Dict[str, str], system: str):
+        t = time.time()
+        text, usage = client.generate_with_usage(p[kind], meta={"call_type": kind, "pipeline": f"demo-{system}"})
+        return text, {"call": kind, "seconds": time.time() - t, **usage}
 
     def generate(self, p: Dict[str, str], system: str, calls: List[Dict], times: Dict[str, float]) -> str:
         """G0 (abstention check) and G2 (answer), as graph_rag.generate, but started together.
@@ -173,19 +247,14 @@ class Pipeline:
         """
         client = self.llm()  # created here, before the threads start
 
-        def run(kind: str):
-            t = time.time()
-            text, usage = client.generate_with_usage(p[kind], meta={"call_type": kind, "pipeline": f"demo-{system}"})
-            return text, {"call": kind, "seconds": time.time() - t, **usage}
-
         t = time.time()
         if p["G2"] == p["G0"]:
-            a0, c0 = run("G0")
+            a0, c0 = self._call(client, "G0", p, system)
             calls.append(c0)
             times["G0"] = time.time() - t
             return ABSTAIN if is_abstention(a0) else a0
         with ThreadPoolExecutor(max_workers=2) as pool:
-            f0, f2 = pool.submit(run, "G0"), pool.submit(run, "G2")
+            f0, f2 = (pool.submit(self._call, client, k, p, system) for k in ("G0", "G2"))
             a0, c0 = f0.result()
             calls.append(c0)
             if is_abstention(a0):
