@@ -55,7 +55,9 @@ def speakable(text: str) -> str:
     """Answer text as it should be read aloud: no markdown, citation brackets or URLs."""
     text = re.sub(r"\[(?:F?\d+)(?:\s*,\s*F?\d+)*\]", "", text)  # leftover [2] / [F7, 3]
     text = re.sub(r"https?://\S+", "", text)
-    text = re.sub(r"[*_`#>]+", "", text)
+    text = re.sub(r"^[ \t]*(?:#{1,6}|>)[ \t]+", "", text, flags=re.M)  # heading / quote markers at line start
+    text = re.sub(r"(\*{1,3}|\b_{1,2})(?=\S)(.+?)(?<=\S)\1", r"\2", text)  # **bold**, *em*, __b__, _em_
+    text = text.replace("`", "")
     text = re.sub(r"\s+", " ", text).strip()
     text = re.sub(r"\s+([.,;:!?])", r"\1", text)
     return text[:MAX_CHARS]

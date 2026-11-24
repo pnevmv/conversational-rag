@@ -22,6 +22,11 @@ def test_speakable_strips_citations_markdown_urls():
         "You can apply online at now."
 
 
+def test_speakable_keeps_meaningful_symbols():
+    assert tts.speakable("Income > $1,000 for form my_file #5 is **ok**.") == "Income > $1,000 for form my_file #5 is ok."
+    assert tts.speakable("## Steps\n> Use `Form A` and _then_ *wait*.") == "Steps Use Form A and then wait."
+
+
 def test_synthesize_request_and_files(tmp_path, monkeypatch):
     monkeypatch.setenv("ELEVENLABS_API_KEY", "test-key")
     monkeypatch.delenv("ELEVENLABS_VOICE_ID", raising=False)
