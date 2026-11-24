@@ -114,6 +114,12 @@ def sentences(text: str) -> List[str]:
     return [c for p in merged for c in _split_long(p)]
 
 
+def complete_sentences(text: str, finished: bool) -> List[str]:
+    """Chunks of a growing answer that will not change any more: all but the last one until it is finished."""
+    parts = sentences(text)
+    return parts if finished else parts[:-1]
+
+
 def _get_client():
     """One ElevenLabs client per process, created on first use."""
     global _client
@@ -177,51 +183,87 @@ def _log(row: Dict[str, Any], log_path: Path) -> None:
         f.write(json.dumps({"t": time.time(), **row}) + "\n")
 
 
+class VoiceStream:
+    """Synthesizes sentences one request at a time, in order, while they are still being fed.
+
+    feed() queues a sentence (its predecessor goes along as previous_text, and next_text when the caller
+    knows it); ready() returns the chunks whose audio has arrived, in order; drain() waits for the rest.
+    close() writes the whole answer as one mp3 and logs the usage line, even after an error.
+    `start` is the time the first-audio time is measured from (default: creation).
+    """
+
+    def __init__(self, model: Optional[str] = None, voice_id: Optional[str] = None, start: Optional[float] = None,
+                 out_dir: Path = AUDIO_DIR):
+        if not enabled():
+            raise TTSError("ELEVENLABS_API_KEY is not set in .env")
+        self.model = model or default_model()
+        self.voice_id = voice_id or os.getenv("ELEVENLABS_VOICE_ID", "").strip() or DEFAULT_VOICE_ID
+        self.start, self.out_dir = start or time.time(), out_dir
+        self.stats: Dict[str, Any] = {"model": self.model, "voice_id": self.voice_id, "sentences": 0, "chars": 0,
+                                      "credits": None, "first_audio": None, "seconds": None, "path": None}
+        self._pool = ThreadPoolExecutor(max_workers=1)  # one request at a time keeps the order
+        self._pending: List[Any] = []
+        self._chunks: List[bytes] = []
+        self._last = ""
+        self._closed = False
+
+    def feed(self, sentence: str, following: str = "") -> None:
+        previous, self._last = self._last, sentence
+        self.stats["sentences"] += 1
+        self.stats["chars"] += len(sentence)
+        self._pending.append(self._pool.submit(_convert, sentence, self.model, self.voice_id, previous, following))
+
+    def _take(self) -> bytes:
+        audio, credits = self._pending.pop(0).result()
+        if credits is not None:
+            self.stats["credits"] = (self.stats["credits"] or 0) + credits
+        now = time.time() - self.start
+        if self.stats["first_audio"] is None:
+            self.stats["first_audio"] = now
+        self.stats["seconds"] = now
+        self._chunks.append(audio)
+        return audio
+
+    def ready(self) -> List[bytes]:
+        out = []
+        while self._pending and self._pending[0].done():
+            out.append(self._take())
+        return out
+
+    def drain(self) -> Iterator[bytes]:
+        while self._pending:
+            yield self._take()
+
+    def close(self) -> Dict[str, Any]:
+        if not self._closed:
+            self._closed = True
+            self._pool.shutdown(wait=False, cancel_futures=True)
+            if self._chunks:
+                self.out_dir.mkdir(parents=True, exist_ok=True)
+                path = self.out_dir / f"{time.strftime('%Y%m%d-%H%M%S')}-{uuid.uuid4().hex[:6]}.mp3"
+                path.write_bytes(b"".join(self._chunks))
+                self.stats["path"] = str(path)
+            if self.stats["sentences"]:
+                _log({k: self.stats[k] for k in ("model", "voice_id", "sentences", "chars", "credits",
+                                                 "first_audio", "seconds")}, self.out_dir.parent / USAGE_LOG.name)
+        return self.stats
+
+
 def stream_answer(text: str, model: Optional[str] = None, voice_id: Optional[str] = None,
                   stats: Optional[Dict[str, Any]] = None, out_dir: Path = AUDIO_DIR) -> Iterator[bytes]:
-    """Yield one mp3 chunk per sentence; the next sentence is synthesized while the current one is consumed.
+    """Yield one mp3 chunk per sentence of a finished answer; the next sentences are synthesized meanwhile.
 
-    `stats` (optional dict) is filled while running: model, voice_id, sentences, chars, credits,
-    first_audio (seconds from the first next() to the first chunk), seconds (to the last chunk), path (the
-    whole answer as one mp3, written when the stream ends). The usage line is logged even if a request fails.
+    `stats` (optional dict) is filled as described for VoiceStream (the saved mp3 is stats["path"]).
     """
-    if not enabled():
-        raise TTSError("ELEVENLABS_API_KEY is not set in .env")
     parts = sentences(text)
     if not parts:
         raise TTSError("nothing to read aloud")
-    model = model or default_model()
-    voice_id = voice_id or os.getenv("ELEVENLABS_VOICE_ID", "").strip() or DEFAULT_VOICE_ID
-    st = stats if stats is not None else {}
-    st.update(model=model, voice_id=voice_id, sentences=len(parts), chars=sum(len(p) for p in parts),
-              credits=None, first_audio=None, seconds=None, path=None)
-    t0 = time.time()
-    chunks: List[bytes] = []
-
-    def job(i: int):
-        return _convert(parts[i], model, voice_id, parts[i - 1] if i else "",
-                        parts[i + 1] if i + 1 < len(parts) else "")
-
-    pool = ThreadPoolExecutor(max_workers=1)
+    voice = VoiceStream(model, voice_id, out_dir=out_dir)
     try:
-        nxt = pool.submit(job, 0)
-        for i in range(len(parts)):
-            audio, credits = nxt.result()
-            if i + 1 < len(parts):
-                nxt = pool.submit(job, i + 1)  # runs while this chunk is played
-            if credits is not None:
-                st["credits"] = (st["credits"] or 0) + credits
-            if st["first_audio"] is None:
-                st["first_audio"] = time.time() - t0
-            chunks.append(audio)
-            st["seconds"] = time.time() - t0
-            yield audio
+        for i, part in enumerate(parts):
+            voice.feed(part, parts[i + 1] if i + 1 < len(parts) else "")
+        yield from voice.drain()
     finally:
-        pool.shutdown(wait=False, cancel_futures=True)
-        if chunks:
-            out_dir.mkdir(parents=True, exist_ok=True)
-            path = out_dir / f"{time.strftime('%Y%m%d-%H%M%S')}-{uuid.uuid4().hex[:6]}.mp3"
-            path.write_bytes(b"".join(chunks))
-            st["path"] = str(path)
-        _log({k: st[k] for k in ("model", "voice_id", "sentences", "chars", "credits", "first_audio", "seconds")},
-             out_dir.parent / USAGE_LOG.name)
+        result = voice.close()
+        if stats is not None:
+            stats.update(result)

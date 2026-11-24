@@ -3,7 +3,7 @@ import os
 import threading
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, Iterator, List, Optional, Tuple, Union
 from dotenv import load_dotenv
 from openai import OpenAI, OpenAIError
 
@@ -109,6 +109,29 @@ class LLMClient:
         log_usage(target_model, usage, meta)
         return response.output_text, usage
 
+    def generate_stream_with_usage(self, prompt: str, model: Optional[str] = None,
+                                   meta: Optional[Dict[str, Any]] = None) -> Iterator[Union[str, Dict[str, Optional[int]]]]:
+        """Like generate_with_usage(), but yields the text as it is written.
+
+        Yields the text deltas (str) and, once the response has completed, the token usage (dict) as the
+        last item; the call is written to the usage log at that point, like the non-streaming call. The
+        same model and parameters are sent, only with stream=True.
+        """
+        target_model = model or self.default_model
+        try:
+            for event in self.client.responses.create(model=target_model, input=prompt, stream=True):
+                if event.type == "response.output_text.delta":
+                    yield event.delta
+                elif event.type == "response.completed":
+                    usage = usage_of(event.response)
+                    log_usage(target_model, usage, meta)
+                    yield usage
+                    return
+                elif event.type in ("response.failed", "response.incomplete"):
+                    raise RuntimeError(f"LLM API request failed: {event.type}")
+        except OpenAIError as e:
+            raise RuntimeError(f"LLM API request failed: {e}") from None
+        raise RuntimeError("LLM API request failed: the stream ended before the response completed")
 
     def generate_with_tools(self, input_items: List[Dict[str, Any]], tools: List[Dict[str, Any]],
                             tool_choice: Any = "auto", model: Optional[str] = None,
